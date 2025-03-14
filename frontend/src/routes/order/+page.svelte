@@ -35,30 +35,21 @@
 		successMessage = '';
 
 		try {
-			// For demonstration, just show a success message
-			// Replace with actual API call when backend is ready
+			const response = await fetch('/api/v1/orders', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(formData)
+			});
 
-			// Mock successful response
-			successMessage = `Order placed successfully! Order ID: ORD${Math.floor(Math.random() * 1000000)}`;
+			const data = await response.json();
 
-			// In a real implementation, you would do something like:
-			/*
-        const response = await fetch('/api/v1/orders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to place order');
-        }
-        
-        successMessage = `Order placed successfully! Order ID: ${data.orderId}`;
-        */
+			if (!response.ok) {
+				throw new Error(data.error || 'Failed to place order');
+			}
+
+			successMessage = `Order placed successfully! Order ID: ${data.orderId}`;
 
 			// Reset form after successful submission
 			resetForm();
