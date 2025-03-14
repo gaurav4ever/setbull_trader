@@ -15,6 +15,7 @@ application.yaml
 application.dev.yaml
 application.*.yaml
 !application.example.yaml
+consolidated_code/
 
 # VS Code specific
 .vscode/*
@@ -65,3 +66,4 @@ __debug_bin
 # Local test coverage
 coverage.out
 coverage.html
+.DS_Store
