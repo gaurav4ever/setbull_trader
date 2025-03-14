@@ -27,7 +27,7 @@ type DhanConfig struct {
 
 // LoadConfig loads the application configuration from application.yaml
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("application")
+	viper.SetConfigName("application.dev")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
