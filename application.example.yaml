@@ -5,5 +5,5 @@ server:
 
 dhan:
   base_url: "https://api.dhan.co"
-  access_token: "YOUR_ACCESS_TOKEN"
-  client_id: "YOUR_DHAN_CLIENT_ID"
+  access_token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzQ0NTY2NTM0LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMDE2MTU5OCJ9.SiT7G7MpHd6lllkyPztenKoqaq1CfYNDd64JANSmdvid_I5SSYKzWkaseJcQOprZSk2Fqg1C1UgVWvgjeJD9xg"
+  client_id: "1100161598"
