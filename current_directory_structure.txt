@@ -1,0 +1,49 @@
+├── Dockerfile
+├── Makefile
+├── README.md
+├── application.dev.yaml
+├── application.yaml
+├── cmd
+│   └── trading
+│       ├── app
+│       │   └── app.go
+│       └── transport
+│           └── http.go
+├── dhan
+│   ├── all_in_one.txt
+│   ├── get_history_orders.txt
+│   ├── get_orders_intraday.txt
+│   ├── post_order_api_doc.txt
+│   └── put_order_api_doc.txt
+├── go.mod
+├── go.sum
+├── internal
+│   ├── core
+│   │   ├── adapters
+│   │   │   └── client
+│   │   │       └── dhan
+│   │   │           ├── dhant_client.go
+│   │   │           └── models.go
+│   │   ├── constant
+│   │   ├── dto
+│   │   │   ├── request
+│   │   │   │   └── orders.go
+│   │   │   └── response
+│   │   │       └── orders.go
+│   │   └── service
+│   │       └── orders
+│   │           └── service.go
+│   └── trading
+│       ├── config
+│       │   └── config.go
+│       └── service
+│           └── query
+├── main.go
+├── pkg
+│   ├── apperrors
+│   │   └── errors.go
+│   ├── database
+│   │   └── migrations
+│   └── log
+│       └── log.go
+└── sample_directory_structure.txt

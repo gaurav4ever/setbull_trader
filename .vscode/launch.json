@@ -1,0 +1,48 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Trading App (Go)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "env": {},
+            "args": []
+        },
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "processId": 0
+        },
+        {
+            "name": "Debug Test",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${fileDirname}",
+            "args": []
+        },
+        {
+            "name": "Launch Full Stack (Go+Svelte)",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "Start Svelte Frontend",
+            "dependsOn": [
+                "Launch Trading App (Go)"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch Full Stack Application",
+            "configurations": [
+                "Launch Trading App (Go)",
+                "Launch Full Stack (Go+Svelte)"
+            ],
+            "stopAll": true
+        }
+    ]
+}
