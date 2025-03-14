@@ -1,0 +1,167 @@
+.
+├── CODEOWNERS
+├── Dockerfile
+├── Makefile
+├── README.md
+├── application.example.yaml
+├── application.yaml
+├── cmd
+│   ├── forward
+│   │   ├── app
+│   │   │   ├── app.go
+│   │   │   ├── wire.go
+│   │   │   └── wire_gen.go
+│   │   └── transport
+│   │       ├── grpc.go
+│   │       └── http.go
+│   ├── forward.go
+│   └── root.go
+├── go.mod
+├── go.sum
+├── internal
+│   ├── core
+│   │   ├── adapters
+│   │   │   ├── client
+│   │   │   │   ├── billpayments
+│   │   │   │   │   └── billpayments_grpc.go
+│   │   │   │   ├── bus
+│   │   │   │   │   └── bus_grpc.go
+│   │   │   │   ├── commonservice
+│   │   │   │   │   └── commonservice_grpc.go
+│   │   │   │   ├── connection.go
+│   │   │   │   ├── donation
+│   │   │   │   │   └── donation_grpc.go
+│   │   │   │   ├── events
+│   │   │   │   │   └── events_grpc.go
+│   │   │   │   ├── flight
+│   │   │   │   │   └── flights_grpc.go
+│   │   │   │   ├── giftcard
+│   │   │   │   │   └── giftcard_grpc.go
+│   │   │   │   ├── hotels
+│   │   │   │   │   └── hotel_grpc.go
+│   │   │   │   ├── masterdata
+│   │   │   │   │   └── masterdata_grpc.go
+│   │   │   │   └── recharge
+│   │   │   │       └── recharge_grpc.go
+│   │   │   └── mysql
+│   │   │       ├── finished_block_repo.go
+│   │   │       └── homescreen_repo.go
+│   │   ├── constant
+│   │   │   ├── cache.go
+│   │   │   └── common.go
+│   │   ├── dto
+│   │   │   └── request
+│   │   │       ├── auth.go
+│   │   │       ├── finishedblock.go
+│   │   │       └── homescreen.go
+│   │   ├── errorhandler
+│   │   │   ├── error_config.go
+│   │   │   ├── error_handling_details.go
+│   │   │   ├── mapper.go
+│   │   │   └── service.go
+│   │   ├── registry
+│   │   │   ├── command.go
+│   │   │   └── command_registry.go
+│   │   ├── service
+│   │   │   ├── categories
+│   │   │   │   ├── bus
+│   │   │   │   │   ├── command.go
+│   │   │   │   │   ├── mapper.go
+│   │   │   │   │   ├── response.go
+│   │   │   │   │   └── service.go
+│   │   │   │   ├── donation
+│   │   │   │   │   ├── command.go
+│   │   │   │   │   ├── mapper.go
+│   │   │   │   │   ├── response.go
+│   │   │   │   │   └── service.go
+│   │   │   │   ├── flights
+│   │   │   │   │   ├── command.go
+│   │   │   │   │   ├── mapper.go
+│   │   │   │   │   ├── response.go
+│   │   │   │   │   └── service.go
+│   │   │   │   ├── giftcard
+│   │   │   │   │   ├── command.go
+│   │   │   │   │   ├── mapper.go
+│   │   │   │   │   ├── response.go
+│   │   │   │   │   └── service.go
+│   │   │   │   ├── hotels
+│   │   │   │   │   ├── command.go
+│   │   │   │   │   ├── mapper.go
+│   │   │   │   │   ├── response.go
+│   │   │   │   │   └── service.go
+│   │   │   │   ├── masterdata
+│   │   │   │   │   └── service.go
+│   │   │   │   └── recharge
+│   │   │   │       ├── command.go
+│   │   │   │       ├── mapper.go
+│   │   │   │       ├── response.go
+│   │   │   │       └── service.go
+│   │   │   ├── finishedblock
+│   │   │   │   ├── finished_block.go
+│   │   │   │   ├── mapper.go
+│   │   │   │   ├── repository.go
+│   │   │   │   └── service.go
+│   │   │   ├── homescreen
+│   │   │   │   ├── homescreen.go
+│   │   │   │   ├── mapper.go
+│   │   │   │   ├── repository.go
+│   │   │   │   ├── service.go
+│   │   │   │   └── service_mock.go
+│   │   │   └── template
+│   │   │       ├── service.go
+│   │   │       └── service_test.go
+│   │   ├── validator
+│   │   │   └── validate.go
+│   │   └── vault
+│   │       └── vault_util.go
+│   └── forward
+│       ├── auth
+│       │   └── jwt
+│       │       ├── jwt_auth_interceptor.go
+│       │       ├── middleware.go
+│       │       └── middleware_test.go
+│       ├── config
+│       │   └── config.go
+│       ├── gateway
+│       │   └── gateway.go
+│       └── service
+│           ├── query
+│           │   ├── get_finished_block.go
+│           │   ├── get_homescreen.go
+│           │   └── get_homescreen_test.go
+│           └── registry.go
+├── main.go
+├── pkg
+│   ├── apperrors
+│   │   └── errors.go
+│   ├── cache
+│   │   ├── cache.go
+│   │   ├── gocache.go
+│   │   └── redis.go
+│   ├── database
+│   │   ├── database.go
+│   │   ├── migration.go
+│   │   └── migrations
+│   │       ├── 20241121084511_create_table_homescreen.down.sql
+│   │       ├── 20241121084511_create_table_homescreen.up.sql
+│   │       ├── 20241121111608_create_table_finished_block.down.sql
+│   │       ├── 20241121111608_create_table_finished_block.up.sql
+│   │       ├── 20241125063600_add_config_col_to_homescreen.down.sql
+│   │       ├── 20241125063600_add_config_col_to_homescreen.up.sql
+│   │       ├── 20241204075445_alter_table_add_columns_to_finished_block_table.down.sql
+│   │       ├── 20241204075445_alter_table_add_columns_to_finished_block_table.up.sql
+│   │       ├── 20241226070403_add_user_data_config_col_to_finished_block_table.sql.down.sql
+│   │       └── 20241226070403_add_user_data_config_col_to_finished_block_table.sql.up.sql
+│   ├── header
+│   │   ├── accept_language.go
+│   │   ├── context.go
+│   │   ├── forward_interceptor.go
+│   │   ├── grpc_metadata.go
+│   │   ├── header.go
+│   │   └── jwt_payload.go
+│   └── log
+│       └── log.go
+└── resource
+    ├── errors
+    │   └── en.json
+    └── homescreens
