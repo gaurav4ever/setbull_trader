@@ -2,6 +2,7 @@ package transport
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"setbull_trader/internal/core/dto/request"
@@ -29,8 +30,11 @@ func NewHTTPHandler(orderService *orders.Service) *HTTPHandler {
 	}
 }
 
-// RegisterRoutes registers HTTP routes
 func (h *HTTPHandler) RegisterRoutes(router *gin.Engine) {
+
+	router.Use(CORSMiddleware())
+	router.Use(RequestLoggerMiddleware())
+
 	// API group with version
 	api := router.Group("/api/v1")
 
@@ -50,11 +54,13 @@ func (h *HTTPHandler) RegisterRoutes(router *gin.Engine) {
 	}
 
 	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "UP",
-			"time":   time.Now().Format(time.RFC3339),
-		})
+	api.GET("/health", h.healthCheck)
+}
+
+func (h *HTTPHandler) healthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "UP",
+		"time":   time.Now().Format(time.RFC3339),
 	})
 }
 
@@ -157,16 +163,21 @@ func (h *HTTPHandler) getTradeHistory(c *gin.Context) {
 	req.ToDate = c.DefaultQuery("toDate", time.Now().Format("2006-01-02"))
 
 	// Parse page number with default 0
-	var pageNumber int
+	pageNumber := 0
 	if c.Query("page") != "" {
-		if _, err := scanf(c.Query("page"), "%d", &pageNumber); err != nil {
-			pageNumber = 0
+		if page, err := strconv.Atoi(c.Query("page")); err == nil {
+			pageNumber = page
 		}
 	}
 	req.PageNumber = pageNumber
 
+	// Log the extracted parameters
+	log.Info("Processing trade history request | FromDate: %s, ToDate: %s, Page: %d",
+		req.FromDate, req.ToDate, req.PageNumber)
+
 	// Validate request
 	if err := h.validator.Struct(req); err != nil {
+		log.Error("Trade history validation error: %v", err)
 		c.JSON(http.StatusBadRequest, apperrors.NewErrorResponse("Validation error", err))
 		return
 	}
@@ -178,6 +189,8 @@ func (h *HTTPHandler) getTradeHistory(c *gin.Context) {
 		return
 	}
 
+	// Log response summary
+	log.Info("Trade history response | Count: %d", resp.Count)
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -205,4 +218,20 @@ func handleError(c *gin.Context, err error) {
 func scanf(in string, format string, a ...interface{}) (int, error) {
 	// Implement your parsing logic here
 	return 0, errors.New("Not implemented") // Return 0 as a placeholder
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // Allow any origin
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
