@@ -8,7 +8,7 @@
     "[go]": {
         "editor.defaultFormatter": "golang.go",
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         }
     },
     "go.delveConfig": {
