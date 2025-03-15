@@ -121,3 +121,66 @@ GET /api/v1/fibonacci/calculate
 Calculate Fibonacci levels without creating an execution plan
 Query parameters: startingPrice, slPercentage, tradeSide, riskAmount
 Returns calculated levels and quantities
+
+
+High-Level Design
+The application is a trading platform with the following core components:
+
+Stock Management - Select and manage stocks for trading
+Trade Parameters - Configure trading settings for selected stocks
+Execution Plans - Calculate Fibonacci-based entry levels and quantities
+Order Execution - Execute trades based on the plans
+Utilities - Calculate Fibonacci levels without creating an execution plan
+
+The API flow typically follows this sequence:
+
+Create/select stocks
+Configure trade parameters for selected stocks
+Generate execution plans
+Execute orders based on the plans
+
+Low-Level Design
+The API endpoints are organized in the following groups:
+
+Stock Management
+
+GET /api/v1/stocks - List all stocks
+GET /api/v1/stocks/{id} - Get stock by ID
+GET /api/v1/stocks/selected - Get selected stocks
+POST /api/v1/stocks - Create a stock
+PUT /api/v1/stocks/{id} - Update a stock
+PATCH /api/v1/stocks/{id}/toggle-selection - Toggle stock selection
+DELETE /api/v1/stocks/{id} - Delete a stock
+
+
+Trade Parameters
+
+GET /api/v1/parameters/stock/{stockId} - Get parameters for a stock
+POST /api/v1/parameters - Create/update parameters
+DELETE /api/v1/parameters/{id} - Delete parameters
+
+
+Execution Plans
+
+GET /api/v1/plans - List all execution plans
+GET /api/v1/plans/{id} - Get plan by ID
+GET /api/v1/plans/stock/{stockId} - Get plan for a stock
+POST /api/v1/plans/stock/{stockId} - Create a plan
+DELETE /api/v1/plans/{id} - Delete a plan
+
+
+Order Execution
+
+POST /api/v1/execute/stock/{stockId} - Execute orders for a stock
+POST /api/v1/execute/all - Execute orders for all selected stocks
+GET /api/v1/executions/{id} - Get execution by ID
+GET /api/v1/executions/plan/{planId} - Get executions for a plan
+
+
+Utilities
+
+GET /api/v1/fibonacci/calculate - Calculate Fibonacci levels
+GET /api/v1/health - Health check
+
+
+

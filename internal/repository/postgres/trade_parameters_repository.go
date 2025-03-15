@@ -65,5 +65,5 @@ func (r *TradeParametersRepository) Update(ctx context.Context, params *domain.T
 
 // Delete deletes trade parameters
 func (r *TradeParametersRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&domain.TradeParameters{}, id).Error
+	return r.db.WithContext(ctx).Delete(&domain.TradeParameters{}, "id = ?", id).Error
 }

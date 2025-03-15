@@ -90,7 +90,7 @@ func (s *TradeParametersService) validateParameters(params *domain.TradeParamete
 		return errors.New("starting price must be positive")
 	}
 
-	if params.StopLossPercentage <= 0 || params.StopLossPercentage > 5 {
+	if params.StopLossPercentage < 0 || params.StopLossPercentage > 5 {
 		return errors.New("stop loss percentage must be between 0 and 5")
 	}
 

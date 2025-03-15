@@ -71,5 +71,5 @@ func (r *ExecutionPlanRepository) GetAll(ctx context.Context) ([]*domain.Executi
 
 // Delete deletes an execution plan
 func (r *ExecutionPlanRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&domain.ExecutionPlan{}, id).Error
+	return r.db.WithContext(ctx).Delete(&domain.ExecutionPlan{}, "id = ?", id).Error
 }

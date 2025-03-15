@@ -88,5 +88,5 @@ func (r *StockRepository) ToggleSelection(ctx context.Context, id string, isSele
 
 // Delete deletes a stock
 func (r *StockRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&domain.Stock{}, id).Error // Use GORM's Delete method
+	return r.db.WithContext(ctx).Delete(&domain.Stock{}, "id = ?", id).Error
 }
