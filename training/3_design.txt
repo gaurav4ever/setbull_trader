@@ -1,0 +1,161 @@
+High-Level Design: Stock Trading Platform with Fibonacci Execution Levels
+Based on your requirements and the existing Fibonacci execution level calculator, I'll design a platform that allows you to manage and execute trades for multiple stocks with automatic price level calculations.
+System Overview
+
+Stock Selection & Management Component
+
+Allow selection of 3 stocks for weekly trading
+Store and manage stock metadata (name, ticker symbol, current price)
+Track stock selection status (active/inactive)
+
+
+Trade Parameters Configuration Component
+
+Input fields for execution starting price, stop loss percentage, and risk amount
+Default value handling (30 rupees for risk)
+Parameters validation
+
+
+Fibonacci Execution Calculator
+
+Reuse the existing calculator to determine price levels
+Integrate it with quantity calculator for each leg
+
+
+Order Execution Engine
+
+Calculate proper quantities based on risk and stop loss
+Split quantities across execution legs
+Execute orders at calculated price points
+Handle both buy and sell orders
+
+
+User Interface
+
+Three stock boxes with configurable parameters
+Selection checkboxes for each stock
+Common execution button
+Execution preview/confirmation
+
+
+
+Data Flow
+
+User selects up to 3 stocks and configures trade parameters
+System calculates Fibonacci levels and appropriate quantities
+User initiates execution with the "Place Order" button
+System executes trades according to the configured parameters
+Execution status and results are displayed to the user
+
+
+Low-Level Design: Components & Interactions
+1. Domain Models
+Stock
+
+type Stock struct {
+    ID          string
+    Symbol      string
+    Name        string
+    CurrentPrice float64
+    IsSelected   bool
+}
+
+TradeParameters
+
+type TradeParameters struct {
+    StartingPrice     float64
+    StopLossPercentage float64
+    RiskAmount        float64
+    TradeSide         TradeSide  // enum(BUY, SELL)
+}
+
+ExecutionPlan
+
+
+type ExecutionPlan struct {
+    Stock         Stock
+    Parameters    TradeParameters
+    LevelEntries  []LevelEntry
+    TotalQuantity int
+}
+
+type LevelEntry struct {
+    FibLevel    float64
+    Price       float64
+    Quantity    int
+    Description string
+}
+
+
+
+2. Component Interfaces
+StockSelectionService
+
+
+type StockSelectionService interface {
+    SelectStocks(stockIds []string) error
+    GetSelectedStocks() []Stock
+    ToggleStockSelection(stockId string, isSelected bool) error
+    GetAvailableStocks() []Stock
+}
+
+
+TradeParametersService
+
+
+type TradeParametersService interface {
+    SetTradeParameters(stockId string, parameters TradeParameters) error
+    GetTradeParameters(stockId string) (TradeParameters, error)
+    ValidateParameters(parameters TradeParameters) []ValidationError
+}
+
+ExecutionCalculatorService
+
+type ExecutionCalculatorService interface {
+    CalculateExecutionPlan(stock Stock, parameters TradeParameters) (ExecutionPlan, error)
+    CalculateFibonacciLevels(startPrice float64, slPercentage float64, side TradeSide) []ExecutionLevel
+    CalculateQuantities(totalRisk float64, slPoints float64, levels []ExecutionLevel) ([]LevelEntry, error)
+}
+
+OrderExecutionService
+
+type OrderExecutionService interface {
+    ExecuteOrder(plan ExecutionPlan) (OrderResult, error)
+    ExecuteAllSelectedOrders() ([]OrderResult, error)
+}
+
+3. Database Schema
+Not needed for initial implementation, but if persistence is required:
+
+CREATE TABLE Stocks (
+    id VARCHAR(36) PRIMARY KEY,
+    symbol VARCHAR(10) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    current_price DECIMAL(10,2) NOT NULL,
+    is_selected BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE TradeParameters (
+    id VARCHAR(36) PRIMARY KEY,
+    stock_id VARCHAR(36) REFERENCES Stocks(id),
+    starting_price DECIMAL(10,2) NOT NULL,
+    sl_percentage DECIMAL(5,2) NOT NULL,
+    risk_amount DECIMAL(10,2) NOT NULL,
+    trade_side VARCHAR(4) NOT NULL CHECK (trade_side IN ('BUY', 'SELL'))
+);
+
+CREATE TABLE ExecutionPlans (
+    id VARCHAR(36) PRIMARY KEY,
+    stock_id VARCHAR(36) REFERENCES Stocks(id),
+    parameters_id VARCHAR(36) REFERENCES TradeParameters(id),
+    total_quantity INT NOT NULL
+);
+
+CREATE TABLE LevelEntries (
+    id VARCHAR(36) PRIMARY KEY,
+    execution_plan_id VARCHAR(36) REFERENCES ExecutionPlans(id),
+    fib_level DECIMAL(5,2) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    description VARCHAR(50) NOT NULL
+);

@@ -7,3 +7,46 @@ dhan:
   base_url: "https://api.dhan.co"
   access_token: "xyz"
   client_id: "abc"
+
+
+database:
+  masterDatasource:
+    user: setbull_trader
+    password: setbull_trader
+    host: 127.0.0.1:3306
+    name: setbull_trader
+  slaveDatasource:
+    user: setbull_trader
+    password: setbull_trader
+    host: 127.0.0.1:3306
+    name: setbull_trader
+  maxIdleConnections: 5
+  maxOpenConnections: 5
+  maxConnectionLifetime: 50s
+  maxConnectionIdletime: 50s
+  disableTLS: true
+  debug: true
+cache:
+  freecache:
+    # In bytes, where 1024 * 1024 represents a single Megabyte. 256000000 = 256mb
+    size: 256000000
+    ttl: 1m
+    disable: true
+  redis:
+    host: 127.0.01
+    port: 6379
+    database: 1
+    idleConnectionTimeout: 20s
+    connectTimeout: 20s
+    readTimeout: 3s
+    writeTimeout: 3s
+    timeout: 3s
+    tcpNoDelay: false
+    poolSize: 128
+    maxRetry: 3
+    minIdle: 10
+    ttl: 1m
+    disable: false
+  inmem:
+    ttl: 1m
+    cleanupttl: 1m

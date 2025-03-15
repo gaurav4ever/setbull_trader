@@ -1,0 +1,23 @@
+What is it that I'm trying achieve ?
+
+1. Need to select 3 stocks that I will trade for a week
+    - Selection based on manual analysis
+    - SL should be pre-decided. Will be different for different stock.
+    - 0.5% - 0.8% SL
+2. These 3 stocks should be on the Main UI, with 3 different boxes
+3. Each stock should have the following options as input
+    1. Execution starting price
+    2. Defined SL %
+    3. Risk - Pre-filled as 30 rupees. 
+    4. A check box near the Name of stock. 
+        - If checked, then only that stock will be selected for execution
+4. A common place order button which will execute the Trade on the selected stocks. 
+5. Execution criteria
+    1. Starting price -> 100 rupees let's say
+    2. SL% -> 0.5% => 100*0.005 => 0.5 sl_points (rounded to 2 decimal place) => 99.5 sl_value
+    3. Risk -> 30 rupees
+    4. QTY => (risk/sl_points) => 30/0.5 => 60 QTY
+    5. Initial Legs = 5  => qty/leg_size => 60/5 => 12 stocks per leg
+    6. Leg execution criteria
+        1. 12 stocks to be executed at 100. 
+        2. 12 stocks to be executed at 

@@ -1,4 +1,9 @@
+<!-- frontend/src/routes/order/+page.svelte -->
 <script>
+	import { onMount } from 'svelte';
+	import Autocomplete from '$lib/components/Autocomplete.svelte';
+	import { getStocksList } from '$lib/services/stocksService';
+
 	// Order form data
 	let formData = {
 		transactionType: 'BUY',
@@ -16,6 +21,10 @@
 		stopLossPrice: 0
 	};
 
+	// Stock list for autocomplete
+	let stocksList = [];
+	let isLoadingStocks = true;
+
 	// Form state
 	let isSubmitting = false;
 	let errorMessage = '';
@@ -27,6 +36,24 @@
 	const productTypes = ['CNC', 'INTRADAY', 'MARGIN', 'MTF', 'CO', 'BO'];
 	const orderTypes = ['LIMIT', 'MARKET', 'STOP_LOSS', 'STOP_LOSS_MARKET'];
 	const validityTypes = ['DAY', 'IOC'];
+
+	onMount(async () => {
+		// Load stocks list when component mounts
+		try {
+			stocksList = await getStocksList();
+			console.log(`Loaded ${stocksList.length} stocks for autocomplete`);
+		} catch (error) {
+			console.error('Error loading stocks:', error);
+			errorMessage = 'Failed to load stocks list. Please refresh the page.';
+		} finally {
+			isLoadingStocks = false;
+		}
+	});
+
+	// Handle stock selection
+	function handleStockSelect(event) {
+		formData.securityId = event.detail;
+	}
 
 	// Handle form submission
 	async function handleSubmit() {
@@ -180,18 +207,56 @@
 				</select>
 			</div>
 
-			<!-- Other form fields would go here... -->
+			<!-- Product Type -->
+			<div>
+				<label for="productType" class="block text-sm font-medium text-gray-700">Product Type</label
+				>
+				<select
+					id="productType"
+					bind:value={formData.productType}
+					class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+				>
+					{#each productTypes as type}
+						<option value={type}>{type}</option>
+					{/each}
+				</select>
+			</div>
 
-			<!-- Security ID -->
+			<!-- Order Type -->
+			<div>
+				<label for="orderType" class="block text-sm font-medium text-gray-700">Order Type</label>
+				<select
+					id="orderType"
+					bind:value={formData.orderType}
+					class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+				>
+					{#each orderTypes as type}
+						<option value={type}>{type}</option>
+					{/each}
+				</select>
+			</div>
+
+			<!-- Security ID with Autocomplete -->
 			<div>
 				<label for="securityId" class="block text-sm font-medium text-gray-700">Security ID</label>
-				<input
-					type="text"
-					id="securityId"
-					bind:value={formData.securityId}
-					required
-					class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-				/>
+				{#if isLoadingStocks}
+					<div class="mt-1 flex items-center">
+						<div class="animate-pulse h-9 bg-gray-200 rounded w-full"></div>
+						<span class="ml-2 text-sm text-gray-500">Loading stocks...</span>
+					</div>
+				{:else}
+					<Autocomplete
+						items={stocksList}
+						bind:value={formData.securityId}
+						on:select={handleStockSelect}
+						placeholder="Type to search stocks..."
+						inputId="securityId"
+						name="securityId"
+						inputClass="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+						maxItems={10}
+						minChars={1}
+					/>
+				{/if}
 			</div>
 
 			<!-- Quantity -->
@@ -206,6 +271,111 @@
 					class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 				/>
 			</div>
+
+			<!-- Validity -->
+			<div>
+				<label for="validity" class="block text-sm font-medium text-gray-700">Validity</label>
+				<select
+					id="validity"
+					bind:value={formData.validity}
+					class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+				>
+					{#each validityTypes as type}
+						<option value={type}>{type}</option>
+					{/each}
+				</select>
+			</div>
+
+			<!-- Price (conditionally shown) -->
+			{#if showPrice()}
+				<div>
+					<label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+					<input
+						type="number"
+						id="price"
+						bind:value={formData.price}
+						min="0"
+						step="0.05"
+						class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					/>
+				</div>
+			{/if}
+
+			<!-- Trigger Price (conditionally shown) -->
+			{#if showTriggerPrice()}
+				<div>
+					<label for="triggerPrice" class="block text-sm font-medium text-gray-700"
+						>Trigger Price</label
+					>
+					<input
+						type="number"
+						id="triggerPrice"
+						bind:value={formData.triggerPrice}
+						min="0"
+						step="0.05"
+						class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					/>
+				</div>
+			{/if}
+
+			<!-- Disclosed Quantity -->
+			<div>
+				<label for="disclosedQty" class="block text-sm font-medium text-gray-700"
+					>Disclosed Quantity</label
+				>
+				<input
+					type="number"
+					id="disclosedQty"
+					bind:value={formData.disclosedQty}
+					min="0"
+					class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+				/>
+			</div>
+
+			<!-- After Market Order Checkbox -->
+			<div class="flex items-center h-12 mt-6">
+				<input
+					id="isAMO"
+					type="checkbox"
+					bind:checked={formData.isAMO}
+					class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+				/>
+				<label for="isAMO" class="ml-2 block text-sm text-gray-700">After Market Order</label>
+			</div>
+
+			<!-- Stop Loss Price (conditionally shown) -->
+			{#if showStopLoss()}
+				<div>
+					<label for="stopLossPrice" class="block text-sm font-medium text-gray-700"
+						>Stop Loss Price</label
+					>
+					<input
+						type="number"
+						id="stopLossPrice"
+						bind:value={formData.stopLossPrice}
+						min="0"
+						step="0.05"
+						class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					/>
+				</div>
+			{/if}
+
+			<!-- Target Price (conditionally shown) -->
+			{#if showTargetPrice()}
+				<div>
+					<label for="targetPrice" class="block text-sm font-medium text-gray-700"
+						>Target Price</label
+					>
+					<input
+						type="number"
+						id="targetPrice"
+						bind:value={formData.targetPrice}
+						min="0"
+						step="0.05"
+						class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					/>
+				</div>
+			{/if}
 		</div>
 
 		<div class="mt-8 flex justify-end">

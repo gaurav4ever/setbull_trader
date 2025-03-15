@@ -1,0 +1,340 @@
+Problem 2: Fibonacci Execution Level Calculator
+You needed a utility to calculate multiple entry points for a trade based on specific Fibonacci levels (0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.75), with the requirement that:
+
+It works for both buy and sell trades
+It calculates the stop loss based on a percentage
+Values are rounded to either X.X0 or X.X5
+It produces a set of 5 entry prices plus a stop loss
+
+Solution 2:
+I created a Go utility that takes a trade price, stop loss percentage, and trade side (buy/sell) as inputs. It calculates the appropriate Fibonacci levels with correct rounding, properly scaling upward for buy trades and downward for sell trades. The solution includes validation, testing, and even a simple CLI implementation to demonstrate the functionality.
+The calculator allows you to implement a scaling strategy where you enter a position in multiple parts as the price moves in your favor, with predefined price levels based on Fibonacci extensions.
+
+
+
+implementation
+
+
+package utils
+
+import (
+	"fmt"
+	"math"
+)
+
+// TradeSide represents whether the trade is a buy or sell
+type TradeSide string
+
+const (
+	Buy  TradeSide = "BUY"
+	Sell TradeSide = "SELL"
+)
+
+// ExecutionLevel represents a price level for trade execution
+type ExecutionLevel struct {
+	Level       float64 `json:"level"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+}
+
+// CalculateFibonacciLevels calculates execution price levels based on Fibonacci retracement
+// Parameters:
+//   - tradePrice: The initial entry price
+//   - slPercentage: Stop loss percentage (positive value, e.g., 0.5 for 0.5%)
+//   - side: The trade side (Buy or Sell)
+//
+// Returns:
+//   - A slice of ExecutionLevel containing the stop loss and 5 entry levels
+func CalculateFibonacciLevels(tradePrice float64, slPercentage float64, side TradeSide) []ExecutionLevel {
+	// Fibonacci levels
+	fibLevels := []float64{0, 1, 1.25, 1.5, 1.75, 2}
+	
+	// Calculate the stop loss price
+	var slPrice float64
+	if side == Buy {
+		slPrice = tradePrice * (1 - slPercentage/100)
+	} else {
+		slPrice = tradePrice * (1 + slPercentage/100)
+	}
+	
+	// Round the stop loss price to nearest 0.05 or 0.00
+	slPrice = roundToNearestFiveOrZero(slPrice)
+	
+	// Calculate the range for Fibonacci calculations
+	priceRange := math.Abs(tradePrice - slPrice)
+	
+	// Initialize the result slice
+	result := make([]ExecutionLevel, len(fibLevels))
+	
+	// Calculate execution levels
+	for i, level := range fibLevels {
+		var price float64
+		
+		if i == 0 {
+			// Stop Loss level
+			price = slPrice
+			result[i] = ExecutionLevel{
+				Level:       level,
+				Price:       price,
+				Description: "Stop Loss",
+			}
+		} else if i == 1 {
+			// First entry is the trade price
+			price = tradePrice
+			result[i] = ExecutionLevel{
+				Level:       level,
+				Price:       price,
+				Description: "1st Entry",
+			}
+		} else {
+			// Calculate the price for additional entries
+			if side == Buy {
+				// For Buy, additional entries are above the trade price
+				price = tradePrice + priceRange*(level-1)
+			} else {
+				// For Sell, additional entries are below the trade price
+				price = tradePrice - priceRange*(level-1)
+			}
+			
+			// Round to nearest 0.05 or 0.00
+			price = roundToNearestFiveOrZero(price)
+			
+			result[i] = ExecutionLevel{
+				Level:       level,
+				Price:       price,
+				Description: fmt.Sprintf("%dth Entry", i),
+			}
+		}
+	}
+	
+	return result
+}
+
+// roundToNearestFiveOrZero rounds a price to the nearest 0.05 or 0.00
+func roundToNearestFiveOrZero(price float64) float64 {
+	// Multiply by 100 to work with integers
+	scaled := price * 100
+	
+	// Round to nearest integer
+	rounded := math.Round(scaled)
+	
+	// Get the last digit
+	lastDigit := int(rounded) % 10
+	
+	// Adjust to nearest 0 or 5
+	if lastDigit < 3 {
+		rounded = rounded - float64(lastDigit)
+	} else if lastDigit < 8 {
+		rounded = rounded - float64(lastDigit) + 5
+	} else {
+		rounded = rounded - float64(lastDigit) + 10
+	}
+	
+	// Convert back to original scale
+	return rounded / 100
+}
+
+
+
+package utils
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestCalculateFibonacciLevels(t *testing.T) {
+	tests := []struct {
+		name          string
+		tradePrice    float64
+		slPercentage  float64
+		side          TradeSide
+		expectedSL    float64
+		expectedEntry []float64
+	}{
+		{
+			name:          "Buy at 100 with 0.5% SL",
+			tradePrice:    100.00,
+			slPercentage:  0.5,
+			side:          Buy,
+			expectedSL:    99.50,
+			expectedEntry: []float64{100.00, 100.15, 100.25, 100.40, 100.50},
+		},
+		{
+			name:          "Sell at 100 with 0.5% SL",
+			tradePrice:    100.00,
+			slPercentage:  0.5,
+			side:          Sell,
+			expectedSL:    100.50,
+			expectedEntry: []float64{100.00, 99.90, 99.75, 99.65, 99.50},
+		},
+		{
+			name:          "Buy at 150.75 with 0.75% SL",
+			tradePrice:    150.75,
+			slPercentage:  0.75,
+			side:          Buy,
+			expectedSL:    149.60, // 150.75 * (1 - 0.75/100) = 149.62, rounded to 149.60
+			expectedEntry: []float64{150.75, 151.05, 151.30, 151.60, 151.90},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			levels := CalculateFibonacciLevels(tt.tradePrice, tt.slPercentage, tt.side)
+			
+			// Check if the correct number of levels were returned
+			if len(levels) != 6 {
+				t.Errorf("Expected 6 levels, got %d", len(levels))
+				return
+			}
+			
+			// Check stop loss
+			if levels[0].Price != tt.expectedSL {
+				t.Errorf("Stop Loss: expected %.2f, got %.2f", tt.expectedSL, levels[0].Price)
+			}
+			
+			// Check entries
+			for i := 0; i < 5; i++ {
+				if levels[i+1].Price != tt.expectedEntry[i] {
+					t.Errorf("Entry %d: expected %.2f, got %.2f", i+1, tt.expectedEntry[i], levels[i+1].Price)
+				}
+			}
+			
+			// Print the levels for manual verification
+			fmt.Printf("Test: %s\n", tt.name)
+			fmt.Printf("Stop Loss (%.2f): %.2f\n", levels[0].Level, levels[0].Price)
+			for i := 1; i < len(levels); i++ {
+				fmt.Printf("Entry %d (%.2f): %.2f\n", i, levels[i].Level, levels[i].Price)
+			}
+			fmt.Println()
+		})
+	}
+}
+
+func ExampleCalculateFibonacciLevels() {
+	// Example for a buy trade at 100.00 with 0.5% stop loss
+	buyLevels := CalculateFibonacciLevels(100.00, 0.5, Buy)
+	
+	fmt.Println("Buy Trade Execution Levels:")
+	for _, level := range buyLevels {
+		fmt.Printf("%s (Level %.2f): %.2f\n", level.Description, level.Level, level.Price)
+	}
+	
+	// Example for a sell trade at 100.00 with 0.5% stop loss
+	sellLevels := CalculateFibonacciLevels(100.00, 0.5, Sell)
+	
+	fmt.Println("\nSell Trade Execution Levels:")
+	for _, level := range sellLevels {
+		fmt.Printf("%s (Level %.2f): %.2f\n", level.Description, level.Level, level.Price)
+	}
+	
+	// Output:
+	// Buy Trade Execution Levels:
+	// Stop Loss (Level 0.00): 99.50
+	// 1st Entry (Level 1.00): 100.00
+	// 2th Entry (Level 1.25): 100.15
+	// 3th Entry (Level 1.50): 100.25
+	// 4th Entry (Level 1.75): 100.40
+	// 5th Entry (Level 2.00): 100.50
+	//
+	// Sell Trade Execution Levels:
+	// Stop Loss (Level 0.00): 100.50
+	// 1st Entry (Level 1.00): 100.00
+	// 2th Entry (Level 1.25): 99.90
+	// 3th Entry (Level 1.50): 99.75
+	// 4th Entry (Level 1.75): 99.65
+	// 5th Entry (Level 2.00): 99.50
+}
+
+
+
+package main
+
+import (
+	"flag"
+	"fmt"
+	"os"
+	"strings"
+
+	"yourproject/pkg/utils" // Replace with your actual import path
+)
+
+func main() {
+	// Define command line flags
+	price := flag.Float64("price", 0, "Trade entry price (required)")
+	slPct := flag.Float64("sl", 0, "Stop loss percentage (required)")
+	side := flag.String("side", "", "Trade side: BUY or SELL (required)")
+	flag.Parse()
+
+	// Validate required parameters
+	if *price <= 0 || *slPct <= 0 || *side == "" {
+		fmt.Println("Error: All parameters are required")
+		fmt.Println("Usage:")
+		fmt.Println("  fibcalc -price=100.00 -sl=0.5 -side=BUY")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Validate and convert trade side
+	tradeSide := utils.TradeSide(strings.ToUpper(*side))
+	if tradeSide != utils.Buy && tradeSide != utils.Sell {
+		fmt.Println("Error: Side must be either BUY or SELL")
+		os.Exit(1)
+	}
+
+	// Calculate Fibonacci levels
+	levels := utils.CalculateFibonacciLevels(*price, *slPct, tradeSide)
+
+	// Print results with nice formatting
+	fmt.Printf("\n%s Trade Execution Levels (Entry: %.2f, SL: %.2f%%)\n", tradeSide, *price, *slPct)
+	fmt.Println(strings.Repeat("-", 50))
+	fmt.Printf("%-15s %-15s %-15s\n", "Description", "Fib Level", "Price")
+	fmt.Println(strings.Repeat("-", 50))
+	
+	for _, level := range levels {
+		fmt.Printf("%-15s %-15.2f %-15.2f\n", level.Description, level.Level, level.Price)
+	}
+	fmt.Println()
+}
+
+
+
+
+
+
+
+How to Use the Utility in Your Project:
+
+Copy the fibonacci.go file to your project's utils package
+Import and call the function in your trading code:
+
+
+
+import "yourproject/pkg/utils"
+
+// For a buy order
+buyLevels := utils.CalculateFibonacciLevels(100.00, 0.5, utils.Buy)
+
+// For a sell order
+sellLevels := utils.CalculateFibonacciLevels(100.00, 0.5, utils.Sell)
+
+// Access individual levels
+stopLossPrice := buyLevels[0].Price
+entryPrice := buyLevels[1].Price
+secondEntryPrice := buyLevels[2].Price
+
+
+Example Output:
+When running the CLI tool with -price=100.00 -sl=0.5 -side=BUY:
+
+
+BUY Trade Execution Levels (Entry: 100.00, SL: 0.50%)
+--------------------------------------------------
+Description     Fib Level       Price          
+--------------------------------------------------
+Stop Loss       0.00            99.50          
+1st Entry       1.00            100.00         
+2th Entry       1.25            100.15         
+3th Entry       1.50            100.25         
+4th Entry       1.75            100.40         
+5th Entry       2.00            100.50

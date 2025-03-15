@@ -13,6 +13,7 @@ import (
 	"setbull_trader/internal/core/adapters/client/dhan"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/trading/config"
+	"setbull_trader/pkg/database"
 	"setbull_trader/pkg/log"
 
 	"github.com/gin-gonic/gin"
@@ -29,11 +30,12 @@ type App struct {
 
 // NewApp creates a new application
 func NewApp() *App {
-	// Load configuration
+	ctx := context.Background()
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal("Failed to load configuration: %v", err)
 	}
+	log.Info("Application configuration loaded successfully.") // New log statement
 
 	// Set up Gin router in release mode for production
 	gin.SetMode(gin.ReleaseMode)
@@ -48,6 +50,26 @@ func NewApp() *App {
 
 	// Initialize services
 	orderService := orders.NewService(dhanClient)
+
+	// Get database config
+	dbConfig, err := config.LoadDatabase(*cfg)
+	if err != nil {
+		log.Fatalf("failed to load database config: %v", err)
+	}
+
+	connectionMaster, cleanup, err := database.OpenMaster(ctx, dbConfig)
+	if err != nil {
+		cleanup()
+		log.Fatalf("Unable to connect to Database: %v", err)
+	}
+
+	// Schema migration handling
+	migrationHandler := database.NewMigrationHandler(connectionMaster, dbConfig)
+	log.Info("####### STARTING SCHEMA MIGRAION #######")
+	if err := migrationHandler.ApplyMigrations(); err != nil {
+		log.Fatalf("failed to apply database migrations: %v", err)
+	}
+	log.Info("####### SCHEMA MIGRAION DONE #######")
 
 	// Set up HTTP handlers
 	httpHandler := transport.NewHTTPHandler(orderService)
