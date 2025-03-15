@@ -1,0 +1,123 @@
+Stock Management APIs
+
+GET /api/v1/stocks
+
+Get a list of all available stocks
+Query parameters for filtering and pagination
+
+
+GET /api/v1/stocks/{id}
+
+Get details of a specific stock by ID
+
+
+GET /api/v1/stocks/selected
+
+Get the list of currently selected stocks (max 3)
+
+
+POST /api/v1/stocks
+
+Add a new stock to the database
+Body: Stock details including symbol, name, current price
+
+
+PUT /api/v1/stocks/{id}
+
+Update a stock's details
+Body: Updated stock data
+
+
+PATCH /api/v1/stocks/{id}/toggle-selection
+
+Toggle the selection status of a stock
+Body: {"isSelected": true/false}
+
+
+DELETE /api/v1/stocks/{id}
+
+Remove a stock from the database
+
+
+
+Trade Parameters APIs
+
+GET /api/v1/parameters/stock/{stockId}
+
+Get trade parameters for a specific stock
+
+
+POST /api/v1/parameters
+
+Create or update trade parameters for a stock
+Body: Trade parameters including starting price, SL percentage, risk amount, trade side
+
+
+DELETE /api/v1/parameters/{id}
+
+Delete trade parameters
+
+
+
+Execution Plan APIs
+
+GET /api/v1/plans
+
+Get all execution plans
+Include query parameter to filter by stock
+
+
+GET /api/v1/plans/{id}
+
+Get details of a specific execution plan, including level entries
+
+
+GET /api/v1/plans/stock/{stockId}
+
+Get the latest execution plan for a specific stock
+
+
+POST /api/v1/plans/stock/{stockId}
+
+Create a new execution plan for a stock based on its trade parameters
+Returns the complete plan with calculated levels and quantities
+
+
+DELETE /api/v1/plans/{id}
+
+Delete an execution plan
+
+
+
+Order Execution APIs
+
+POST /api/v1/execute/stock/{stockId}
+
+Execute orders for a specific stock based on its execution plan
+Returns execution status
+
+
+POST /api/v1/execute/all
+
+Execute orders for all selected stocks
+Returns execution status for each stock
+
+
+GET /api/v1/executions/{id}
+
+Get details of a specific order execution
+
+
+GET /api/v1/executions/plan/{planId}
+
+Get all order executions for a specific execution plan
+
+
+
+Utility APIs
+
+GET /api/v1/fibonacci/calculate
+
+Calculate Fibonacci levels without creating an execution plan
+Query parameters: startingPrice, slPercentage, tradeSide, riskAmount
+Returns calculated levels and quantities
