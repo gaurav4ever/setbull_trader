@@ -12,20 +12,36 @@ import (
 	"setbull_trader/cmd/trading/transport"
 	"setbull_trader/internal/core/adapters/client/dhan"
 	"setbull_trader/internal/core/service/orders"
+	"setbull_trader/internal/repository"
+	"setbull_trader/internal/repository/postgres"
+	"setbull_trader/internal/service"
 	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/database"
 	"setbull_trader/pkg/log"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // App represents the application
 type App struct {
-	config       *config.Config
-	router       *gin.Engine
-	httpServer   *http.Server
-	orderService *orders.Service
-	dhanClient   *dhan.Client
+	config                *config.Config
+	router                *gin.Engine
+	httpServer            *http.Server
+	orderService          *orders.Service
+	dhanClient            *dhan.Client
+	db                    *gorm.DB
+	stockRepo             repository.StockRepository
+	tradeParamsRepo       repository.TradeParametersRepository
+	executionPlanRepo     repository.ExecutionPlanRepository
+	levelEntryRepo        repository.LevelEntryRepository
+	orderExecutionRepo    repository.OrderExecutionRepository
+	fibCalculator         *service.FibonacciCalculator
+	stockService          *service.StockService
+	tradeParamsService    *service.TradeParametersService
+	executionPlanService  *service.ExecutionPlanService
+	orderExecutionService *service.OrderExecutionService
+	utilityService        *service.UtilityService
 }
 
 // NewApp creates a new application
@@ -35,7 +51,7 @@ func NewApp() *App {
 	if err != nil {
 		log.Fatal("Failed to load configuration: %v", err)
 	}
-	log.Info("Application configuration loaded successfully.") // New log statement
+	log.Info("Application configuration loaded successfully.")
 
 	// Set up Gin router in release mode for production
 	gin.SetMode(gin.ReleaseMode)
@@ -48,7 +64,7 @@ func NewApp() *App {
 	// Initialize Dhan client
 	dhanClient := dhan.NewClient(&cfg.Dhan)
 
-	// Initialize services
+	// Initialize legacy services
 	orderService := orders.NewService(dhanClient)
 
 	// Get database config
@@ -65,21 +81,58 @@ func NewApp() *App {
 
 	// Schema migration handling
 	migrationHandler := database.NewMigrationHandler(connectionMaster, dbConfig)
-	log.Info("####### STARTING SCHEMA MIGRAION #######")
+	log.Info("####### STARTING SCHEMA MIGRATION #######")
 	if err := migrationHandler.ApplyMigrations(); err != nil {
 		log.Fatalf("failed to apply database migrations: %v", err)
 	}
-	log.Info("####### SCHEMA MIGRAION DONE #######")
+	log.Info("####### SCHEMA MIGRATION DONE #######")
+
+	// Extract SQL DB from the connection
+	db := connectionMaster.DB
+
+	// Initialize repositories
+	stockRepo := postgres.NewStockRepository(db)
+	tradeParamsRepo := postgres.NewTradeParametersRepository(db)
+	executionPlanRepo := postgres.NewExecutionPlanRepository(db)
+	levelEntryRepo := postgres.NewLevelEntryRepository(db)
+	orderExecutionRepo := postgres.NewOrderExecutionRepository(db)
+
+	// Initialize services
+	fibCalculator := service.NewFibonacciCalculator()
+	stockService := service.NewStockService(stockRepo)
+	tradeParamsService := service.NewTradeParametersService(tradeParamsRepo, stockRepo)
+	executionPlanService := service.NewExecutionPlanService(executionPlanRepo, levelEntryRepo, stockRepo, tradeParamsRepo)
+	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo)
+	utilityService := service.NewUtilityService(fibCalculator)
 
 	// Set up HTTP handlers
-	httpHandler := transport.NewHTTPHandler(orderService)
+	httpHandler := transport.NewHTTPHandler(
+		orderService,
+		stockService,
+		tradeParamsService,
+		executionPlanService,
+		orderExecutionService,
+		utilityService,
+	)
 	httpHandler.RegisterRoutes(router)
 
 	return &App{
-		config:       cfg,
-		router:       router,
-		orderService: orderService,
-		dhanClient:   dhanClient,
+		config:                cfg,
+		router:                router,
+		orderService:          orderService,
+		dhanClient:            dhanClient,
+		db:                    db,
+		stockRepo:             stockRepo,
+		tradeParamsRepo:       tradeParamsRepo,
+		executionPlanRepo:     executionPlanRepo,
+		levelEntryRepo:        levelEntryRepo,
+		orderExecutionRepo:    orderExecutionRepo,
+		fibCalculator:         fibCalculator,
+		stockService:          stockService,
+		tradeParamsService:    tradeParamsService,
+		executionPlanService:  executionPlanService,
+		orderExecutionService: orderExecutionService,
+		utilityService:        utilityService,
 	}
 }
 

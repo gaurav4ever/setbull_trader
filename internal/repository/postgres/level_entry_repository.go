@@ -7,71 +7,34 @@ import (
 	"setbull_trader/internal/repository"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 )
 
 // LevelEntryRepository implements repository.LevelEntryRepository using PostgreSQL
 type LevelEntryRepository struct {
-	db *sqlx.DB
+	db *gorm.DB
 }
 
 // NewLevelEntryRepository creates a new LevelEntryRepository
-func NewLevelEntryRepository(db *sqlx.DB) repository.LevelEntryRepository {
+func NewLevelEntryRepository(db *gorm.DB) repository.LevelEntryRepository {
 	return &LevelEntryRepository{db: db}
 }
 
 // CreateMany creates multiple level entries for an execution plan
 func (r *LevelEntryRepository) CreateMany(ctx context.Context, entries []domain.LevelEntry) error {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	query := `
-		INSERT INTO level_entries (id, execution_plan_id, fib_level, price, quantity, description)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`
-
-	stmt, err := tx.PrepareContext(ctx, query)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
 	for i := range entries {
 		if entries[i].ID == "" {
 			entries[i].ID = uuid.New().String()
 		}
-
-		_, err = stmt.ExecContext(ctx,
-			entries[i].ID,
-			entries[i].ExecutionPlanID,
-			entries[i].FibLevel,
-			entries[i].Price,
-			entries[i].Quantity,
-			entries[i].Description,
-		)
-		if err != nil {
-			return err
-		}
 	}
 
-	return tx.Commit()
+	return r.db.WithContext(ctx).Create(&entries).Error
 }
 
 // GetByExecutionPlanID retrieves all level entries for an execution plan
 func (r *LevelEntryRepository) GetByExecutionPlanID(ctx context.Context, planID string) ([]domain.LevelEntry, error) {
 	var entries []domain.LevelEntry
-
-	query := `
-		SELECT id, execution_plan_id, fib_level, price, quantity, description
-		FROM level_entries
-		WHERE execution_plan_id = $1
-		ORDER BY fib_level
-	`
-
-	err := r.db.SelectContext(ctx, &entries, query, planID)
+	err := r.db.WithContext(ctx).Where("execution_plan_id = ?", planID).Order("fib_level").Find(&entries).Error
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +44,5 @@ func (r *LevelEntryRepository) GetByExecutionPlanID(ctx context.Context, planID 
 
 // DeleteByExecutionPlanID deletes all level entries for an execution plan
 func (r *LevelEntryRepository) DeleteByExecutionPlanID(ctx context.Context, planID string) error {
-	query := `DELETE FROM level_entries WHERE execution_plan_id = $1`
-	_, err := r.db.ExecContext(ctx, query, planID)
-	return err
+	return r.db.WithContext(ctx).Where("execution_plan_id = ?", planID).Delete(&domain.LevelEntry{}).Error
 }

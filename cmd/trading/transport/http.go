@@ -8,6 +8,7 @@ import (
 	"setbull_trader/internal/core/dto/request"
 	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/core/service/orders"
+	"setbull_trader/internal/service"
 	"setbull_trader/pkg/apperrors"
 	"setbull_trader/pkg/log"
 
@@ -18,15 +19,32 @@ import (
 
 // HTTPHandler handles HTTP requests
 type HTTPHandler struct {
-	orderService *orders.Service
-	validator    *validator.Validate
+	orderService          *orders.Service
+	stockService          *service.StockService
+	tradeParamsService    *service.TradeParametersService
+	executionPlanService  *service.ExecutionPlanService
+	orderExecutionService *service.OrderExecutionService
+	utilityService        *service.UtilityService
+	validator             *validator.Validate
 }
 
 // NewHTTPHandler creates a new HTTP handler
-func NewHTTPHandler(orderService *orders.Service) *HTTPHandler {
+func NewHTTPHandler(
+	orderService *orders.Service,
+	stockService *service.StockService,
+	tradeParamsService *service.TradeParametersService,
+	executionPlanService *service.ExecutionPlanService,
+	orderExecutionService *service.OrderExecutionService,
+	utilityService *service.UtilityService,
+) *HTTPHandler {
 	return &HTTPHandler{
-		orderService: orderService,
-		validator:    validator.New(),
+		orderService:          orderService,
+		stockService:          stockService,
+		tradeParamsService:    tradeParamsService,
+		executionPlanService:  executionPlanService,
+		orderExecutionService: orderExecutionService,
+		utilityService:        utilityService,
+		validator:             validator.New(),
 	}
 }
 

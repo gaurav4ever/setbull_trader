@@ -2,23 +2,22 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 )
 
-// TradeParametersRepository implements repository.TradeParametersRepository using PostgreSQL
+// TradeParametersRepository implements repository.TradeParametersRepository interface using GORM
 type TradeParametersRepository struct {
-	db *sqlx.DB
+	db *gorm.DB
 }
 
 // NewTradeParametersRepository creates a new TradeParametersRepository
-func NewTradeParametersRepository(db *sqlx.DB) repository.TradeParametersRepository {
+func NewTradeParametersRepository(db *gorm.DB) repository.TradeParametersRepository {
 	return &TradeParametersRepository{db: db}
 }
 
@@ -28,37 +27,16 @@ func (r *TradeParametersRepository) Create(ctx context.Context, params *domain.T
 		params.ID = uuid.New().String()
 	}
 
-	query := `
-		INSERT INTO trade_parameters (id, stock_id, starting_price, sl_percentage, risk_amount, trade_side)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`
-
-	_, err := r.db.ExecContext(ctx, query,
-		params.ID,
-		params.StockID,
-		params.StartingPrice,
-		params.StopLossPercentage,
-		params.RiskAmount,
-		params.TradeSide,
-	)
-
-	return err
+	return r.db.WithContext(ctx).Create(params).Error
 }
 
 // GetByID retrieves trade parameters by their ID
 func (r *TradeParametersRepository) GetByID(ctx context.Context, id string) (*domain.TradeParameters, error) {
 	var params domain.TradeParameters
-
-	query := `
-		SELECT id, stock_id, starting_price, sl_percentage, risk_amount, trade_side
-		FROM trade_parameters
-		WHERE id = $1
-	`
-
-	err := r.db.GetContext(ctx, &params, query, id)
+	err := r.db.WithContext(ctx).First(&params, "id = ?", id).Error
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil // Return nil if not found
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -69,17 +47,10 @@ func (r *TradeParametersRepository) GetByID(ctx context.Context, id string) (*do
 // GetByStockID retrieves trade parameters for a specific stock
 func (r *TradeParametersRepository) GetByStockID(ctx context.Context, stockID string) (*domain.TradeParameters, error) {
 	var params domain.TradeParameters
-
-	query := `
-		SELECT id, stock_id, starting_price, sl_percentage, risk_amount, trade_side
-		FROM trade_parameters
-		WHERE stock_id = $1
-	`
-
-	err := r.db.GetContext(ctx, &params, query, stockID)
+	err := r.db.WithContext(ctx).Where("stock_id = ?", stockID).First(&params).Error
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil // Return nil if not found
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -89,26 +60,10 @@ func (r *TradeParametersRepository) GetByStockID(ctx context.Context, stockID st
 
 // Update updates trade parameters
 func (r *TradeParametersRepository) Update(ctx context.Context, params *domain.TradeParameters) error {
-	query := `
-		UPDATE trade_parameters
-		SET starting_price = $1, sl_percentage = $2, risk_amount = $3, trade_side = $4
-		WHERE id = $5
-	`
-
-	_, err := r.db.ExecContext(ctx, query,
-		params.StartingPrice,
-		params.StopLossPercentage,
-		params.RiskAmount,
-		params.TradeSide,
-		params.ID,
-	)
-
-	return err
+	return r.db.WithContext(ctx).Save(params).Error
 }
 
 // Delete deletes trade parameters
 func (r *TradeParametersRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM trade_parameters WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
+	return r.db.WithContext(ctx).Delete(&domain.TradeParameters{}, id).Error
 }

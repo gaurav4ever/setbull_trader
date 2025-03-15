@@ -2,23 +2,22 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 )
 
 // StockRepository implements repository.StockRepository interface using PostgreSQL
 type StockRepository struct {
-	db *sqlx.DB
+	db *gorm.DB
 }
 
 // NewStockRepository creates a new StockRepository
-func NewStockRepository(db *sqlx.DB) repository.StockRepository {
+func NewStockRepository(db *gorm.DB) repository.StockRepository {
 	return &StockRepository{db: db}
 }
 
@@ -28,135 +27,66 @@ func (r *StockRepository) Create(ctx context.Context, stock *domain.Stock) error
 		stock.ID = uuid.New().String()
 	}
 
-	query := `
-		INSERT INTO stocks (id, symbol, name, current_price, is_selected)
-		VALUES ($1, $2, $3, $4, $5)
-	`
-
-	_, err := r.db.ExecContext(ctx, query,
-		stock.ID,
-		stock.Symbol,
-		stock.Name,
-		stock.CurrentPrice,
-		stock.IsSelected,
-	)
-
-	return err
+	return r.db.WithContext(ctx).Create(stock).Error
 }
 
 // GetByID retrieves a stock by its ID
 func (r *StockRepository) GetByID(ctx context.Context, id string) (*domain.Stock, error) {
 	var stock domain.Stock
-
-	query := `
-		SELECT id, symbol, name, current_price, is_selected
-		FROM stocks
-		WHERE id = $1
-	`
-
-	err := r.db.GetContext(ctx, &stock, query, id)
+	err := r.db.WithContext(ctx).First(&stock, "id = ?", id).Error // Use GORM's First method
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if stock not found
 		}
 		return nil, err
 	}
-
 	return &stock, nil
 }
 
 // GetBySymbol retrieves a stock by its symbol
 func (r *StockRepository) GetBySymbol(ctx context.Context, symbol string) (*domain.Stock, error) {
 	var stock domain.Stock
-
-	query := `
-		SELECT id, symbol, name, current_price, is_selected
-		FROM stocks
-		WHERE symbol = $1
-	`
-
-	err := r.db.GetContext(ctx, &stock, query, symbol)
+	err := r.db.WithContext(ctx).Where("symbol = ?", symbol).First(&stock).Error // Use GORM's Where and First methods
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if stock not found
 		}
 		return nil, err
 	}
-
 	return &stock, nil
 }
 
 // GetAll retrieves all stocks
 func (r *StockRepository) GetAll(ctx context.Context) ([]*domain.Stock, error) {
 	var stocks []*domain.Stock
-
-	query := `
-		SELECT id, symbol, name, current_price, is_selected
-		FROM stocks
-		ORDER BY symbol
-	`
-
-	err := r.db.SelectContext(ctx, &stocks, query)
+	err := r.db.WithContext(ctx).Order("symbol").Find(&stocks).Error // Use GORM's Find method
 	if err != nil {
 		return nil, err
 	}
-
 	return stocks, nil
 }
 
 // GetSelected retrieves all selected stocks
 func (r *StockRepository) GetSelected(ctx context.Context) ([]*domain.Stock, error) {
 	var stocks []*domain.Stock
-
-	query := `
-		SELECT id, symbol, name, current_price, is_selected
-		FROM stocks
-		WHERE is_selected = true
-		ORDER BY symbol
-	`
-
-	err := r.db.SelectContext(ctx, &stocks, query)
+	err := r.db.WithContext(ctx).Where("is_selected = ?", true).Order("symbol").Find(&stocks).Error // Use GORM's Where and Find methods
 	if err != nil {
 		return nil, err
 	}
-
 	return stocks, nil
 }
 
 // Update updates a stock
 func (r *StockRepository) Update(ctx context.Context, stock *domain.Stock) error {
-	query := `
-		UPDATE stocks
-		SET symbol = $1, name = $2, current_price = $3, is_selected = $4
-		WHERE id = $5
-	`
-
-	_, err := r.db.ExecContext(ctx, query,
-		stock.Symbol,
-		stock.Name,
-		stock.CurrentPrice,
-		stock.IsSelected,
-		stock.ID,
-	)
-
-	return err
+	return r.db.WithContext(ctx).Save(stock).Error // Use GORM's Save method
 }
 
 // ToggleSelection toggles the selection status of a stock
 func (r *StockRepository) ToggleSelection(ctx context.Context, id string, isSelected bool) error {
-	query := `
-		UPDATE stocks
-		SET is_selected = $1
-		WHERE id = $2
-	`
-
-	_, err := r.db.ExecContext(ctx, query, isSelected, id)
-	return err
+	return r.db.WithContext(ctx).Model(&domain.Stock{}).Where("id = ?", id).Update("is_selected", isSelected).Error // Use GORM's Update method
 }
 
 // Delete deletes a stock
 func (r *StockRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM stocks WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, id)
-	return err
+	return r.db.WithContext(ctx).Delete(&domain.Stock{}, id).Error // Use GORM's Delete method
 }
