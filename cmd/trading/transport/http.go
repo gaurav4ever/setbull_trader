@@ -8,7 +8,6 @@ import (
 	"setbull_trader/internal/core/dto/request"
 	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/core/service/orders"
-	"setbull_trader/internal/service"
 	"setbull_trader/pkg/apperrors"
 	"setbull_trader/pkg/log"
 
@@ -19,42 +18,29 @@ import (
 
 // HTTPHandler handles HTTP requests
 type HTTPHandler struct {
-	orderService          *orders.Service
-	stockService          *service.StockService
-	tradeParamsService    *service.TradeParametersService
-	executionPlanService  *service.ExecutionPlanService
-	orderExecutionService *service.OrderExecutionService
-	utilityService        *service.UtilityService
-	validator             *validator.Validate
+	orderService *orders.Service
+	validator    *validator.Validate
 }
 
 // NewHTTPHandler creates a new HTTP handler
 func NewHTTPHandler(
 	orderService *orders.Service,
-	stockService *service.StockService,
-	tradeParamsService *service.TradeParametersService,
-	executionPlanService *service.ExecutionPlanService,
-	orderExecutionService *service.OrderExecutionService,
-	utilityService *service.UtilityService,
 ) *HTTPHandler {
 	return &HTTPHandler{
-		orderService:          orderService,
-		stockService:          stockService,
-		tradeParamsService:    tradeParamsService,
-		executionPlanService:  executionPlanService,
-		orderExecutionService: orderExecutionService,
-		utilityService:        utilityService,
-		validator:             validator.New(),
+		orderService: orderService,
+		validator:    validator.New(),
 	}
 }
 
 func (h *HTTPHandler) RegisterRoutes(router *gin.Engine) {
-
 	router.Use(CORSMiddleware())
 	router.Use(RequestLoggerMiddleware())
 
 	// API group with version
 	api := router.Group("/api/v1")
+
+	// Health check
+	api.GET("/health", h.healthCheck)
 
 	// Orders endpoints
 	orders := api.Group("/orders")
@@ -70,9 +56,6 @@ func (h *HTTPHandler) RegisterRoutes(router *gin.Engine) {
 		trades.GET("", h.getAllTrades)
 		trades.GET("/history", h.getTradeHistory)
 	}
-
-	// Health check
-	api.GET("/health", h.healthCheck)
 }
 
 func (h *HTTPHandler) healthCheck(c *gin.Context) {

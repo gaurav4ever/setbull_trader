@@ -3,7 +3,6 @@ package rest
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"setbull_trader/internal/domain"
 )
@@ -75,19 +74,6 @@ func (s *Server) CalculateFibonacciLevels(w http.ResponseWriter, r *http.Request
 	response := domain.FibonacciLevelsResponse{
 		TotalQuantity: totalQuantity,
 		Levels:        levelsWithQuantity,
-	}
-
-	respondSuccess(w, response)
-}
-
-// HealthCheck checks the health of the API server
-func (s *Server) HealthCheck(w http.ResponseWriter, r *http.Request) {
-	response := struct {
-		Status    string `json:"status"`
-		Timestamp string `json:"timestamp"`
-	}{
-		Status:    "UP",
-		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
 	respondSuccess(w, response)

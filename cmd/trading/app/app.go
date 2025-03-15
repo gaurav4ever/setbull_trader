@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"setbull_trader/cmd/trading/transport"
+	"setbull_trader/cmd/trading/transport/rest"
 	"setbull_trader/internal/core/adapters/client/dhan"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/repository"
@@ -42,6 +42,7 @@ type App struct {
 	executionPlanService  *service.ExecutionPlanService
 	orderExecutionService *service.OrderExecutionService
 	utilityService        *service.UtilityService
+	restServer            *rest.Server
 }
 
 // NewApp creates a new application
@@ -105,8 +106,7 @@ func NewApp() *App {
 	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo)
 	utilityService := service.NewUtilityService(fibCalculator)
 
-	// Set up HTTP handlers
-	httpHandler := transport.NewHTTPHandler(
+	restServer := rest.NewServer(
 		orderService,
 		stockService,
 		tradeParamsService,
@@ -114,7 +114,6 @@ func NewApp() *App {
 		orderExecutionService,
 		utilityService,
 	)
-	httpHandler.RegisterRoutes(router)
 
 	return &App{
 		config:                cfg,
@@ -133,6 +132,7 @@ func NewApp() *App {
 		executionPlanService:  executionPlanService,
 		orderExecutionService: orderExecutionService,
 		utilityService:        utilityService,
+		restServer:            restServer,
 	}
 }
 
@@ -141,7 +141,7 @@ func (a *App) Run() error {
 	// Set up HTTP server
 	a.httpServer = &http.Server{
 		Addr:         fmt.Sprintf(":%s", a.config.Server.Port),
-		Handler:      a.router,
+		Handler:      a.restServer,
 		ReadTimeout:  time.Duration(a.config.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(a.config.Server.WriteTimeout) * time.Second,
 	}
