@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"time"
 
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
@@ -27,13 +28,16 @@ func (r *StockRepository) Create(ctx context.Context, stock *domain.Stock) error
 		stock.ID = uuid.New().String()
 	}
 
+	stock.CreatedAt = time.Now()
+	stock.UpdatedAt = time.Now()
+
 	return r.db.WithContext(ctx).Create(stock).Error
 }
 
 // GetByID retrieves a stock by its ID
 func (r *StockRepository) GetByID(ctx context.Context, id string) (*domain.Stock, error) {
 	var stock domain.Stock
-	err := r.db.WithContext(ctx).First(&stock, "id = ?", id).Error // Use GORM's First method
+	err := r.db.WithContext(ctx).First(&stock, "id = ? AND active = 1", id).Error // Use GORM's First method
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if stock not found
@@ -46,7 +50,7 @@ func (r *StockRepository) GetByID(ctx context.Context, id string) (*domain.Stock
 // GetBySymbol retrieves a stock by its symbol
 func (r *StockRepository) GetBySymbol(ctx context.Context, symbol string) (*domain.Stock, error) {
 	var stock domain.Stock
-	err := r.db.WithContext(ctx).Where("symbol = ?", symbol).First(&stock).Error // Use GORM's Where and First methods
+	err := r.db.WithContext(ctx).Where("symbol = ? AND active = 1", symbol).First(&stock).Error // Use GORM's Where and First methods
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil if stock not found
@@ -69,7 +73,7 @@ func (r *StockRepository) GetAll(ctx context.Context) ([]*domain.Stock, error) {
 // GetSelected retrieves all selected stocks
 func (r *StockRepository) GetSelected(ctx context.Context) ([]*domain.Stock, error) {
 	var stocks []*domain.Stock
-	err := r.db.WithContext(ctx).Where("is_selected = ?", true).Order("symbol").Find(&stocks).Error // Use GORM's Where and Find methods
+	err := r.db.WithContext(ctx).Where("is_selected = ? AND active = 1", true).Order("symbol").Find(&stocks).Error // Use GORM's Where and Find methods
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +87,11 @@ func (r *StockRepository) Update(ctx context.Context, stock *domain.Stock) error
 
 // ToggleSelection toggles the selection status of a stock
 func (r *StockRepository) ToggleSelection(ctx context.Context, id string, isSelected bool) error {
-	return r.db.WithContext(ctx).Model(&domain.Stock{}).Where("id = ?", id).Update("is_selected", isSelected).Error // Use GORM's Update method
+	return r.db.WithContext(ctx).Model(&domain.Stock{}).Where("id = ? AND active = 1", id).
+		Update("is_selected", isSelected).Error // Use GORM's Update method
 }
 
 // Delete deletes a stock
 func (r *StockRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&domain.Stock{}, "id = ?", id).Error
+	return r.db.WithContext(ctx).Delete(&domain.Stock{}, "id = ? AND active = 1", id).Error
 }

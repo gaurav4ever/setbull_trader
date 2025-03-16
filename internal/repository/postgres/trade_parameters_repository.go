@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"time"
 
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
@@ -27,13 +28,21 @@ func (r *TradeParametersRepository) Create(ctx context.Context, params *domain.T
 		params.ID = uuid.New().String()
 	}
 
+	params.CreatedAt = time.Now()
+	params.UpdatedAt = time.Now()
+
+	r.db.WithContext(ctx).
+		Model(&domain.TradeParameters{}).
+		Where("stock_id = ? AND active = 1", params.StockID).
+		Update("active", false)
+
 	return r.db.WithContext(ctx).Create(params).Error
 }
 
 // GetByID retrieves trade parameters by their ID
 func (r *TradeParametersRepository) GetByID(ctx context.Context, id string) (*domain.TradeParameters, error) {
 	var params domain.TradeParameters
-	err := r.db.WithContext(ctx).First(&params, "id = ?", id).Error
+	err := r.db.WithContext(ctx).First(&params, "id = ? AND active = 1", id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -47,7 +56,7 @@ func (r *TradeParametersRepository) GetByID(ctx context.Context, id string) (*do
 // GetByStockID retrieves trade parameters for a specific stock
 func (r *TradeParametersRepository) GetByStockID(ctx context.Context, stockID string) (*domain.TradeParameters, error) {
 	var params domain.TradeParameters
-	err := r.db.WithContext(ctx).Where("stock_id = ?", stockID).First(&params).Error
+	err := r.db.WithContext(ctx).Where("stock_id = ? AND active = 1", stockID).First(&params).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -65,5 +74,5 @@ func (r *TradeParametersRepository) Update(ctx context.Context, params *domain.T
 
 // Delete deletes trade parameters
 func (r *TradeParametersRepository) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Delete(&domain.TradeParameters{}, "id = ?", id).Error
+	return r.db.WithContext(ctx).Model(&domain.TradeParameters{}).Where("id = ?", id).Update("active", false).Error
 }

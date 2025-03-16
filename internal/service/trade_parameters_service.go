@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
@@ -52,6 +53,8 @@ func (s *TradeParametersService) CreateOrUpdateTradeParameters(ctx context.Conte
 	if existingParams != nil {
 		// Update existing parameters
 		params.ID = existingParams.ID
+		params.CreatedAt = existingParams.CreatedAt
+		params.UpdatedAt = time.Now()
 		return s.tradeParamsRepo.Update(ctx, params)
 	}
 
