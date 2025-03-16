@@ -1,4 +1,4 @@
-// frontend/src/lib/actions/clickOutside.js
+// lib/actions/clickOutside.js
 
 /**
  * Action to detect clicks outside of an element

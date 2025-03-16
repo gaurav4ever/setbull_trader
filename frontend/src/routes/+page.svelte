@@ -1,10 +1,24 @@
 <script>
 	import { onMount } from 'svelte';
+	import StockSelector from '../lib/components/StockSelector.svelte';
+	import StockCard from '../lib/components/StockCard.svelte';
+	import ExecutionControl from '../lib/components/ExecutionControl.svelte';
+	import ExecutionResults from '../lib/components/ExecutionResults.svelte';
+	import { selectedStocksStore } from '../lib/stores/selectedStocks';
+	import { executionStatusStore, isExecuting, hasResults } from '../lib/stores/executionStatus';
+	import { executeOrdersForAllSelectedStocks } from '../lib/services/executionService';
 	import { tradeApi } from '$lib/services/apiService';
 
+	// Stock selection state
+	let selectedStocks = [];
+	let loading = true;
+	let error = '';
+	let activeStockId = null;
+
+	// Trade statistics state
 	let trades = [];
-	let isLoading = true;
-	let error = null;
+	let isLoadingTrades = true;
+	let tradeError = null;
 
 	// Statistics
 	let stats = {
@@ -14,7 +28,30 @@
 		netPosition: 0
 	};
 
+	// Subscribe to the selected stocks store
+	const unsubscribeStocks = selectedStocksStore.subscribe((state) => {
+		selectedStocks = state.stocks;
+		loading = state.loading;
+		error = state.error;
+	});
+
+	// Execution status
+	let executing = false;
+	let executionResults = [];
+	let executionError = null;
+
+	// Subscribe to execution status store
+	const unsubscribeExecutionStatus = executionStatusStore.subscribe((state) => {
+		executing = state.isExecuting;
+		executionResults = state.results;
+		executionError = state.error;
+	});
+
 	onMount(async () => {
+		// Load selected stocks
+		await selectedStocksStore.loadSelectedStocks();
+
+		// Load trade data
 		try {
 			// Fetch real trade data from the backend
 			const response = await tradeApi.getAllTrades();
@@ -22,15 +59,21 @@
 
 			// Calculate statistics
 			calculateStats();
-			isLoading = false;
+			isLoadingTrades = false;
 		} catch (err) {
 			console.error('Error fetching trades:', err);
-			error = err.message || 'Failed to load trades';
-			isLoading = false;
+			tradeError = err.message || 'Failed to load trades';
+			isLoadingTrades = false;
 
 			// If API fails, use mock data for demonstration
 			useMockData();
 		}
+
+		// Clean up subscriptions when component is destroyed
+		return () => {
+			unsubscribeStocks();
+			unsubscribeExecutionStatus();
+		};
 	});
 
 	// Fallback to mock data if API fails
@@ -63,7 +106,7 @@
 		calculateStats();
 
 		// Add a warning about using mock data
-		error = 'Could not connect to API. Using demo data for visualization.';
+		tradeError = 'Could not connect to API. Using demo data for visualization.';
 	}
 
 	function calculateStats() {
@@ -99,6 +142,82 @@
 	function getNetPositionClass(value) {
 		return value >= 0 ? 'text-green-600' : 'text-red-600';
 	}
+
+	// Handle stock selection
+	async function handleStockSelected(event) {
+		const symbol = event.detail;
+
+		// Show a message if we've already selected 3 stocks
+		if (selectedStocks.length >= 3) {
+			error = 'You can only select up to 3 stocks for trading';
+			return;
+		}
+
+		// Find if the stock already exists in our collection
+		const existingStock = selectedStocks.find((s) => s.symbol === symbol);
+
+		if (existingStock) {
+			// Stock is already selected
+			error = `${symbol} is already selected`;
+			return;
+		}
+
+		try {
+			// Create a new stock in the backend
+			const response = await fetch('/api/v1/stocks', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					symbol,
+					name: symbol, // Use symbol as name for simplicity
+					isSelected: true
+				})
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to create stock');
+			}
+
+			// Reload selected stocks
+			await selectedStocksStore.loadSelectedStocks();
+		} catch (err) {
+			console.error('Error adding stock:', err);
+			error = err.message || 'Failed to add stock';
+		}
+	}
+
+	// Set active stock
+	function setActiveStock(stockId) {
+		activeStockId = stockId;
+	}
+
+	// Handle execution
+	async function handleExecute() {
+		// Clear previous results
+		executionStatusStore.clearResults();
+
+		// Set executing state
+		executionStatusStore.startExecution();
+
+		try {
+			// Execute orders
+			const results = await executeOrdersForAllSelectedStocks();
+
+			// Update store with results
+			executionStatusStore.setResults(results);
+
+			// Reload trade data after execution
+			const response = await tradeApi.getAllTrades();
+			trades = response.trades || [];
+			calculateStats();
+		} catch (err) {
+			console.error('Error executing orders:', err);
+			executionStatusStore.setError(err.message || 'Failed to execute orders');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -124,7 +243,7 @@
 				<div class="px-4 py-5 sm:p-6">
 					<dt class="text-sm font-medium text-gray-500 truncate">Total Trades Today</dt>
 					<dd class="mt-1 text-3xl font-semibold text-gray-900">
-						{isLoading ? '...' : stats.totalTrades}
+						{isLoadingTrades ? '...' : stats.totalTrades}
 					</dd>
 				</div>
 			</div>
@@ -134,7 +253,7 @@
 				<div class="px-4 py-5 sm:p-6">
 					<dt class="text-sm font-medium text-gray-500 truncate">Total Buy Value</dt>
 					<dd class="mt-1 text-3xl font-semibold text-gray-900">
-						{isLoading ? '...' : formatCurrency(stats.totalBuyValue)}
+						{isLoadingTrades ? '...' : formatCurrency(stats.totalBuyValue)}
 					</dd>
 				</div>
 			</div>
@@ -144,7 +263,7 @@
 				<div class="px-4 py-5 sm:p-6">
 					<dt class="text-sm font-medium text-gray-500 truncate">Total Sell Value</dt>
 					<dd class="mt-1 text-3xl font-semibold text-gray-900">
-						{isLoading ? '...' : formatCurrency(stats.totalSellValue)}
+						{isLoadingTrades ? '...' : formatCurrency(stats.totalSellValue)}
 					</dd>
 				</div>
 			</div>
@@ -154,19 +273,19 @@
 				<div class="px-4 py-5 sm:p-6">
 					<dt class="text-sm font-medium text-gray-500 truncate">Net Position</dt>
 					<dd
-						class="mt-1 text-3xl font-semibold {isLoading
+						class="mt-1 text-3xl font-semibold {isLoadingTrades
 							? ''
 							: getNetPositionClass(stats.netPosition)}"
 					>
-						{isLoading ? '...' : formatCurrency(stats.netPosition)}
+						{isLoadingTrades ? '...' : formatCurrency(stats.netPosition)}
 					</dd>
 				</div>
 			</div>
 		</dl>
 	</div>
 
-	<!-- Connection Status -->
-	{#if error}
+	<!-- API Connection Status -->
+	{#if tradeError}
 		<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
 			<div class="flex">
 				<div class="flex-shrink-0">
@@ -179,12 +298,25 @@
 					</svg>
 				</div>
 				<div class="ml-3">
-					<p class="text-sm text-yellow-700">{error}</p>
+					<p class="text-sm text-yellow-700">{tradeError}</p>
 					<p class="text-sm text-yellow-600 mt-2">
 						Make sure your backend API is running at http://localhost:8080/api/v1
 					</p>
 				</div>
 			</div>
+		</div>
+	{/if}
+
+	<!-- Stock Selection Error (if any) -->
+	{#if error}
+		<div class="mb-6 p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
+			<p>{error}</p>
+			<button
+				class="mt-2 text-sm text-red-500 hover:text-red-700"
+				on:click={() => selectedStocksStore.clearError()}
+			>
+				Dismiss
+			</button>
 		</div>
 	{/if}
 
@@ -221,12 +353,64 @@
 		</div>
 	</div>
 
+	<!-- Stock Selection Section -->
+	<div class="mb-8">
+		<div class="bg-white shadow rounded-lg p-6">
+			<h2 class="text-lg font-medium text-gray-900 mb-4">Select Stocks</h2>
+
+			{#if selectedStocks.length < 3}
+				<StockSelector onStockSelected={handleStockSelected} />
+			{:else}
+				<p class="text-sm text-gray-500">
+					You've selected 3 stocks (maximum allowed). Remove a stock to add a different one.
+				</p>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Selected Stocks Section -->
+	<div class="mb-8">
+		<h2 class="text-lg font-medium text-gray-900 mb-4">Selected Stocks</h2>
+
+		{#if loading}
+			<div class="flex justify-center py-8">
+				<div
+					class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"
+				></div>
+			</div>
+		{:else if selectedStocks.length === 0}
+			<div class="bg-white shadow rounded-lg p-6 text-center">
+				<p class="text-gray-500">No stocks selected. Use the stock selector above to add stocks.</p>
+			</div>
+		{:else}
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{#each selectedStocks as stock (stock.id)}
+					<StockCard
+						{stock}
+						expanded={stock.id === activeStockId}
+						active={stock.id === activeStockId}
+						on:click={() => setActiveStock(stock.id === activeStockId ? null : stock.id)}
+					/>
+				{/each}
+			</div>
+		{/if}
+	</div>
+
+	<!-- Execution Section -->
+	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+		<!-- Execution Control -->
+		<ExecutionControl disabled={executing} on:executed={handleExecute} />
+
+		<!-- Execution Results -->
+		<ExecutionResults results={executionResults} visible={true} />
+	</div>
+
 	<!-- Recent Trades Section -->
 	<div class="bg-white shadow rounded-lg">
 		<div class="px-4 py-5 sm:p-6">
 			<h2 class="text-lg font-medium text-gray-900 mb-4">Recent Trades</h2>
 
-			{#if isLoading}
+			{#if isLoadingTrades}
 				<div class="flex justify-center py-10">
 					<div
 						class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"

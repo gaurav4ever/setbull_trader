@@ -1,4 +1,4 @@
-// frontend/src/lib/services/stocksService.js
+// lib/services/stocksService.js
 
 // Global variable to hold our stocks list
 let stocksList = [];
@@ -59,6 +59,71 @@ export const searchStocks = (query) => {
         .slice(0, 10); // Limit to 10 results for performance
 };
 
+/**
+ * Fetches stock details by symbol
+ * @param {string} symbol Stock symbol
+ * @returns {Promise<Object>} Stock details
+ */
+export const getStockBySymbol = async (symbol) => {
+    try {
+        const response = await fetch(`/api/v1/stocks/symbol/${symbol}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch stock: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data.data; // Assuming response has a data property
+    } catch (error) {
+        console.error(`Error fetching stock ${symbol}:`, error);
+        return null;
+    }
+};
+
+/**
+ * Fetches all selected stocks
+ * @returns {Promise<Object[]>} Array of selected stock objects
+ */
+export const getSelectedStocks = async () => {
+    try {
+        const response = await fetch('/api/v1/stocks/selected');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch selected stocks: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data.data || []; // Assuming response has a data property
+    } catch (error) {
+        console.error('Error fetching selected stocks:', error);
+        return [];
+    }
+};
+
+/**
+ * Toggles stock selection status
+ * @param {string} stockId Stock ID
+ * @param {boolean} isSelected Whether the stock should be selected
+ * @returns {Promise<boolean>} Success status
+ */
+export const toggleStockSelection = async (stockId, isSelected) => {
+    try {
+        const response = await fetch(`/api/v1/stocks/${stockId}/toggle-selection`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isSelected })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Failed to toggle stock selection: ${response.statusText}`);
+        }
+
+        return true;
+    } catch (error) {
+        console.error(`Error toggling selection for stock ${stockId}:`, error);
+        throw error; // Re-throw to let the caller handle it
+    }
+};
+
 // Initialize stocks list on module load
 loadStocksFromFile().then(stocks => {
     stocksList = stocks;
@@ -70,5 +135,8 @@ loadStocksFromFile().then(stocks => {
 // Export default for convenience
 export default {
     getStocksList,
-    searchStocks
+    searchStocks,
+    getStockBySymbol,
+    getSelectedStocks,
+    toggleStockSelection
 };
