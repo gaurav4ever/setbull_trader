@@ -30,7 +30,7 @@ func (s *StockService) CreateStock(ctx context.Context, stock *domain.Stock) err
 	}
 
 	if existingStock != nil {
-		return errors.New("stock with the same symbol already exists")
+		s.DeleteStock(ctx, existingStock.ID)
 	}
 
 	// Create new stock

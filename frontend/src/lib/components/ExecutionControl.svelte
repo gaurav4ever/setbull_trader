@@ -43,7 +43,11 @@
 	}, 0);
 
 	// Check if any stock is missing parameters or plan
-	$: hasMissingPrerequisites = selectedStocks.some((stock) => !stock.parameters);
+	$: hasMissingPrerequisites = selectedStocks.some(
+		(stock) =>
+			(!stock.parameters && !stock.executionPlan) ||
+			(!stock.executionPlan && !stock.executionPlan?.levelEntries?.length)
+	);
 
 	// Handle execute button click
 	function handleExecuteClick() {

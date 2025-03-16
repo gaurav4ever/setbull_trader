@@ -1,4 +1,4 @@
-// lib/services/stocksService.js
+// frontend/src/lib/services/stocksService.js
 
 // Global variable to hold our stocks list
 let stocksList = [];
@@ -57,6 +57,100 @@ export const searchStocks = (query) => {
     return stocksList
         .filter(stock => stock.toLowerCase().includes(normalizedQuery))
         .slice(0, 10); // Limit to 10 results for performance
+};
+
+/**
+ * Creates a new stock
+ * @param {Object} stockData - Stock data to create
+ * @returns {Promise<Object>} Created stock object
+ */
+export const createStock = async (stockData) => {
+    try {
+        const response = await fetch('/api/v1/stocks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(stockData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create stock');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error creating stock:', error);
+        throw error;
+    }
+};
+
+/**
+ * Saves trade parameters for a stock
+ * @param {Object} paramsData - Parameters data
+ * @returns {Promise<Object>} Created parameters object
+ */
+export const saveTradeParameters = async (paramsData) => {
+    try {
+        const response = await fetch('/api/v1/parameters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paramsData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save parameters');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error saving parameters:', error);
+        throw error;
+    }
+};
+
+/**
+ * Creates a stock and saves its parameters in one operation
+ * @param {string} symbol - Stock symbol
+ * @param {Object} parameters - Trading parameters
+ * @returns {Promise<Object>} Object containing stock and parameters
+ */
+export const createStockWithParameters = async (symbol, parameters) => {
+    try {
+        // First create the stock
+        const stockResponse = await createStock({
+            symbol,
+            name: symbol, // Use symbol as name for simplicity
+            isSelected: true
+        });
+
+        if (!stockResponse.data || !stockResponse.data.id) {
+            throw new Error('Failed to get stock ID from response');
+        }
+
+        // Then save the parameters
+        const stockId = stockResponse.data.id;
+        const paramData = {
+            stockId,
+            ...parameters
+        };
+
+        const paramResponse = await saveTradeParameters(paramData);
+
+        return {
+            stock: stockResponse.data,
+            parameters: paramResponse.data
+        };
+    } catch (error) {
+        console.error('Error creating stock with parameters:', error);
+        throw error;
+    }
 };
 
 /**
@@ -138,5 +232,8 @@ export default {
     searchStocks,
     getStockBySymbol,
     getSelectedStocks,
-    toggleStockSelection
+    toggleStockSelection,
+    createStock,
+    saveTradeParameters,
+    createStockWithParameters
 };

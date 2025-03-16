@@ -1,12 +1,14 @@
+<!-- frontend/src/routes/+page.svelte (Updated Section) -->
 <script>
 	import { onMount } from 'svelte';
-	import StockSelector from '../lib/components/StockSelector.svelte';
+	import EnhancedStockSelector from '../lib/components/EnhancedStockSelector.svelte';
 	import StockCard from '../lib/components/StockCard.svelte';
 	import ExecutionControl from '../lib/components/ExecutionControl.svelte';
 	import ExecutionResults from '../lib/components/ExecutionResults.svelte';
 	import { selectedStocksStore } from '../lib/stores/selectedStocks';
 	import { executionStatusStore, isExecuting, hasResults } from '../lib/stores/executionStatus';
 	import { executeOrdersForAllSelectedStocks } from '../lib/services/executionService';
+	import { createStockWithParameters } from '../lib/services/stocksService';
 	import { tradeApi } from '$lib/services/apiService';
 
 	// Stock selection state
@@ -14,6 +16,7 @@
 	let loading = true;
 	let error = '';
 	let activeStockId = null;
+	let addingStock = false;
 
 	// Trade statistics state
 	let trades = [];
@@ -75,6 +78,28 @@
 			unsubscribeExecutionStatus();
 		};
 	});
+
+	// Handle stock selection with parameters
+	async function handleStockWithParametersSelected(event) {
+		const { stockSymbol, parameters } = event.detail;
+
+		// Show loading state
+		addingStock = true;
+		error = '';
+
+		try {
+			// Create stock with parameters
+			await createStockWithParameters(stockSymbol, parameters);
+
+			// Reload selected stocks
+			await selectedStocksStore.loadSelectedStocks();
+		} catch (err) {
+			console.error('Error adding stock with parameters:', err);
+			error = err.message || 'Failed to add stock';
+		} finally {
+			addingStock = false;
+		}
+	}
 
 	// Fallback to mock data if API fails
 	function useMockData() {
@@ -143,55 +168,9 @@
 		return value >= 0 ? 'text-green-600' : 'text-red-600';
 	}
 
-	// Handle stock selection
-	async function handleStockSelected(event) {
-		const symbol = event.detail;
-
-		// Show a message if we've already selected 3 stocks
-		if (selectedStocks.length >= 3) {
-			error = 'You can only select up to 3 stocks for trading';
-			return;
-		}
-
-		// Find if the stock already exists in our collection
-		const existingStock = selectedStocks.find((s) => s.symbol === symbol);
-
-		if (existingStock) {
-			// Stock is already selected
-			error = `${symbol} is already selected`;
-			return;
-		}
-
-		try {
-			// Create a new stock in the backend
-			const response = await fetch('/api/v1/stocks', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					symbol,
-					name: symbol, // Use symbol as name for simplicity
-					isSelected: true
-				})
-			});
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || 'Failed to create stock');
-			}
-
-			// Reload selected stocks
-			await selectedStocksStore.loadSelectedStocks();
-		} catch (err) {
-			console.error('Error adding stock:', err);
-			error = err.message || 'Failed to add stock';
-		}
-	}
-
 	// Set active stock
 	function setActiveStock(stockId) {
-		activeStockId = stockId;
+		activeStockId = stockId === activeStockId ? null : stockId;
 	}
 
 	// Handle execution
@@ -353,13 +332,24 @@
 		</div>
 	</div>
 
-	<!-- Stock Selection Section -->
+	<!-- Stock Selection Section (Updated) -->
 	<div class="mb-8">
 		<div class="bg-white shadow rounded-lg p-6">
 			<h2 class="text-lg font-medium text-gray-900 mb-4">Select Stocks</h2>
 
 			{#if selectedStocks.length < 3}
-				<StockSelector onStockSelected={handleStockSelected} />
+				<!-- Enhanced Stock Selector Component -->
+				<EnhancedStockSelector
+					on:stockWithParametersSelected={handleStockWithParametersSelected}
+					maxSelectedStocks={3}
+				/>
+
+				{#if addingStock}
+					<div class="mt-4 flex items-center justify-center py-4">
+						<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+						<span class="ml-2 text-sm text-gray-500">Adding stock...</span>
+					</div>
+				{/if}
 			{:else}
 				<p class="text-sm text-gray-500">
 					You've selected 3 stocks (maximum allowed). Remove a stock to add a different one.

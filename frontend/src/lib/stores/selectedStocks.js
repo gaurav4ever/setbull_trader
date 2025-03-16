@@ -1,6 +1,6 @@
 // lib/stores/selectedStocks.js
 import { writable, derived } from 'svelte/store';
-import { getSelectedStocks, toggleStockSelection } from '../services/stocksService';
+import { getSelectedStocks, toggleStockSelection, createStockWithParameters } from '../services/stocksService';
 
 // Create a writable store to hold selected stocks
 const createSelectedStocksStore = () => {
@@ -30,6 +30,36 @@ const createSelectedStocksStore = () => {
                     error: error.message || 'Failed to load selected stocks'
                 }));
                 return [];
+            }
+        },
+
+        // Create a new stock with parameters in one step
+        async addStockWithParameters(stockSymbol, parameters) {
+            update(state => ({ ...state, loading: true, error: null }));
+
+            try {
+                // Check if we've reached the maximum
+                const currentSelected = await getSelectedStocks();
+                if (currentSelected.length >= 3) {
+                    throw new Error('Maximum of 3 stocks can be selected');
+                }
+
+                // Create stock with parameters
+                await createStockWithParameters(stockSymbol, parameters);
+
+                // Reload stocks to get updated state
+                const stocks = await getSelectedStocks();
+                set({ stocks, loading: false, error: null, maxAllowed: 3 });
+
+                return true;
+            } catch (error) {
+                console.error(`Failed to add stock with parameters:`, error);
+                update(state => ({
+                    ...state,
+                    loading: false,
+                    error: error.message || 'Failed to add stock with parameters'
+                }));
+                return false;
             }
         },
 
