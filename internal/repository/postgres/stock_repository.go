@@ -60,6 +60,19 @@ func (r *StockRepository) GetBySymbol(ctx context.Context, symbol string) (*doma
 	return &stock, nil
 }
 
+// GetBySecurityID retrieves a stock by its security ID
+func (r *StockRepository) GetBySecurityID(ctx context.Context, securityID string) (*domain.Stock, error) {
+	var stock domain.Stock
+	err := r.db.WithContext(ctx).Where("security_id = ? AND active = 1", securityID).First(&stock).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // Return nil if stock not found
+		}
+		return nil, err
+	}
+	return &stock, nil
+}
+
 // GetAll retrieves all stocks
 func (r *StockRepository) GetAll(ctx context.Context) ([]*domain.Stock, error) {
 	var stocks []*domain.Stock

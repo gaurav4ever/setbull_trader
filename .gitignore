@@ -67,3 +67,5 @@ __debug_bin
 coverage.out
 coverage.html
 .DS_Store
+
+GOALS/

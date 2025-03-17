@@ -15,6 +15,7 @@ type Stock struct {
 	ID           string    `gorm:"column:id" json:"id"`
 	Symbol       string    `gorm:"column:symbol" json:"symbol"`
 	Name         string    `gorm:"column:name" json:"name"`
+	SecurityID   string    `gorm:"column:security_id" json:"securityId"`
 	CurrentPrice float64   `gorm:"column:current_price" json:"currentPrice"`
 	IsSelected   bool      `gorm:"column:is_selected" json:"isSelected"`
 	Active       bool      `gorm:"column:active;default:1;index:idx_active"`

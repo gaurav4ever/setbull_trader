@@ -17,6 +17,9 @@ type StockRepository interface {
 	// GetBySymbol retrieves a stock by its symbol
 	GetBySymbol(ctx context.Context, symbol string) (*domain.Stock, error)
 
+	// GetBySecurityID retrieves a stock by its security ID
+	GetBySecurityID(ctx context.Context, securityID string) (*domain.Stock, error)
+
 	// GetAll retrieves all stocks
 	GetAll(ctx context.Context) ([]*domain.Stock, error)
 
