@@ -1,4 +1,6 @@
-// lib/stores/selectedStocks.js
+// frontend/src/lib/stores/selectedStocks.js
+// Update the store to handle stocks with security IDs
+
 import { writable, derived } from 'svelte/store';
 import { getSelectedStocks, toggleStockSelection, createStockWithParameters } from '../services/stocksService';
 
@@ -116,13 +118,12 @@ const createSelectedStocksStore = () => {
 // Create the store
 export const selectedStocksStore = createSelectedStocksStore();
 
-// Create a derived store that indicates if more stocks can be added
+// Create derived stores
 export const canAddMoreStocks = derived(
     selectedStocksStore,
     $selectedStocksStore => $selectedStocksStore.stocks.length < $selectedStocksStore.maxAllowed
 );
 
-// Create a derived store with just the count
 export const selectedStocksCount = derived(
     selectedStocksStore,
     $selectedStocksStore => $selectedStocksStore.stocks.length
