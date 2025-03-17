@@ -29,8 +29,17 @@ func (s *StockService) CreateStock(ctx context.Context, stock *domain.Stock) err
 		return fmt.Errorf("failed to check for existing stock: %w", err)
 	}
 
+	// Also check if a stock with the same security ID exists
+	existingBySecurityID, err := s.stockRepo.GetBySecurityID(ctx, stock.SecurityID)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing stock by security ID: %w", err)
+	}
+
+	// If exists by either symbol or security ID, remove the old one
 	if existingStock != nil {
 		s.DeleteStock(ctx, existingStock.ID)
+	} else if existingBySecurityID != nil {
+		s.DeleteStock(ctx, existingBySecurityID.ID)
 	}
 
 	// Create new stock
@@ -45,6 +54,11 @@ func (s *StockService) GetStockByID(ctx context.Context, id string) (*domain.Sto
 // GetStockBySymbol retrieves a stock by its symbol
 func (s *StockService) GetStockBySymbol(ctx context.Context, symbol string) (*domain.Stock, error) {
 	return s.stockRepo.GetBySymbol(ctx, symbol)
+}
+
+// GetStockBySecurityID retrieves a stock by its security ID
+func (s *StockService) GetStockBySecurityID(ctx context.Context, securityID string) (*domain.Stock, error) {
+	return s.stockRepo.GetBySecurityID(ctx, securityID)
 }
 
 // GetAllStocks retrieves all stocks
@@ -78,6 +92,18 @@ func (s *StockService) UpdateStock(ctx context.Context, stock *domain.Stock) err
 
 		if stockWithSameSymbol != nil && stockWithSameSymbol.ID != stock.ID {
 			return errors.New("another stock with the same symbol already exists")
+		}
+	}
+
+	// Check if updating the security ID would create a duplicate
+	if stock.SecurityID != existingStock.SecurityID {
+		stockWithSameSecurityID, err := s.stockRepo.GetBySecurityID(ctx, stock.SecurityID)
+		if err != nil {
+			return fmt.Errorf("failed to check for duplicate security ID: %w", err)
+		}
+
+		if stockWithSameSecurityID != nil && stockWithSameSecurityID.ID != stock.ID {
+			return errors.New("another stock with the same security ID already exists")
 		}
 	}
 

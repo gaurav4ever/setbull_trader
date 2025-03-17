@@ -42,6 +42,26 @@ func (s *Server) GetStockByID(w http.ResponseWriter, r *http.Request) {
 	respondSuccess(w, stock)
 }
 
+// GetStockBySecurityID gets a stock by its security ID
+func (s *Server) GetStockBySecurityID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+	securityID := vars["securityId"]
+
+	stock, err := s.stockService.GetStockBySecurityID(ctx, securityID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to get stock: "+err.Error())
+		return
+	}
+
+	if stock == nil {
+		respondWithError(w, http.StatusNotFound, "Stock not found")
+		return
+	}
+
+	respondSuccess(w, stock)
+}
+
 // GetSelectedStocks gets all selected stocks
 func (s *Server) GetSelectedStocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

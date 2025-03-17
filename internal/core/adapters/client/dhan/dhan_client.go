@@ -75,6 +75,9 @@ func (c *Client) PlaceOrder(request *PlaceOrderRequest) (*OrderResponse, error) 
 		request.DhanClientID = c.clientID
 	}
 
+	// Log the security ID being used
+	log.Info("Placing order with Dhan API using SecurityID: %s", request.SecurityID)
+
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal request")
