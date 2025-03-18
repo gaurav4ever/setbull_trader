@@ -59,7 +59,38 @@ func (s *StockService) CreateStock(ctx context.Context, stock *domain.Stock) err
 
 // GetStockByID retrieves a stock by its ID
 func (s *StockService) GetStockByID(ctx context.Context, id string) (*domain.Stock, error) {
-	return s.stockRepo.GetByID(ctx, id)
+	stock, err := s.stockRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get selected stocks: %w", err)
+	}
+
+	// Enrich each stock with parameters and execution plan
+	params, err := s.tradeParamsRepo.GetByStockID(ctx, stock.ID)
+	if err != nil {
+		// Log error but continue
+		fmt.Printf("No trade parameter for the stock %s: %v\n", stock.ID, err)
+	} else if params != nil {
+		stock.Parameters = params
+	}
+
+	// Get execution plan for the stock
+	plan, err := s.executionPlanRepo.GetByStockID(ctx, stock.ID)
+	if err != nil {
+		// Log error but continue
+		fmt.Printf("No execution plan for stock %s: %v\n", stock.ID, err)
+	} else if plan != nil {
+		// Get level entries for the plan
+		levelEntries, err := s.levelEntryRepo.GetByExecutionPlanID(ctx, plan.ID)
+		if err != nil {
+			// Log error but continue
+			fmt.Printf("No level entries for plan %s: %v\n", plan.ID, err)
+		} else {
+			plan.LevelEntries = levelEntries
+		}
+
+		stock.ExecutionPlan = plan
+	}
+	return stock, nil
 }
 
 // GetStockBySymbol retrieves a stock by its symbol

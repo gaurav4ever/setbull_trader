@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"setbull_trader/internal/domain"
 
 	"github.com/gorilla/mux"
 )
@@ -12,26 +13,42 @@ func (s *Server) ExecuteOrdersForStock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	stockID := vars["stockId"]
 
-	execution, err := s.executeService.ExecuteOrdersForStock(ctx, stockID)
+	execution, results, err := s.executeService.ExecuteOrdersForStock(ctx, stockID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to execute orders: "+err.Error())
 		return
 	}
 
-	respondSuccess(w, execution)
+	response := struct {
+		Execution *domain.OrderExecution   `json:"execution"`
+		Results   *domain.ExecutionResults `json:"results"`
+	}{
+		Execution: execution,
+		Results:   results,
+	}
+
+	respondSuccess(w, response)
 }
 
 // ExecuteOrdersForAllSelectedStocks executes orders for all selected stocks
 func (s *Server) ExecuteOrdersForAllSelectedStocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	executions, err := s.executeService.ExecuteOrdersForAllSelectedStocks(ctx)
+	executions, results, err := s.executeService.ExecuteOrdersForAllSelectedStocks(ctx)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to execute orders: "+err.Error())
+		respondWithError(w, http.StatusPreconditionFailed, "Failed to execute orders: "+err.Error())
 		return
 	}
 
-	respondSuccess(w, executions)
+	response := struct {
+		Execution []*domain.OrderExecution   `json:"execution"`
+		Results   []*domain.ExecutionResults `json:"results"`
+	}{
+		Execution: executions,
+		Results:   results,
+	}
+
+	respondSuccess(w, response)
 }
 
 // GetOrderExecutionByID gets an order execution by ID

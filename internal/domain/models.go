@@ -81,6 +81,22 @@ type OrderExecution struct {
 	UpdatedAt       time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
 }
 
+// ExecutionResults contains all results from an execution attempt
+type ExecutionResults struct {
+	ExecutionID string
+	StockSymbol string
+	Results     []OrderExecutionResult
+	Success     bool
+}
+
+type OrderExecutionResult struct {
+	LevelDescription string
+	OrderID          string
+	OrderStatus      string
+	Success          bool
+	Error            string
+}
+
 const (
 	OrderStatusPending   = "PENDING"
 	OrderStatusExecuting = "EXECUTING"

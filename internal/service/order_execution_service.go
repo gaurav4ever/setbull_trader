@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"setbull_trader/internal/core/dto/request"
+	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
+	"setbull_trader/pkg/log"
 
 	"github.com/google/uuid"
 )
@@ -18,8 +21,8 @@ type OrderExecutionService struct {
 	executionPlanRepo  repository.ExecutionPlanRepository
 	stockRepo          repository.StockRepository
 	levelEntryRepo     repository.LevelEntryRepository
-	// In a real system, you'd have a broker client here
-	// brokerClient BrokerClient
+	orderService       orders.Service
+	stockService       StockService
 }
 
 // NewOrderExecutionService creates a new OrderExecutionService
@@ -28,42 +31,47 @@ func NewOrderExecutionService(
 	executionPlanRepo repository.ExecutionPlanRepository,
 	stockRepo repository.StockRepository,
 	levelEntryRepo repository.LevelEntryRepository,
+	orderService orders.Service,
+	stockService StockService,
 ) *OrderExecutionService {
 	return &OrderExecutionService{
 		orderExecutionRepo: orderExecutionRepo,
 		executionPlanRepo:  executionPlanRepo,
 		stockRepo:          stockRepo,
 		levelEntryRepo:     levelEntryRepo,
+		orderService:       orderService,
+		stockService:       stockService,
 	}
 }
 
 // ExecuteOrdersForStock executes trades for a single stock based on its execution plan
-func (s *OrderExecutionService) ExecuteOrdersForStock(ctx context.Context, stockID string) (*domain.OrderExecution, error) {
+func (s *OrderExecutionService) ExecuteOrdersForStock(ctx context.Context, stockID string) (*domain.OrderExecution, *domain.ExecutionResults, error) {
 	// Verify stock exists and is selected
-	stock, err := s.stockRepo.GetByID(ctx, stockID)
+	// stock, err := s.stockRepo.GetByID(ctx, stockID)
+	stock, err := s.stockService.GetStockByID(ctx, stockID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get stock: %w", err)
+		return nil, nil, fmt.Errorf("failed to get stock: %w", err)
 	}
 	if stock == nil {
-		return nil, errors.New("stock not found")
+		return nil, nil, errors.New("stock not found")
 	}
 	if !stock.IsSelected {
-		return nil, errors.New("stock is not selected for trading")
+		return nil, nil, errors.New("stock is not selected for trading")
 	}
 
 	// Get the latest execution plan
 	plan, err := s.executionPlanRepo.GetByStockID(ctx, stockID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get execution plan: %w", err)
+		return nil, nil, fmt.Errorf("failed to get execution plan: %w", err)
 	}
 	if plan == nil {
-		return nil, errors.New("no execution plan found for this stock")
+		return nil, nil, errors.New("no execution plan found for this stock")
 	}
 
 	// Get level entries
 	levelEntries, err := s.levelEntryRepo.GetByExecutionPlanID(ctx, plan.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get level entries: %w", err)
+		return nil, nil, fmt.Errorf("failed to get level entries: %w", err)
 	}
 
 	// Create order execution record
@@ -76,63 +84,72 @@ func (s *OrderExecutionService) ExecuteOrdersForStock(ctx context.Context, stock
 
 	err = s.orderExecutionRepo.Create(ctx, orderExecution)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create order execution record: %w", err)
+		return nil, nil, fmt.Errorf("failed to create order execution record: %w", err)
 	}
 
 	// Start execution - in a real system, this might be async
-	err = s.executeOrders(ctx, orderExecution.ID, levelEntries)
+	executionResults, err := s.executeOrders(ctx, orderExecution.ID, levelEntries, stock, stock.Parameters.TradeSide)
 	if err != nil {
 		// Update status to failed
 		_ = s.orderExecutionRepo.UpdateStatus(ctx, orderExecution.ID, domain.OrderStatusFailed, err.Error())
-		return nil, fmt.Errorf("failed to execute orders: %w", err)
+		return nil, nil, fmt.Errorf("failed to execute orders: %w", err)
 	}
 
-	// Update status to completed
-	err = s.orderExecutionRepo.UpdateStatus(ctx, orderExecution.ID, domain.OrderStatusCompleted, "")
+	// Update status based on execution results
+	finalStatus := domain.OrderStatusCompleted
+	var statusMessage string
+	if !executionResults.Success {
+		finalStatus = domain.OrderStatusFailed
+		statusMessage = "Some orders failed to execute"
+	}
+
+	err = s.orderExecutionRepo.UpdateStatus(ctx, orderExecution.ID, finalStatus, statusMessage)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update order execution status: %w", err)
+		return nil, executionResults, fmt.Errorf("failed to update order execution status: %w", err)
 	}
 
 	// Get the updated order execution
 	updatedExecution, err := s.orderExecutionRepo.GetByID(ctx, orderExecution.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get updated order execution: %w", err)
+		return nil, executionResults, fmt.Errorf("failed to get updated order execution: %w", err)
 	}
 
-	return updatedExecution, nil
+	return updatedExecution, executionResults, nil
 }
 
 // ExecuteOrdersForAllSelectedStocks executes trades for all selected stocks
-func (s *OrderExecutionService) ExecuteOrdersForAllSelectedStocks(ctx context.Context) ([]*domain.OrderExecution, error) {
+func (s *OrderExecutionService) ExecuteOrdersForAllSelectedStocks(ctx context.Context) ([]*domain.OrderExecution, []*domain.ExecutionResults, error) {
 	// Get all selected stocks
 	selectedStocks, err := s.stockRepo.GetSelected(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get selected stocks: %w", err)
+		return nil, nil, fmt.Errorf("failed to get selected stocks: %w", err)
 	}
 
 	if len(selectedStocks) == 0 {
-		return nil, errors.New("no stocks are selected for trading")
+		return nil, nil, errors.New("no stocks are selected for trading")
 	}
 
 	// Execute orders for each stock
 	var executions []*domain.OrderExecution
+	var allResults []*domain.ExecutionResults
 
 	for _, stock := range selectedStocks {
-		execution, err := s.ExecuteOrdersForStock(ctx, stock.ID)
+		execution, results, err := s.ExecuteOrdersForStock(ctx, stock.ID)
 		if err != nil {
 			// Log the error but continue with other stocks
 			fmt.Printf("Error executing orders for stock %s: %v\n", stock.Symbol, err)
-			continue
+			return nil, nil, err
 		}
 
 		executions = append(executions, execution)
+		allResults = append(allResults, results)
 	}
 
 	if len(executions) == 0 {
-		return nil, errors.New("failed to execute orders for any selected stocks")
+		return nil, nil, errors.New("failed to execute orders for any selected stocks")
 	}
 
-	return executions, nil
+	return executions, allResults, nil
 }
 
 // executeOrders performs the actual order execution
@@ -141,35 +158,71 @@ func (s *OrderExecutionService) executeOrders(
 	ctx context.Context,
 	executionID string,
 	levelEntries []domain.LevelEntry,
-) error {
+	stock *domain.Stock,
+	tradeSide domain.TradeSide,
+) (*domain.ExecutionResults, error) {
 	// Update status to executing
 	err := s.orderExecutionRepo.UpdateStatus(ctx, executionID, domain.OrderStatusExecuting, "")
 	if err != nil {
-		return fmt.Errorf("failed to update execution status: %w", err)
+		return nil, fmt.Errorf("failed to update execution status: %w", err)
 	}
 
-	// In a real implementation, this would place the orders with your broker
-	// For each level entry (except stop loss, which would be at index 0)
+	results := &domain.ExecutionResults{
+		ExecutionID: executionID,
+		StockSymbol: stock.Symbol,
+		Results:     make([]domain.OrderExecutionResult, 0),
+		Success:     true, // Will be set to false if any order fails
+	}
+
+	// Place orders for each level entry (except stop loss at index 0)
 	for i, entry := range levelEntries {
 		if i == 0 || entry.Quantity <= 0 {
 			// Skip stop loss level or entries with no quantity
 			continue
 		}
 
-		// Placeholder for broker API calls
-		// Replace with actual broker integration
-		fmt.Printf(
-			"Placing order: Level=%s, Price=%f, Quantity=%d\n",
-			entry.Description,
-			entry.Price,
-			entry.Quantity,
-		)
+		// Create order request
+		orderReq := &request.PlaceOrderRequest{
+			TransactionType: string(tradeSide),
+			ExchangeSegment: "NSE_EQ",
+			ProductType:     "INTRADAY",
+			OrderType:       "MARKET",
+			SecurityID:      stock.SecurityID,
+			Quantity:        entry.Quantity,
+			Price:           entry.Price,
+			Validity:        "DAY",
+		}
 
-		// Simulate some processing time
-		time.Sleep(100 * time.Millisecond)
+		// Place the order with Dhan
+		response, err := s.orderService.PlaceOrder(orderReq)
+
+		result := domain.OrderExecutionResult{
+			LevelDescription: entry.Description,
+		}
+
+		if err != nil {
+			result.Success = false
+			result.Error = err.Error()
+			results.Success = false
+			log.Error("Failed to place order", "level", entry.Description, "error", err)
+		} else {
+			result.Success = true
+			result.OrderID = response.OrderID
+			result.OrderStatus = response.OrderStatus
+			log.Info("Order placed successfully",
+				"level", entry.Description,
+				"orderID", response.OrderID,
+				"status", response.OrderStatus)
+		}
+
+		results.Results = append(results.Results, result)
 	}
 
-	return nil
+	if len(results.Results) == 0 {
+		return nil, errors.New("no orders were attempted")
+	}
+
+	return results, nil
 }
 
 // GetOrderExecutionByID retrieves an order execution by ID
