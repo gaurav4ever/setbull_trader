@@ -46,32 +46,12 @@
 	// Initial stock selection (opens parameter form)
 	function handleInitialStockSelect(event) {
 		const selectedStock = event.detail;
-		// Store the whole stock object for access to security ID
-		tempSelectedStock = selectedStock;
-		showParameterModal = true;
-	}
 
-	// Handle parameter form submission
-	async function handleParameterSubmit(event) {
-		const { stockSymbol, parameters } = event.detail;
+		// Dispatch the selected stock to the parent component
+		dispatch('stockSelected', selectedStock);
 
-		// Close the modal first
-		showParameterModal = false;
-
-		dispatch('stockWithParametersSelected', {
-			stockSymbol,
-			stockObject: tempSelectedStock, // Pass the full stock object for security ID
-			parameters
-		});
-
-		// Clear the temp selection
-		tempSelectedStock = '';
-	}
-
-	// Handle modal close/cancel
-	function handleModalClose() {
-		showParameterModal = false;
-		tempSelectedStock = '';
+		// Clear the autocomplete field after selection
+		searchQuery = '';
 	}
 
 	// Handle search input changes
@@ -117,19 +97,4 @@
 			</p>
 		{/if}
 	</div>
-
-	<!-- Parameter Form Modal -->
-	<Modal
-		show={showParameterModal}
-		title={`Add ${tempSelectedStock?.symbol || ''} to Selected Stocks`}
-		on:close={handleModalClose}
-	>
-		<StockParameterForm
-			stockSymbol={tempSelectedStock?.symbol || ''}
-			stockSecurityId={tempSelectedStock?.securityId || ''}
-			onCancel={handleModalClose}
-			on:submit={handleParameterSubmit}
-			on:cancel={handleModalClose}
-		/>
-	</Modal>
 </div>

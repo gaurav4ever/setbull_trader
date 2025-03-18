@@ -8,7 +8,7 @@
 	import { selectedStocksStore } from '../lib/stores/selectedStocks';
 	import { executionStatusStore, isExecuting, hasResults } from '../lib/stores/executionStatus';
 	import { executeOrdersForAllSelectedStocks } from '../lib/services/executionService';
-	import { createStockWithParameters } from '../lib/services/stocksService';
+	import { createStock } from '../lib/services/stocksService';
 	import { tradeApi } from '$lib/services/apiService';
 
 	// Stock selection state
@@ -17,6 +17,7 @@
 	let error = '';
 	let activeStockId = null;
 	let addingStock = false;
+	let newlyAddedStockId = null;
 
 	// Trade statistics state
 	let trades = [];
@@ -79,27 +80,27 @@
 		};
 	});
 
-	// Handle stock selection with parameters
-	async function handleStockWithParametersSelected(event) {
-		const { stockSymbol, parameters } = event.detail;
+	// // Handle stock selection with parameters
+	// async function handleStockWithParametersSelected(event) {
+	// 	const { stockSymbol, parameters } = event.detail;
 
-		// Show loading state
-		addingStock = true;
-		error = '';
+	// 	// Show loading state
+	// 	addingStock = true;
+	// 	error = '';
 
-		try {
-			// Create stock with parameters
-			await createStockWithParameters(stockSymbol, parameters);
+	// 	try {
+	// 		// Create stock with parameters
+	// 		await createStockWithParameters(stockSymbol, parameters);
 
-			// Reload selected stocks
-			await selectedStocksStore.loadSelectedStocks();
-		} catch (err) {
-			console.error('Error adding stock with parameters:', err);
-			error = err.message || 'Failed to add stock';
-		} finally {
-			addingStock = false;
-		}
-	}
+	// 		// Reload selected stocks
+	// 		await selectedStocksStore.loadSelectedStocks();
+	// 	} catch (err) {
+	// 		console.error('Error adding stock with parameters:', err);
+	// 		error = err.message || 'Failed to add stock';
+	// 	} finally {
+	// 		addingStock = false;
+	// 	}
+	// }
 
 	// Fallback to mock data if API fails
 	function useMockData() {
@@ -195,6 +196,51 @@
 		} catch (err) {
 			console.error('Error executing orders:', err);
 			executionStatusStore.setError(err.message || 'Failed to execute orders');
+		}
+	}
+
+	// Handle direct stock selection (new flow)
+	async function handleStockSelected(event) {
+		const selectedStock = event.detail;
+
+		// Show loading state
+		let addingStock = true;
+		error = '';
+
+		try {
+			// Create the stock (without parameters for now)
+			const stockData = {
+				symbol: selectedStock.symbol,
+				name: selectedStock.name || selectedStock.symbol,
+				securityId: selectedStock.securityId,
+				isSelected: true
+			};
+
+			const response = await createStock(stockData);
+
+			// Store the ID of the newly added stock to auto-expand it
+			if (response.data && response.data.id) {
+				newlyAddedStockId = response.data.id;
+			}
+
+			// Reload selected stocks
+			await selectedStocksStore.loadSelectedStocks();
+		} catch (err) {
+			console.error('Error adding stock:', err);
+			error = err.message || 'Failed to add stock';
+		} finally {
+			addingStock = false;
+		}
+	}
+
+	// Handle card expansion
+	function handleToggleExpanded(event) {
+		const { stockId, expanded } = event.detail;
+
+		// If a stock was just added and this is a different one,
+		// clear the newly added flag
+		if (newlyAddedStockId && stockId !== newlyAddedStockId) {
+			newlyAddedStockId = null;
 		}
 	}
 </script>
@@ -339,10 +385,7 @@
 
 			{#if selectedStocks.length < 3}
 				<!-- Enhanced Stock Selector Component -->
-				<EnhancedStockSelector
-					on:stockWithParametersSelected={handleStockWithParametersSelected}
-					maxSelectedStocks={3}
-				/>
+				<EnhancedStockSelector on:stockSelected={handleStockSelected} maxSelectedStocks={3} />
 
 				{#if addingStock}
 					<div class="mt-4 flex items-center justify-center py-4">
@@ -358,7 +401,7 @@
 		</div>
 	</div>
 
-	<!-- Selected Stocks Section -->
+	<!-- Selected Stocks Section with auto-expansion -->
 	<div class="mb-8">
 		<h2 class="text-lg font-medium text-gray-900 mb-4">Selected Stocks</h2>
 
@@ -377,9 +420,10 @@
 				{#each selectedStocks as stock (stock.id)}
 					<StockCard
 						{stock}
-						expanded={stock.id === activeStockId}
+						expanded={stock.id === activeStockId || stock.id === newlyAddedStockId}
 						active={stock.id === activeStockId}
 						on:click={() => setActiveStock(stock.id === activeStockId ? null : stock.id)}
+						on:toggle-expanded={handleToggleExpanded}
 					/>
 				{/each}
 			</div>

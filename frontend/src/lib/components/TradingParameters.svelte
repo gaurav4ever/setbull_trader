@@ -7,9 +7,10 @@
 	// Props
 	export let stockId = '';
 	export let stockSymbol = '';
-	export let stockSecurityId = ''; // New prop for security ID
+	export let stockSecurityId = ''; // Security ID for order placement
 	export let initialParameters = null;
 	export let readOnly = false;
+	export let isNewStock = false; // New prop to indicate if this is a newly added stock
 
 	// State
 	let isLoading = false;
@@ -22,7 +23,7 @@
 	let formData = {
 		stockId: stockId,
 		stockSymbol: stockSymbol,
-		stockSecurityId: stockSecurityId, // Store security ID in form data
+		stockSecurityId: stockSecurityId,
 		startingPrice: '',
 		stopLossPercentage: '',
 		riskAmount: 30, // Default risk amount
@@ -45,6 +46,17 @@
 		} else if (stockId) {
 			// Try to load parameters from API
 			await loadParameters();
+		}
+
+		// If this is a new stock and we don't have parameters, auto-focus the first field
+		if (isNewStock && !initialParameters) {
+			// Use setTimeout to ensure DOM is ready
+			setTimeout(() => {
+				const startingPriceInput = document.getElementById('startingPrice');
+				if (startingPriceInput) {
+					startingPriceInput.focus();
+				}
+			}, 100);
 		}
 	});
 
@@ -174,10 +186,21 @@
 	}
 </script>
 
-<div class="trading-parameters p-4 bg-white rounded-lg shadow">
+<div
+	class="trading-parameters p-4 bg-white rounded-lg shadow {isNewStock
+		? 'ring-2 ring-green-200'
+		: ''}"
+>
 	{#if stockSymbol}
 		<div class="mb-4">
-			<h3 class="text-lg font-medium text-gray-900">{stockSymbol} Trading Parameters</h3>
+			<h3 class="text-lg font-medium text-gray-900">
+				{stockSymbol} Trading Parameters
+				{#if isNewStock}
+					<span class="ml-2 text-xs font-medium px-2 py-1 bg-green-100 text-green-700 rounded-full">
+						New
+					</span>
+				{/if}
+			</h3>
 			{#if stockSecurityId && stockSecurityId !== stockSymbol}
 				<p class="text-sm text-gray-500">Security ID: {stockSecurityId}</p>
 			{/if}
@@ -223,6 +246,9 @@
 					placeholder="Enter starting price"
 					disabled={readOnly}
 					helpText="The price at which you want to start trading"
+					inputClass={isNewStock
+						? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+						: ''}
 				/>
 			</div>
 
@@ -276,7 +302,11 @@
 						bind:value={formData.tradeSide}
 						on:change={handleTradeSideChange}
 						class={`block w-full px-3 py-2 border ${
-							formErrors.tradeSide ? 'border-red-300' : 'border-gray-300'
+							formErrors.tradeSide
+								? 'border-red-300'
+								: isNewStock
+									? 'border-green-300'
+									: 'border-gray-300'
 						} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
 						disabled={readOnly}
 					>
@@ -294,7 +324,9 @@
 				<div class="flex justify-end pt-4">
 					<button
 						type="submit"
-						class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+						class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white {isNewStock
+							? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+							: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'} focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
 						disabled={isSaving}
 					>
 						{#if isSaving}
@@ -319,7 +351,7 @@
 							</svg>
 							Saving...
 						{:else}
-							Save Parameters
+							{isNewStock ? 'Save New Stock Parameters' : 'Save Parameters'}
 						{/if}
 					</button>
 				</div>

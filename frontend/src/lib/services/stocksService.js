@@ -160,6 +160,47 @@ export const createStock = async (stockData) => {
 };
 
 /**
+ * Find a stock by symbol in the cached stocks list
+ * @param {string} symbol - Stock symbol to find
+ * @returns {Object|null} Stock object or null if not found
+ */
+export const findStockBySymbol = (symbol) => {
+    if (!symbol || stocksList.length === 0) return null;
+    return stocksList.find(stock => stock.symbol === symbol) || null;
+};
+
+/**
+ * Get stock details including security ID
+ * @param {string} symbol - Stock symbol
+ * @returns {Promise<Object>} Stock details
+ */
+export const getStockDetails = async (symbol) => {
+    // First try to get from cached list
+    const cachedStock = findStockBySymbol(symbol);
+    if (cachedStock) return cachedStock;
+
+    // If not in cache, try to load from API
+    try {
+        const response = await fetch(`/api/v1/stocks/symbol/${symbol}`);
+        if (!response.ok) {
+            throw new Error('Stock not found');
+        }
+
+        const data = await response.json();
+        return data.data;
+    } catch (error) {
+        console.error(`Error getting stock details for ${symbol}:`, error);
+
+        // Return a minimal stock object as fallback
+        return {
+            symbol,
+            name: symbol,
+            securityId: symbol // Use symbol as fallback security ID
+        };
+    }
+};
+
+/**
  * Creates a stock and saves its parameters in one operation
  * @param {string} symbol - Stock symbol
  * @param {Object} parameters - Trading parameters

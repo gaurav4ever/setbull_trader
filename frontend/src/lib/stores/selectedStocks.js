@@ -2,7 +2,7 @@
 // Update the store to handle stocks with security IDs
 
 import { writable, derived } from 'svelte/store';
-import { getSelectedStocks, toggleStockSelection, createStockWithParameters } from '../services/stocksService';
+import { getSelectedStocks, toggleStockSelection, createStock } from '../services/stocksService';
 
 // Create a writable store to hold selected stocks
 const createSelectedStocksStore = () => {
@@ -10,7 +10,8 @@ const createSelectedStocksStore = () => {
         stocks: [], // Array of selected stock objects
         loading: false, // Loading state
         error: null, // Error message if any
-        maxAllowed: 3 // Maximum allowed selected stocks
+        maxAllowed: 3, // Maximum allowed selected stocks
+        recentlyAddedId: null // ID of the most recently added stock
     });
 
     return {
@@ -22,7 +23,13 @@ const createSelectedStocksStore = () => {
 
             try {
                 const stocks = await getSelectedStocks(true);
-                set({ stocks, loading: false, error: null, maxAllowed: 3 });
+                update(state => ({
+                    ...state,
+                    stocks,
+                    loading: false,
+                    error: null
+                }));
+                // set({ stocks, loading: false, error: null, maxAllowed: 3, recentlyAddedId: state.recentlyAddedId });
                 return stocks;
             } catch (error) {
                 console.error('Failed to load selected stocks:', error);
@@ -34,6 +41,52 @@ const createSelectedStocksStore = () => {
                 return [];
             }
         },
+
+        // Add a stock directly without parameters
+        async addStock(stockData) {
+            update(state => ({ ...state, loading: true, error: null }));
+
+            try {
+                // Check if we've reached the maximum
+                const currentSelected = await getSelectedStocks(false);
+                if (currentSelected.length >= 3) {
+                    throw new Error('Maximum of 3 stocks can be selected');
+                }
+
+                // Create the stock with isSelected=true
+                const stockPayload = {
+                    ...stockData,
+                    isSelected: true
+                };
+
+                const response = await createStock(stockPayload);
+
+                // Store the ID of the newly created stock
+                const newStockId = response.data?.id;
+
+                // Reload stocks to get updated state
+                const stocks = await getSelectedStocks(true);
+
+                set({
+                    stocks,
+                    loading: false,
+                    error: null,
+                    maxAllowed: 3,
+                    recentlyAddedId: newStockId // Store the new stock ID
+                });
+
+                return newStockId;
+            } catch (error) {
+                console.error(`Failed to add stock:`, error);
+                update(state => ({
+                    ...state,
+                    loading: false,
+                    error: error.message || 'Failed to add stock'
+                }));
+                return null;
+            }
+        },
+
 
         // Create a new stock with parameters in one step
         async addStockWithParameters(stockSymbol, parameters) {
@@ -97,6 +150,11 @@ const createSelectedStocksStore = () => {
             }
         },
 
+        // Clear the recently added stock ID
+        clearRecentlyAdded() {
+            update(state => ({ ...state, recentlyAddedId: null }));
+        },
+
         // Update a specific stock in the store without an API call
         updateStockLocally(stockId, updatedData) {
             update(state => {
@@ -127,6 +185,11 @@ export const canAddMoreStocks = derived(
 export const selectedStocksCount = derived(
     selectedStocksStore,
     $selectedStocksStore => $selectedStocksStore.stocks.length
+);
+
+export const recentlyAddedStockId = derived(
+    selectedStocksStore,
+    $selectedStocksStore => $selectedStocksStore.recentlyAddedId
 );
 
 export default selectedStocksStore;

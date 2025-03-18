@@ -15,6 +15,7 @@
 	export let stock = null; // Stock object with id, symbol, name, securityId, etc.
 	export let expanded = false; // Whether the card is expanded to show full details
 	export let active = false; // Whether the card is the active/focused card
+	export let isNewlyAdded = false; // Whether this stock was just added
 
 	// State
 	let isLoading = false;
@@ -33,6 +34,12 @@
 	// Initialize when component mounts or stock changes
 	$: if (stock) {
 		loadData();
+	}
+
+	// Automatically expand when the component is newly added
+	$: if (isNewlyAdded && !expanded) {
+		expanded = true;
+		dispatch('toggle-expanded', { stockId: stock.id, expanded });
 	}
 
 	// Load initial data
