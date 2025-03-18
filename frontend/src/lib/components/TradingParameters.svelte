@@ -1,3 +1,4 @@
+<!-- frontend/src/lib/components/TradingParameters.svelte -->
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import NumericInput from './ui/NumericInput.svelte';
@@ -6,6 +7,7 @@
 	// Props
 	export let stockId = '';
 	export let stockSymbol = '';
+	export let stockSecurityId = ''; // New prop for security ID
 	export let initialParameters = null;
 	export let readOnly = false;
 
@@ -19,6 +21,8 @@
 	// Form data with defaults
 	let formData = {
 		stockId: stockId,
+		stockSymbol: stockSymbol,
+		stockSecurityId: stockSecurityId, // Store security ID in form data
 		startingPrice: '',
 		stopLossPercentage: '',
 		riskAmount: 30, // Default risk amount
@@ -32,7 +36,12 @@
 	onMount(async () => {
 		if (initialParameters) {
 			// Initialize with provided parameters
-			formData = { ...formData, ...initialParameters };
+			formData = {
+				...formData,
+				...initialParameters,
+				stockSymbol: stockSymbol, // Ensure these are set
+				stockSecurityId: stockSecurityId
+			};
 		} else if (stockId) {
 			// Try to load parameters from API
 			await loadParameters();
@@ -58,6 +67,8 @@
 				// Update form with loaded data
 				formData = {
 					stockId: stockId,
+					stockSymbol: stockSymbol,
+					stockSecurityId: stockSecurityId, // Preserve security ID
 					startingPrice: result.data.startingPrice || '',
 					stopLossPercentage: result.data.stopLossPercentage || '',
 					riskAmount: result.data.riskAmount || 30,
@@ -88,12 +99,19 @@
 		successMessage = '';
 
 		try {
+			// Prepare the payload - include security ID if available
+			const payload = {
+				...formData,
+				// Ensure stockSecurityId is included if available
+				stockSecurityId: stockSecurityId || formData.stockSecurityId || ''
+			};
+
 			const response = await fetch('/api/v1/parameters', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(formData)
+				body: JSON.stringify(payload)
 			});
 
 			const result = await response.json();
@@ -103,7 +121,15 @@
 			}
 
 			successMessage = 'Parameters saved successfully!';
-			dispatch('saved', result.data);
+
+			// Include both symbol and securityId in the response for downstream components
+			const responseData = {
+				...result.data,
+				stockSymbol: stockSymbol || formData.stockSymbol,
+				stockSecurityId: stockSecurityId || formData.stockSecurityId
+			};
+
+			dispatch('saved', responseData);
 			return true;
 		} catch (err) {
 			console.error('Error saving parameters:', err);
@@ -152,6 +178,9 @@
 	{#if stockSymbol}
 		<div class="mb-4">
 			<h3 class="text-lg font-medium text-gray-900">{stockSymbol} Trading Parameters</h3>
+			{#if stockSecurityId && stockSecurityId !== stockSymbol}
+				<p class="text-sm text-gray-500">Security ID: {stockSecurityId}</p>
+			{/if}
 			<p class="text-sm text-gray-500">Set trading parameters for this stock</p>
 		</div>
 	{/if}
@@ -174,8 +203,10 @@
 		</div>
 	{:else}
 		<form on:submit|preventDefault={handleSubmit} class="space-y-4">
-			<!-- Hidden stock ID field -->
+			<!-- Hidden fields for stock info -->
 			<input type="hidden" name="stockId" bind:value={formData.stockId} />
+			<input type="hidden" name="stockSymbol" bind:value={formData.stockSymbol} />
+			<input type="hidden" name="stockSecurityId" bind:value={formData.stockSecurityId} />
 
 			<!-- Starting Price -->
 			<div>

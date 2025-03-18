@@ -11,13 +11,24 @@ import (
 
 // StockService provides operations on stocks
 type StockService struct {
-	stockRepo repository.StockRepository
+	stockRepo         repository.StockRepository
+	tradeParamsRepo   repository.TradeParametersRepository
+	executionPlanRepo repository.ExecutionPlanRepository
+	levelEntryRepo    repository.LevelEntryRepository
 }
 
 // NewStockService creates a new StockService
-func NewStockService(stockRepo repository.StockRepository) *StockService {
+func NewStockService(
+	stockRepo repository.StockRepository,
+	tradeParamsRepo repository.TradeParametersRepository,
+	executionPlanRepo repository.ExecutionPlanRepository,
+	levelEntryRepo repository.LevelEntryRepository,
+) *StockService {
 	return &StockService{
-		stockRepo: stockRepo,
+		stockRepo:         stockRepo,
+		tradeParamsRepo:   tradeParamsRepo,
+		executionPlanRepo: executionPlanRepo,
+		levelEntryRepo:    levelEntryRepo,
 	}
 }
 
@@ -135,6 +146,47 @@ func (s *StockService) ToggleStockSelection(ctx context.Context, id string, isSe
 	}
 
 	return s.stockRepo.ToggleSelection(ctx, id, isSelected)
+}
+
+// GetSelectedStocksEnriched retrieves all selected stocks with their parameters and execution plans
+func (s *StockService) GetSelectedStocksEnriched(ctx context.Context) ([]*domain.Stock, error) {
+	// Get selected stocks
+	stocks, err := s.stockRepo.GetSelected(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get selected stocks: %w", err)
+	}
+
+	// Enrich each stock with parameters and execution plan
+	for i, stock := range stocks {
+		// Get parameters for the stock
+		params, err := s.tradeParamsRepo.GetByStockID(ctx, stock.ID)
+		if err != nil {
+			// Log error but continue
+			fmt.Printf("Error getting parameters for stock %s: %v\n", stock.ID, err)
+		} else if params != nil {
+			stocks[i].Parameters = params
+		}
+
+		// Get execution plan for the stock
+		plan, err := s.executionPlanRepo.GetByStockID(ctx, stock.ID)
+		if err != nil {
+			// Log error but continue
+			fmt.Printf("Error getting execution plan for stock %s: %v\n", stock.ID, err)
+		} else if plan != nil {
+			// Get level entries for the plan
+			levelEntries, err := s.levelEntryRepo.GetByExecutionPlanID(ctx, plan.ID)
+			if err != nil {
+				// Log error but continue
+				fmt.Printf("Error getting level entries for plan %s: %v\n", plan.ID, err)
+			} else {
+				plan.LevelEntries = levelEntries
+			}
+
+			stocks[i].ExecutionPlan = plan
+		}
+	}
+
+	return stocks, nil
 }
 
 // DeleteStock deletes a stock

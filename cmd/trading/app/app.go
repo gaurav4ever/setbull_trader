@@ -100,7 +100,7 @@ func NewApp() *App {
 
 	// Initialize services
 	fibCalculator := service.NewFibonacciCalculator()
-	stockService := service.NewStockService(stockRepo)
+	stockService := service.NewStockService(stockRepo, tradeParamsRepo, executionPlanRepo, levelEntryRepo)
 	tradeParamsService := service.NewTradeParametersService(tradeParamsRepo, stockRepo)
 	executionPlanService := service.NewExecutionPlanService(executionPlanRepo, levelEntryRepo, stockRepo, tradeParamsRepo)
 	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo)

@@ -13,6 +13,9 @@ export const ENDPOINTS = {
     TRADE_HISTORY: '/trades/history',
     TRADE_HISTORY_WITH_PARAMS: (fromDate, toDate, page) =>
         `/trades/history?fromDate=${fromDate}&toDate=${toDate}&page=${page}`,
+
+    // Health check endpoint
+    HEALTH: '/health'
 };
 
 // Helper function to create a full API URL
@@ -22,7 +25,7 @@ export const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 export async function testApiConnection() {
     try {
         console.log(`Testing API connection to: ${API_BASE_URL}`);
-        const response = await fetch(`${API_BASE_URL}/health`, {
+        const response = await fetch(apiUrl(ENDPOINTS.HEALTH), {
             method: 'GET',
             cache: 'no-cache',
             headers: {

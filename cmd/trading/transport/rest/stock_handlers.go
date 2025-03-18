@@ -137,7 +137,7 @@ func (s *Server) ToggleStockSelection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondNoContent(w)
+	respondSuccess(w, nil)
 }
 
 // DeleteStock deletes a stock
@@ -152,4 +152,17 @@ func (s *Server) DeleteStock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondNoContent(w)
+}
+
+// GetSelectedStocksEnriched handles GET /api/v1/stocks/selected/enriched
+func (s *Server) GetSelectedStocksEnriched(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	stocks, err := s.stockService.GetSelectedStocksEnriched(ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to get enriched selected stocks: "+err.Error())
+		return
+	}
+
+	respondSuccess(w, stocks)
 }

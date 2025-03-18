@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import Autocomplete from '$lib/components/Autocomplete.svelte';
 	import { getStocksList } from '$lib/services/stocksService';
+	import { formatStockForDisplay, extractSecurityId } from '$lib/utils/stockFormatting';
 
 	// Order form data
 	let formData = {
@@ -20,6 +21,9 @@
 		targetPrice: 0,
 		stopLossPrice: 0
 	};
+
+	// Selected stock object for reference
+	let selectedStock = null;
 
 	// Stock list for autocomplete
 	let stocksList = [];
@@ -52,7 +56,15 @@
 
 	// Handle stock selection
 	function handleStockSelect(event) {
-		formData.securityId = event.detail;
+		// Store the selected stock object
+		selectedStock = event.detail;
+
+		// Set the security ID in the form data
+		formData.securityId = selectedStock.securityId;
+
+		console.log(
+			`Selected stock: ${selectedStock.symbol}, Security ID: ${selectedStock.securityId}`
+		);
 	}
 
 	// Handle form submission
@@ -60,6 +72,11 @@
 		isSubmitting = true;
 		errorMessage = '';
 		successMessage = '';
+
+		// Ensure we're using the numeric security ID, not the symbol
+		if (selectedStock) {
+			formData.securityId = selectedStock.securityId;
+		}
 
 		try {
 			const response = await fetch('/api/v1/orders', {
@@ -104,6 +121,7 @@
 			targetPrice: 0,
 			stopLossPrice: 0
 		};
+		selectedStock = null;
 	}
 
 	// Function to check if stop loss fields should be shown
@@ -238,7 +256,7 @@
 
 			<!-- Security ID with Autocomplete -->
 			<div>
-				<label for="securityId" class="block text-sm font-medium text-gray-700">Security ID</label>
+				<label for="securityId" class="block text-sm font-medium text-gray-700">Stock</label>
 				{#if isLoadingStocks}
 					<div class="mt-1 flex items-center">
 						<div class="animate-pulse h-9 bg-gray-200 rounded w-full"></div>
@@ -247,15 +265,22 @@
 				{:else}
 					<Autocomplete
 						items={stocksList}
-						bind:value={formData.securityId}
+						bind:value={selectedStock}
 						on:select={handleStockSelect}
 						placeholder="Type to search stocks..."
-						inputId="securityId"
-						name="securityId"
+						inputId="stockSearch"
+						name="stockSearch"
 						inputClass="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 						maxItems={10}
 						minChars={1}
 					/>
+					<p class="mt-1 text-xs text-gray-500">
+						{#if selectedStock}
+							<span class="font-medium">Selected Security ID:</span> {selectedStock.securityId}
+						{:else}
+							Search by company name or symbol
+						{/if}
+					</p>
 				{/if}
 			</div>
 
@@ -388,10 +413,16 @@
 			</button>
 			<button
 				type="submit"
-				disabled={isSubmitting}
+				disabled={isSubmitting || !formData.securityId}
 				class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
 			>
-				{isSubmitting ? 'Placing Order...' : 'Place Order'}
+				{#if isSubmitting}
+					Placing Order...
+				{:else if !formData.securityId}
+					Select a Stock First
+				{:else}
+					Place Order
+				{/if}
 			</button>
 		</div>
 	</form>

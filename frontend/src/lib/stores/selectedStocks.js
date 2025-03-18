@@ -21,7 +21,7 @@ const createSelectedStocksStore = () => {
             update(state => ({ ...state, loading: true, error: null }));
 
             try {
-                const stocks = await getSelectedStocks();
+                const stocks = await getSelectedStocks(true);
                 set({ stocks, loading: false, error: null, maxAllowed: 3 });
                 return stocks;
             } catch (error) {
@@ -41,7 +41,7 @@ const createSelectedStocksStore = () => {
 
             try {
                 // Check if we've reached the maximum
-                const currentSelected = await getSelectedStocks();
+                const currentSelected = await getSelectedStocks(false);
                 if (currentSelected.length >= 3) {
                     throw new Error('Maximum of 3 stocks can be selected');
                 }
@@ -50,7 +50,7 @@ const createSelectedStocksStore = () => {
                 await createStockWithParameters(stockSymbol, parameters);
 
                 // Reload stocks to get updated state
-                const stocks = await getSelectedStocks();
+                const stocks = await getSelectedStocks(true);
                 set({ stocks, loading: false, error: null, maxAllowed: 3 });
 
                 return true;
@@ -72,7 +72,7 @@ const createSelectedStocksStore = () => {
             try {
                 // If trying to select and already at max, prevent
                 if (isSelected) {
-                    const currentSelected = await getSelectedStocks();
+                    const currentSelected = await getSelectedStocks(false);
                     if (currentSelected.length >= 3 && !currentSelected.some(s => s.id === stockId)) {
                         throw new Error('Maximum of 3 stocks can be selected');
                     }
@@ -82,7 +82,7 @@ const createSelectedStocksStore = () => {
                 await toggleStockSelection(stockId, isSelected);
 
                 // Reload stocks to get updated state
-                const stocks = await getSelectedStocks();
+                const stocks = await getSelectedStocks(true);
                 set({ stocks, loading: false, error: null, maxAllowed: 3 });
 
                 return true;

@@ -59,8 +59,9 @@ func (s *Server) setupRoutes() {
 	// Stock management routes
 	api.HandleFunc("/stocks", s.GetAllStocks).Methods(http.MethodGet)
 	api.HandleFunc("/stocks/selected", s.GetSelectedStocks).Methods(http.MethodGet)
+	api.HandleFunc("/stocks/selected/enriched", s.GetSelectedStocksEnriched).Methods(http.MethodGet)
+	api.HandleFunc("/stocks/security/{securityId}", s.GetStockBySecurityID).Methods(http.MethodGet)
 	api.HandleFunc("/stocks/{id}", s.GetStockByID).Methods(http.MethodGet)
-	api.HandleFunc("/stocks/security/{securityId}", s.GetStockBySecurityID).Methods(http.MethodGet) // New endpoint
 	api.HandleFunc("/stocks", s.CreateStock).Methods(http.MethodPost)
 	api.HandleFunc("/stocks/{id}", s.UpdateStock).Methods(http.MethodPut)
 	api.HandleFunc("/stocks/{id}/toggle-selection", s.ToggleStockSelection).Methods(http.MethodPatch)

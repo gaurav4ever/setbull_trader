@@ -5,6 +5,7 @@
 	import Modal from './Modal.svelte';
 	import StockParameterForm from './StockParameterForm.svelte';
 	import { getStocksList } from '../services/stocksService';
+	import { formatStockForDisplay } from '../utils/stockFormatting';
 	import { selectedStocksStore, canAddMoreStocks } from '../stores/selectedStocks';
 
 	// Props
@@ -44,8 +45,9 @@
 
 	// Initial stock selection (opens parameter form)
 	function handleInitialStockSelect(event) {
-		const symbol = event.detail;
-		tempSelectedStock = symbol;
+		const selectedStock = event.detail;
+		// Store the whole stock object for access to security ID
+		tempSelectedStock = selectedStock;
 		showParameterModal = true;
 	}
 
@@ -58,6 +60,7 @@
 
 		dispatch('stockWithParametersSelected', {
 			stockSymbol,
+			stockObject: tempSelectedStock, // Pass the full stock object for security ID
 			parameters
 		});
 
@@ -118,11 +121,12 @@
 	<!-- Parameter Form Modal -->
 	<Modal
 		show={showParameterModal}
-		title={`Add ${tempSelectedStock} to Selected Stocks`}
+		title={`Add ${tempSelectedStock?.symbol || ''} to Selected Stocks`}
 		on:close={handleModalClose}
 	>
 		<StockParameterForm
-			stockSymbol={tempSelectedStock}
+			stockSymbol={tempSelectedStock?.symbol || ''}
+			stockSecurityId={tempSelectedStock?.securityId || ''}
 			onCancel={handleModalClose}
 			on:submit={handleParameterSubmit}
 			on:cancel={handleModalClose}

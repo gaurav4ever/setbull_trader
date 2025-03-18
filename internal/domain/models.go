@@ -21,6 +21,10 @@ type Stock struct {
 	Active       bool      `gorm:"column:active;default:1;index:idx_active"`
 	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 	UpdatedAt    time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
+
+	// Non-persisted fields for API responses
+	Parameters    *TradeParameters `gorm:"-" json:"parameters,omitempty"`
+	ExecutionPlan *ExecutionPlan   `gorm:"-" json:"executionPlan,omitempty"`
 }
 
 type TradeParameters struct {
