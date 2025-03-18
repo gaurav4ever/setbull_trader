@@ -104,6 +104,12 @@
 												>
 													Status
 												</th>
+												<th
+													scope="col"
+													class="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+												>
+													Error
+												</th>
 											</tr>
 										</thead>
 										<tbody class="bg-white divide-y divide-gray-200">
@@ -126,6 +132,13 @@
 														>
 															{order.status}
 														</span>
+													</td>
+													<td class="px-2 py-1 text-xs text-red-600">
+														{#if order.error}
+															{order.error.includes('Market is Closed')
+																? 'Market is Closed! Want to place an offline order?'
+																: order.error}
+														{/if}
 													</td>
 												</tr>
 											{/each}

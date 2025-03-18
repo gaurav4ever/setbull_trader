@@ -23,15 +23,25 @@ const createExecutionStatusStore = () => {
             }));
         },
 
-        // Set execution results
+        // Set execution results - Updated to handle the new format
         setResults(results) {
-            update(state => ({
-                ...state,
-                isExecuting: false,
-                lastExecutionTime: new Date(),
-                results: results || [],
-                activeExecutionId: results && results.length > 0 ? results[0].id : null
-            }));
+            update(state => {
+                // Set the timestamp to the first execution's time if available
+                const timestamp = results && results.length > 0 && results[0].executedAt
+                    ? new Date(results[0].executedAt)
+                    : new Date();
+
+                // Set the active execution to the first one in the list
+                const activeId = results && results.length > 0 ? results[0].id : null;
+
+                return {
+                    ...state,
+                    isExecuting: false,
+                    lastExecutionTime: timestamp,
+                    results: results || [],
+                    activeExecutionId: activeId
+                };
+            });
         },
 
         // Set execution error
