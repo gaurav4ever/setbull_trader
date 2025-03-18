@@ -1,7 +1,9 @@
+<!-- frontend/src/lib/components/StockSelector.svelte -->
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
 	import Autocomplete from './Autocomplete.svelte';
 	import { getStocksList, searchStocks } from '../services/stocksService';
+	import { formatStockForDisplay } from '../utils/stockFormatting';
 	import { selectedStocksStore, canAddMoreStocks } from '../stores/selectedStocks';
 
 	// Props
@@ -11,7 +13,7 @@
 	let stocksList = [];
 	let isLoading = true;
 	let searchQuery = '';
-	let selectedSymbol = '';
+	let selectedStock = null;
 	let error = '';
 
 	// Get our stores
@@ -38,22 +40,26 @@
 		};
 	});
 
-	// Handle stock selection
-	async function handleStockSelect(event) {
-		const symbol = event.detail;
-		selectedSymbol = symbol;
+	// Format stock for display in dropdown
+	function formatStock(stock) {
+		return formatStockForDisplay(stock);
+	}
 
-		// Dispatch the event
-		dispatch('select', symbol);
+	// Handle stock selection
+	function handleStockSelect(event) {
+		selectedStock = event.detail;
+
+		// Dispatch the event with the full stock object
+		dispatch('select', selectedStock);
 
 		// Call the callback if provided
 		if (onStockSelected && typeof onStockSelected === 'function') {
-			onStockSelected(symbol);
+			onStockSelected(selectedStock);
 		}
 
 		// Clear the selection for next use
 		setTimeout(() => {
-			selectedSymbol = '';
+			selectedStock = null;
 			searchQuery = '';
 		}, 100);
 	}
@@ -86,11 +92,12 @@
 		{:else}
 			<Autocomplete
 				items={stocksList}
-				bind:value={selectedSymbol}
+				bind:value={selectedStock}
 				on:input={handleSearchInput}
 				on:select={handleStockSelect}
 				placeholder="Search for a stock..."
 				inputClass="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+				displayFormat={formatStock}
 			/>
 			<p class="mt-1 text-sm text-gray-500">
 				{#if searchQuery && searchQuery.length < 2}

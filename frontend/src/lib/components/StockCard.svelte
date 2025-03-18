@@ -1,3 +1,4 @@
+<!-- frontend/src/lib/components/StockCard.svelte -->
 <script>
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { formatCurrency, formatNumber } from '../utils/formatting';
@@ -11,7 +12,7 @@
 	import { selectedStocksStore } from '../stores/selectedStocks';
 
 	// Props
-	export let stock = null; // Stock object with id, symbol, name, etc.
+	export let stock = null; // Stock object with id, symbol, name, securityId, etc.
 	export let expanded = false; // Whether the card is expanded to show full details
 	export let active = false; // Whether the card is the active/focused card
 
@@ -162,7 +163,12 @@
 			<div class="flex justify-between items-center">
 				<div class="flex-1">
 					<h3 class="text-lg font-medium text-gray-900">{stock.symbol}</h3>
-					<p class="text-sm text-gray-500">{stock.name || 'Stock'}</p>
+					<p class="text-sm text-gray-500">
+						{stock.name || 'Stock'}
+						{#if stock.securityId && stock.securityId !== stock.symbol}
+							<span class="ml-1 text-xs text-gray-400">(ID: {stock.securityId})</span>
+						{/if}
+					</p>
 				</div>
 
 				<div class="flex items-center space-x-2">
@@ -220,6 +226,14 @@
 				<div class="mt-1">
 					<span class="text-sm text-gray-500">Current Price:</span>
 					<span class="ml-1 font-medium text-gray-900">{formatCurrency(stock.currentPrice)}</span>
+				</div>
+			{/if}
+
+			<!-- Security ID (if expanded) -->
+			{#if expanded && stock.securityId && stock.securityId !== stock.symbol}
+				<div class="mt-1">
+					<span class="text-sm text-gray-500">Security ID:</span>
+					<span class="ml-1 font-medium text-gray-900">{stock.securityId}</span>
 				</div>
 			{/if}
 		</div>

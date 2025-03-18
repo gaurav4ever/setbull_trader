@@ -1,0 +1,178 @@
+Design for Incorporating New NSE Stock Format
+High-Level Design
+
+The current system works with a simple list of stock symbols, but the new format includes both stock name and security ID. This requires changes to both the data model and the user interface to properly handle and display this additional information.
+Key Changes Required:
+
+    Data Model Updates:
+        Modify the Stock entity to include the securityId field
+        Update database schema and migrations
+    Backend Changes:
+        Update stock loading and processing logic
+        Modify stock-related API endpoints to handle and return security IDs
+        Ensure the Dhan API integration properly uses the security ID
+    Frontend Changes:
+        Update stock selection components to display both name and security ID
+        Modify stock search/autocomplete to include security ID in search
+        Update stock display cards to show security ID information
+        Ensure proper handling when sending orders to the backend
+    File Processing:
+        Create a parser for the new NSE stocks file format
+        Update stock loading routine to handle the comma-separated values
+
+Low-Level Design
+1. Data Model Updates
+Stock Entity Modification:
+
+type Stock struct {
+    ID           string    
+    Symbol       string    
+    Name         string    
+    SecurityID   string    // New field
+    CurrentPrice float64   
+    IsSelected   bool      
+    Active       bool      
+    CreatedAt    time.Time 
+    UpdatedAt    time.Time 
+}
+
+Database Schema Update:
+
+    Add security_id column to the stocks table
+
+2. Backend Changes
+Stock Repository Updates:
+
+    Modify CRUD operations to handle the new security ID field
+    Update queries to include the security ID
+
+Stock Service Updates:
+
+    Update methods for creating and updating stocks to handle security ID
+    Modify stock import functionality to parse the new format
+
+API Endpoint Changes:
+
+    Update response models to include security ID
+    Ensure serialization/deserialization includes the new field
+
+Dhan API Integration:
+
+    Ensure the securityId from the stock entity is used in the PlaceOrderRequest
+
+3. Frontend Changes
+Stock Selection Components:
+
+    Update StockSelector and EnhancedStockSelector to display security ID
+    Modify autocomplete to include security ID in search results display
+
+Order Form Updates:
+
+    Update order forms to properly use the security ID from the selected stock
+
+Stock Cards and Displays:
+
+    Update to show security ID where relevant
+
+4. File Processing
+Parser for New NSE Format:
+
+    Create utility function to parse lines in format: SYMBOL,SECURITY_ID
+    Handle different line formats and possible errors
+
+Stock Loading Update:
+
+    Modify the stock loading service to use the new parser
+    Update caching mechanism to store both symbol and security ID
+
+Files Affected:
+Backend:
+
+    internal/domain/models.go - Update Stock struct
+    pkg/database/migrations/ - New migration for schema update
+    internal/repository/postgres/stock_repository.go - Update CRUD operations
+    internal/service/stock_service.go - Update stock handling
+    cmd/trading/transport/rest/stock_handlers.go - Update API handlers
+    internal/core/service/orders/service.go - Update order processing
+
+Frontend:
+
+    frontend/src/lib/services/stocksService.js - Update stock loading and processing
+    frontend/src/lib/components/Autocomplete.svelte - Update search display
+    frontend/src/lib/components/StockSelector.svelte - Update stock selection
+    frontend/src/lib/components/StockCard.svelte - Update stock display
+    frontend/src/routes/order/+page.svelte - Update order form
+
+Would you like me to proceed with implementing these changes, or would you like to discuss any aspect of this design further?
+GS
+
+Okay, this is correct, but make sure in auto complete. I will search based on stock name only, but it should display stock name and the security ID both and in the API Dhan API stock security ID should be passed.
+
+Thank you for the clarification. Let me refine the design based on your feedback:
+Refined Low-Level Design
+Autocomplete Component Enhancement
+
+    Users will search by stock name only
+    Display format in dropdown: SYMBOL - SECURITY_ID (e.g., "RELIANCE - 500325")
+    When a stock is selected, both the symbol and security ID will be stored
+    The stock object passed to order forms will contain both properties
+
+Dhan API Integration
+
+    Ensure that when placing orders, the security ID (not the symbol) is passed to the Dhan API in the securityId field
+    Update order service to prioritize the security ID field when constructing API requests
+
+Data Structure for Stocks
+
+    The internal representation will store both the symbol and security ID
+    The security ID will be the primary identifier used for API calls to Dhan
+
+Parsing Logic
+
+    Parse each line with format: SYMBOL,SECURITY_ID
+    Store records as {symbol: "SYMBOL", securityId: "SECURITY_ID", name: "SYMBOL"}
+    If the name and symbol are different in the future, we can adjust the parser
+
+Are you satisfied with this refined design? Would you like me to start implementing the changes, or would you like to discuss any other aspects of the design?
+GS
+
+Yes, I am satisfied with the new design before jumping into implementation. Write me the phases that will be required to for the implementation and they should only be three cold classes per phase. We will start from backend first and then front-end.
+Implementation Phases
+
+I'll break down the implementation into manageable phases, with each phase containing no more than three code changes. We'll start with the backend and then move to the frontend.
+Phase 1: Backend Data Model Update
+
+    Update internal/domain/models.go to add SecurityID field to Stock struct
+    Create new database migration in pkg/database/migrations/ for adding security_id column
+    Update internal/repository/postgres/stock_repository.go to handle the new security ID field
+
+Phase 2: Backend Service Updates
+
+    Update internal/service/stock_service.go to handle the new security ID
+    Create NSE stock file parser utility in a new file to handle the new format
+    Update cmd/trading/transport/rest/stock_handlers.go for API responses with security ID
+
+Phase 3: Backend Order Processing Updates
+
+    Modify internal/core/service/orders/service.go to use security ID for Dhan API
+    Update internal/core/adapters/client/dhan/dhan_client.go to ensure proper handling
+    Add tests for the new security ID handling
+
+Phase 4: Frontend Stock Service Update
+
+    Update frontend/src/lib/services/stocksService.js to handle the new stock format
+    Create utility functions to parse and format stocks with security IDs
+    Update the stock stores to accommodate the new data structure
+
+Phase 5: Frontend UI Component Updates
+
+    Enhance frontend/src/lib/components/Autocomplete.svelte to show both symbol and security ID
+    Update frontend/src/lib/components/StockSelector.svelte to handle the new format
+    Modify frontend/src/lib/components/StockCard.svelte to display security ID info
+
+Phase 6: Frontend Order Form Updates
+
+    Update frontend/src/routes/order/+page.svelte to use security ID in orders
+    Ensure frontend/src/lib/components/TradingParameters.svelte properly handles the format
+    Add security ID to any additional forms/components that interact with stock data
+

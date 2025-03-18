@@ -1,6 +1,8 @@
+<!-- frontend/src/lib/components/Autocomplete.svelte -->
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { clickOutside } from '../actions/clickOutside';
+	import { formatStockForDisplay } from '../utils/stockFormatting';
 
 	// Props
 	export let items = []; // Array of items to search through
@@ -11,6 +13,7 @@
 	export let inputId = 'autocomplete'; // ID for the input field
 	export let inputClass = ''; // Additional class for input styling
 	export let name = ''; // Name attribute for the input
+	export let displayFormat = null; // Function to format display (optional)
 
 	// State
 	let inputElement;
@@ -22,12 +25,48 @@
 
 	const dispatch = createEventDispatcher();
 
+	// Format item for display
+	const formatItem = (item) => {
+		if (displayFormat && typeof displayFormat === 'function') {
+			return displayFormat(item);
+		}
+
+		// If it's a stock object, format it specially
+		if (typeof item === 'object' && item.symbol && item.securityId) {
+			return formatStockForDisplay(item);
+		}
+
+		// Otherwise, return as is
+		return item;
+	};
+
 	// Filter items based on search term
 	$: {
 		if (searchTerm && searchTerm.length >= minChars) {
-			filteredItems = items
-				.filter((item) => item.toLowerCase().includes(searchTerm.toLowerCase()))
-				.slice(0, maxItems);
+			// If items are objects, search in their fields
+			if (items.length > 0 && typeof items[0] === 'object') {
+				filteredItems = items
+					.filter((item) => {
+						const symbol = item.symbol || '';
+						const name = item.name || item.symbol || '';
+
+						return (
+							symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+							name.toLowerCase().includes(searchTerm.toLowerCase())
+						);
+					})
+					.slice(0, maxItems);
+			} else {
+				// For string items
+				filteredItems = items
+					.filter((item) => {
+						if (typeof item === 'string') {
+							return item.toLowerCase().includes(searchTerm.toLowerCase());
+						}
+						return false;
+					})
+					.slice(0, maxItems);
+			}
 
 			if (filteredItems.length > 0 && touchedByUser) {
 				isOpen = true;
@@ -52,12 +91,18 @@
 	}
 
 	function selectItem(item) {
-		searchTerm = item;
-		value = item;
+		// If the item is an object, we want to extract the value
+		const displayValue = formatItem(item);
+		const actualValue = typeof item === 'object' ? item : displayValue;
+
+		searchTerm = displayValue;
+
 		isOpen = false;
 		highlightedIndex = -1;
-		dispatch('select', item);
-		dispatch('change', item);
+
+		// Dispatch the whole item for objects, otherwise just the string
+		dispatch('select', actualValue);
+		dispatch('change', actualValue);
 		inputElement.blur();
 	}
 
@@ -119,10 +164,13 @@
 		isOpen = false;
 		highlightedIndex = -1;
 
-		// If the search term doesn't match any item and we're losing focus,
-		// reset to the original value if there was one
-		if (value && searchTerm !== value && !items.includes(searchTerm)) {
-			searchTerm = value;
+		// Reset the search term to display value if we had a selection
+		if (value) {
+			if (typeof value === 'object') {
+				searchTerm = formatItem(value);
+			} else if (value !== searchTerm) {
+				searchTerm = value;
+			}
 		}
 	}
 </script>
@@ -154,7 +202,7 @@
 						? 'bg-blue-100 text-blue-900'
 						: 'text-gray-900 hover:bg-gray-100'}"
 				>
-					{item}
+					{formatItem(item)}
 				</div>
 			{/each}
 		</div>
