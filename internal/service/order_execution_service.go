@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"setbull_trader/internal/core/dto/request"
@@ -181,15 +182,23 @@ func (s *OrderExecutionService) executeOrders(
 			continue
 		}
 
+		var triggerPrice float64
+		if tradeSide == "SELL" {
+			triggerPrice = math.Round((entry.Price+0.05)*100) / 100
+		} else if tradeSide == "BUY" {
+			triggerPrice = math.Round((entry.Price-0.05)*100) / 100
+		}
+
 		// Create order request
 		orderReq := &request.PlaceOrderRequest{
 			TransactionType: string(tradeSide),
 			ExchangeSegment: "NSE_EQ",
 			ProductType:     "INTRADAY",
-			OrderType:       "MARKET",
+			OrderType:       "STOP_LOSS",
 			SecurityID:      stock.SecurityID,
 			Quantity:        entry.Quantity,
 			Price:           entry.Price,
+			TriggerPrice:    triggerPrice,
 			Validity:        "DAY",
 		}
 
