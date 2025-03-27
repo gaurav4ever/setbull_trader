@@ -1,10 +1,12 @@
-setbull_trader/
+/Users/gaurav/setbull_projects/setbull_trader/
 ├── .DS_Store
 ├── .vscode/
 │   ├── launch.json
 │   ├── settings.json
 │   └── tasks.json
 ├── Dockerfile
+├── GOALS/
+│   └── 1_next_2_weeks.txt
 ├── Makefile
 ├── README.md
 ├── application.dev.yaml
@@ -15,7 +17,15 @@ setbull_trader/
 │       │   └── app.go
 │       └── transport/
 │           ├── http.go
-│           └── middleware.go
+│           ├── middleware.go
+│           └── rest/
+│               ├── execution_plan_handlers.go
+│               ├── order_execution_handlers.go
+│               ├── responses.go
+│               ├── server.go
+│               ├── stock_handlers.go
+│               ├── trade_parameters_handlers.go
+│               └── utility_handlers.go
 ├── consolidated_code/
 │   ├── config.txt
 │   ├── main.txt
@@ -24,6 +34,7 @@ setbull_trader/
 │   ├── transport.txt
 │   └── utils.txt
 ├── consolidated_code.sh
+├── copy-stocks-file.sh
 ├── current_directory_structure.txt
 ├── dhan/
 │   ├── all_in_one.txt
@@ -33,6 +44,7 @@ setbull_trader/
 │   └── put_order_api_doc.txt
 ├── directory_tree.py
 ├── frontend/
+│   ├── .DS_Store
 │   ├── .npmrc
 │   ├── .prettierignore
 │   ├── .prettierrc
@@ -45,16 +57,43 @@ setbull_trader/
 │   ├── playwright.config.ts
 │   ├── postcss.config.js
 │   ├── src/
+│   │   ├── .DS_Store
 │   │   ├── app.css
 │   │   ├── app.d.ts
 │   │   ├── app.html
 │   │   ├── demo.spec.ts
 │   │   ├── lib/
+│   │   │   ├── .DS_Store
+│   │   │   ├── actions/
+│   │   │   │   └── clickOutside.js
+│   │   │   ├── components/
+│   │   │   │   ├── Autocomplete.svelte
+│   │   │   │   ├── EnhancedStockSelector.svelte
+│   │   │   │   ├── ExecutionControl.svelte
+│   │   │   │   ├── ExecutionLevelDisplay.svelte
+│   │   │   │   ├── ExecutionResults.svelte
+│   │   │   │   ├── Modal.svelte
+│   │   │   │   ├── StockCard.svelte
+│   │   │   │   ├── StockParameterForm.svelte
+│   │   │   │   ├── StockSelector.svelte
+│   │   │   │   ├── TradingParameters.svelte
+│   │   │   │   └── ui/
+│   │   │   │       └── NumericInput.svelte
 │   │   │   ├── config/
 │   │   │   │   └── api.js
 │   │   │   ├── index.ts
-│   │   │   └── services/
-│   │   │       └── apiService.js
+│   │   │   ├── services/
+│   │   │   │   ├── apiService.js
+│   │   │   │   ├── calculationService.js
+│   │   │   │   ├── executionService.js
+│   │   │   │   └── stocksService.js
+│   │   │   ├── stores/
+│   │   │   │   ├── executionStatus.js
+│   │   │   │   └── selectedStocks.js
+│   │   │   └── utils/
+│   │   │       ├── formatting.js
+│   │   │       ├── stockFormatting.js
+│   │   │       └── validation.js
 │   │   └── routes/
 │   │       ├── +layout.svelte
 │   │       ├── +page.svelte
@@ -70,7 +109,8 @@ setbull_trader/
 │   │           └── history/
 │   │               └── +page.svelte
 │   ├── static/
-│   │   └── favicon.png
+│   │   ├── favicon.png
+│   │   └── nse_stocks.txt
 │   ├── svelte.config.js
 │   ├── tailwind.config.js
 │   ├── tsconfig.json
@@ -94,16 +134,56 @@ setbull_trader/
 │   │   └── service/
 │   │       └── orders/
 │   │           └── service.go
+│   ├── domain/
+│   │   ├── models.go
+│   │   └── utility.go
+│   ├── repository/
+│   │   ├── interfaces.go
+│   │   └── postgres/
+│   │       ├── execution_plan_repository.go
+│   │       ├── level_entry_repository.go
+│   │       ├── order_execution_repository.go
+│   │       ├── stock_repository.go
+│   │       └── trade_parameters_repository.go
+│   ├── service/
+│   │   ├── execution_plan_service.go
+│   │   ├── fibonacci_calculator.go
+│   │   ├── order_execution_service.go
+│   │   ├── stock_service.go
+│   │   ├── trade_parameters_service.go
+│   │   └── utility_service.go
 │   └── trading/
 │       ├── config/
 │       │   └── config.go
 │       └── service/
 │           └── query/
 ├── main.go
-└── pkg/
-    ├── apperrors/
-    │   └── errors.go
-    ├── database/
-    │   └── migrations/
-    └── log/
-        └── log.go
+├── nse_stocks.txt
+├── pkg/
+│   ├── apperrors/
+│   │   └── errors.go
+│   ├── cache/
+│   │   ├── cache.go
+│   │   ├── gocache.go
+│   │   └── redis.go
+│   ├── database/
+│   │   ├── database.go
+│   │   ├── migration.go
+│   │   └── migrations/
+│   │       ├── 20250315163258_create_table_template.down.sql
+│   │       ├── 20250315163258_create_table_template.up.sql
+│   │       ├── 20250316035135_add_active_and_timestamps.down.sql
+│   │       ├── 20250316035135_add_active_and_timestamps.up.sql
+│   │       ├── 20250317154127_add_security_id_to_stocks.down.sql
+│   │       └── 20250317154127_add_security_id_to_stocks.up.sql
+│   ├── log/
+│   │   └── log.go
+│   └── util/
+│       └── stockparser/
+│           └── nse_parser.go
+└── training/
+    ├── 1_execution_requirement.txt
+    ├── 2_thoughts-timeline-1.txt
+    ├── 3_design.txt
+    ├── 4_required_apis.txt
+    └── 5_new_stock_file_format_knowledge.txt
