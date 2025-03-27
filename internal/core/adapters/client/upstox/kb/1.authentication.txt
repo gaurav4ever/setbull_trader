@@ -1,0 +1,182 @@
+High-Level Design (Revised)
+
+Authentication Flow:
+
+OAuth 2.0 authentication with Upstox
+Focus on obtaining and maintaining valid access tokens
+Secure token storage and management
+
+
+Historical Candle Data API Integration:
+
+Dedicated client implementation for the historical candle data API
+Efficient data retrieval and processing
+Support for various time intervals and date ranges
+
+
+Extensible Architecture:
+
+Modular design to easily add other Upstox APIs in the future
+Clean separation between authentication and API-specific components
+
+
+Configuration Management:
+
+Centralized configuration for Upstox credentials and API settings
+
+
+
+Low-Level Design (Revised)
+1. Authentication Module
+
+Authentication Service:
+
+Create upstox/auth package to handle all authentication-related functionality
+Implement methods to generate login URL, exchange auth code for tokens, and refresh tokens
+Store tokens securely with expiration handling
+
+
+Auth Configuration:
+
+Store API key, secret, and redirect URI in configuration
+Implement secure access to these credentials
+
+
+Token Repository:
+
+Create an interface for token storage to support different backends (database, Redis, etc.)
+Implement methods to store, retrieve, and validate tokens
+
+
+
+2. Historical Candle Data API Client
+
+API Client Structure:
+
+Create upstox/api/candle package specialized for historical candle data
+Implement a client that handles making authenticated requests to the API
+Define methods for different time intervals (1min, 5min, 15min, 1day, etc.)
+
+
+Data Models:
+
+Define Go structs to represent candle data (OHLCV)
+Implement efficient parsing and conversion between Upstox formats and internal formats
+
+
+Request Builder:
+
+Implement utility to construct proper API requests with all necessary parameters
+Handle date formatting and validation for historical data requests
+
+
+
+3. Extensible API Framework
+
+Base Client Interface:
+
+Create a generic upstox/api package with common HTTP client functionality
+Implement method to attach authentication headers to requests
+Define error handling patterns that all API-specific clients will use
+
+
+API Registry:
+
+Design a registry system to manage different API clients
+Allow dynamic registration of new API clients as they are implemented
+
+
+Context Propagation:
+
+Ensure proper context handling throughout the API client chain
+Support for cancellation and timeouts
+
+
+
+4. Integration with Existing System
+
+Service Layer:
+
+Create a high-level service interface for historical candle data
+Implement methods to retrieve and process data according to business needs
+
+
+Adapter Pattern:
+
+Use adapters to convert between Upstox data formats and your application's models
+Ensure data transformation is centralized and consistent
+
+
+Configuration Integration:
+
+Extend your existing configuration system to include Upstox settings
+Implement environment-specific configurations
+
+
+
+5. Implementation Specifics
+
+Historical Candle API Client:
+
+Implement methods that match the endpoint signatures:
+
+GetHistoricalCandleData(instrumentKey, interval, toDate)
+GetHistoricalCandleData1(instrumentKey, interval, toDate, fromDate)
+GetIntraDayCandleData(instrumentKey, interval)
+
+
+
+
+Authentication Flow Implementation:
+
+Implement server endpoint to generate login URL with required parameters
+Create callback handler to process the auth code
+Implement token exchange service for backend token acquisition
+
+
+Error Handling and Retry Logic:
+
+Implement specific error types for different failure scenarios
+Add retry logic for transient errors with exponential backoff
+
+
+
+
+
+=============================================
+=============================================
+
+Implementation Plan
+Phase 1: Authentication Configuration and Client Wrapper
+File: internal/core/adapters/client/upstox/config.go
+The file you've already seen, which includes:
+
+Configuration structure for Upstox authentication
+Token store interface and token model
+Client wrapper for the existing Upstox API client
+Methods to generate login URLs and create authenticated contexts
+
+Phase 2: Token Repository Implementation
+File: internal/core/adapters/client/upstox/token_repository.go
+This file will include:
+
+Implementation of the TokenStore interface
+Storage mechanisms (using your existing database or Redis)
+Token encryption/decryption if needed
+
+Phase 3: Authentication Service
+File: internal/core/adapters/client/upstox/auth_service.go
+This file will include:
+
+High-level methods for the authentication workflow
+Functions to exchange authorization code for tokens
+Integration with the token repository
+State management for secure OAuth flow
+
+Phase 4: Authentication Controller and Routes
+File: cmd/trading/transport/rest/upstox_auth_handlers.go
+This file will include:
+
+HTTP handlers for initiating login
+Callback endpoint to receive authorization code
+Integration with your existing HTTP framework
