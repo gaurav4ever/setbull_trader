@@ -10,14 +10,11 @@ package swagger
 
 type Problem struct {
 	// Unique code for the error state
-	ErrorCode string `json:"errorCode,omitempty"`
+	ErrorCode string `json:"error_code,omitempty"`
 	// Verbose message for the error state
 	Message string `json:"message,omitempty"`
 	// Path to property failing validation
-	PropertyPath string `json:"propertyPath,omitempty"`
-	// Invalid value for the property failing validation
-	InvalidValue *interface{} `json:"invalidValue,omitempty"`
-	ErrorCode string `json:"error_code,omitempty"`
 	PropertyPath string `json:"property_path,omitempty"`
-	InvalidValue *interface{} `json:"invalid_value,omitempty"`
+	// Invalid value for the property failing validation
+	InvalidValue string `json:"invalid_value,omitempty"`
 }

@@ -1,0 +1,137 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Setbull Trader Software Development Rules
+
+## Core Architecture Principles
+
+1. **Layered Architecture Adherence**
+   - Maintain strict separation between domain, repository, service, and transport layers
+   - Never allow domain models to contain transport-specific annotations
+   - Ensure repositories only handle data access, not business logic
+
+2. **API Integration Standards**
+   - All broker API clients must implement proper error handling and logging
+   - Standardize request/response mapping between internal models and external APIs
+   - Cache frequently accessed market data to reduce API calls
+   - Always use security IDs (not symbols) when placing orders with brokers
+
+3. **Database Management**
+   - Follow migration-based schema evolution 
+   - Use soft deletes with 'active' flags for all entities
+   - Include audit fields (created_at, updated_at) on all tables
+   - Properly index fields used in WHERE clauses and JOIN conditions
+
+4. **Error Handling Protocol**
+   - Use custom error types with appropriate HTTP status codes
+   - Provide user-friendly error messages without exposing system details
+   - Log detailed error information for debugging
+   - Implement retry mechanisms for transient errors in broker API calls
+
+## Code Style & Quality
+
+5. **Coding Standards**
+   - Follow Go idiomatic patterns and naming conventions
+   - Implement comprehensive unit tests for all service methods
+   - Document public APIs with clear comments
+   - Use consistent formatting (run gofmt before commits)
+
+6. **Performance Optimization**
+   - Optimize database queries to avoid N+1 problems
+   - Use appropriate caching for stock data and execution plans
+   - Implement connection pooling for database and external APIs
+   - Profile and optimize CPU/memory-intensive operations
+
+7. **Security Practices**
+   - Securely manage API tokens and credentials
+   - Validate all input data at API boundaries
+   - Implement proper authentication and authorization
+   - Follow the principle of least privilege for all operations
+
+## Trading-Specific Rules
+
+8. **Order Management**
+   - Validate all order parameters before submission
+   - Implement idempotent order submission to prevent duplicates
+   - Always log order requests and responses
+   - Include circuit breakers to prevent excessive trading
+
+9. **Risk Management**
+   - Enforce position size limits based on risk parameters
+   - Implement stop-loss mechanisms for all positions
+   - Validate execution plans before allowing orders
+   - Never exceed 3 concurrent selected stocks
+
+10. **Stock Data Management**
+    - Always process both symbol and security ID in stock data
+    - Implement proper handling of stock splits and corporate actions
+    - Maintain proper stock metadata (price, exchange, etc.)
+    - Validate stock data before saving to database
+
+## Frontend Development
+
+11. **UI/UX Standards**
+    - Implement responsive design for all components
+    - Use consistent error handling and user feedback
+    - Follow accessibility guidelines for all UI elements
+    - Optimize render performance for data-heavy screens
+
+12. **State Management**
+    - Use store pattern for shared application state
+    - Implement proper loading states for async operations
+    - Handle error states gracefully with user feedback
+    - Maintain consistent data models between frontend and backend
+
+## Development Workflow
+
+13. **Version Control**
+    - Use feature branches for all development
+    - Write meaningful commit messages
+    - Require code reviews for all PRs
+    - Maintain a clean git history
+
+14. **Testing Requirements**
+    - Write unit tests for all business logic
+    - Implement integration tests for API endpoints
+    - Use mock objects for external dependencies
+    - Achieve minimum 80% code coverage
+
+15. **Documentation**
+    - Document all public APIs with examples
+    - Maintain up-to-date README and setup instructions
+    - Document database schema changes
+    - Include comments for complex business logic
+
+16. **Deployment & Operations**
+    - Implement proper logging for operational monitoring
+    - Use container-based deployment
+    - Implement proper backup and recovery procedures
+    - Maintain separate environments for development, testing, and production
+
+## AI Development Assistance Rules
+
+17. **Code Generation**
+    - Follow established patterns in existing code
+    - Generate comprehensive test cases
+    - Comment complex algorithms and business logic
+    - Optimize for readability and maintainability
+
+18. **Design Assistance**
+    - Consider scalability in all architectural suggestions
+    - Recommend security improvements proactively
+    - Suggest performance optimizations when appropriate
+    - Balance short-term implementation with long-term maintenance
+
+19. **Trading Logic Rules**
+    - Understand Fibonacci-based execution levels
+    - Implement proper risk management calculations
+    - Follow established patterns for order execution
+    - Consider market conditions in algorithm design
+
+20. **Debugging Assistance**
+    - Focus on root cause analysis
+    - Suggest logging improvements
+    - Identify potential race conditions or concurrency issues
+    - Consider edge cases in market data processing

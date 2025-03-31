@@ -14,6 +14,7 @@ import (
 type Config struct {
 	Server   ServerConfig `mapstructure:"server"`
 	Dhan     DhanConfig   `mapstructure:"dhan"`
+	Upstox   UpstoxConfig `mapstructure:"upstox"`
 	Database struct {
 		MasterDatasource struct {
 			User     string `yaml:"user"`
@@ -71,6 +72,13 @@ type DhanConfig struct {
 	ClientID    string `mapstructure:"client_id"`
 }
 
+type UpstoxConfig struct {
+	ClientID     string `mapstructure:"client_id" yaml:"client_id"`
+	ClientSecret string `mapstructure:"client_secret" yaml:"client_secret"`
+	RedirectURI  string `mapstructure:"redirect_uri" yaml:"redirect_uri"`
+	BasePath     string `mapstructure:"base_path" yaml:"base_path"`
+}
+
 // LoadConfig loads the application configuration from application.yaml
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("application.dev")
@@ -84,6 +92,11 @@ func LoadConfig() (*Config, error) {
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, errors.Wrap(err, "error unmarshalling config")
+	}
+
+	// Validate Upstox configuration
+	if err := config.ValidateUpstoxConfig(); err != nil {
+		return nil, errors.Wrap(err, "invalid upstox configuration")
 	}
 
 	return &config, nil
@@ -135,4 +148,21 @@ func LoadInMemoryCache(appCfg Config) (cache.InMemConfig, error) {
 	}
 
 	return cfg, nil
+}
+
+// ValidateUpstoxConfig validates the Upstox configuration
+func (c *Config) ValidateUpstoxConfig() error {
+	if c.Upstox.ClientID == "" {
+		return errors.New("upstox client_id is required")
+	}
+	if c.Upstox.ClientSecret == "" {
+		return errors.New("upstox client_secret is required")
+	}
+	if c.Upstox.RedirectURI == "" {
+		return errors.New("upstox redirect_uri is required")
+	}
+	if c.Upstox.BasePath == "" {
+		c.Upstox.BasePath = "https://api.upstox.com" // Set default if not provided
+	}
+	return nil
 }

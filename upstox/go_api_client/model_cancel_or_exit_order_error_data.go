@@ -18,9 +18,6 @@ type CancelOrExitOrderErrorData struct {
 	PropertyPath string `json:"propertyPath,omitempty"`
 	// Invalid value for the property failing validation
 	InvalidValue *interface{} `json:"invalidValue,omitempty"`
-	ErrorCode string `json:"error_code,omitempty"`
-	PropertyPath string `json:"property_path,omitempty"`
-	InvalidValue *interface{} `json:"invalid_value,omitempty"`
 	// Key of instrument
 	InstrumentKey string `json:"instrument_key,omitempty"`
 	// Reference order ID

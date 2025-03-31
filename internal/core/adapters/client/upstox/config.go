@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"setbull_trader/internal/trading/config"
 	swagger "setbull_trader/upstox/go_api_client"
 
 	"github.com/pkg/errors"
@@ -21,9 +22,12 @@ type AuthConfig struct {
 }
 
 // NewUpstoxConfig creates a new configuration for Upstox API
-func NewUpstoxConfig() *AuthConfig {
+func NewUpstoxConfig(cfg *config.UpstoxConfig) *AuthConfig {
 	return &AuthConfig{
-		BasePath: "https://api-v2.upstox.com", // Default base path matching the client
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURI:  cfg.RedirectURI,
+		BasePath:     cfg.BasePath,
 	}
 }
 
@@ -89,8 +93,11 @@ func (t *UpstoxToken) GetAccessToken() string {
 
 // GenerateLoginURL generates the Upstox login URL
 func (c *AuthConfig) GenerateLoginURL(state string) string {
-	return fmt.Sprintf("https://api.upstox.com/v2/login/authorization/dialog?response_type=code&client_id=%s&redirect_uri=%s&state=%s",
-		c.ClientID, c.RedirectURI, state)
+	return fmt.Sprintf("%s/v2/login/authorization/dialog?response_type=code&client_id=%s&redirect_uri=%s&state=%s",
+		c.BasePath,
+		c.ClientID,
+		c.RedirectURI,
+		state)
 }
 
 // AuthError represents an authentication error

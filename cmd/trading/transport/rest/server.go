@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+	"setbull_trader/internal/core/adapters/client/upstox"
 	"setbull_trader/internal/core/dto/request"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/service"
@@ -17,14 +18,15 @@ import (
 
 // Server represents the REST API server
 type Server struct {
-	router         *mux.Router
-	orderService   *orders.Service
-	stockService   *service.StockService
-	paramsService  *service.TradeParametersService
-	planService    *service.ExecutionPlanService
-	executeService *service.OrderExecutionService
-	utilityService *service.UtilityService
-	validator      *validator.Validate
+	router            *mux.Router
+	orderService      *orders.Service
+	stockService      *service.StockService
+	paramsService     *service.TradeParametersService
+	planService       *service.ExecutionPlanService
+	executeService    *service.OrderExecutionService
+	utilityService    *service.UtilityService
+	upstoxAuthService *upstox.AuthService
+	validator         *validator.Validate
 }
 
 // NewServer creates a new REST API server
@@ -35,16 +37,18 @@ func NewServer(
 	planService *service.ExecutionPlanService,
 	executeService *service.OrderExecutionService,
 	utilityService *service.UtilityService,
+	upstoxAuthService *upstox.AuthService,
 ) *Server {
 	s := &Server{
-		router:         mux.NewRouter(),
-		orderService:   orderService,
-		stockService:   stockService,
-		paramsService:  paramsService,
-		planService:    planService,
-		executeService: executeService,
-		utilityService: utilityService,
-		validator:      validator.New(),
+		router:            mux.NewRouter(),
+		orderService:      orderService,
+		stockService:      stockService,
+		paramsService:     paramsService,
+		planService:       planService,
+		executeService:    executeService,
+		utilityService:    utilityService,
+		upstoxAuthService: upstoxAuthService,
+		validator:         validator.New(),
 	}
 
 	s.setupRoutes()
@@ -97,6 +101,11 @@ func (s *Server) setupRoutes() {
 	// Trades endpoints (from http.go)
 	api.HandleFunc("/trades", s.GetAllTrades).Methods(http.MethodGet, http.MethodOptions)
 	api.HandleFunc("/trades/history", s.GetTradeHistory).Methods(http.MethodGet, http.MethodOptions)
+
+	// Add Upstox routes
+	api.HandleFunc("/upstox/login", s.InitiateUpstoxLogin).Methods("GET")
+	api.HandleFunc("/upstox/callback", s.HandleUpstoxCallback).Methods("GET")
+	api.HandleFunc("/upstox/historical/{instrument}/{interval}/{to_date}/{from_date}", s.GetHistoricalCandleDataWithRange).Methods("GET")
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -295,4 +304,100 @@ func (s *Server) handleError(w http.ResponseWriter, err error) {
 
 	// Default to internal server error
 	respondWithError(w, http.StatusInternalServerError, "Internal server error")
+}
+
+// InitiateUpstoxLogin handles the login initiation for Upstox
+func (s *Server) InitiateUpstoxLogin(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	loginURL, sessionID, err := s.upstoxAuthService.InitiateLogin(ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to initiate login: "+err.Error())
+		return
+	}
+
+	response := struct {
+		LoginURL  string `json:"login_url"`
+		SessionID string `json:"session_id"`
+	}{
+		LoginURL:  loginURL,
+		SessionID: sessionID,
+	}
+
+	respondSuccess(w, response)
+}
+
+// HandleUpstoxCallback processes the callback from Upstox after authorization
+func (s *Server) HandleUpstoxCallback(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Extract code and state from query parameters
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
+
+	if code == "" {
+		respondWithError(w, http.StatusBadRequest, "Authorization code is missing")
+		return
+	}
+
+	if state == "" {
+		respondWithError(w, http.StatusBadRequest, "State parameter is missing")
+		return
+	}
+
+	// Validate the callback and exchange code for token
+	token, err := s.upstoxAuthService.HandleCallback(ctx, code, state)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to process callback: "+err.Error())
+		return
+	}
+
+	respondSuccess(w, token)
+}
+
+// GetHistoricalCandleDataWithRange gets historical candle data for a specific date range
+func (s *Server) GetHistoricalCandleDataWithRange(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+
+	// Extract path parameters
+	instrument := vars["instrument"]
+	interval := vars["interval"]
+	toDate := vars["to_date"]
+	fromDate := vars["from_date"]
+
+	// Validate required parameters
+	if instrument == "" {
+		respondWithError(w, http.StatusBadRequest, "Instrument is required")
+		return
+	}
+	if interval == "" {
+		respondWithError(w, http.StatusBadRequest, "Interval is required")
+		return
+	}
+	if toDate == "" {
+		respondWithError(w, http.StatusBadRequest, "To date is required")
+		return
+	}
+	if fromDate == "" {
+		respondWithError(w, http.StatusBadRequest, "From date is required")
+		return
+	}
+
+	// Get user ID from context or query parameter
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		respondWithError(w, http.StatusBadRequest, "User ID is required")
+		return
+	}
+
+	// Call the upstox service
+	candleData, err := s.upstoxAuthService.GetHistoricalCandleDataWithDateRange(ctx, "upstox_session", instrument, interval, toDate, fromDate)
+	if err != nil {
+		log.Error("Failed to get historical candle data", "error", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to fetch historical data: "+err.Error())
+		return
+	}
+
+	respondSuccess(w, candleData)
 }

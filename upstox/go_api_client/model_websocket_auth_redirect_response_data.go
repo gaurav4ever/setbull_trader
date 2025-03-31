@@ -11,5 +11,4 @@ package swagger
 // Response data for WebsocketAuthRedirectResponse
 type WebsocketAuthRedirectResponseData struct {
 	AuthorizedRedirectUri string `json:"authorizedRedirectUri,omitempty"`
-	AuthorizedRedirectUri string `json:"authorized_redirect_uri,omitempty"`
 }

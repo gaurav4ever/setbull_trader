@@ -11,11 +11,13 @@ import (
 
 	"setbull_trader/cmd/trading/transport/rest"
 	"setbull_trader/internal/core/adapters/client/dhan"
+	"setbull_trader/internal/core/adapters/client/upstox"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/repository"
 	"setbull_trader/internal/repository/postgres"
 	"setbull_trader/internal/service"
 	"setbull_trader/internal/trading/config"
+	"setbull_trader/pkg/cache"
 	"setbull_trader/pkg/database"
 	"setbull_trader/pkg/log"
 
@@ -68,6 +70,24 @@ func NewApp() *App {
 	// Initialize legacy services
 	orderService := orders.NewService(dhanClient)
 
+	// Initialize cache configurations
+	inMemConfig, err := config.LoadInMemoryCache(*cfg)
+	if err != nil {
+		log.Fatal("Failed to load in-memory cache config: %v", err)
+	}
+
+	redisConfig, err := config.LoadRedis(*cfg)
+	if err != nil {
+		log.Fatal("Failed to load Redis config: %v", err)
+	}
+
+	// Initialize cache instances
+	cacheInMem := cache.NewInMemoryCache(inMemConfig)
+	redisClient := cache.NewRedisStore(redisConfig)
+
+	// Initialize cache
+	cacheManager := cache.NewCacheManager(cacheInMem, redisClient)
+
 	// Get database config
 	dbConfig, err := config.LoadDatabase(*cfg)
 	if err != nil {
@@ -106,6 +126,21 @@ func NewApp() *App {
 	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo, *orderService, *stockService)
 	utilityService := service.NewUtilityService(fibCalculator)
 
+	// UPSTOX configurations
+	// Initialize Upstox configuration
+	upstoxConfig := &upstox.AuthConfig{
+		ClientID:     cfg.Upstox.ClientID,
+		ClientSecret: cfg.Upstox.ClientSecret,
+		RedirectURI:  cfg.Upstox.RedirectURI,
+		BasePath:     cfg.Upstox.BasePath,
+	}
+
+	// Create token repository
+	tokenRepo := upstox.NewTokenRepository(cacheManager)
+
+	// Create authentication service
+	upstoxAuthService := upstox.NewAuthService(upstoxConfig, tokenRepo, cacheManager)
+
 	restServer := rest.NewServer(
 		orderService,
 		stockService,
@@ -113,6 +148,7 @@ func NewApp() *App {
 		executionPlanService,
 		orderExecutionService,
 		utilityService,
+		upstoxAuthService,
 	)
 
 	return &App{

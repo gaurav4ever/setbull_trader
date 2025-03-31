@@ -18,9 +18,6 @@ type MultiOrderError struct {
 	PropertyPath string `json:"propertyPath,omitempty"`
 	// Invalid value for the property failing validation
 	InvalidValue *interface{} `json:"invalidValue,omitempty"`
-	ErrorCode string `json:"error_code,omitempty"`
-	PropertyPath string `json:"property_path,omitempty"`
-	InvalidValue *interface{} `json:"invalid_value,omitempty"`
 	// A unique identifier for tracking individual orders within the batch
 	CorrelationId string `json:"correlation_id,omitempty"`
 }

@@ -13,10 +13,9 @@ type BrokerageData struct {
 	// Total charges for the order
 	Total float32 `json:"total,omitempty"`
 	// Brokerage charges for the order
-	Brokerage float32 `json:"brokerage,omitempty"`
-	Taxes *BrokerageTaxes `json:"taxes,omitempty"`
-	OtherTaxes *OtherTaxes `json:"otherTaxes,omitempty"`
-	DpPlan *DpPlan `json:"dpPlan,omitempty"`
-	OtherCharges *OtherTaxes `json:"other_charges,omitempty"`
-	DpPlan *DpPlan `json:"dp_plan,omitempty"`
+	Brokerage    float32         `json:"brokerage,omitempty"`
+	Taxes        *BrokerageTaxes `json:"taxes,omitempty"`
+	OtherTaxes   *OtherTaxes     `json:"otherTaxes,omitempty"`
+	DpPlan       *DpPlan         `json:"dpPlan,omitempty"`
+	OtherCharges *OtherTaxes     `json:"other_charges,omitempty"`
 }

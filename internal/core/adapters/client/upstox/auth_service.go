@@ -22,6 +22,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+type UpstoxErrorResponse struct {
+	Status string `json:"status"`
+	Errors []struct {
+		ErrorCode    string      `json:"error_code"`
+		Message      string      `json:"message"`
+		PropertyPath interface{} `json:"property_path"`
+		InvalidValue interface{} `json:"invalid_value"`
+	} `json:"errors"`
+}
+
 // AuthService handles Upstox authentication operations
 type AuthService struct {
 	config       *AuthConfig
@@ -51,7 +61,7 @@ func (s *AuthService) InitiateLogin(ctx context.Context) (string, string, error)
 	}
 
 	// Generate a unique session ID to associate with this login flow
-	sessionID := uuid.New().String()
+	sessionID := "upstox_session"
 
 	// Store the state in the cache with expiry (15 minutes is typical for OAuth flows)
 	stateKey := s.getStateKey(sessionID)
@@ -65,9 +75,9 @@ func (s *AuthService) InitiateLogin(ctx context.Context) (string, string, error)
 }
 
 // HandleCallback processes the authorization callback from Upstox
-func (s *AuthService) HandleCallback(ctx context.Context, code string, state string, sessionID string) (*UpstoxToken, error) {
+func (s *AuthService) HandleCallback(ctx context.Context, code string, state string) (*UpstoxToken, error) {
 	// Verify state to prevent CSRF
-	if err := s.verifyState(ctx, sessionID, state); err != nil {
+	if err := s.verifyState(ctx, state); err != nil {
 		return nil, err
 	}
 
@@ -77,6 +87,7 @@ func (s *AuthService) HandleCallback(ctx context.Context, code string, state str
 		return nil, errors.Wrap(err, "failed to exchange code for token")
 	}
 
+	sessionID := "upstox_session"
 	// Store the token
 	if err := s.tokenStore.SaveToken(ctx, sessionID, token); err != nil {
 		return nil, errors.Wrap(err, "failed to save token")
@@ -181,7 +192,7 @@ func (s *AuthService) GetIntraDayCandleData(ctx context.Context, userID string, 
 // exchangeCodeForToken exchanges an authorization code for an access token
 func (s *AuthService) exchangeCodeForToken(ctx context.Context, code string) (*UpstoxToken, error) {
 	// Prepare the token request
-	tokenURL := "https://api.upstox.com/v2/login/authorization/token"
+	tokenURL := fmt.Sprintf("%s/v2/login/authorization/token", s.config.BasePath)
 	formData := url.Values{
 		"code":          {code},
 		"client_id":     {s.config.ClientID},
@@ -213,12 +224,13 @@ func (s *AuthService) exchangeCodeForToken(ctx context.Context, code string) (*U
 
 	if resp.StatusCode != http.StatusOK {
 		// Try to parse error response
-		var errResp struct {
-			Error       string `json:"error"`
-			Description string `json:"error_description"`
-		}
+		var errResp UpstoxErrorResponse
 		if err := json.Unmarshal(body, &errResp); err == nil {
-			return nil, fmt.Errorf("token request failed: %s - %s", errResp.Error, errResp.Description)
+			if len(errResp.Errors) > 0 {
+				return nil, fmt.Errorf("upstox error: %s - %s",
+					errResp.Errors[0].ErrorCode,
+					errResp.Errors[0].Message)
+			}
 		}
 		return nil, fmt.Errorf("token request failed with status %d: %s", resp.StatusCode, string(body))
 	}
@@ -254,7 +266,8 @@ func (s *AuthService) generateSecureState() (string, error) {
 }
 
 // verifyState verifies that the state parameter matches the expected state
-func (s *AuthService) verifyState(ctx context.Context, sessionID string, state string) error {
+func (s *AuthService) verifyState(ctx context.Context, state string) error {
+	sessionID := "upstox_session"
 	stateKey := s.getStateKey(sessionID)
 	expectedState, exists := s.cacheManager.Get(ctx, stateKey)
 	if !exists {
