@@ -43,3 +43,42 @@ type CandleRepository interface {
 	// DeleteByInstrumentAndTimeRange deletes candles for an instrument within a time range
 	DeleteByInstrumentAndTimeRange(instrumentKey string, interval string, fromTime, toTime time.Time) (int, error)
 }
+
+// MinMaxTimestamp is a helper struct for aggregation operations
+type MinMaxTimestamp struct {
+	InstrumentKey  string    `json:"instrument_key"`
+	IntervalTime   time.Time `json:"interval_time"` // 5-min interval or day
+	FirstTimestamp time.Time `json:"first_timestamp"`
+	LastTimestamp  time.Time `json:"last_timestamp"`
+	HighPrice      float64   `json:"high_price"`
+	LowPrice       float64   `json:"low_price"`
+	TotalVolume    int64     `json:"total_volume"`
+}
+
+// OpenPriceData is a helper struct for holding open price data
+type OpenPriceData struct {
+	InstrumentKey string    `json:"instrument_key"`
+	IntervalTime  time.Time `json:"interval_time"`
+	OpenPrice     float64   `json:"open_price"`
+}
+
+// ClosePriceData is a helper struct for holding close price data
+type ClosePriceData struct {
+	InstrumentKey string    `json:"instrument_key"`
+	IntervalTime  time.Time `json:"interval_time"`
+	ClosePrice    float64   `json:"close_price"`
+	OpenInterest  int64     `json:"open_interest"`
+}
+
+// AggregatedCandle represents a candle at an aggregated timeframe (5-min, daily)
+type AggregatedCandle struct {
+	InstrumentKey string    `json:"instrument_key"`
+	Timestamp     time.Time `json:"timestamp"`
+	Open          float64   `json:"open"`
+	High          float64   `json:"high"`
+	Low           float64   `json:"low"`
+	Close         float64   `json:"close"`
+	Volume        int64     `json:"volume"`
+	OpenInterest  int64     `json:"open_interest"`
+	TimeInterval  string    `json:"time_interval"`
+}

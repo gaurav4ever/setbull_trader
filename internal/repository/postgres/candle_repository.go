@@ -255,3 +255,243 @@ func (r *CandleRepository) bulkInsertWithCopy(ctx context.Context, tx *gorm.DB, 
 
 	return len(candles), nil
 }
+
+// GetLatestCandle retrieves the most recent candle for a specific instrument and interval
+func (r *CandleRepository) GetLatestCandle(
+	ctx context.Context,
+	instrumentKey string,
+	interval string,
+) (*domain.CandleData, error) {
+	var candle domain.CandleData
+
+	result := r.db.WithContext(ctx).
+		Where("instrument_key = ? AND time_interval = ?", instrumentKey, interval).
+		Order("timestamp DESC").
+		First(&candle)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil // No candle found
+		}
+		return nil, fmt.Errorf("failed to get latest candle: %w", result.Error)
+	}
+
+	return &candle, nil
+}
+
+// GetAggregated5MinCandles retrieves 5-minute candles aggregated from 1-minute candles
+func (r *CandleRepository) GetAggregated5MinCandles(
+	ctx context.Context,
+	instrumentKey string,
+	start, end time.Time,
+) ([]domain.AggregatedCandle, error) {
+	// Use raw SQL for complex aggregation
+	var aggregatedCandles []domain.AggregatedCandle
+
+	// Create temporary table with candles grouped by 5-minute intervals
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_5min_candles AS
+		SELECT 
+			instrument_key,
+			FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(timestamp) / 300) * 300) AS interval_timestamp,
+			MIN(timestamp) AS first_timestamp,
+			MAX(timestamp) AS last_timestamp,
+			MAX(high) AS high_price,
+			MIN(low) AS low_price,
+			SUM(volume) AS total_volume
+		FROM 
+			stock_candle_data
+		WHERE 
+			time_interval = '1minute'
+			AND instrument_key = ?
+			AND timestamp BETWEEN ? AND ?
+		GROUP BY 
+			instrument_key, interval_timestamp
+	`, instrumentKey, start, end).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_5min_candles: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_5min_candles")
+
+	// Get open prices from first candles
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_5min_open_prices AS
+		SELECT 
+			t.instrument_key,
+			t.interval_timestamp,
+			scd.open AS open_price
+		FROM 
+			temp_5min_candles t
+		JOIN 
+			stock_candle_data scd ON scd.instrument_key = t.instrument_key 
+				AND scd.timestamp = t.first_timestamp
+	`).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_5min_open_prices: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_5min_open_prices")
+
+	// Get close prices from last candles
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_5min_close_prices AS
+		SELECT 
+			t.instrument_key,
+			t.interval_timestamp,
+			scd.close AS close_price,
+			scd.open_interest AS open_interest
+		FROM 
+			temp_5min_candles t
+		JOIN 
+			stock_candle_data scd ON scd.instrument_key = t.instrument_key 
+				AND scd.timestamp = t.last_timestamp
+	`).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_5min_close_prices: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_5min_close_prices")
+
+	// Query the final result
+	err := r.db.WithContext(ctx).Raw(`
+		SELECT 
+			t.instrument_key,
+			t.interval_timestamp AS timestamp,
+			o.open_price AS open,
+			t.high_price AS high,
+			t.low_price AS low,
+			c.close_price AS close,
+			t.total_volume AS volume,
+			c.open_interest,
+			'5minute' AS time_interval
+		FROM 
+			temp_5min_candles t
+		JOIN 
+			temp_5min_open_prices o ON t.instrument_key = o.instrument_key 
+				AND t.interval_timestamp = o.interval_timestamp
+		JOIN 
+			temp_5min_close_prices c ON t.instrument_key = c.instrument_key 
+				AND t.interval_timestamp = c.interval_timestamp
+		ORDER BY 
+			t.instrument_key, t.interval_timestamp
+	`).Scan(&aggregatedCandles).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query aggregated 5-minute candles: %w", err)
+	}
+
+	log.Info("Retrieved %d aggregated 5-minute candles for instrument %s", len(aggregatedCandles), instrumentKey)
+	return aggregatedCandles, nil
+}
+
+// GetAggregatedDailyCandles retrieves daily candles aggregated from 1-minute candles
+func (r *CandleRepository) GetAggregatedDailyCandles(
+	ctx context.Context,
+	instrumentKey string,
+	start, end time.Time,
+) ([]domain.AggregatedCandle, error) {
+	// Use raw SQL for complex aggregation
+	var aggregatedCandles []domain.AggregatedCandle
+
+	// Create temporary table with candles grouped by day
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_daily_candles AS
+		SELECT 
+			instrument_key,
+			DATE(timestamp) AS interval_date,
+			MIN(timestamp) AS first_timestamp,
+			MAX(timestamp) AS last_timestamp,
+			MAX(high) AS high_price,
+			MIN(low) AS low_price,
+			SUM(volume) AS total_volume
+		FROM 
+			stock_candle_data
+		WHERE 
+			time_interval = '1minute'
+			AND instrument_key = ?
+			AND timestamp BETWEEN ? AND ?
+		GROUP BY 
+			instrument_key, DATE(timestamp)
+	`, instrumentKey, start, end).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_daily_candles: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_daily_candles")
+
+	// Get open prices from first candles
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_daily_open_prices AS
+		SELECT 
+			t.instrument_key,
+			t.interval_date,
+			scd.open AS open_price
+		FROM 
+			temp_daily_candles t
+		JOIN 
+			stock_candle_data scd ON scd.instrument_key = t.instrument_key 
+				AND scd.timestamp = t.first_timestamp
+	`).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_daily_open_prices: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_daily_open_prices")
+
+	// Get close prices from last candles
+	if err := r.db.WithContext(ctx).Exec(`
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_daily_close_prices AS
+		SELECT 
+			t.instrument_key,
+			t.interval_date,
+			scd.close AS close_price,
+			scd.open_interest AS open_interest
+		FROM 
+			temp_daily_candles t
+		JOIN 
+			stock_candle_data scd ON scd.instrument_key = t.instrument_key 
+				AND scd.timestamp = t.last_timestamp
+	`).Error; err != nil {
+		return nil, fmt.Errorf("failed to create temp_daily_close_prices: %w", err)
+	}
+	defer r.db.Exec("DROP TEMPORARY TABLE IF EXISTS temp_daily_close_prices")
+
+	// Query the final result
+	err := r.db.WithContext(ctx).Raw(`
+		SELECT 
+			t.instrument_key,
+			TIMESTAMP(t.interval_date) AS timestamp,
+			o.open_price AS open,
+			t.high_price AS high,
+			t.low_price AS low,
+			c.close_price AS close,
+			t.total_volume AS volume,
+			c.open_interest,
+			'day' AS time_interval
+		FROM 
+			temp_daily_candles t
+		JOIN 
+			temp_daily_open_prices o ON t.instrument_key = o.instrument_key 
+				AND t.interval_date = o.interval_date
+		JOIN 
+			temp_daily_close_prices c ON t.instrument_key = c.instrument_key 
+				AND t.interval_date = c.interval_date
+		ORDER BY 
+			t.instrument_key, t.interval_date
+	`).Scan(&aggregatedCandles).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query aggregated daily candles: %w", err)
+	}
+
+	log.Info("Retrieved %d aggregated daily candles for instrument %s", len(aggregatedCandles), instrumentKey)
+	return aggregatedCandles, nil
+}
+
+// StoreAggregatedCandles stores aggregated candles (useful for caching common timeframes)
+func (r *CandleRepository) StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error {
+	if len(candles) == 0 {
+		return nil
+	}
+
+	// Use Create with batch size for better performance
+	const batchSize = 100
+	result := r.db.WithContext(ctx).CreateInBatches(candles, batchSize)
+	if result.Error != nil {
+		return fmt.Errorf("failed to store aggregated candles: %w", result.Error)
+	}
+
+	log.Info("Stored %d aggregated candles", result.RowsAffected)
+	return nil
+}

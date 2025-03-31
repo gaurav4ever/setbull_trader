@@ -45,6 +45,7 @@ type App struct {
 	orderExecutionService   *service.OrderExecutionService
 	utilityService          *service.UtilityService
 	candleProcessingService *service.CandleProcessingService
+	candleAggService        *service.CandleAggregationService
 	batchFetchService       *service.BatchFetchService
 	restServer              *rest.Server
 }
@@ -150,6 +151,10 @@ func NewApp() *App {
 		"upstox_session",
 	)
 
+	candleAggService := service.NewCandleAggregationService(
+		candleRepo,
+	)
+
 	batchFetchService := service.NewBatchFetchService(
 		candleProcessingService,
 		cfg.HistoricalData.MaxConcurrentRequests,
@@ -163,6 +168,7 @@ func NewApp() *App {
 		orderExecutionService,
 		utilityService,
 		upstoxAuthService,
+		candleAggService,
 		batchFetchService,
 	)
 
@@ -184,6 +190,7 @@ func NewApp() *App {
 		orderExecutionService:   orderExecutionService,
 		utilityService:          utilityService,
 		candleProcessingService: candleProcessingService,
+		candleAggService:        candleAggService,
 		batchFetchService:       batchFetchService,
 		restServer:              restServer,
 	}

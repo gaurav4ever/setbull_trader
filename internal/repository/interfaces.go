@@ -143,4 +143,14 @@ type CandleRepository interface {
 
 	// DeleteOlderThan deletes candles older than a specified time
 	DeleteOlderThan(ctx context.Context, olderThan time.Time) (int, error)
+
+	// Core operations
+	GetLatestCandle(ctx context.Context, instrumentKey, interval string) (*domain.CandleData, error)
+
+	// Aggregation operations
+	GetAggregated5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
+	GetAggregatedDailyCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
+
+	// Optional: Store aggregated candles for future use
+	StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error
 }

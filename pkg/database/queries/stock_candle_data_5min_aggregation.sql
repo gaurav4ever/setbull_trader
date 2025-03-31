@@ -11,7 +11,7 @@ SELECT
 FROM 
     stock_candle_data
 WHERE 
-    time_interval = '1minute'
+    time_interval = '1minute' AND instrument_key = "NSE_EQ|INE0G5901015"
 GROUP BY 
     instrument_key, interval_timestamp;
 

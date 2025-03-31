@@ -27,6 +27,7 @@ type Server struct {
 	executeService    *service.OrderExecutionService
 	utilityService    *service.UtilityService
 	upstoxAuthService *upstox.AuthService
+	candleAggService  *service.CandleAggregationService
 	batchFetchService *service.BatchFetchService
 	validator         *validator.Validate
 }
@@ -40,6 +41,7 @@ func NewServer(
 	executeService *service.OrderExecutionService,
 	utilityService *service.UtilityService,
 	upstoxAuthService *upstox.AuthService,
+	candleAggService *service.CandleAggregationService,
 	batchFetchService *service.BatchFetchService,
 ) *Server {
 	s := &Server{
@@ -51,6 +53,7 @@ func NewServer(
 		executeService:    executeService,
 		utilityService:    utilityService,
 		upstoxAuthService: upstoxAuthService,
+		candleAggService:  candleAggService,
 		batchFetchService: batchFetchService,
 		validator:         validator.New(),
 	}
@@ -106,11 +109,15 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/trades", s.GetAllTrades).Methods(http.MethodGet, http.MethodOptions)
 	api.HandleFunc("/trades/history", s.GetTradeHistory).Methods(http.MethodGet, http.MethodOptions)
 
-	// Add Upstox routes
+	// Upstox routes
 	api.HandleFunc("/upstox/login", s.InitiateUpstoxLogin).Methods("GET")
 	api.HandleFunc("/upstox/callback", s.HandleUpstoxCallback).Methods("GET")
 	api.HandleFunc("/upstox/historical/{instrument}/{interval}/{to_date}/{from_date}", s.GetHistoricalCandleDataWithRange).Methods("GET")
 	api.HandleFunc("/historical-data/batch-store", s.BatchStoreHistoricalData).Methods(http.MethodPost)
+
+	// Candle routes
+	api.HandleFunc("/candles/{instrument_key}/{timeframe}", s.GetCandles).Methods(http.MethodGet)
+	api.HandleFunc("/candles/{instrument_key}/multi", s.GetMultiTimeframeCandles).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -438,5 +445,119 @@ func (s *Server) BatchStoreHistoricalData(w http.ResponseWriter, r *http.Request
 	log.Info("Batch request processed in %v. Processed: %d, Success: %d, Failed: %d",
 		time.Since(startTime), result.ProcessedItems, result.SuccessfulItems, result.FailedItems)
 
+	respondSuccess(w, response)
+}
+
+func (s *Server) GetCandles(w http.ResponseWriter, r *http.Request) {
+	// Extract path parameters
+	vars := mux.Vars(r)
+	instrumentKey := vars["instrument_key"]
+	timeframe := vars["timeframe"]
+
+	if instrumentKey == "" {
+		respondWithError(w, http.StatusBadRequest, "Instrument key is required")
+		return
+	}
+
+	if timeframe == "" {
+		respondWithError(w, http.StatusBadRequest, "Timeframe is required")
+		return
+	}
+
+	// Parse query parameters for start and end times
+	var start, end time.Time
+	var err error
+
+	startStr := r.URL.Query().Get("start")
+	if startStr != "" {
+		start, err = time.Parse(time.RFC3339, startStr)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid start time format, use RFC3339")
+			return
+		}
+	}
+
+	endStr := r.URL.Query().Get("end")
+	if endStr != "" {
+		end, err = time.Parse(time.RFC3339, endStr)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid end time format, use RFC3339")
+			return
+		}
+	}
+
+	// Process the request based on timeframe
+	var candles interface{}
+
+	switch timeframe {
+	case "5minute":
+		candles, err = s.candleAggService.Get5MinCandles(r.Context(), instrumentKey, start, end)
+	case "day":
+		candles, err = s.candleAggService.GetDailyCandles(r.Context(), instrumentKey, start, end)
+	default:
+		respondWithError(w, http.StatusBadRequest, "Unsupported timeframe")
+		return
+	}
+
+	if err != nil {
+		log.Error("Failed to get candles: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to retrieve candle data: "+err.Error())
+		return
+	}
+
+	// Prepare response
+	response := CandleResponse{
+		Status: "success",
+		Data:   candles,
+	}
+
+	// Write response
+	respondSuccess(w, response)
+}
+
+func (s *Server) GetMultiTimeframeCandles(w http.ResponseWriter, r *http.Request) {
+	// Extract instrument key from path
+	vars := mux.Vars(r)
+	instrumentKey := vars["instrument_key"]
+
+	if instrumentKey == "" {
+		respondWithError(w, http.StatusBadRequest, "Instrument key is required")
+		return
+	}
+
+	// Parse request body
+	var request GetMultiTimeframeRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	// Validate request
+	if len(request.Timeframes) == 0 {
+		respondWithError(w, http.StatusBadRequest, "At least one timeframe is required")
+		return
+	}
+
+	// Get multi-timeframe candles
+	candles, err := s.candleAggService.GetMultiTimeframeCandles(
+		r.Context(),
+		instrumentKey,
+		request.Timeframes,
+		request.Start,
+		request.End,
+	)
+	if err != nil {
+		log.Error("Failed to get multi-timeframe candles: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to retrieve multi-timeframe candle data: "+err.Error())
+		return
+	}
+
+	// Prepare response
+	response := CandleResponse{
+		Status: "success",
+		Data:   candles,
+	}
+
+	// Write response
 	respondSuccess(w, response)
 }
