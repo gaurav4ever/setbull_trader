@@ -1,5 +1,8 @@
 /Users/gaurav/setbull_projects/setbull_trader/
 ├── .DS_Store
+├── .cursor/
+│   └── rules/
+│       └── setbull-trader-software-rules.mdc
 ├── .vscode/
 │   ├── launch.json
 │   ├── settings.json
@@ -19,12 +22,14 @@
 │           ├── http.go
 │           ├── middleware.go
 │           └── rest/
+│               ├── candle_handlers.go
 │               ├── execution_plan_handlers.go
 │               ├── order_execution_handlers.go
 │               ├── responses.go
 │               ├── server.go
 │               ├── stock_handlers.go
 │               ├── trade_parameters_handlers.go
+│               ├── upstox_auth_handlers.go
 │               └── utility_handlers.go
 ├── consolidated_code/
 │   ├── config.txt
@@ -126,9 +131,11 @@
 │   │   │       │   ├── dhan_client.go
 │   │   │       │   └── models.go
 │   │   │       └── upstox/
+│   │   │           ├── auth_service.go
 │   │   │           ├── config.go
-│   │   │           └── kb/
-│   │   │               └── 1.authentication.txt
+│   │   │           ├── kb/
+│   │   │           │   └── 1.authentication.txt
+│   │   │           └── token_repository.go
 │   │   ├── constant/
 │   │   ├── dto/
 │   │   │   ├── request/
@@ -139,17 +146,22 @@
 │   │       └── orders/
 │   │           └── service.go
 │   ├── domain/
+│   │   ├── candle.go
 │   │   ├── models.go
 │   │   └── utility.go
 │   ├── repository/
 │   │   ├── interfaces.go
 │   │   └── postgres/
+│   │       ├── candle_repository.go
 │   │       ├── execution_plan_repository.go
 │   │       ├── level_entry_repository.go
 │   │       ├── order_execution_repository.go
 │   │       ├── stock_repository.go
 │   │       └── trade_parameters_repository.go
 │   ├── service/
+│   │   ├── batch_fetch_service.go
+│   │   ├── candle_aggregation_service.go
+│   │   ├── candle_processing_service.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
 │   │   ├── order_execution_service.go
@@ -163,6 +175,7 @@
 │           └── query/
 ├── main.go
 ├── nse_stocks.txt
+├── nse_upstox.json
 ├── pkg/
 │   ├── apperrors/
 │   │   └── errors.go
@@ -173,13 +186,18 @@
 │   ├── database/
 │   │   ├── database.go
 │   │   ├── migration.go
-│   │   └── migrations/
-│   │       ├── 20250315163258_create_table_template.down.sql
-│   │       ├── 20250315163258_create_table_template.up.sql
-│   │       ├── 20250316035135_add_active_and_timestamps.down.sql
-│   │       ├── 20250316035135_add_active_and_timestamps.up.sql
-│   │       ├── 20250317154127_add_security_id_to_stocks.down.sql
-│   │       └── 20250317154127_add_security_id_to_stocks.up.sql
+│   │   ├── migrations/
+│   │   │   ├── 20250315163258_create_table_template.down.sql
+│   │   │   ├── 20250315163258_create_table_template.up.sql
+│   │   │   ├── 20250316035135_add_active_and_timestamps.down.sql
+│   │   │   ├── 20250316035135_add_active_and_timestamps.up.sql
+│   │   │   ├── 20250317154127_add_security_id_to_stocks.down.sql
+│   │   │   ├── 20250317154127_add_security_id_to_stocks.up.sql
+│   │   │   ├── 20250331091305_create_candle_data_table.down.sql
+│   │   │   └── 20250331091305_create_candle_data_table.up.sql
+│   │   └── queries/
+│   │       ├── stock_candle_data_1day_aggregation.sql
+│   │       └── stock_candle_data_5min_aggregation.sql
 │   ├── log/
 │   │   └── log.go
 │   └── util/
