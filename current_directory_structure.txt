@@ -477,3 +477,264 @@
         ├── model_websocket_auth_redirect_response.go
         ├── model_websocket_auth_redirect_response_data.go
         └── response.go
+
+
+
+Project Overview
+Setbull Trader appears to be a trading platform that integrates with multiple brokerages (primarily Dhan and Upstox) and provides tools for algorithmic trading, candle data analysis, and trade execution.
+Main Directory Structure
+Root-level Configuration and Documentation
+
+application.yaml and application.dev.yaml: Configuration files for different environments
+Dockerfile and Makefile: Build and deployment automation
+README.md and GOALS/: Project documentation and roadmap
+
+Core Application Structure
+
+cmd/: Entry points and HTTP server implementation
+internal/: Core business logic, separated into logical domains
+pkg/: Reusable packages that could be externalized
+upstox/ and dhan/: API client libraries for these brokerages
+
+Frontend
+
+frontend/: A Svelte-based frontend application
+
+Key Components Explained
+cmd/trading/
+This is where the application's entry points and HTTP server implementation live:
+
+app/: Application initialization
+transport/: HTTP transport layer and REST API handlers
+
+internal/
+Contains the core business logic:
+
+core/: Core abstractions including:
+
+adapters/client/: External API clients (Dhan, Upstox)
+dto/: Data Transfer Objects for request/response
+service/orders/: Order execution service
+
+
+domain/: Domain models, including:
+
+models.go: Core entity definitions (Stock, ExecutionPlan, etc.)
+candle.go: Candle data models for technical analysis
+
+
+repository/: Data access layer
+
+interfaces.go: Repository interfaces
+postgres/: PostgreSQL implementations
+
+
+service/: Business logic services
+
+Trading services (execution, fibonacci calculations)
+Candle data processing and aggregation
+Stock management
+
+
+trading/: Trading-specific configurations and services
+
+pkg/
+Reusable packages:
+
+apperrors/: Error handling
+cache/: Caching implementations (Redis, in-memory)
+database/: Database connections and migrations
+log/: Logging utilities
+util/: Various utilities, including stock parsing
+
+Key Features
+
+Stock Management: Selecting stocks, managing parameters
+Trade Execution: Creating execution plans with Fibonacci levels
+Candle Data: Historical data retrieval and analysis
+Brokerage Integration: Connections to Dhan and Upstox APIs
+
+Database Schema
+The application uses a PostgreSQL database with tables for:
+
+Stocks
+Trade parameters
+Execution plans
+Order executions
+Candle data
+
+Development Flow
+As a new contributor, you might focus on:
+
+Understanding the domain models in internal/domain/
+Examining the service implementations in internal/service/
+Learning how the API clients work in internal/core/adapters/client/
+Exploring the HTTP handlers in cmd/trading/transport/rest/
+
+==========================================================================================================================
+
+
+Project Overview
+
+Setbull Trader appears to be a trading platform that integrates with multiple brokerages (primarily Dhan and Upstox) and provides tools for algorithmic trading, candle data analysis, and trade execution.
+Main Directory Structure
+Root-level Configuration and Documentation
+
+    application.yaml and application.dev.yaml: Configuration files for different environments
+    Dockerfile and Makefile: Build and deployment automation
+    README.md and GOALS/: Project documentation and roadmap
+
+Core Application Structure
+
+    cmd/: Entry points and HTTP server implementation
+    internal/: Core business logic, separated into logical domains
+    pkg/: Reusable packages that could be externalized
+    upstox/ and dhan/: API client libraries for these brokerages
+
+Frontend
+
+    frontend/: A Svelte-based frontend application
+
+Key Components Explained
+cmd/trading/
+
+This is where the application's entry points and HTTP server implementation live:
+
+    app/: Application initialization
+    transport/: HTTP transport layer and REST API handlers
+
+internal/
+
+Contains the core business logic:
+
+    core/: Core abstractions including:
+        adapters/client/: External API clients (Dhan, Upstox)
+        dto/: Data Transfer Objects for request/response
+        service/orders/: Order execution service
+    domain/: Domain models, including:
+        models.go: Core entity definitions (Stock, ExecutionPlan, etc.)
+        candle.go: Candle data models for technical analysis
+    repository/: Data access layer
+        interfaces.go: Repository interfaces
+        postgres/: PostgreSQL implementations
+    service/: Business logic services
+        Trading services (execution, fibonacci calculations)
+        Candle data processing and aggregation
+        Stock management
+    trading/: Trading-specific configurations and services
+
+pkg/
+
+Reusable packages:
+
+    apperrors/: Error handling
+    cache/: Caching implementations (Redis, in-memory)
+    database/: Database connections and migrations
+    log/: Logging utilities
+    util/: Various utilities, including stock parsing
+
+Key Features
+
+    Stock Management: Selecting stocks, managing parameters
+    Trade Execution: Creating execution plans with Fibonacci levels
+    Candle Data: Historical data retrieval and analysis
+    Brokerage Integration: Connections to Dhan and Upstox APIs
+
+Database Schema
+
+The application uses a PostgreSQL database with tables for:
+
+    Stocks
+    Trade parameters
+    Execution plans
+    Order executions
+    Candle data
+
+Development Flow
+
+As a new contributor, you might focus on:
+
+    Understanding the domain models in internal/domain/
+    Examining the service implementations in internal/service/
+    Learning how the API clients work in internal/core/adapters/client/
+    Exploring the HTTP handlers in cmd/trading/transport/rest/
+
+Would you like me to elaborate on any specific part of the codebase that interests you?
+
+What is the code pattern that I follow?
+1. Whenever I write a new API
+2. Whenever I am trying to integrate a new stock broker vendor
+3. Whenever I'm trying to integrate new data source source, for example, currently I am using my sequel, but as of now, I am getting a sense that because of data is a time series Zita, I can use a timesheet database.
+
+Let me analyze the code patterns you're following for each of these scenarios.
+1. When Writing a New API
+
+Your API development follows a clean, layered architecture pattern:
+API Development Pattern:
+
+    Handler Definition:
+        Create a new handler in cmd/trading/transport/rest/ directory
+        Implement standard HTTP handlers that parse requests and return responses
+    DTO Definition:
+        Define request/response DTOs in internal/core/dto/request/ and internal/core/dto/response/
+        Validate input at the handler level
+    Service Implementation:
+        Add business logic in a service under internal/service/
+        Services are responsible for orchestrating repositories and domain logic
+    Repository Interface:
+        Define repository interfaces in internal/repository/interfaces.go
+        Implement concrete repositories in internal/repository/postgres/
+    Domain Models:
+        Define or extend domain models in internal/domain/
+    Error Handling:
+        Use standardized error handling from pkg/apperrors/
+
+Example Flow:
+
+    Client calls API endpoint
+    Handler validates request
+    Handler calls service
+    Service orchestrates repositories and domain logic
+    Repository interacts with database
+    Response flows back up through the layers
+
+2. When Integrating a New Stock Broker Vendor
+
+You follow an adapter pattern for broker integrations:
+Broker Integration Pattern:
+
+    Client Configuration:
+        Create configuration models in internal/core/adapters/client/{broker}/config.go
+    Client Implementation:
+        Implement HTTP client in internal/core/adapters/client/{broker}/{broker}_client.go
+        Define model structs to match the broker's API in models.go
+    Service Adapters:
+        Create service adapters in internal/core/service/ that use the client
+        Map broker-specific models to internal domain models
+    Authentication Handling:
+        Implement authentication in auth_service.go for the broker
+        Store tokens securely using a repository pattern
+
+Example: Upstox/Dhan Integration
+
+    Created clients for both brokers
+    Implemented token management for authentication
+    Mapped vendor-specific models to domain models
+
+3. When Integrating a New Data Source
+
+You use a repository pattern for data sources:
+Data Source Integration Pattern:
+
+    Repository Interface:
+        Define or extend interfaces in internal/repository/interfaces.go
+        Add methods specific to the new data source requirements
+    Repository Implementation:
+        Create new implementation files for the specific technology
+        Current implementations are in internal/repository/postgres/
+    Database Migrations:
+        Create migrations in pkg/database/migrations/
+        Use a version-based naming convention (timestamp prefix)
+    Configuration:
+        Update configuration in internal/trading/config/
+        Add connection parameters

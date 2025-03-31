@@ -151,6 +151,8 @@ type CandleRepository interface {
 	GetAggregated5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
 	GetAggregatedDailyCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
 
+	GetDailyCandlesByTimeframe(ctx context.Context, instrumentKey string, startTime time.Time) ([]domain.Candle, error)
+
 	// Optional: Store aggregated candles for future use
 	StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error
 }

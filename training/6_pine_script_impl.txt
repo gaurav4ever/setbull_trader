@@ -1,0 +1,113 @@
+Core Services for Pine Script Implementation
+1. CandleDataService
+go
+type CandleDataService interface {
+    // Get daily candles for the last N days
+    GetDailyCandles(ctx context.Context, symbol string, days int) ([]domain.Candle, error)
+}
+
+2. IndicatorService
+go
+type IndicatorService interface {
+    // Calculate EMAs (9-day and 50-day)
+    CalculateEMA(candles []domain.Candle, period int) []float64
+}
+
+3. MambaAnalysisService
+type MambaAnalysisService interface {
+    // Analyze Mamba and Non-Mamba moves
+    AnalyzeMambaMoves(candles []domain.Candle, ema9 []float64, ema50 []float64, 
+                      bullThreshold float64, bearThreshold float64) domain.MambaAnalysis
+}
+
+4. StockScoringService
+
+type StockScoringService interface {
+    // Score a stock based on Mamba analysis
+    ScoreStock(symbol string, analysis domain.MambaAnalysis) domain.StockScore
+}
+
+5. StockSelectionService
+type StockSelectionService interface {
+    // Get top stocks based on Mamba scores
+    GetTopStocks(ctx context.Context, universe []string, limit int) ([]domain.RankedStock, error)
+}
+
+Domain Models (Minimized)
+
+type Candle struct {
+    Symbol    string
+    Timestamp time.Time
+    Open      float64
+    High      float64
+    Low       float64
+    Close     float64
+}
+
+type MambaMove struct {
+    IsAboveEMA50 bool
+    IsBullish    bool
+    Percentage   float64
+}
+
+type MambaSequence struct {
+    Length    int
+    IsBullish bool
+}
+
+type MambaAnalysis struct {
+    BullishMambaAvg   float64
+    BearishMambaAvg   float64
+    NonMambaAvg       float64
+    BullishMoveCount  int
+    BearishMoveCount  int
+    TotalMambaCount   int
+    Sequences         []MambaSequence
+}
+
+type StockScore struct {
+    Symbol         string
+    MambaScore     float64
+    BullishScore   float64
+    BearishScore   float64
+}
+
+type RankedStock struct {
+    Symbol  string
+    Score   StockScore
+    Rank    int
+}
+
+Revised Phase-wise Implementation Plan
+I'll create a more focused implementation plan with only 2 code classes per phase:
+Phase 1: Core Data Infrastructure
+Files to implement:
+
+internal/domain/candle_models.go - Core domain models for candle data
+internal/service/candle_data_service.go - Service for retrieving candle data
+
+Phase 2: Technical Indicator Engine
+Files to implement:
+
+internal/service/indicator_service.go - Service for calculating EMAs and indicators
+internal/service/indicator_service_test.go - Tests for the indicator calculations
+
+Phase 3: Mamba Analysis Engine
+Files to implement:
+
+internal/service/mamba_analysis_service.go - Service for analyzing Mamba moves
+internal/service/mamba_analysis_service_test.go - Tests for Mamba analysis logic
+
+Phase 4: Stock Scoring and Selection
+Files to implement:
+
+internal/service/stock_scoring_service.go - Service for scoring and ranking stocks
+internal/service/stock_selection_service.go - Service for selecting top stocks
+
+Phase 5: Integration and CLI
+Files to implement:
+
+cmd/mamba_select/main.go - CLI application entry point
+cmd/mamba_select/config.go - Configuration handling
+
+This simplified plan maintains the same progression but focuses on only the most essential files in each phase to create a working implementation with minimal code.

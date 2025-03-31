@@ -479,6 +479,34 @@ func (r *CandleRepository) GetAggregatedDailyCandles(
 	return aggregatedCandles, nil
 }
 
+func (r *CandleRepository) GetDailyCandlesByTimeframe(
+	ctx context.Context,
+	instrumentKey string,
+	startTime time.Time,
+) ([]domain.Candle, error) {
+	var candles []domain.Candle
+
+	result := r.db.WithContext(ctx).
+		Where("instrument_key = ? AND time_interval = ? AND timestamp >= ?",
+			instrumentKey,
+			"day",
+			startTime,
+		).
+		Order("timestamp ASC").
+		Find(&candles)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get daily candles: %w", result.Error)
+	}
+
+	log.Info("Retrieved %d daily candles for instrument %s from %s",
+		len(candles),
+		instrumentKey,
+		startTime.Format("2006-01-02 15:04:05"))
+
+	return candles, nil
+}
+
 // StoreAggregatedCandles stores aggregated candles (useful for caching common timeframes)
 func (r *CandleRepository) StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error {
 	if len(candles) == 0 {
