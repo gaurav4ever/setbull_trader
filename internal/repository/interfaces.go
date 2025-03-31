@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"setbull_trader/internal/domain"
 )
@@ -97,4 +98,49 @@ type OrderExecutionRepository interface {
 
 	// UpdateStatus updates the status of an order execution
 	UpdateStatus(ctx context.Context, id string, status string, errorMessage string) error
+}
+
+// CandleRepository defines the interface for operations on candle data
+type CandleRepository interface {
+	// Store stores a single candle record
+	Store(ctx context.Context, candle *domain.Candle) error
+
+	// StoreBatch stores multiple candle records in a batch operation
+	StoreBatch(ctx context.Context, candles []domain.Candle) (int, error)
+
+	// FindByInstrumentKey retrieves all candles for a specific instrument
+	FindByInstrumentKey(ctx context.Context, instrumentKey string) ([]domain.Candle, error)
+
+	// FindByInstrumentAndInterval retrieves candles for an instrument with a specific interval
+	FindByInstrumentAndInterval(ctx context.Context, instrumentKey, interval string) ([]domain.Candle, error)
+
+	// FindByInstrumentAndTimeRange retrieves candles for an instrument within a time range
+	FindByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		interval string,
+		fromTime,
+		toTime time.Time,
+	) ([]domain.Candle, error)
+
+	// DeleteByInstrumentAndTimeRange deletes candles for an instrument within a time range
+	DeleteByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		interval string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// CountByInstrumentAndTimeRange counts candles for an instrument within a time range
+	CountByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		interval string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// DeleteOlderThan deletes candles older than a specified time
+	DeleteOlderThan(ctx context.Context, olderThan time.Time) (int, error)
 }

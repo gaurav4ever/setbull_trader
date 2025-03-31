@@ -27,24 +27,26 @@ import (
 
 // App represents the application
 type App struct {
-	config                *config.Config
-	router                *gin.Engine
-	httpServer            *http.Server
-	orderService          *orders.Service
-	dhanClient            *dhan.Client
-	db                    *gorm.DB
-	stockRepo             repository.StockRepository
-	tradeParamsRepo       repository.TradeParametersRepository
-	executionPlanRepo     repository.ExecutionPlanRepository
-	levelEntryRepo        repository.LevelEntryRepository
-	orderExecutionRepo    repository.OrderExecutionRepository
-	fibCalculator         *service.FibonacciCalculator
-	stockService          *service.StockService
-	tradeParamsService    *service.TradeParametersService
-	executionPlanService  *service.ExecutionPlanService
-	orderExecutionService *service.OrderExecutionService
-	utilityService        *service.UtilityService
-	restServer            *rest.Server
+	config                  *config.Config
+	router                  *gin.Engine
+	httpServer              *http.Server
+	orderService            *orders.Service
+	dhanClient              *dhan.Client
+	db                      *gorm.DB
+	stockRepo               repository.StockRepository
+	tradeParamsRepo         repository.TradeParametersRepository
+	executionPlanRepo       repository.ExecutionPlanRepository
+	levelEntryRepo          repository.LevelEntryRepository
+	orderExecutionRepo      repository.OrderExecutionRepository
+	fibCalculator           *service.FibonacciCalculator
+	stockService            *service.StockService
+	tradeParamsService      *service.TradeParametersService
+	executionPlanService    *service.ExecutionPlanService
+	orderExecutionService   *service.OrderExecutionService
+	utilityService          *service.UtilityService
+	candleProcessingService *service.CandleProcessingService
+	batchFetchService       *service.BatchFetchService
+	restServer              *rest.Server
 }
 
 // NewApp creates a new application
@@ -138,8 +140,20 @@ func NewApp() *App {
 	// Create token repository
 	tokenRepo := upstox.NewTokenRepository(cacheManager)
 
-	// Create authentication service
+	// Create Upstox service
 	upstoxAuthService := upstox.NewAuthService(upstoxConfig, tokenRepo, cacheManager)
+	candleRepo := postgres.NewCandleRepository(db)
+	candleProcessingService := service.NewCandleProcessingService(
+		upstoxAuthService,
+		candleRepo,
+		cfg.HistoricalData.BatchSize,
+		"upstox_session",
+	)
+
+	batchFetchService := service.NewBatchFetchService(
+		candleProcessingService,
+		cfg.HistoricalData.MaxConcurrentRequests,
+	)
 
 	restServer := rest.NewServer(
 		orderService,
@@ -149,26 +163,29 @@ func NewApp() *App {
 		orderExecutionService,
 		utilityService,
 		upstoxAuthService,
+		batchFetchService,
 	)
 
 	return &App{
-		config:                cfg,
-		router:                router,
-		orderService:          orderService,
-		dhanClient:            dhanClient,
-		db:                    db,
-		stockRepo:             stockRepo,
-		tradeParamsRepo:       tradeParamsRepo,
-		executionPlanRepo:     executionPlanRepo,
-		levelEntryRepo:        levelEntryRepo,
-		orderExecutionRepo:    orderExecutionRepo,
-		fibCalculator:         fibCalculator,
-		stockService:          stockService,
-		tradeParamsService:    tradeParamsService,
-		executionPlanService:  executionPlanService,
-		orderExecutionService: orderExecutionService,
-		utilityService:        utilityService,
-		restServer:            restServer,
+		config:                  cfg,
+		router:                  router,
+		orderService:            orderService,
+		dhanClient:              dhanClient,
+		db:                      db,
+		stockRepo:               stockRepo,
+		tradeParamsRepo:         tradeParamsRepo,
+		executionPlanRepo:       executionPlanRepo,
+		levelEntryRepo:          levelEntryRepo,
+		orderExecutionRepo:      orderExecutionRepo,
+		fibCalculator:           fibCalculator,
+		stockService:            stockService,
+		tradeParamsService:      tradeParamsService,
+		executionPlanService:    executionPlanService,
+		orderExecutionService:   orderExecutionService,
+		utilityService:          utilityService,
+		candleProcessingService: candleProcessingService,
+		batchFetchService:       batchFetchService,
+		restServer:              restServer,
 	}
 }
 

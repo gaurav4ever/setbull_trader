@@ -12,10 +12,11 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Server   ServerConfig `mapstructure:"server"`
-	Dhan     DhanConfig   `mapstructure:"dhan"`
-	Upstox   UpstoxConfig `mapstructure:"upstox"`
-	Database struct {
+	Server         ServerConfig         `mapstructure:"server"`
+	Dhan           DhanConfig           `mapstructure:"dhan"`
+	Upstox         UpstoxConfig         `mapstructure:"upstox"`
+	HistoricalData HistoricalDataConfig `mapstructure:"historical_data"`
+	Database       struct {
 		MasterDatasource struct {
 			User     string `yaml:"user"`
 			Password string `yaml:"password"`
@@ -79,6 +80,17 @@ type UpstoxConfig struct {
 	BasePath     string `mapstructure:"base_path" yaml:"base_path"`
 }
 
+type HistoricalDataConfig struct {
+	MaxConcurrentRequests int           `yaml:"maxConcurrentRequests" json:"maxConcurrentRequests"`
+	DefaultInterval       string        `yaml:"defaultInterval" json:"defaultInterval"`
+	DefaultDaysToFetch    int           `yaml:"defaultDaysToFetch" json:"defaultDaysToFetch"`
+	DefaultUserID         string        `yaml:"defaultUserID" json:"defaultUserID"`
+	RetentionPeriodDays   int           `yaml:"retentionPeriodDays" json:"retentionPeriodDays"`
+	BatchSize             int           `yaml:"batchSize" json:"batchSize"`
+	EnableAutoCleanup     bool          `yaml:"enableAutoCleanup" json:"enableAutoCleanup"`
+	CleanupInterval       time.Duration `yaml:"cleanupInterval" json:"cleanupInterval"`
+}
+
 // LoadConfig loads the application configuration from application.yaml
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("application.dev")
@@ -99,7 +111,24 @@ func LoadConfig() (*Config, error) {
 		return nil, errors.Wrap(err, "invalid upstox configuration")
 	}
 
+	setDefaultHistoricalDataConfig(&config)
+
 	return &config, nil
+}
+
+func setDefaultHistoricalDataConfig(config *Config) {
+	if config.HistoricalData == (HistoricalDataConfig{}) {
+		config.HistoricalData = HistoricalDataConfig{
+			MaxConcurrentRequests: 5,
+			DefaultInterval:       "1minute",
+			DefaultDaysToFetch:    30,
+			DefaultUserID:         "default_user",
+			RetentionPeriodDays:   90,
+			BatchSize:             1000,
+			EnableAutoCleanup:     true,
+			CleanupInterval:       24 * time.Hour,
+		}
+	}
 }
 
 func LoadDatabase(appCfg Config) (database.Config, error) {

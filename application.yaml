@@ -14,6 +14,16 @@ upstox:
   redirect_uri: "https://39b2-114-142-166-214.ngrok-free.app/api/v1/upstox/callback" # Must match the URI registered in Upstox Developer Console
   base_path: "https://api.upstox.com"     # Upstox API base path
 
+historical_data:
+  maxConcurrentRequests: 5
+  defaultInterval: "1minute"
+  defaultDaysToFetch: 50
+  defaultUserID: "default_user"
+  retentionPeriodDays: 900
+  batchSize: 1000
+  enableAutoCleanup: false
+  cleanupInterval: 99h
+
 database:
   masterDatasource:
     user: setbull_trader

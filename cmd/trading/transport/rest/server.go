@@ -6,6 +6,7 @@ import (
 	"setbull_trader/internal/core/adapters/client/upstox"
 	"setbull_trader/internal/core/dto/request"
 	"setbull_trader/internal/core/service/orders"
+	"setbull_trader/internal/domain"
 	"setbull_trader/internal/service"
 	"setbull_trader/pkg/apperrors"
 	"setbull_trader/pkg/log"
@@ -26,6 +27,7 @@ type Server struct {
 	executeService    *service.OrderExecutionService
 	utilityService    *service.UtilityService
 	upstoxAuthService *upstox.AuthService
+	batchFetchService *service.BatchFetchService
 	validator         *validator.Validate
 }
 
@@ -38,6 +40,7 @@ func NewServer(
 	executeService *service.OrderExecutionService,
 	utilityService *service.UtilityService,
 	upstoxAuthService *upstox.AuthService,
+	batchFetchService *service.BatchFetchService,
 ) *Server {
 	s := &Server{
 		router:            mux.NewRouter(),
@@ -48,6 +51,7 @@ func NewServer(
 		executeService:    executeService,
 		utilityService:    utilityService,
 		upstoxAuthService: upstoxAuthService,
+		batchFetchService: batchFetchService,
 		validator:         validator.New(),
 	}
 
@@ -106,6 +110,7 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/upstox/login", s.InitiateUpstoxLogin).Methods("GET")
 	api.HandleFunc("/upstox/callback", s.HandleUpstoxCallback).Methods("GET")
 	api.HandleFunc("/upstox/historical/{instrument}/{interval}/{to_date}/{from_date}", s.GetHistoricalCandleDataWithRange).Methods("GET")
+	api.HandleFunc("/historical-data/batch-store", s.BatchStoreHistoricalData).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -400,4 +405,38 @@ func (s *Server) GetHistoricalCandleDataWithRange(w http.ResponseWriter, r *http
 	}
 
 	respondSuccess(w, candleData)
+}
+
+func (s *Server) BatchStoreHistoricalData(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	var request domain.BatchStoreHistoricalDataRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Error("Failed to decode request body: %v", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := s.validator.Struct(request); err != nil {
+		log.Error("Invalid request: %v", err)
+		respondWithError(w, http.StatusBadRequest, "Validation failed: "+err.Error())
+		return
+	}
+
+	result, err := s.batchFetchService.ProcessBatchRequest(r.Context(), &request)
+	if err != nil {
+		log.Error("Failed to process batch request: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to process batch request: "+err.Error())
+		return
+	}
+
+	response := domain.BatchStoreHistoricalDataResponse{
+		Status: "success",
+		Data:   *result,
+	}
+
+	log.Info("Batch request processed in %v. Processed: %d, Success: %d, Failed: %d",
+		time.Since(startTime), result.ProcessedItems, result.SuccessfulItems, result.FailedItems)
+
+	respondSuccess(w, response)
 }
