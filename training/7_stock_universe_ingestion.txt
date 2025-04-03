@@ -1,0 +1,91 @@
+High-Level Design for Stock Universe Management System
+Overview
+The system will parse nse_upstox.json file, normalize the data, and maintain a Stock Universe table that handles duplicate entries and provides a reliable source of stock information.
+
+Components
+1. Data Ingestion Layer
+File Parser: Reads and parses the nse_upstox.json file
+Data Normalizer: Transforms the parsed data into a consistent format
+Deduplication Handler: Identifies and manages duplicate stock entries
+2. Data Storage Layer
+Stock Universe Table: Primary table storing all stock information
+Schema Design: Will include fields for stock identifiers, metadata, and tracking fields
+3. API Layer
+Ingestion API: Endpoint to trigger the ingestion process
+Query API: Endpoints to retrieve stock information
+Low-Level Design
+Data Flow
+API receives request to ingest data
+System reads and parses nse_upstox.json
+Data is normalized to match the Stock Universe table schema
+For each stock entry:
+Check if stock already exists in the database
+If exists, skip or update based on configuration
+If new, insert into the database
+Return success/failure response
+Stock Universe Table Schema
+StockUniverse:
+- id (Primary Key)
+- symbol (Unique Index)
+- name
+- exchange
+- instrument_type
+- isin
+- current_price
+- is_selected
+- created_at
+- updated_at
+- additional_metadata (JSON)
+
+Copy
+
+
+API Endpoints
+POST /api/v1/stocks/ingest: Trigger ingestion process
+GET /api/v1/stocks: Retrieve stock universe data with filtering options
+Error Handling
+File parsing errors
+Database connection issues
+Duplicate handling strategies
+Validation errors
+Logging & Monitoring
+Operation logs for ingestion process
+Performance metrics for database operations
+Error tracking
+Phased Implementation Plan
+I propose implementing this system in phases, where each phase will only create or update 1-2 files. This approach will ensure manageable changes and easier code reviews.
+
+Would you like me to proceed with the phased implementation planning? I'll outline specific files to be created or modified in each phase, with a maximum of 2 files per phase.
+
+
+==========================
+==========================
+
+
+
+
+Phase 1: Database Schema and Models
+Files to create/modify:
+
+internal/domain/stock_universe.go - Define the StockUniverse struct with all necessary fields
+migrations/YYYYMMDD_create_stock_universe_table.sql - SQL migration to create the table
+Phase 2: File Parser Implementation
+Files to create/modify:
+
+internal/services/parser/upstox_parser.go - Implement JSON parser for nse_upstox.json
+internal/repository/stock_universe_repository.go - CRUD operations for StockUniverse
+Phase 3: Data Normalization and Service Layer
+Files to create/modify:
+
+internal/services/normalizer/stock_normalizer.go - Implement data normalization logic
+internal/services/stock_universe_service.go - Business logic for stock management
+Phase 4: API Handler and Route Registration
+Files to create/modify:
+
+internal/handlers/stock_universe_handler.go - HTTP handlers for stock universe endpoints
+cmd/trading/transport/rest/server.go - Update to register the new API routes
+Phase 5: Configuration and Environment Setup
+Files to create/modify:
+
+configs/stock_universe_config.go - Configuration for stock universe features
+configs/config.yaml - Update configuration file with stock universe settings
