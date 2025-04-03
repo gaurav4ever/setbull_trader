@@ -69,21 +69,30 @@ Files to create/modify:
 
 internal/domain/stock_universe.go - Define the StockUniverse struct with all necessary fields
 migrations/YYYYMMDD_create_stock_universe_table.sql - SQL migration to create the table
+
+
 Phase 2: File Parser Implementation
 Files to create/modify:
 
 internal/services/parser/upstox_parser.go - Implement JSON parser for nse_upstox.json
 internal/repository/stock_universe_repository.go - CRUD operations for StockUniverse
+
+
+
 Phase 3: Data Normalization and Service Layer
 Files to create/modify:
 
 internal/services/normalizer/stock_normalizer.go - Implement data normalization logic
 internal/services/stock_universe_service.go - Business logic for stock management
+
+
 Phase 4: API Handler and Route Registration
 Files to create/modify:
 
 internal/handlers/stock_universe_handler.go - HTTP handlers for stock universe endpoints
 cmd/trading/transport/rest/server.go - Update to register the new API routes
+
+
 Phase 5: Configuration and Environment Setup
 Files to create/modify:
 
