@@ -3,7 +3,7 @@
 -- It serves as the main reference for stock data in the application
 
 CREATE TABLE IF NOT EXISTS stock_universe (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     symbol VARCHAR(30) NOT NULL,
     name VARCHAR(100) NOT NULL,
     exchange VARCHAR(10) NOT NULL,
@@ -16,15 +16,12 @@ CREATE TABLE IF NOT EXISTS stock_universe (
     tick_size DECIMAL(18, 2),
     lot_size INTEGER,
     is_selected BOOLEAN DEFAULT FALSE,
-    metadata JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+    metadata JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='Stores all available stocks from NSE via Upstox with their details';
 
 -- Create indexes for faster lookups
-CREATE UNIQUE INDEX IF NOT EXISTS idx_stock_universe_symbol ON stock_universe(symbol);
-CREATE INDEX IF NOT EXISTS idx_stock_universe_instrument_key ON stock_universe(instrument_key);
-CREATE INDEX IF NOT EXISTS idx_stock_universe_is_selected ON stock_universe(is_selected);
-
--- Add comment to the table for documentation
-COMMENT ON TABLE stock_universe IS 'Stores all available stocks from NSE via Upstox with their details';
+CREATE UNIQUE INDEX idx_stock_universe_symbol ON stock_universe(symbol);
+CREATE INDEX idx_stock_universe_instrument_key ON stock_universe(instrument_key);
+CREATE INDEX idx_stock_universe_is_selected ON stock_universe(is_selected);

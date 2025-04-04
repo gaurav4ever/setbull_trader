@@ -14,6 +14,7 @@
 	let confirmationVisible = false;
 	let selectedStocks = [];
 	let count = 0;
+	let executionInProgress = false; // Flag to prevent duplicate executions
 
 	// Subscribe to selected stocks store
 	const unsubscribeStocks = selectedStocksStore.subscribe((state) => {
@@ -51,6 +52,12 @@
 
 	// Handle execute button click
 	function handleExecuteClick() {
+		// Prevent multiple clicks
+		if (executionInProgress) {
+			console.log('Execution already in progress, ignoring click');
+			return;
+		}
+
 		if (requireConfirmation) {
 			// Show confirmation dialog
 			confirmationVisible = true;
@@ -73,12 +80,21 @@
 
 	// Execute orders for all selected stocks
 	async function executeOrders() {
+		// Prevent duplicate executions
+		if (executionInProgress) {
+			console.log('Execution already in progress, preventing duplicate call');
+			return;
+		}
+
+		executionInProgress = true;
 		isExecuting = true;
 		error = '';
 
 		try {
+			console.log('Starting order execution for selected stocks');
 			// Execute orders
 			const executions = await executeOrdersForAllSelectedStocks();
+			console.log('Order execution completed successfully', executions);
 
 			// Dispatch success event
 			dispatch('executed', { executions });

@@ -5,28 +5,25 @@ import (
 	"errors"
 	"fmt"
 	"setbull_trader/internal/domain"
+	"setbull_trader/internal/repository"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-// StockUniverseRepository handles database operations for the StockUniverse entity
+// StockUniverseRepository implements repository.StockUniverseRepository interface using PostgreSQL
 type StockUniverseRepository struct {
 	db *gorm.DB
 }
 
-// NewStockUniverseRepository creates a new instance of StockUniverseRepository
-// db: Database connection
-func NewStockUniverseRepository(db *gorm.DB) *StockUniverseRepository {
+// NewStockUniverseRepository creates a new StockUniverseRepository
+func NewStockUniverseRepository(db *gorm.DB) repository.StockUniverseRepository {
 	return &StockUniverseRepository{
 		db: db,
 	}
 }
 
 // Create inserts a new stock into the database
-// Returns:
-// - The created stock with its ID
-// - Error if any occurred during creation
 func (r *StockUniverseRepository) Create(ctx context.Context, stock *domain.StockUniverse) (*domain.StockUniverse, error) {
 	if err := r.db.WithContext(ctx).Create(stock).Error; err != nil {
 		return nil, fmt.Errorf("failed to create stock: %w", err)
@@ -35,11 +32,6 @@ func (r *StockUniverseRepository) Create(ctx context.Context, stock *domain.Stoc
 }
 
 // BulkUpsert inserts or updates multiple stocks in a single transaction
-// This is more efficient than individual inserts when processing many stocks
-// Returns:
-// - Number of stocks created
-// - Number of stocks updated
-// - Error if any occurred during the operation
 func (r *StockUniverseRepository) BulkUpsert(ctx context.Context, stocks []domain.StockUniverse) (int, int, error) {
 	if len(stocks) == 0 {
 		return 0, 0, nil
@@ -83,8 +75,8 @@ func (r *StockUniverseRepository) BulkUpsert(ctx context.Context, stocks []domai
 			return 0, 0, fmt.Errorf("failed to upsert stocks batch: %w", result.Error)
 		}
 
-		// Since we can't directly know how many were created vs updated from GORM,
-		// we'll query to check which ones existed before to determine the count
+		// We can't directly know how many were created vs updated from GORM
+		// So we'll query to check which ones existed before
 		for _, stock := range batch {
 			var count int64
 			tx.Model(&domain.StockUniverse{}).
@@ -108,9 +100,6 @@ func (r *StockUniverseRepository) BulkUpsert(ctx context.Context, stocks []domai
 }
 
 // GetBySymbol retrieves a stock by its symbol
-// Returns:
-// - The stock if found
-// - Error if any occurred or if the stock was not found
 func (r *StockUniverseRepository) GetBySymbol(ctx context.Context, symbol string) (*domain.StockUniverse, error) {
 	var stock domain.StockUniverse
 	if err := r.db.WithContext(ctx).Where("symbol = ?", symbol).First(&stock).Error; err != nil {
@@ -123,14 +112,6 @@ func (r *StockUniverseRepository) GetBySymbol(ctx context.Context, symbol string
 }
 
 // GetAll retrieves all stocks with optional filtering
-// Parameters:
-// - onlySelected: If true, only returns stocks that have is_selected=true
-// - limit: Maximum number of stocks to return (0 means no limit)
-// - offset: Number of stocks to skip (for pagination)
-// Returns:
-// - Slice of stocks
-// - Total count of stocks matching the filter (before limit/offset)
-// - Error if any occurred
 func (r *StockUniverseRepository) GetAll(
 	ctx context.Context,
 	onlySelected bool,
@@ -169,18 +150,15 @@ func (r *StockUniverseRepository) GetAll(
 }
 
 // ToggleSelection toggles the is_selected flag for a stock
-// Returns:
-// - The updated stock
-// - Error if any occurred
-func (r *StockUniverseRepository) ToggleSelection(ctx context.Context, symbol string) (*domain.StockUniverse, error) {
-	// First get the current stock to check its current selection status
+func (r *StockUniverseRepository) ToggleSelection(ctx context.Context, symbol string, isSelected bool) (*domain.StockUniverse, error) {
+	// First get the current stock
 	stock, err := r.GetBySymbol(ctx, symbol)
 	if err != nil {
 		return nil, err
 	}
 
-	// Toggle the selection status
-	stock.IsSelected = !stock.IsSelected
+	// Set the selection status
+	stock.IsSelected = isSelected
 
 	// Update in the database
 	if err := r.db.WithContext(ctx).Save(stock).Error; err != nil {
@@ -191,8 +169,6 @@ func (r *StockUniverseRepository) ToggleSelection(ctx context.Context, symbol st
 }
 
 // DeleteBySymbol deletes a stock by its symbol
-// Returns:
-// - Error if any occurred
 func (r *StockUniverseRepository) DeleteBySymbol(ctx context.Context, symbol string) error {
 	result := r.db.WithContext(ctx).Where("symbol = ?", symbol).Delete(&domain.StockUniverse{})
 	if result.Error != nil {

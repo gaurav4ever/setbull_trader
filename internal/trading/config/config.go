@@ -15,6 +15,7 @@ type Config struct {
 	Server         ServerConfig         `mapstructure:"server"`
 	Dhan           DhanConfig           `mapstructure:"dhan"`
 	Upstox         UpstoxConfig         `mapstructure:"upstox"`
+	StockUniverse  StockUniverseConfig  `mapstructure:"stock_universe"`
 	HistoricalData HistoricalDataConfig `mapstructure:"historical_data"`
 	Database       struct {
 		MasterDatasource struct {
@@ -89,6 +90,11 @@ type HistoricalDataConfig struct {
 	BatchSize             int           `yaml:"batchSize" json:"batchSize"`
 	EnableAutoCleanup     bool          `yaml:"enableAutoCleanup" json:"enableAutoCleanup"`
 	CleanupInterval       time.Duration `yaml:"cleanupInterval" json:"cleanupInterval"`
+}
+
+// StockUniverseConfig contains configuration for the stock universe feature
+type StockUniverseConfig struct {
+	FilePath string `json:"file_path" yaml:"file_path"`
 }
 
 // LoadConfig loads the application configuration from application.yaml
@@ -194,4 +200,18 @@ func (c *Config) ValidateUpstoxConfig() error {
 		c.Upstox.BasePath = "https://api.upstox.com" // Set default if not provided
 	}
 	return nil
+}
+
+// LoadStockUniverseConfig loads the stock universe configuration from the main config
+func (c *Config) LoadStockUniverseConfig(cfg Config) (*StockUniverseConfig, error) {
+	stockUniverseConfig := &StockUniverseConfig{
+		FilePath: c.StockUniverse.FilePath,
+	}
+
+	// Set default file path if not specified
+	if stockUniverseConfig.FilePath == "" {
+		stockUniverseConfig.FilePath = "data/nse_upstox.json"
+	}
+
+	return stockUniverseConfig, nil
 }

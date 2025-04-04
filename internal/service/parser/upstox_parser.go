@@ -35,6 +35,11 @@ func NewUpstoxParser(filePath string) *UpstoxParser {
 	}
 }
 
+// SetFilePath sets the file path for the parser
+func (p *UpstoxParser) SetFilePath(filePath string) {
+	p.filePath = filePath
+}
+
 // ParseFile reads and parses the nse_upstox.json file into a slice of StockUniverse objects
 // Returns:
 // - A slice of StockUniverse objects
@@ -84,7 +89,7 @@ func (p *UpstoxParser) ParseFile() ([]domain.StockUniverse, error) {
 			TickSize:       upstoxStock.TickSize,
 			LotSize:        upstoxStock.LotSize,
 			IsSelected:     false, // Default to not selected
-			Metadata:       createMetadata(upstoxStock),
+			//Metadata:       createMetadata(upstoxStock),
 		}
 
 		stocks = append(stocks, stock)

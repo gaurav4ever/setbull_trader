@@ -12,33 +12,48 @@ import (
 
 // StockUniverseService handles business logic for the stock universe
 type StockUniverseService struct {
-	repo       *repository.StockUniverseRepository
+	repo       repository.StockUniverseRepository
 	parser     *parser.UpstoxParser
 	normalizer *normalizer.StockNormalizer
+	filePath   string // Default file path for Upstox data
 }
 
 // NewStockUniverseService creates a new instance of StockUniverseService
 func NewStockUniverseService(
-	repo *repository.StockUniverseRepository,
+	repo repository.StockUniverseRepository,
 	parser *parser.UpstoxParser,
 	normalizer *normalizer.StockNormalizer,
+	filePath string,
 ) *StockUniverseService {
 	return &StockUniverseService{
 		repo:       repo,
 		parser:     parser,
 		normalizer: normalizer,
+		filePath:   filePath,
 	}
 }
 
 // IngestStocksFromFile reads stocks from the Upstox JSON file, normalizes them,
 // and stores them in the database
+// Parameters:
+// - ctx: Context for the operation
+// - customFilePath: Optional custom file path (if empty, default path is used)
 // Returns:
 // - Number of stocks created
 // - Number of stocks updated
 // - Error if any occurred
-func (s *StockUniverseService) IngestStocksFromFile(ctx context.Context) (int, int, error) {
+func (s *StockUniverseService) IngestStocksFromFile(ctx context.Context, customFilePath string) (int, int, error) {
+	// Use custom file path if provided, otherwise use default
+	filePath := s.filePath
+	if customFilePath != "" {
+		filePath = customFilePath
+	}
+
+	// Set the file path in the parser
+	s.parser.SetFilePath(filePath)
+
 	// Parse the file
-	log.Info("Starting stock ingestion from file")
+	log.Info("Starting stock ingestion from file: %s", filePath)
 	stocks, err := s.parser.ParseFile()
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to parse stock file: %w", err)
@@ -60,14 +75,6 @@ func (s *StockUniverseService) IngestStocksFromFile(ctx context.Context) (int, i
 }
 
 // GetAllStocks retrieves all stocks with optional filtering
-// Parameters:
-// - onlySelected: If true, only returns stocks that have is_selected=true
-// - page: Page number for pagination (1-based)
-// - pageSize: Number of items per page
-// Returns:
-// - Slice of stocks
-// - Total count of stocks matching the filter
-// - Error if any occurred
 func (s *StockUniverseService) GetAllStocks(
 	ctx context.Context,
 	onlySelected bool,
@@ -94,26 +101,11 @@ func (s *StockUniverseService) GetStockBySymbol(ctx context.Context, symbol stri
 }
 
 // ToggleStockSelection toggles the is_selected flag for a stock
-func (s *StockUniverseService) ToggleStockSelection(ctx context.Context, symbol string) (*domain.StockUniverse, error) {
-	return s.repo.ToggleSelection(ctx, symbol)
+func (s *StockUniverseService) ToggleStockSelection(ctx context.Context, symbol string, isSelected bool) (*domain.StockUniverse, error) {
+	return s.repo.ToggleSelection(ctx, symbol, isSelected)
 }
 
 // DeleteStock deletes a stock by its symbol
 func (s *StockUniverseService) DeleteStock(ctx context.Context, symbol string) error {
 	return s.repo.DeleteBySymbol(ctx, symbol)
-}
-
-// IngestStocksResponse represents the response for the stock ingestion operation
-type IngestStocksResponse struct {
-	Created int `json:"created"`
-	Updated int `json:"updated"`
-	Total   int `json:"total"`
-}
-
-// GetStocksResponse represents the response for getting stocks
-type GetStocksResponse struct {
-	Stocks []domain.StockUniverse `json:"stocks"`
-	Total  int64                  `json:"total"`
-	Page   int                    `json:"page"`
-	Size   int                    `json:"size"`
 }

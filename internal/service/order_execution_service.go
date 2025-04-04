@@ -89,6 +89,7 @@ func (s *OrderExecutionService) ExecuteOrdersForStock(ctx context.Context, stock
 	}
 
 	// Start execution - in a real system, this might be async
+	log.Info("Starting order execution for stock %s", stockID)
 	executionResults, err := s.executeOrders(ctx, orderExecution.ID, levelEntries, stock, stock.Parameters.TradeSide)
 	if err != nil {
 		// Update status to failed
@@ -175,12 +176,41 @@ func (s *OrderExecutionService) executeOrders(
 		Success:     true, // Will be set to false if any order fails
 	}
 
+	// Add debug log to show how many level entries we're processing
+	log.Info("Processing level entries",
+		"executionID", executionID,
+		"stockSymbol", stock.Symbol,
+		"entryCount", len(levelEntries),
+		"tradeSide", tradeSide)
+
+	// Track which levels we've already processed to avoid duplicates
+	processedLevels := make(map[string]bool)
+
 	// Place orders for each level entry (except stop loss at index 0)
 	for i, entry := range levelEntries {
+
+		// Add detailed logging for each entry
+		log.Info("Processing entry",
+			"index", i,
+			"description", entry.Description,
+			"price", entry.Price,
+			"quantity", entry.Quantity)
+
 		if i == 0 || entry.Quantity <= 0 {
 			// Skip stop loss level or entries with no quantity
 			continue
 		}
+
+		// Check if we've already processed this level (using description as identifier)
+		if processedLevels[entry.Description] {
+			log.Warn("Duplicate level entry detected - skipping",
+				"description", entry.Description,
+				"price", entry.Price)
+			continue
+		}
+
+		// Mark this level as processed
+		processedLevels[entry.Description] = true
 
 		var triggerPrice float64
 		if tradeSide == "SELL" {
@@ -201,6 +231,13 @@ func (s *OrderExecutionService) executeOrders(
 			TriggerPrice:    triggerPrice,
 			Validity:        "DAY",
 		}
+
+		// Log the order request details
+		log.Info("Placing order",
+			"level", entry.Description,
+			"price", entry.Price,
+			"triggerPrice", triggerPrice,
+			"quantity", entry.Quantity)
 
 		// Place the order with Dhan
 		response, err := s.orderService.PlaceOrder(orderReq)
@@ -226,6 +263,13 @@ func (s *OrderExecutionService) executeOrders(
 
 		results.Results = append(results.Results, result)
 	}
+
+	// Log summary of execution
+	log.Info("Order execution completed",
+		"executionID", executionID,
+		"stockSymbol", stock.Symbol,
+		"orderCount", len(results.Results),
+		"success", results.Success)
 
 	if len(results.Results) == 0 {
 		return nil, errors.New("no orders were attempted")

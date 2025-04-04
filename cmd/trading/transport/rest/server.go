@@ -19,17 +19,18 @@ import (
 
 // Server represents the REST API server
 type Server struct {
-	router            *mux.Router
-	orderService      *orders.Service
-	stockService      *service.StockService
-	paramsService     *service.TradeParametersService
-	planService       *service.ExecutionPlanService
-	executeService    *service.OrderExecutionService
-	utilityService    *service.UtilityService
-	upstoxAuthService *upstox.AuthService
-	candleAggService  *service.CandleAggregationService
-	batchFetchService *service.BatchFetchService
-	validator         *validator.Validate
+	router               *mux.Router
+	orderService         *orders.Service
+	stockService         *service.StockService
+	paramsService        *service.TradeParametersService
+	planService          *service.ExecutionPlanService
+	executeService       *service.OrderExecutionService
+	utilityService       *service.UtilityService
+	upstoxAuthService    *upstox.AuthService
+	candleAggService     *service.CandleAggregationService
+	batchFetchService    *service.BatchFetchService
+	validator            *validator.Validate
+	stockUniverseService *service.StockUniverseService
 }
 
 // NewServer creates a new REST API server
@@ -43,19 +44,21 @@ func NewServer(
 	upstoxAuthService *upstox.AuthService,
 	candleAggService *service.CandleAggregationService,
 	batchFetchService *service.BatchFetchService,
+	stockUniverseService *service.StockUniverseService,
 ) *Server {
 	s := &Server{
-		router:            mux.NewRouter(),
-		orderService:      orderService,
-		stockService:      stockService,
-		paramsService:     paramsService,
-		planService:       planService,
-		executeService:    executeService,
-		utilityService:    utilityService,
-		upstoxAuthService: upstoxAuthService,
-		candleAggService:  candleAggService,
-		batchFetchService: batchFetchService,
-		validator:         validator.New(),
+		router:               mux.NewRouter(),
+		orderService:         orderService,
+		stockService:         stockService,
+		paramsService:        paramsService,
+		planService:          planService,
+		executeService:       executeService,
+		utilityService:       utilityService,
+		upstoxAuthService:    upstoxAuthService,
+		candleAggService:     candleAggService,
+		batchFetchService:    batchFetchService,
+		stockUniverseService: stockUniverseService,
+		validator:            validator.New(),
 	}
 
 	s.setupRoutes()
@@ -67,16 +70,29 @@ func (s *Server) setupRoutes() {
 	// API v1 router
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
-	// Stock management routes
-	api.HandleFunc("/stocks", s.GetAllStocks).Methods(http.MethodGet)
-	api.HandleFunc("/stocks/selected", s.GetSelectedStocks).Methods(http.MethodGet)
+	// Stock universe routes (must come before generic stock routes to avoid conflicts)
+	api.HandleFunc("/stocks/universe/ingest", s.IngestStocks).Methods(http.MethodPost)
+	api.HandleFunc("/stocks/universe/{symbol}/toggle-selection", s.ToggleStockSelectionInUniverse).Methods(http.MethodPatch)
+	api.HandleFunc("/stocks/universe/{symbol}", s.GetStockBySymbol).Methods(http.MethodGet)
+	api.HandleFunc("/stocks/universe/{symbol}", s.DeleteStockFromUniverse).Methods(http.MethodDelete)
+	api.HandleFunc("/stocks/universe", s.GetAllStocksFromUniverse).Methods(http.MethodGet)
+
+	// Stock selection routes (specific endpoints)
 	api.HandleFunc("/stocks/selected/enriched", s.GetSelectedStocksEnriched).Methods(http.MethodGet)
+	api.HandleFunc("/stocks/selected", s.GetSelectedStocks).Methods(http.MethodGet)
+
+	// Stock by security ID route (specific endpoint)
 	api.HandleFunc("/stocks/security/{securityId}", s.GetStockBySecurityID).Methods(http.MethodGet)
-	api.HandleFunc("/stocks/{id}", s.GetStockByID).Methods(http.MethodGet)
-	api.HandleFunc("/stocks", s.CreateStock).Methods(http.MethodPost)
-	api.HandleFunc("/stocks/{id}", s.UpdateStock).Methods(http.MethodPut)
+
+	// Generic stock routes (with ID parameter)
 	api.HandleFunc("/stocks/{id}/toggle-selection", s.ToggleStockSelection).Methods(http.MethodPatch)
+	api.HandleFunc("/stocks/{id}", s.GetStockByID).Methods(http.MethodGet)
+	api.HandleFunc("/stocks/{id}", s.UpdateStock).Methods(http.MethodPut)
 	api.HandleFunc("/stocks/{id}", s.DeleteStock).Methods(http.MethodDelete)
+
+	// Root stock routes (must come last to avoid conflicts)
+	api.HandleFunc("/stocks", s.CreateStock).Methods(http.MethodPost)
+	api.HandleFunc("/stocks", s.GetAllStocks).Methods(http.MethodGet)
 
 	// Trade parameters routes
 	api.HandleFunc("/parameters/stock/{stockId}", s.GetTradeParametersByStockID).Methods(http.MethodGet)

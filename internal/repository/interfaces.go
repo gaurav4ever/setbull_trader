@@ -156,3 +156,13 @@ type CandleRepository interface {
 	// Optional: Store aggregated candles for future use
 	StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error
 }
+
+// StockUniverseRepository defines the interface for stock universe operations
+type StockUniverseRepository interface {
+	Create(ctx context.Context, stock *domain.StockUniverse) (*domain.StockUniverse, error)
+	BulkUpsert(ctx context.Context, stocks []domain.StockUniverse) (int, int, error)
+	GetBySymbol(ctx context.Context, symbol string) (*domain.StockUniverse, error)
+	GetAll(ctx context.Context, onlySelected bool, limit, offset int) ([]domain.StockUniverse, int64, error)
+	ToggleSelection(ctx context.Context, symbol string, isSelected bool) (*domain.StockUniverse, error)
+	DeleteBySymbol(ctx context.Context, symbol string) error
+}

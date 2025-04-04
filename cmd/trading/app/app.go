@@ -16,6 +16,8 @@ import (
 	"setbull_trader/internal/repository"
 	"setbull_trader/internal/repository/postgres"
 	"setbull_trader/internal/service"
+	"setbull_trader/internal/service/normalizer"
+	"setbull_trader/internal/service/parser"
 	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/cache"
 	"setbull_trader/pkg/database"
@@ -48,6 +50,10 @@ type App struct {
 	candleAggService        *service.CandleAggregationService
 	batchFetchService       *service.BatchFetchService
 	restServer              *rest.Server
+	stockUniverseRepo       repository.StockUniverseRepository
+	stockUniverseService    *service.StockUniverseService
+	upstoxParser            *parser.UpstoxParser
+	stockNormalizer         *normalizer.StockNormalizer
 }
 
 // NewApp creates a new application
@@ -160,6 +166,17 @@ func NewApp() *App {
 		cfg.HistoricalData.MaxConcurrentRequests,
 	)
 
+	// Initialize stock universe components
+	stockUniverseRepo := postgres.NewStockUniverseRepository(db)
+	upstoxParser := parser.NewUpstoxParser(cfg.StockUniverse.FilePath)
+	stockNormalizer := normalizer.NewStockNormalizer()
+	stockUniverseService := service.NewStockUniverseService(
+		stockUniverseRepo,
+		upstoxParser,
+		stockNormalizer,
+		cfg.StockUniverse.FilePath,
+	)
+
 	restServer := rest.NewServer(
 		orderService,
 		stockService,
@@ -170,6 +187,7 @@ func NewApp() *App {
 		upstoxAuthService,
 		candleAggService,
 		batchFetchService,
+		stockUniverseService,
 	)
 
 	return &App{
@@ -193,6 +211,10 @@ func NewApp() *App {
 		candleAggService:        candleAggService,
 		batchFetchService:       batchFetchService,
 		restServer:              restServer,
+		stockUniverseRepo:       stockUniverseRepo,
+		stockUniverseService:    stockUniverseService,
+		upstoxParser:            upstoxParser,
+		stockNormalizer:         stockNormalizer,
 	}
 }
 
