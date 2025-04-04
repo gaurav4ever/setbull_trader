@@ -1,0 +1,53 @@
+High-Level Design for Stock Universe Daily Candle Data Collection
+Overview
+Create a system to fetch and store daily candle data for all stocks in the universe, providing historical price data for analysis and trading strategies.
+
+High-Level Components
+API Endpoint: A new REST endpoint to trigger the data collection process
+Service Layer: Logic to coordinate fetching and storing candle data
+Repository Layer: Database operations to store the candle data
+Response Handling: Structured response with operation statistics
+Data Flow
+Client sends request to the API endpoint
+Server retrieves all stocks from the universe
+For each stock, fetch daily candle data for the specified period
+Store the candle data in the database
+Return operation summary to the client
+Low-Level Design
+API Endpoint
+Path: /api/v1/stocks/universe/fetch-daily-candles
+Method: POST
+Request Body (optional):
+{
+  "days": 100
+}
+
+Copy
+
+
+Response:
+{
+  "status": "success",
+  "data": {
+    "total_stocks": 50,
+    "processed_stocks": 50,
+    "successful_stocks": 48,
+    "failed_stocks": 2,
+    "failed_symbols": ["STOCK1", "STOCK2"]
+  }
+}
+
+Copy
+
+
+Service Layer
+Add a new method to CandleAggregationService to handle batch processing of stocks
+Leverage existing methods for fetching and storing candle data
+Track success/failure statistics
+Implementation Plan (Phase-wise)
+Phase 1: API Endpoint and Handler
+Add a new route in cmd/trading/transport/rest/server.go
+Implement the handler function FetchAndStoreDailyCandles
+Phase 2: Service Layer Enhancement
+Add a new method to CandleAggregationService to handle batch processing
+Ensure proper error handling and logging

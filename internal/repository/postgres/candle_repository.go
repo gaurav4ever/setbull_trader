@@ -523,3 +523,25 @@ func (r *CandleRepository) StoreAggregatedCandles(ctx context.Context, candles [
 	log.Info("Stored %d aggregated candles", result.RowsAffected)
 	return nil
 }
+
+// GetStocksWithExistingDailyCandles returns a list of instrument keys that already have daily candle data
+// for the specified date range
+func (r *CandleRepository) GetStocksWithExistingDailyCandles(
+	ctx context.Context,
+	startDate, endDate time.Time,
+) ([]string, error) {
+	var instrumentKeys []string
+
+	// Query for distinct instrument keys that have data in the date range
+	result := r.db.WithContext(ctx).
+		Model(&domain.Candle{}).
+		Where("time_interval = ? AND timestamp BETWEEN ? AND ?", "day", startDate, endDate).
+		Distinct().
+		Pluck("instrument_key", &instrumentKeys)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get stocks with existing candles: %w", result.Error)
+	}
+
+	return instrumentKeys, nil
+}

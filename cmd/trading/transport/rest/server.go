@@ -19,18 +19,19 @@ import (
 
 // Server represents the REST API server
 type Server struct {
-	router               *mux.Router
-	orderService         *orders.Service
-	stockService         *service.StockService
-	paramsService        *service.TradeParametersService
-	planService          *service.ExecutionPlanService
-	executeService       *service.OrderExecutionService
-	utilityService       *service.UtilityService
-	upstoxAuthService    *upstox.AuthService
-	candleAggService     *service.CandleAggregationService
-	batchFetchService    *service.BatchFetchService
-	validator            *validator.Validate
-	stockUniverseService *service.StockUniverseService
+	router                  *mux.Router
+	orderService            *orders.Service
+	stockService            *service.StockService
+	paramsService           *service.TradeParametersService
+	planService             *service.ExecutionPlanService
+	executeService          *service.OrderExecutionService
+	utilityService          *service.UtilityService
+	upstoxAuthService       *upstox.AuthService
+	candleAggService        *service.CandleAggregationService
+	batchFetchService       *service.BatchFetchService
+	validator               *validator.Validate
+	stockUniverseService    *service.StockUniverseService
+	candleProcessingService *service.CandleProcessingService
 }
 
 // NewServer creates a new REST API server
@@ -45,20 +46,22 @@ func NewServer(
 	candleAggService *service.CandleAggregationService,
 	batchFetchService *service.BatchFetchService,
 	stockUniverseService *service.StockUniverseService,
+	candleProcessingService *service.CandleProcessingService,
 ) *Server {
 	s := &Server{
-		router:               mux.NewRouter(),
-		orderService:         orderService,
-		stockService:         stockService,
-		paramsService:        paramsService,
-		planService:          planService,
-		executeService:       executeService,
-		utilityService:       utilityService,
-		upstoxAuthService:    upstoxAuthService,
-		candleAggService:     candleAggService,
-		batchFetchService:    batchFetchService,
-		stockUniverseService: stockUniverseService,
-		validator:            validator.New(),
+		router:                  mux.NewRouter(),
+		orderService:            orderService,
+		stockService:            stockService,
+		paramsService:           paramsService,
+		planService:             planService,
+		executeService:          executeService,
+		utilityService:          utilityService,
+		upstoxAuthService:       upstoxAuthService,
+		candleAggService:        candleAggService,
+		batchFetchService:       batchFetchService,
+		stockUniverseService:    stockUniverseService,
+		candleProcessingService: candleProcessingService,
+		validator:               validator.New(),
 	}
 
 	s.setupRoutes()
@@ -72,6 +75,7 @@ func (s *Server) setupRoutes() {
 
 	// Stock universe routes (must come before generic stock routes to avoid conflicts)
 	api.HandleFunc("/stocks/universe/ingest", s.IngestStocks).Methods(http.MethodPost)
+	api.HandleFunc("/stocks/universe/daily-candles", s.FetchUniverseDailyCandles).Methods(http.MethodPost)
 	api.HandleFunc("/stocks/universe/{symbol}/toggle-selection", s.ToggleStockSelectionInUniverse).Methods(http.MethodPatch)
 	api.HandleFunc("/stocks/universe/{symbol}", s.GetStockBySymbol).Methods(http.MethodGet)
 	api.HandleFunc("/stocks/universe/{symbol}", s.DeleteStockFromUniverse).Methods(http.MethodDelete)

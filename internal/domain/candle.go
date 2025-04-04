@@ -82,3 +82,12 @@ type AggregatedCandle struct {
 	OpenInterest  int64     `json:"open_interest"`
 	TimeInterval  string    `json:"time_interval"`
 }
+
+// DailyCandelFetchResult represents the result of a batch operation to fetch daily candles
+type DailyCandelFetchResult struct {
+	TotalStocks      int      `json:"total_stocks"`
+	ProcessedStocks  int      `json:"processed_stocks"`
+	SuccessfulStocks int      `json:"successful_stocks"`
+	FailedStocks     int      `json:"failed_stocks"`
+	FailedSymbols    []string `json:"failed_symbols,omitempty"`
+}

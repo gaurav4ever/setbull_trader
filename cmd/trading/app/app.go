@@ -188,6 +188,7 @@ func NewApp() *App {
 		candleAggService,
 		batchFetchService,
 		stockUniverseService,
+		candleProcessingService,
 	)
 
 	return &App{

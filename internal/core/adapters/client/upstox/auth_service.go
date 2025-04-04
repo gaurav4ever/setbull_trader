@@ -11,8 +11,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
+
+	"golang.org/x/time/rate"
 
 	"setbull_trader/pkg/cache"
 	"setbull_trader/pkg/log"
@@ -39,6 +43,11 @@ type AuthService struct {
 	cacheManager cache.API
 	statePrefix  string
 	client       *http.Client
+	// Rate limiters
+	secondLimiter    *rate.Limiter
+	minuteLimiter    *rate.Limiter
+	thirtyMinLimiter *rate.Limiter
+	limiterMutex     sync.Mutex
 }
 
 // NewAuthService creates a new authentication service
@@ -49,6 +58,10 @@ func NewAuthService(config *AuthConfig, tokenStore TokenStore, cacheManager cach
 		cacheManager: cacheManager,
 		statePrefix:  "upstox:state:",
 		client:       &http.Client{Timeout: 30 * time.Second},
+		// Initialize rate limiters according to Upstox API limits
+		secondLimiter:    rate.NewLimiter(rate.Limit(50), 50),          // 50 requests per second
+		minuteLimiter:    rate.NewLimiter(rate.Limit(500/60), 500),     // 500 requests per minute
+		thirtyMinLimiter: rate.NewLimiter(rate.Limit(2000/1800), 2000), // 2000 requests per 30 minutes
 	}
 }
 
@@ -141,6 +154,11 @@ func (s *AuthService) GetHistoricalCandleData(ctx context.Context, userID string
 
 // GetHistoricalCandleDataWithDateRange is a helper method to get historical candle data with date range
 func (s *AuthService) GetHistoricalCandleDataWithDateRange(ctx context.Context, userID string, instrumentKey string, interval string, toDate string, fromDate string) (*swagger.GetHistoricalCandleResponse, error) {
+	// Wait for rate limit allowance before proceeding
+	if err := s.waitForRateLimit(ctx); err != nil {
+		return nil, errors.Wrap(err, "rate limit wait error")
+	}
+
 	// Get authenticated context
 	authCtx, err := s.GetAuthenticatedContext(ctx, userID)
 	if err != nil {
@@ -153,6 +171,30 @@ func (s *AuthService) GetHistoricalCandleDataWithDateRange(ctx context.Context, 
 
 	// Call the historical candle data API with date range using the authenticated context
 	response, httpResp, err := client.HistoryApi.GetHistoricalCandleData1(authCtx, instrumentKey, interval, toDate, fromDate)
+
+	// Handle rate limit errors specifically
+	if err != nil && httpResp != nil && httpResp.StatusCode == 429 {
+		log.Warn("Rate limit exceeded, retrying after backoff")
+
+		// Exponential backoff - wait longer and retry
+		retryAfter := 2 * time.Second
+		if retryAfterHeader := httpResp.Header.Get("Retry-After"); retryAfterHeader != "" {
+			if seconds, parseErr := strconv.Atoi(retryAfterHeader); parseErr == nil {
+				retryAfter = time.Duration(seconds) * time.Second
+			}
+		}
+
+		// Wait for the specified time
+		select {
+		case <-time.After(retryAfter):
+			// Try again recursively with the same parameters
+			return s.GetHistoricalCandleDataWithDateRange(ctx, userID, instrumentKey, interval, toDate, fromDate)
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	// Handle other errors
 	if err != nil {
 		// Log detailed error information
 		if httpResp != nil {
@@ -280,5 +322,32 @@ func (s *AuthService) verifyState(ctx context.Context, state string) error {
 
 	// Clean up the state after use
 	s.cacheManager.SetWithDuration(ctx, stateKey, "", time.Millisecond)
+	return nil
+}
+
+// Add this method to waitForRateLimit
+func (s *AuthService) waitForRateLimit(ctx context.Context) error {
+	s.limiterMutex.Lock()
+	defer s.limiterMutex.Unlock()
+
+	// Log current rate limiter states before waiting
+	log.Info("Rate limit check - Second: %v/%v, Minute: %v/%v, 30Min: %v/%v",
+		s.secondLimiter.Tokens(), s.secondLimiter.Burst(),
+		s.minuteLimiter.Tokens(), s.minuteLimiter.Burst(),
+		s.thirtyMinLimiter.Tokens(), s.thirtyMinLimiter.Burst())
+
+	// Wait for all three rate limiters
+	if err := s.secondLimiter.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := s.minuteLimiter.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := s.thirtyMinLimiter.Wait(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }

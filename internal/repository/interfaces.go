@@ -155,6 +155,9 @@ type CandleRepository interface {
 
 	// Optional: Store aggregated candles for future use
 	StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error
+
+	// GetStocksWithExistingDailyCandles returns a list of instrument keys that already have daily candle data
+	GetStocksWithExistingDailyCandles(ctx context.Context, startDate, endDate time.Time) ([]string, error)
 }
 
 // StockUniverseRepository defines the interface for stock universe operations

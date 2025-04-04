@@ -209,3 +209,12 @@ func (s *CandleAggregationService) CacheAggregatedCandles(
 
 	return nil
 }
+
+// GetStocksWithExistingDailyCandles returns a list of instrument keys that already have daily candle data
+// for the specified date range
+func (s *CandleAggregationService) GetStocksWithExistingDailyCandles(
+	ctx context.Context,
+	startDate, endDate time.Time,
+) ([]string, error) {
+	return s.candleRepo.GetStocksWithExistingDailyCandles(ctx, startDate, endDate)
+}
