@@ -13,6 +13,7 @@ import (
 // Config represents the application configuration
 type Config struct {
 	Server         ServerConfig         `mapstructure:"server"`
+	Trading        TradingConfig        `yaml:"trading"`
 	Dhan           DhanConfig           `mapstructure:"dhan"`
 	Upstox         UpstoxConfig         `mapstructure:"upstox"`
 	StockUniverse  StockUniverseConfig  `mapstructure:"stock_universe"`
@@ -58,6 +59,14 @@ type Config struct {
 			CleanUpTTL time.Duration `yaml:"cleanupttl" json:"cleanupttl,omitempty"`
 		} `yaml:"inmem" json:"inmem,omitempty"`
 	}
+}
+
+type MarketConfig struct {
+	ExcludeWeekends bool `yaml:"excludeWeekends"`
+}
+
+type TradingConfig struct {
+	Market MarketConfig `yaml:"market"`
 }
 
 // ServerConfig represents the HTTP server configuration
@@ -110,6 +119,10 @@ func LoadConfig() (*Config, error) {
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, errors.Wrap(err, "error unmarshalling config")
+	}
+
+	if config.Trading.Market.ExcludeWeekends {
+		config.Trading.Market.ExcludeWeekends = true
 	}
 
 	// Validate Upstox configuration

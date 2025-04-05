@@ -109,3 +109,18 @@ func (s *StockUniverseService) ToggleStockSelection(ctx context.Context, symbol 
 func (s *StockUniverseService) DeleteStock(ctx context.Context, symbol string) error {
 	return s.repo.DeleteBySymbol(ctx, symbol)
 }
+
+// GetStocksByInstrumentKeys retrieves stocks from the universe by their instrument keys
+func (s *StockUniverseService) GetStocksByInstrumentKeys(ctx context.Context, instrumentKeys []string) ([]domain.StockUniverse, error) {
+	if len(instrumentKeys) == 0 {
+		return []domain.StockUniverse{}, nil
+	}
+
+	// Call the repository to get stocks by instrument keys
+	stocks, err := s.repo.GetStocksByInstrumentKeys(ctx, instrumentKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stocks by instrument keys: %w", err)
+	}
+
+	return stocks, nil
+}

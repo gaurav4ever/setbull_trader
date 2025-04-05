@@ -179,3 +179,18 @@ func (r *StockUniverseRepository) DeleteBySymbol(ctx context.Context, symbol str
 	}
 	return nil
 }
+
+// GetStocksByInstrumentKeys retrieves stocks by their instrument keys
+func (r *StockUniverseRepository) GetStocksByInstrumentKeys(ctx context.Context, instrumentKeys []string) ([]domain.StockUniverse, error) {
+	var stocks []domain.StockUniverse
+
+	result := r.db.WithContext(ctx).
+		Where("instrument_key IN ?", instrumentKeys).
+		Find(&stocks)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get stocks by instrument keys: %w", result.Error)
+	}
+
+	return stocks, nil
+}

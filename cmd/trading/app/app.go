@@ -54,6 +54,7 @@ type App struct {
 	stockUniverseService    *service.StockUniverseService
 	upstoxParser            *parser.UpstoxParser
 	stockNormalizer         *normalizer.StockNormalizer
+	tradingCalendarService  *service.TradingCalendarService
 }
 
 // NewApp creates a new application
@@ -134,6 +135,7 @@ func NewApp() *App {
 	executionPlanService := service.NewExecutionPlanService(executionPlanRepo, levelEntryRepo, stockRepo, tradeParamsRepo)
 	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo, *orderService, *stockService)
 	utilityService := service.NewUtilityService(fibCalculator)
+	tradingCalendarService := service.NewTradingCalendarService(cfg.Trading.Market.ExcludeWeekends)
 
 	// UPSTOX configurations
 	// Initialize Upstox configuration
@@ -157,13 +159,15 @@ func NewApp() *App {
 		"upstox_session",
 	)
 
-	candleAggService := service.NewCandleAggregationService(
-		candleRepo,
-	)
-
 	batchFetchService := service.NewBatchFetchService(
 		candleProcessingService,
 		cfg.HistoricalData.MaxConcurrentRequests,
+	)
+
+	candleAggService := service.NewCandleAggregationService(
+		candleRepo,
+		batchFetchService,
+		tradingCalendarService,
 	)
 
 	// Initialize stock universe components
@@ -216,6 +220,7 @@ func NewApp() *App {
 		stockUniverseService:    stockUniverseService,
 		upstoxParser:            upstoxParser,
 		stockNormalizer:         stockNormalizer,
+		tradingCalendarService:  tradingCalendarService,
 	}
 }
 

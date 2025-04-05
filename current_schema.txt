@@ -1,0 +1,123 @@
+CREATE TABLE `execution_plans` (
+  `id` varchar(36) NOT NULL,
+  `stock_id` varchar(36) NOT NULL,
+  `parameters_id` varchar(36) NOT NULL,
+  `total_quantity` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `parameters_id` (`parameters_id`),
+  KEY `idx_execution_plans_stock_id` (`stock_id`),
+  KEY `idx_execution_plans_active` (`active`),
+  CONSTRAINT `execution_plans_ibfk_1` FOREIGN KEY (`stock_id`) REFERENCES `stocks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `execution_plans_ibfk_2` FOREIGN KEY (`parameters_id`) REFERENCES `trade_parameters` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `level_entries` (
+  `id` varchar(36) NOT NULL,
+  `execution_plan_id` varchar(36) NOT NULL,
+  `fib_level` decimal(5,2) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `quantity` int NOT NULL,
+  `description` varchar(50) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_level_entries_execution_plan_id` (`execution_plan_id`),
+  KEY `idx_level_entries_active` (`active`),
+  CONSTRAINT `level_entries_ibfk_1` FOREIGN KEY (`execution_plan_id`) REFERENCES `execution_plans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `order_executions` (
+  `id` varchar(36) NOT NULL,
+  `execution_plan_id` varchar(36) NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `executed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `error_message` text,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_executions_execution_plan_id` (`execution_plan_id`),
+  KEY `idx_order_executions_active` (`active`),
+  CONSTRAINT `order_executions_ibfk_1` FOREIGN KEY (`execution_plan_id`) REFERENCES `execution_plans` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `stock_candle_data` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `instrument_key` varchar(50) NOT NULL,
+  `timestamp` timestamp NOT NULL,
+  `open` decimal(18,2) NOT NULL,
+  `high` decimal(18,2) NOT NULL,
+  `low` decimal(18,2) NOT NULL,
+  `close` decimal(18,2) NOT NULL,
+  `volume` bigint NOT NULL,
+  `open_interest` bigint NOT NULL,
+  `time_interval` varchar(20) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_stock_candle_unique` (`instrument_key`,`timestamp`,`time_interval`),
+  KEY `idx_stock_candle_instrument_key` (`instrument_key`),
+  KEY `idx_stock_candle_timestamp` (`timestamp`),
+  KEY `idx_stock_candle_instrument_timestamp` (`instrument_key`,`timestamp`),
+  KEY `idx_stock_candle_interval` (`time_interval`)
+) ENGINE=InnoDB AUTO_INCREMENT=143632 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `stocks` (
+  `id` varchar(36) NOT NULL,
+  `symbol` varchar(10) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `current_price` decimal(10,2) NOT NULL,
+  `is_selected` tinyint(1) DEFAULT '0',
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `security_id` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_stocks_symbol` (`symbol`),
+  KEY `idx_stocks_is_selected` (`is_selected`),
+  KEY `idx_stocks_active` (`active`),
+  KEY `idx_stocks_security_id` (`security_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `stock_universe` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `symbol` varchar(30) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `exchange` varchar(10) NOT NULL,
+  `instrument_type` varchar(20) NOT NULL,
+  `isin` varchar(20) DEFAULT NULL,
+  `instrument_key` varchar(50) NOT NULL,
+  `trading_symbol` varchar(50) NOT NULL,
+  `exchange_token` varchar(20) DEFAULT NULL,
+  `last_price` decimal(18,2) DEFAULT NULL,
+  `tick_size` decimal(18,2) DEFAULT NULL,
+  `lot_size` int DEFAULT NULL,
+  `is_selected` tinyint(1) DEFAULT '0',
+  `metadata` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_stock_universe_symbol` (`symbol`),
+  KEY `idx_stock_universe_instrument_key` (`instrument_key`),
+  KEY `idx_stock_universe_is_selected` (`is_selected`)
+) ENGINE=InnoDB AUTO_INCREMENT=2131 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores all available stocks from NSE via Upstox with their details';
+
+CREATE TABLE `trade_parameters` (
+  `id` varchar(36) NOT NULL,
+  `stock_id` varchar(36) NOT NULL,
+  `starting_price` decimal(10,2) NOT NULL,
+  `sl_percentage` decimal(5,2) NOT NULL,
+  `risk_amount` decimal(10,2) NOT NULL DEFAULT '30.00',
+  `trade_side` varchar(4) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_trade_parameters_stock_id` (`stock_id`),
+  KEY `idx_trade_parameters_active` (`active`),
+  CONSTRAINT `trade_parameters_ibfk_1` FOREIGN KEY (`stock_id`) REFERENCES `stocks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `trade_parameters_chk_1` CHECK ((`trade_side` in (_utf8mb4'BUY',_utf8mb4'SELL')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

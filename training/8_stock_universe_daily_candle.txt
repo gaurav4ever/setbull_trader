@@ -51,3 +51,63 @@ Implement the handler function FetchAndStoreDailyCandles
 Phase 2: Service Layer Enhancement
 Add a new method to CandleAggregationService to handle batch processing
 Ensure proper error handling and logging
+
+
+=======================
+=====================================
+
+
+High-Level Design for Enhanced Daily Candle Data Collection
+Overview
+Enhance the FetchUniverseDailyCandles functionality to intelligently fetch only missing data for each stock, based on the latest available timestamp in the database.
+
+Current Behavior
+Fetches 100 days of daily candle data for all stocks in the universe
+Skips stocks that already have any data in the specified date range
+Fetches full 100 days for stocks with no data
+Desired Behavior
+For each stock, check the latest timestamp in the database
+If no data exists, fetch the full requested period (e.g., 100 days)
+If data exists but is not current:
+Only fetch data from the day after the latest timestamp to the current date
+Skip stocks that are already up-to-date
+High-Level Components
+API Endpoint: Existing /stocks/universe/daily-candles endpoint
+Service Layer: Enhanced logic to determine date ranges per stock
+Repository Layer: New method to get latest timestamp per stock
+Processing Logic: Individual API calls per stock with custom date ranges
+Low-Level Design
+Repository Layer Enhancements
+Add a new method GetLatestCandle(ctx, instrumentKey, interval) to retrieve the most recent candle for a specific instrument and interval
+This method will return the timestamp of the latest available data point
+Service Layer Enhancements
+Modify the candle processing service to accept custom date ranges per stock
+Create a method to determine the optimal date range for each stock based on existing data
+Handler Layer Enhancements
+Modify FetchUniverseDailyCandles to:
+Get all stocks from the universe
+For each stock, check if data exists and get the latest timestamp
+Calculate the appropriate date range for each stock
+Process each stock with its custom date range
+Track and report detailed statistics
+Implementation Plan (Phase-wise)
+Phase 1: Repository Layer Enhancement
+Add GetLatestCandle method to CandleRepository interface
+Implement the method in postgres/candle_repository.go
+This method will query the database for the most recent candle for a given instrument and interval
+Phase 2: Service Layer Enhancement
+Add a method to CandleProcessingService or CandleAggregationService to determine the optimal date range for a stock
+Enhance the processing logic to handle individual stocks with custom date ranges
+Phase 3: Handler Layer Enhancement
+Modify FetchUniverseDailyCandles in stock_universe_handler.go to use the new repository and service methods
+Implement logic to process each stock individually with its optimal date range
+Update result tracking and reporting
+Phase 4: Testing and Optimization
+Test the enhanced functionality with various scenarios
+Optimize for performance, especially for large stock universes
+This design ensures that we only fetch and store the minimum necessary data, reducing API calls, processing time, and database storage requirements.
+
+
+========================================================================
+
+

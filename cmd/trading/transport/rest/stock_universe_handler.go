@@ -1,11 +1,14 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"setbull_trader/internal/domain"
+	"setbull_trader/internal/service"
 	"setbull_trader/pkg/log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -180,18 +183,22 @@ func (s *Server) DeleteStockFromUniverse(w http.ResponseWriter, r *http.Request)
 }
 
 // FetchUniverseDailyCandles fetches and stores daily candle data for all stocks in the universe
+// or for specific stocks if instrumentKeys are provided
 func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	startTime := time.Now()
 
 	// Parse request body for optional parameters
 	var request struct {
-		Days int `json:"days"` // Number of days to fetch, default 100
+		Days           int      `json:"days"`           // Number of days to fetch, default 100
+		Parallel       bool     `json:"parallel"`       // Whether to process stocks in parallel, default false
+		InstrumentKeys []string `json:"instrumentKeys"` // Optional list of instrument keys to process
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		// If there's an error parsing, just use default values
 		request.Days = 100
+		request.Parallel = false
 	}
 
 	// If days not specified or invalid, use default
@@ -199,14 +206,31 @@ func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Reques
 		request.Days = 100
 	}
 
-	log.Info("Starting to fetch daily candles for all stocks in universe (last %d days)", request.Days)
+	var stocks []domain.StockUniverse
+	var err error
 
-	// Get all stocks from universe
-	stocks, _, err := s.stockUniverseService.GetAllStocks(ctx, false, 1, 10000)
-	if err != nil {
-		log.Error("Failed to get stocks from universe: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "Failed to get stocks: "+err.Error())
-		return
+	// Check if specific instrument keys were provided
+	if len(request.InstrumentKeys) > 0 {
+		log.Info("Starting to fetch daily candles for %d specific stocks in universe (last %d days)",
+			len(request.InstrumentKeys), request.Days)
+
+		// Get only the specified stocks from the universe
+		stocks, err = s.stockUniverseService.GetStocksByInstrumentKeys(ctx, request.InstrumentKeys)
+		if err != nil {
+			log.Error("Failed to get specific stocks from universe: %v", err)
+			respondWithError(w, http.StatusInternalServerError, "Failed to get specific stocks: "+err.Error())
+			return
+		}
+	} else {
+		log.Info("Starting to fetch daily candles for all stocks in universe (last %d days)", request.Days)
+
+		// Get all stocks from universe
+		stocks, _, err = s.stockUniverseService.GetAllStocks(ctx, false, 1, 10000)
+		if err != nil {
+			log.Error("Failed to get stocks from universe: %v", err)
+			respondWithError(w, http.StatusInternalServerError, "Failed to get stocks: "+err.Error())
+			return
+		}
 	}
 
 	if len(stocks) == 0 {
@@ -216,93 +240,223 @@ func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Reques
 
 	// Calculate date range
 	endDate := time.Now()
-	startDate := endDate.AddDate(0, 0, -request.Days)
 
-	log.Info("Fetching daily candles from %s to %s for %d stocks",
-		startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), len(stocks))
+	log.Info("Fetching daily candles for %d stocks with backfill support for the last %d days",
+		len(stocks), request.Days)
 
 	// Initialize result tracking
-	result := struct {
-		TotalStocks      int      `json:"total_stocks"`
-		ProcessedStocks  int      `json:"processed_stocks"`
-		SkippedStocks    int      `json:"skipped_stocks"`
-		SuccessfulStocks int      `json:"successful_stocks"`
-		FailedStocks     int      `json:"failed_stocks"`
-		FailedSymbols    []string `json:"failed_symbols,omitempty"`
-	}{
-		TotalStocks:   len(stocks),
-		FailedSymbols: make([]string, 0),
+	result := &DailyCandles{
+		TotalStocks:      len(stocks),
+		ProcessedStocks:  0,
+		SkippedStocks:    0,
+		SuccessfulStocks: 0,
+		FailedStocks:     0,
+		StockResults:     make([]StockProcessResult, 0, len(stocks)),
+		StartTime:        startTime,
+		EndTime:          time.Time{},
+		Duration:         "",
 	}
 
-	// Get list of stocks that already have data for this date range
-	existingStocks, err := s.candleAggService.GetStocksWithExistingDailyCandles(ctx, startDate, endDate)
-	if err != nil {
-		log.Error("Failed to check for existing candle data: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "Failed to check existing data: "+err.Error())
-		return
+	// Process stocks based on parallel flag
+	if request.Parallel {
+		result = s.processDailyCandlesParallel(ctx, stocks, endDate, request.Days)
+	} else {
+		result = s.processDailyCandlesSequential(ctx, stocks, endDate, request.Days)
 	}
 
-	log.Info("Found %d stocks with existing candle data in the date range", len(existingStocks))
+	// Set end time and duration
+	result.EndTime = time.Now()
+	result.Duration = result.EndTime.Sub(startTime).String()
 
-	// Create a map for quick lookup
-	existingStocksMap := make(map[string]bool)
-	for _, stock := range existingStocks {
-		existingStocksMap[stock] = true
-	}
-
-	// Create a batch request
-	batchRequest := &domain.BatchStoreHistoricalDataRequest{
-		InstrumentKeys: []string{},
-		Interval:       "day",
-		FromDate:       startDate.Format("2006-01-02"),
-		ToDate:         endDate.Format("2006-01-02"),
-	}
-
-	// Add only stocks that don't have data
-	for _, stock := range stocks {
-		if stock.InstrumentKey == "" {
-			continue
-		}
-
-		// Skip if this stock already has data for the date range
-		if existingStocksMap[stock.InstrumentKey] {
-			log.Info("Skipping %s (%s) - already has data for the date range",
-				stock.Symbol, stock.InstrumentKey)
-			result.SkippedStocks++
-			continue
-		}
-
-		batchRequest.InstrumentKeys = append(batchRequest.InstrumentKeys, stock.InstrumentKey)
-	}
-
-	// If no stocks need data, return early
-	if len(batchRequest.InstrumentKeys) == 0 {
-		log.Info("No stocks need data - all %d stocks already have data for the date range", result.SkippedStocks)
-		result.ProcessedStocks = result.TotalStocks
-		respondSuccess(w, result)
-		return
-	}
-
-	log.Info("Fetching data for %d stocks (skipped %d stocks with existing data)",
-		len(batchRequest.InstrumentKeys), result.SkippedStocks)
-
-	// Process the batch request
-	batchResult, err := s.batchFetchService.ProcessBatchRequest(ctx, batchRequest)
-	if err != nil {
-		log.Error("Failed to process batch request: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "Failed to process batch request: "+err.Error())
-		return
-	}
-
-	// Update result with batch processing results
-	result.ProcessedStocks = result.SkippedStocks + batchResult.ProcessedItems
-	result.SuccessfulStocks = result.SkippedStocks + batchResult.SuccessfulItems
-	result.FailedStocks = batchResult.FailedItems
-	// We could also add failed symbols from the batch result if available
-
-	log.Info("Completed fetching daily candles in %v. Total: %d, Skipped: %d, Processed: %d, Success: %d, Failed: %d",
-		time.Since(startTime), result.TotalStocks, result.SkippedStocks,
-		batchResult.ProcessedItems, batchResult.SuccessfulItems, batchResult.FailedItems)
+	log.Info("Completed fetching daily candles in %v. Total: %d, Processed: %d, Skipped: %d, Success: %d, Failed: %d",
+		result.Duration, result.TotalStocks, result.ProcessedStocks,
+		result.SkippedStocks, result.SuccessfulStocks, result.FailedStocks)
 
 	respondSuccess(w, result)
+}
+
+// DailyCandles represents the result of fetching daily candles
+type DailyCandles struct {
+	TotalStocks      int                  `json:"total_stocks"`
+	ProcessedStocks  int                  `json:"processed_stocks"`
+	SkippedStocks    int                  `json:"skipped_stocks"`
+	SuccessfulStocks int                  `json:"successful_stocks"`
+	FailedStocks     int                  `json:"failed_stocks"`
+	StockResults     []StockProcessResult `json:"stock_results,omitempty"`
+	StartTime        time.Time            `json:"start_time"`
+	EndTime          time.Time            `json:"end_time"`
+	Duration         string               `json:"duration"`
+}
+
+// StockProcessResult represents the result of processing a single stock
+type StockProcessResult struct {
+	service.ProcessResult
+	Duration string `json:"duration"`
+}
+
+// SegmentDetail represents details about a processed segment
+type SegmentDetail struct {
+	Type      string `json:"type"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+}
+
+// processDailyCandlesSequential processes stocks sequentially
+func (s *Server) processDailyCandlesSequential(
+	ctx context.Context,
+	stocks []domain.StockUniverse,
+	endDate time.Time,
+	maxDays int,
+) *DailyCandles {
+	result := &DailyCandles{
+		TotalStocks:  len(stocks),
+		StockResults: make([]StockProcessResult, 0, len(stocks)),
+		StartTime:    time.Now(),
+	}
+
+	// Process each stock sequentially
+	for _, stock := range stocks {
+		stockStartTime := time.Now()
+
+		// Skip stocks without instrument key
+		if stock.InstrumentKey == "" {
+			log.Warn("Stock %s has no instrument key, skipping", stock.Symbol)
+
+			stockResult := StockProcessResult{
+				ProcessResult: service.ProcessResult{
+					Symbol:        stock.Symbol,
+					InstrumentKey: "",
+					Status:        "failed",
+					Error:         "no instrument key",
+				},
+				Duration: time.Since(stockStartTime).String(),
+			}
+
+			result.StockResults = append(result.StockResults, stockResult)
+			result.ProcessedStocks++
+			result.FailedStocks++
+			continue
+		}
+
+		// Process the stock
+		processResult, err := s.candleAggService.ProcessStockDailyCandles(ctx, stock, endDate, maxDays)
+		if err != nil {
+			log.Error("Failed to process daily candles for stock %s: %v", stock.Symbol, err)
+		}
+
+		// Convert service result to handler result
+		stockResult := StockProcessResult{
+			ProcessResult: processResult,
+			Duration:      time.Since(stockStartTime).String(),
+		}
+
+		result.StockResults = append(result.StockResults, stockResult)
+		result.ProcessedStocks++
+
+		// Update counters based on status
+		switch processResult.Status {
+		case "success":
+			result.SuccessfulStocks++
+		case "skipped":
+			result.SkippedStocks++
+		case "failed":
+			result.FailedStocks++
+		}
+	}
+
+	return result
+}
+
+// processDailyCandlesParallel processes stocks in parallel
+func (s *Server) processDailyCandlesParallel(
+	ctx context.Context,
+	stocks []domain.StockUniverse,
+	endDate time.Time,
+	maxDays int,
+) *DailyCandles {
+	result := &DailyCandles{
+		TotalStocks:  len(stocks),
+		StockResults: make([]StockProcessResult, 0, len(stocks)),
+		StartTime:    time.Now(),
+	}
+
+	// Use a mutex to protect concurrent access to the result
+	var resultMutex sync.Mutex
+
+	// Use a wait group to wait for all goroutines to finish
+	var wg sync.WaitGroup
+
+	// Use a semaphore to limit concurrency
+	maxConcurrency := 5 // Adjust based on your system capabilities and API rate limits
+	semaphore := make(chan struct{}, maxConcurrency)
+
+	// Process each stock in parallel
+	for _, stock := range stocks {
+		wg.Add(1)
+
+		go func(stock domain.StockUniverse) {
+			defer wg.Done()
+
+			// Acquire semaphore slot
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			stockStartTime := time.Now()
+
+			// Skip stocks without instrument key
+			if stock.InstrumentKey == "" {
+				log.Warn("Stock %s has no instrument key, skipping", stock.Symbol)
+
+				stockResult := StockProcessResult{
+					ProcessResult: service.ProcessResult{
+						Symbol:        stock.Symbol,
+						InstrumentKey: "",
+						Status:        "failed",
+						Error:         "no instrument key",
+					},
+					Duration: time.Since(stockStartTime).String(),
+				}
+
+				// Update result with mutex protection
+				resultMutex.Lock()
+				result.StockResults = append(result.StockResults, stockResult)
+				result.ProcessedStocks++
+				result.FailedStocks++
+				resultMutex.Unlock()
+
+				return
+			}
+
+			// Process the stock using the server's candleAggService
+			processResult, _ := s.candleAggService.ProcessStockDailyCandles(ctx, stock, endDate, maxDays)
+
+			// Convert service result to handler result
+			stockResult := StockProcessResult{
+				ProcessResult: processResult,
+				Duration:      time.Since(stockStartTime).String(),
+			}
+
+			// Update result with mutex protection
+			resultMutex.Lock()
+			result.StockResults = append(result.StockResults, stockResult)
+			result.ProcessedStocks++
+
+			// Update counters based on status
+			switch processResult.Status {
+			case "success":
+				result.SuccessfulStocks++
+			case "skipped":
+				result.SkippedStocks++
+			case "failed":
+				result.FailedStocks++
+			}
+			resultMutex.Unlock()
+
+		}(stock)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	return result
 }

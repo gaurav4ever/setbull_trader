@@ -261,8 +261,8 @@ func (r *CandleRepository) GetLatestCandle(
 	ctx context.Context,
 	instrumentKey string,
 	interval string,
-) (*domain.CandleData, error) {
-	var candle domain.CandleData
+) (*domain.Candle, error) {
+	var candle domain.Candle
 
 	result := r.db.WithContext(ctx).
 		Where("instrument_key = ? AND time_interval = ?", instrumentKey, interval).
@@ -544,4 +544,58 @@ func (r *CandleRepository) GetStocksWithExistingDailyCandles(
 	}
 
 	return instrumentKeys, nil
+}
+
+// GetEarliestCandle retrieves the oldest candle for a specific instrument and interval
+func (r *CandleRepository) GetEarliestCandle(
+	ctx context.Context,
+	instrumentKey string,
+	interval string,
+) (*domain.Candle, error) {
+	var candle domain.Candle
+
+	result := r.db.WithContext(ctx).
+		Where("instrument_key = ? AND time_interval = ?", instrumentKey, interval).
+		Order("timestamp ASC"). // Order by timestamp ascending to get the earliest
+		First(&candle)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil // No candle found
+		}
+		return nil, fmt.Errorf("failed to get earliest candle: %w", result.Error)
+	}
+
+	return &candle, nil
+}
+
+// GetCandleDateRange retrieves the earliest and latest timestamps for candles of a specific instrument and interval
+func (r *CandleRepository) GetCandleDateRange(
+	ctx context.Context,
+	instrumentKey string,
+	interval string,
+) (earliest, latest time.Time, exists bool, err error) {
+	type DateRange struct {
+		EarliestDate time.Time `gorm:"column:earliest_date"`
+		LatestDate   time.Time `gorm:"column:latest_date"`
+	}
+
+	var dateRange DateRange
+
+	result := r.db.WithContext(ctx).
+		Model(&domain.Candle{}).
+		Select("MIN(timestamp) as earliest_date, MAX(timestamp) as latest_date").
+		Where("instrument_key = ? AND time_interval = ?", instrumentKey, interval).
+		Scan(&dateRange)
+
+	if result.Error != nil {
+		return time.Time{}, time.Time{}, false, fmt.Errorf("failed to get candle date range: %w", result.Error)
+	}
+
+	// Check if we got valid dates (if no records exist, dates will be zero)
+	if dateRange.EarliestDate.IsZero() || dateRange.LatestDate.IsZero() {
+		return time.Time{}, time.Time{}, false, nil
+	}
+
+	return dateRange.EarliestDate, dateRange.LatestDate, true, nil
 }

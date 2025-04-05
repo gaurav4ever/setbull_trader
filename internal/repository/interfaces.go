@@ -145,7 +145,11 @@ type CandleRepository interface {
 	DeleteOlderThan(ctx context.Context, olderThan time.Time) (int, error)
 
 	// Core operations
-	GetLatestCandle(ctx context.Context, instrumentKey, interval string) (*domain.CandleData, error)
+	GetLatestCandle(ctx context.Context, instrumentKey, interval string) (*domain.Candle, error)
+	// GetEarliestCandle retrieves the oldest candle for a specific instrument and interval
+	GetEarliestCandle(ctx context.Context, instrumentKey string, interval string) (*domain.Candle, error)
+	// GetCandleDateRange retrieves the earliest and latest timestamps for candles of a specific instrument and interval
+	GetCandleDateRange(ctx context.Context, instrumentKey string, interval string) (earliest, latest time.Time, exists bool, err error)
 
 	// Aggregation operations
 	GetAggregated5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
@@ -168,4 +172,6 @@ type StockUniverseRepository interface {
 	GetAll(ctx context.Context, onlySelected bool, limit, offset int) ([]domain.StockUniverse, int64, error)
 	ToggleSelection(ctx context.Context, symbol string, isSelected bool) (*domain.StockUniverse, error)
 	DeleteBySymbol(ctx context.Context, symbol string) error
+	// GetStocksByInstrumentKeys retrieves stocks by their instrument keys
+	GetStocksByInstrumentKeys(ctx context.Context, instrumentKeys []string) ([]domain.StockUniverse, error)
 }

@@ -142,10 +142,37 @@ func (s *AuthService) GetHistoricalCandleData(ctx context.Context, userID string
 	// Call the historical candle data API with the authenticated context
 	response, httpResp, err := client.HistoryApi.GetHistoricalCandleData(authCtx, instrumentKey, interval, toDate)
 	if err != nil {
-		// Log detailed error information
-		if httpResp != nil {
-			log.Error("HTTP Status: %d, Error: %v", httpResp.StatusCode, err)
+		// Parse the error response if available
+		if httpResp != nil && httpResp.Body != nil {
+			defer httpResp.Body.Close()
+
+			// Try to read the response body
+			body, readErr := ioutil.ReadAll(httpResp.Body)
+			if readErr == nil {
+				// Try to parse as ApiGatewayErrorResponse
+				var apiError swagger.ApiGatewayErrorResponse
+				if jsonErr := json.Unmarshal(body, &apiError); jsonErr == nil {
+					// Log the detailed API error
+					log.Error("Upstox API error: Status: %d, Error Status: %s",
+						httpResp.StatusCode, apiError.Status)
+
+					for i, problem := range apiError.Errors {
+						log.Error("  Error %d: %v", i+1, problem)
+					}
+
+					return nil, fmt.Errorf("upstox API error: %s", apiError.Status)
+				}
+
+				// If not an API error, log the raw response
+				log.Error("HTTP Status: %d, Raw Response: %s", httpResp.StatusCode, string(body))
+			} else {
+				log.Error("HTTP Status: %d, Error: %v, Failed to read response body: %v",
+					httpResp.StatusCode, err, readErr)
+			}
+		} else {
+			log.Error("Error with no HTTP response: %v", err)
 		}
+
 		return nil, errors.Wrap(err, "failed to get historical candle data")
 	}
 
@@ -196,10 +223,37 @@ func (s *AuthService) GetHistoricalCandleDataWithDateRange(ctx context.Context, 
 
 	// Handle other errors
 	if err != nil {
-		// Log detailed error information
-		if httpResp != nil {
-			log.Error("HTTP Status: %d, Error: %v", httpResp.StatusCode, err)
+		// Parse the error response if available
+		if httpResp != nil && httpResp.Body != nil {
+			defer httpResp.Body.Close()
+
+			// Try to read the response body
+			body, readErr := ioutil.ReadAll(httpResp.Body)
+			if readErr == nil {
+				// Try to parse as ApiGatewayErrorResponse
+				var apiError swagger.ApiGatewayErrorResponse
+				if jsonErr := json.Unmarshal(body, &apiError); jsonErr == nil {
+					// Log the detailed API error
+					log.Error("Upstox API error for %s from %s to %s: Status: %d, Error Status: %s",
+						instrumentKey, fromDate, toDate, httpResp.StatusCode, apiError.Status)
+
+					for i, problem := range apiError.Errors {
+						log.Error("  Error %d: %v", i+1, problem)
+					}
+
+					return nil, fmt.Errorf("upstox API error: %s", apiError.Status)
+				}
+
+				// If not an API error, log the raw response
+				log.Error("HTTP Status: %d, Raw Response: %s", httpResp.StatusCode, string(body))
+			} else {
+				log.Error("HTTP Status: %d, Error: %v, Failed to read response body: %v",
+					httpResp.StatusCode, err, readErr)
+			}
+		} else {
+			log.Error("Error with no HTTP response: %v", err)
 		}
+
 		return nil, errors.Wrap(err, "failed to get historical candle data with date range")
 	}
 
@@ -221,10 +275,37 @@ func (s *AuthService) GetIntraDayCandleData(ctx context.Context, userID string, 
 	// Call the intra-day candle data API using the authenticated context
 	response, httpResp, err := client.HistoryApi.GetIntraDayCandleData(authCtx, instrumentKey, interval)
 	if err != nil {
-		// Log detailed error information
-		if httpResp != nil {
-			log.Error("HTTP Status: %d, Error: %v", httpResp.StatusCode, err)
+		// Parse the error response if available
+		if httpResp != nil && httpResp.Body != nil {
+			defer httpResp.Body.Close()
+
+			// Try to read the response body
+			body, readErr := ioutil.ReadAll(httpResp.Body)
+			if readErr == nil {
+				// Try to parse as ApiGatewayErrorResponse
+				var apiError swagger.ApiGatewayErrorResponse
+				if jsonErr := json.Unmarshal(body, &apiError); jsonErr == nil {
+					// Log the detailed API error
+					log.Error("Upstox API error for intraday data for %s: Status: %d, Error Status: %s",
+						instrumentKey, httpResp.StatusCode, apiError.Status)
+
+					for i, problem := range apiError.Errors {
+						log.Error("  Error %d: %v", i+1, problem)
+					}
+
+					return nil, fmt.Errorf("upstox API error: %s", apiError.Status)
+				}
+
+				// If not an API error, log the raw response
+				log.Error("HTTP Status: %d, Raw Response: %s", httpResp.StatusCode, string(body))
+			} else {
+				log.Error("HTTP Status: %d, Error: %v, Failed to read response body: %v",
+					httpResp.StatusCode, err, readErr)
+			}
+		} else {
+			log.Error("Error with no HTTP response: %v", err)
 		}
+
 		return nil, errors.Wrap(err, "failed to get intra-day candle data")
 	}
 
