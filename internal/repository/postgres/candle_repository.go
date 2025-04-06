@@ -599,3 +599,36 @@ func (r *CandleRepository) GetCandleDateRange(
 
 	return dateRange.EarliestDate, dateRange.LatestDate, true, nil
 }
+
+func (r *CandleRepository) GetNDailyCandlesByTimeframe(
+	ctx context.Context,
+	instrumentKey string,
+	interval string,
+	n int) ([]domain.Candle, error) {
+	var candles []domain.Candle
+
+	result := r.db.WithContext(ctx).
+		Where("instrument_key = ? AND time_interval = ?",
+			instrumentKey,
+			interval,
+		).
+		Order("timestamp DESC"). // Order by newest first
+		Limit(n).                // Limit to N records
+		Find(&candles)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get latest %d candles: %w", n, result.Error)
+	}
+
+	// // Reverse the slice to return candles in ascending order (oldest to newest)
+	// for i, j := 0, len(candles)-1; i < j; i, j = i+1, j-1 {
+	// 	candles[i], candles[j] = candles[j], candles[i]
+	// }
+
+	log.Info("Retrieved %d %s candles for instrument %s",
+		len(candles),
+		interval,
+		instrumentKey)
+
+	return candles, nil
+}

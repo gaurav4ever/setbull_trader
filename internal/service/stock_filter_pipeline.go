@@ -84,17 +84,18 @@ func (p *StockFilterPipeline) RunPipeline(ctx context.Context) (bullish, bearish
 		// Store results for metrics
 		switch i {
 		case 0:
-			basicFilterResults = bullish
+			basicFilterResults = append(bullish, bearish...)
 		case 1:
-			emaFilterResults = bullish
+			emaFilterResults = append(bullish, bearish...)
 		case 2:
-			rsiFilterResults = bullish
+			rsiFilterResults = append(bullish, bearish...)
 		}
 
 		// Update stocks for next filter
-		currentStocks = bullish
+		currentStocks = append(bullish, bearish...)
 
-		log.Info("Filter %d completed. Remaining stocks: %d", i+1, len(bullish))
+		log.Info("Filter %d completed. Bullish: %d, Bearish: %d", i+1, len(bullish), len(bearish))
+
 	}
 
 	// Log final results
@@ -153,6 +154,9 @@ func (p *StockFilterPipeline) logDetailedResults(stocks []domain.FilteredStock) 
 		log.Info("- Volume: %d", stock.DailyVolume)
 		log.Info("- EMA50: %.2f", stock.EMA50)
 		log.Info("- RSI14: %.2f", stock.RSI14)
-		log.Info("- Filters passed: %v", stock.FilterResults)
+		log.Info("- Filter Results:")
+		for filter, reason := range stock.FilterReasons {
+			log.Info("  %s: %s", filter, reason)
+		}
 	}
 }

@@ -150,6 +150,7 @@ type CandleRepository interface {
 	GetEarliestCandle(ctx context.Context, instrumentKey string, interval string) (*domain.Candle, error)
 	// GetCandleDateRange retrieves the earliest and latest timestamps for candles of a specific instrument and interval
 	GetCandleDateRange(ctx context.Context, instrumentKey string, interval string) (earliest, latest time.Time, exists bool, err error)
+	GetNDailyCandlesByTimeframe(ctx context.Context, instrumentKey string, interval string, n int) ([]domain.Candle, error)
 
 	// Aggregation operations
 	GetAggregated5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)

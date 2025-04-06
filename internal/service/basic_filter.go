@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
 	"setbull_trader/pkg/log"
@@ -35,42 +36,62 @@ func (f *BasicFilter) Filter(ctx context.Context, stocks interface{}) (bullish, 
 	case []domain.StockUniverse:
 		log.Info("Starting basic filter for %d stocks", len(input))
 		for _, stock := range input {
-			// Get latest candle
-			lastCandle, err := f.candleRepo.GetLatestCandle(ctx, stock.InstrumentKey, "day")
+			// Get last 10 days candles
+			candles, err := f.candleRepo.GetNDailyCandlesByTimeframe(ctx, stock.InstrumentKey, "day", 10)
 			if err != nil {
-				log.Warn("Failed to get latest candle for %s: %v", stock.InstrumentKey, err)
+				log.Warn("Failed to get candles for %s: %v", stock.InstrumentKey, err)
 				skippedStocks++
 				continue
 			}
 
-			// Check if lastCandle is nil
-			if lastCandle == nil {
-				log.Debug("No candle data available for %s", stock.InstrumentKey)
+			// Check if we have enough candle data
+			if len(candles) < 10 {
+				log.Debug("Insufficient candle data for %s: got %d days", stock.InstrumentKey, len(candles))
 				skippedStocks++
 				continue
 			}
+
+			// Calculate average volume
+			var totalVolume int64
+			for _, candle := range candles {
+				totalVolume += candle.Volume
+			}
+			avgVolume := totalVolume / int64(len(candles))
+			lastCandle := candles[0] // Most recent candle
 
 			// Apply basic filters
 			if lastCandle.Close >= f.minPrice &&
 				lastCandle.Close <= f.maxPrice &&
-				lastCandle.Volume >= f.minVolume {
+				avgVolume >= f.minVolume {
 
 				filteredStock := domain.FilteredStock{
 					Stock:       stock,
-					LastCandle:  *lastCandle,
+					LastCandle:  lastCandle,
 					ClosePrice:  lastCandle.Close,
-					DailyVolume: lastCandle.Volume,
+					DailyVolume: avgVolume,
 					FilterResults: map[string]bool{
 						"basic_filter": true,
+					},
+					FilterReasons: map[string]string{
+						"basic_filter": fmt.Sprintf("PASSED: Price=%.2f (min:%.2f,max:%.2f), Avg Volume=%d (min:%d)",
+							lastCandle.Close, f.minPrice, f.maxPrice, avgVolume, f.minVolume),
 					},
 				}
 
 				filteredStocks = append(filteredStocks, filteredStock)
-				log.Info("Stock %s passed basic filter: Price=%.2f, Volume=%d",
-					stock.Symbol, lastCandle.Close, lastCandle.Volume)
+				log.Info("Stock %s passed basic filter: Price=%.2f, Avg Volume=%d",
+					stock.Symbol, lastCandle.Close, avgVolume)
 			} else {
-				log.Debug("Stock %s failed basic filter: Price=%.2f, Volume=%d",
-					stock.Symbol, lastCandle.Close, lastCandle.Volume)
+				var reason string
+				switch {
+				case lastCandle.Close < f.minPrice:
+					reason = fmt.Sprintf("REJECTED: Price %.2f below minimum %.2f", lastCandle.Close, f.minPrice)
+				case lastCandle.Close > f.maxPrice:
+					reason = fmt.Sprintf("REJECTED: Price %.2f above maximum %.2f", lastCandle.Close, f.maxPrice)
+				case avgVolume < f.minVolume:
+					reason = fmt.Sprintf("REJECTED: Average volume %d below minimum %d", avgVolume, f.minVolume)
+				}
+				log.Debug("Stock %s failed basic filter: %s", stock.Symbol, reason)
 				skippedStocks++
 			}
 		}

@@ -12,7 +12,8 @@ type FilteredStock struct {
 	RSI14         float64
 	IsBullish     bool
 	IsBearish     bool
-	FilterResults map[string]bool // Track which filters passed/failed
+	FilterResults map[string]bool
+	FilterReasons map[string]string
 }
 
 // StockFilter interface defines the contract for all filters
