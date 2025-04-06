@@ -4,16 +4,19 @@ import "context"
 
 // FilteredStock represents a stock that has passed through the filtering pipeline
 type FilteredStock struct {
-	Stock         StockUniverse
-	LastCandle    Candle
-	ClosePrice    float64
-	DailyVolume   int64
-	EMA50         float64
-	RSI14         float64
-	IsBullish     bool
-	IsBearish     bool
-	FilterResults map[string]bool
-	FilterReasons map[string]string
+	Stock            StockUniverse
+	LastCandle       Candle
+	ClosePrice       float64
+	DailyVolume      int64
+	EMA50            float64
+	RSI14            float64
+	IsBullish        bool
+	IsBearish        bool
+	SequenceAnalysis SequenceAnalysis
+	LastPrice        float64
+	LastVolume       float64
+	FilterResults    map[string]bool
+	FilterReasons    map[string]string
 }
 
 // StockFilter interface defines the contract for all filters
@@ -36,5 +39,13 @@ type FilterConfig struct {
 		Period           int
 		BullishThreshold float64
 		BearishThreshold float64
+	}
+	MambaFilter struct {
+		LookbackPeriod    int
+		BullishThreshold  float64
+		BearishThreshold  float64
+		StrengthThreshold float64
+		MinPatternLength  int
+		MaxPatternLength  int
 	}
 }

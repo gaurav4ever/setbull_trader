@@ -63,7 +63,7 @@ func (f *RSIFilter) processStocks(ctx context.Context, stocks []domain.FilteredS
 		endTime := time.Now()
 		if !f.tradingCalendar.IsTradingDay(endTime) {
 			endTime = f.tradingCalendar.PreviousTradingDay(endTime)
-			log.Info("Adjusted end date to previous trading day: %s", endTime.Format("2006-01-02"))
+			// log.Info("Adjusted end date to previous trading day: %s", endTime.Format("2006-01-02"))
 		}
 		endTime = time.Date(endTime.Year(), endTime.Month(), endTime.Day(), 0, 0, 0, 0, endTime.Location())
 
@@ -101,16 +101,16 @@ func (f *RSIFilter) processStocks(ctx context.Context, stocks []domain.FilteredS
 			stock.FilterReasons["rsi_filter"] = fmt.Sprintf("BULLISH: RSI %.2f above threshold %.2f",
 				latestRSI, f.bullishThreshold)
 			bullishStocks = append(bullishStocks, stock)
-			log.Info("Stock %s passed bullish RSI filter: RSI=%.2f",
-				stock.Stock.Symbol, latestRSI)
+			// log.Info("Stock %s passed bullish RSI filter: RSI=%.2f",
+			// 	stock.Stock.Symbol, latestRSI)
 		} else if latestRSI <= f.bearishThreshold {
 			stock.IsBearish = true
 			stock.FilterResults["rsi_filter"] = true
 			stock.FilterReasons["rsi_filter"] = fmt.Sprintf("BEARISH: RSI %.2f below threshold %.2f",
 				latestRSI, f.bearishThreshold)
 			bearishStocks = append(bearishStocks, stock)
-			log.Info("Stock %s passed bearish RSI filter: RSI=%.2f",
-				stock.Stock.Symbol, latestRSI)
+			// log.Info("Stock %s passed bearish RSI filter: RSI=%.2f",
+			// 	stock.Stock.Symbol, latestRSI)
 		} else {
 			stock.FilterReasons["rsi_filter"] = fmt.Sprintf("REJECTED: RSI %.2f between thresholds (bearish:%.2f, bullish:%.2f)",
 				latestRSI, f.bearishThreshold, f.bullishThreshold)

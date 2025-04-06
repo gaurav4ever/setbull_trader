@@ -176,3 +176,27 @@ type StockUniverseRepository interface {
 	// GetStocksByInstrumentKeys retrieves stocks by their instrument keys
 	GetStocksByInstrumentKeys(ctx context.Context, instrumentKeys []string) ([]domain.StockUniverse, error)
 }
+
+// FilteredStockRepository defines operations for managing filtered stocks
+type FilteredStockRepository interface {
+	// Store stores a filtered stock record
+	Store(ctx context.Context, record *domain.FilteredStockRecord) error
+
+	// StoreBatch stores multiple filtered stock records
+	StoreBatch(ctx context.Context, records []domain.FilteredStockRecord) error
+
+	// GetBySymbol retrieves filtered stock records for a specific symbol
+	GetBySymbol(ctx context.Context, symbol string) ([]domain.FilteredStockRecord, error)
+
+	// GetByDate retrieves all filtered stocks for a specific date
+	GetByDate(ctx context.Context, date time.Time) ([]domain.FilteredStockRecord, error)
+
+	// GetByDateRange retrieves filtered stocks within a date range
+	GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]domain.FilteredStockRecord, error)
+
+	// DeleteOlderThan deletes filtered stock records older than the specified date
+	DeleteOlderThan(ctx context.Context, date time.Time) (int, error)
+
+	// GetLatestBySymbol retrieves the most recent filtered stock record for a symbol
+	GetLatestBySymbol(ctx context.Context, symbol string) (*domain.FilteredStockRecord, error)
+}

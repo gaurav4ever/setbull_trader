@@ -140,6 +140,7 @@ func NewApp() *App {
 	tokenRepo := upstox.NewTokenRepository(cacheManager)
 	candleRepo := postgres.NewCandleRepository(db)
 	stockUniverseRepo := postgres.NewStockUniverseRepository(db)
+	filteredStockRepo := postgres.NewFilteredStockRepository(db)
 
 	upstoxParser := parser.NewUpstoxParser(cfg.StockUniverse.FilePath)
 	stockNormalizer := normalizer.NewStockNormalizer()
@@ -158,7 +159,7 @@ func NewApp() *App {
 	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService)
 	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
 	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
-	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService)
+	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 
 	restServer := rest.NewServer(
 		orderService,

@@ -625,10 +625,10 @@ func (r *CandleRepository) GetNDailyCandlesByTimeframe(
 	// 	candles[i], candles[j] = candles[j], candles[i]
 	// }
 
-	log.Info("Retrieved %d %s candles for instrument %s",
-		len(candles),
-		interval,
-		instrumentKey)
+	// log.Info("Retrieved %d %s candles for instrument %s",
+	// 	len(candles),
+	// 	interval,
+	// 	instrumentKey)
 
 	return candles, nil
 }

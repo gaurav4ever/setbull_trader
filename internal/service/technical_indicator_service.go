@@ -73,8 +73,8 @@ func (s *TechnicalIndicatorService) CalculateEMA(
 		}
 	}
 
-	log.Info("Calculated EMA-%d for %s, found %d values",
-		period, instrumentKey, len(values))
+	// log.Info("Calculated EMA-%d for %s, found %d values",
+	// 	period, instrumentKey, len(values))
 
 	return values, nil
 }
@@ -165,8 +165,8 @@ func (s *TechnicalIndicatorService) CalculateRSI(
 		}
 	}
 
-	log.Info("Calculated RSI-%d for %s, found %d values",
-		period, instrumentKey, len(values))
+	// log.Info("Calculated RSI-%d for %s, found %d values",
+	// 	period, instrumentKey, len(values))
 
 	return values, nil
 }
@@ -236,8 +236,8 @@ func (s *TechnicalIndicatorService) CalculateATR(
 		}
 	}
 
-	log.Info("Calculated ATR-%d for %s, found %d values",
-		period, instrumentKey, len(values))
+	// log.Info("Calculated ATR-%d for %s, found %d values",
+	// 	period, instrumentKey, len(values))
 
 	return values, nil
 }
@@ -287,8 +287,8 @@ func (s *TechnicalIndicatorService) CalculateVolumeMA(
 		}
 	}
 
-	log.Info("Calculated Volume MA-%d for %s, found %d values",
-		period, instrumentKey, len(values))
+	// log.Info("Calculated Volume MA-%d for %s, found %d values",
+	// 	period, instrumentKey, len(values))
 
 	return values, nil
 }

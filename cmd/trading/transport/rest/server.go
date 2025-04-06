@@ -593,7 +593,17 @@ func (s *Server) GetMultiTimeframeCandles(w http.ResponseWriter, r *http.Request
 func (s *Server) RunFilterPipeline(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	bullish, bearish, metrics, err := s.stockFilterPipeline.RunPipeline(ctx)
+	// Parse request body for optional parameters
+	var request struct {
+		InstrumentKeys []string `json:"instrumentKeys"` // Optional list of instrument keys to process
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		// If there's an error parsing, just use default values
+		request.InstrumentKeys = []string{}
+	}
+
+	bullish, bearish, metrics, err := s.stockFilterPipeline.RunPipeline(ctx, request.InstrumentKeys)
 	if err != nil {
 		log.Error("Failed to run filter pipeline: %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Failed to run filter pipeline: "+err.Error())

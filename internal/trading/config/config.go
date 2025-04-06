@@ -18,6 +18,7 @@ type Config struct {
 	Upstox         UpstoxConfig         `mapstructure:"upstox"`
 	StockUniverse  StockUniverseConfig  `mapstructure:"stock_universe"`
 	HistoricalData HistoricalDataConfig `mapstructure:"historical_data"`
+	MambaFilter    MambaFilterConfig    `mapstructure:"mamba_filter" yaml:"mamba_filter"`
 	Database       struct {
 		MasterDatasource struct {
 			User     string `yaml:"user"`
@@ -104,6 +105,21 @@ type HistoricalDataConfig struct {
 // StockUniverseConfig contains configuration for the stock universe feature
 type StockUniverseConfig struct {
 	FilePath string `json:"file_path" yaml:"file_path"`
+}
+
+// Add new config type
+type MambaFilterConfig struct {
+	LookbackPeriod       int     `yaml:"lookback_period" json:"lookback_period"`
+	MoveThresholdBullish float64 `yaml:"move_threshold_bullish" json:"move_threshold_bullish"`
+	MoveThresholdBearish float64 `yaml:"move_threshold_bearish" json:"move_threshold_bearish"`
+	MinSequenceLength    int     `yaml:"min_sequence_length" json:"min_sequence_length"`
+	MaxGapDays           int     `yaml:"max_gap_days" json:"max_gap_days"`
+	MinMambaRatio        float64 `yaml:"min_mamba_ratio" json:"min_mamba_ratio"`
+	MinMambaDays         int     `yaml:"min_mamba_days" json:"min_mamba_days"`
+	MoveAnalyzer         struct {
+		StrengthThreshold float64 `yaml:"strength_threshold" json:"strength_threshold"`
+		VolumeWeight      float64 `yaml:"volume_weight" json:"volume_weight"`
+	} `yaml:"move_analyzer" json:"move_analyzer"`
 }
 
 // LoadConfig loads the application configuration from application.yaml

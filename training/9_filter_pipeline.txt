@@ -25,3 +25,103 @@ Phase 3: Results Processing
 Implement result aggregation
 Add detailed logging
 Implement performance optimizations
+
+=======================
+======================
+Yes, I understand the logic. You want to analyze the sequential patterns of Mamba and non-Mamba moves by grouping consecutive days of each type, starting from the oldest data to newest, creating two series that show how long each type of move persists when it occurs (like [2,3,2,3] for Mamba sequences and [4,3,4,5,1] for non-Mamba sequences).
+High-Level Design
+Sequential Pattern Analysis
+Track consecutive occurrences of each move type
+Build two separate series for pattern analysis
+Calculate statistical measures for each series
+Identify typical momentum and consolidation periods
+Pattern Recognition System
+Identify start/end of each sequence
+Calculate sequence lengths
+Analyze sequence transitions
+Generate trading insights
+
+
+Implementation Phases
+Phase 1: Core Sequence Detection
+Implement basic sequence identification
+Track consecutive moves
+Build sequence arrays
+Files: sequence_detector.go
+Phase 2: Statistical Analysis
+Calculate sequence statistics
+Analyze pattern distributions
+Generate basic metrics
+Files: sequence_analyzer.go
+Phase 3: Pattern Recognition
+Implement pattern detection
+Calculate transition probabilities
+Generate sequence insights
+Files: pattern_recognition.go
+Phase 4: Trading Intelligence
+Generate trading signals
+Calculate probability metrics
+Provide actionable insights
+Files: trading_intelligence.go
+Phase 5: Integration & Visualization
+Integrate with existing pipeline
+Add visualization components
+Generate comprehensive reports
+Files: Update existing files
+
+
+
+You're right. Let me redesign the implementation phases considering both the new sequence-based logic and the existing codebase modifications.
+Implementation Phases
+Phase 1: Core Restructuring
+Remove/modify existing move classification logic
+Implement new sequence-based data structures
+Update domain types
+Files to modify:
+mamba_types.go: Remove old types, add new sequence types
+move_analyzer.go: Remove existing analyzer, create new sequence detector
+move_series_manager.go: Remove/archive existing code
+Phase 2: Sequence Detection Implementation
+Implement new sequence detection logic
+Track consecutive Mamba/non-Mamba moves
+Build sequence arrays from oldest to newest
+Files to create/modify:
+sequence_detector.go (new)
+mamba_filter.go: Update filter logic to use sequences
+Phase 3: Analysis Engine
+Implement sequence statistics calculation
+Add pattern recognition
+Calculate average sequence lengths
+Generate sequence-based insights
+Files to create:
+sequence_analyzer.go (new)
+pattern_metrics.go (new)
+Phase 4: Filter Integration
+Update MambaFilter to use new sequence logic
+Modify filtering criteria based on sequences
+Implement new strength calculations
+Files to modify:
+mamba_filter.go: Major updates
+stock_filter_pipeline.go: Update integration points
+Phase 5: Reporting & Visualization
+Update HTML report generation
+Add sequence visualization
+Include pattern analysis in reports
+Files to modify:
+report_generator.go: Add sequence reporting
+Create new HTML templates for sequence visualization
+Detailed Changes Required
+Remove/Archive
+Existing MoveAnalyzer
+SeriesManager
+Old pattern detection logic
+Current strength calculations
+New Components
+SequenceDetector
+SequenceAnalyzer
+PatternRecognition
+SequenceBasedFilter
+Modified Components
+MambaFilter: Complete rewrite
+FilteredStock: Add sequence information
+Pipeline integration: Update for sequence-based filtering

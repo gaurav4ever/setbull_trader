@@ -69,7 +69,7 @@ func (f *EMAFilter) processStocks(ctx context.Context, stocks []domain.FilteredS
 		// Calculate the requested start date based on trading days
 		startTime := f.tradingCalendar.SubtractTradingDays(endTime, f.emaPeriod+10)
 		startTime = time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
-		log.Info("Start time and end time: %s, %s for stock %s", startTime, endTime, stock.Stock.InstrumentKey)
+		// log.Info("Start time and end time: %s, %s for stock %s", startTime, endTime, stock.Stock.InstrumentKey)
 
 		emaValues, err := f.technicalIndicators.CalculateEMA(
 			ctx,
@@ -105,21 +105,21 @@ func (f *EMAFilter) processStocks(ctx context.Context, stocks []domain.FilteredS
 			stock.FilterReasons["ema_filter"] = fmt.Sprintf("BULLISH: Price %.2f is %.2f%% above EMA50 %.2f (threshold: %.2f%%)",
 				stock.ClosePrice, priceDiff*100, latestEMA, f.threshold*100)
 			bullishStocks = append(bullishStocks, stock)
-			log.Info("Stock %s passed bullish EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
-				stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
+			// log.Info("Stock %s passed bullish EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
+			// 	stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
 		} else if priceDiff < -f.threshold {
 			stock.IsBearish = true
 			stock.FilterResults["ema_filter"] = true
 			stock.FilterReasons["ema_filter"] = fmt.Sprintf("BEARISH: Price %.2f is %.2f%% below EMA50 %.2f (threshold: %.2f%%)",
 				stock.ClosePrice, priceDiff*100, latestEMA, f.threshold*100)
 			bearishStocks = append(bearishStocks, stock)
-			log.Info("Stock %s passed bearish EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
-				stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
+			// log.Info("Stock %s passed bearish EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
+			// 	stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
 		} else {
 			stock.FilterReasons["ema_filter"] = fmt.Sprintf("REJECTED: Price %.2f deviation %.2f%% from EMA50 %.2f within threshold ±%.2f%%",
 				stock.ClosePrice, priceDiff*100, latestEMA, f.threshold*100)
-			log.Debug("Stock %s failed EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
-				stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
+			// log.Debug("Stock %s failed EMA filter: Price=%.2f, EMA=%.2f, Diff=%.2f%%",
+			// 	stock.Stock.Symbol, stock.ClosePrice, latestEMA, priceDiff*100)
 			skippedStocks++
 		}
 	}
