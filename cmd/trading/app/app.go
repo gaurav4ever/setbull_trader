@@ -55,6 +55,7 @@ type App struct {
 	upstoxParser            *parser.UpstoxParser
 	stockNormalizer         *normalizer.StockNormalizer
 	tradingCalendarService  *service.TradingCalendarService
+	stockFilterPipeline     *service.StockFilterPipeline
 }
 
 // NewApp creates a new application
@@ -121,22 +122,6 @@ func NewApp() *App {
 	// Extract SQL DB from the connection
 	db := connectionMaster.DB
 
-	// Initialize repositories
-	stockRepo := postgres.NewStockRepository(db)
-	tradeParamsRepo := postgres.NewTradeParametersRepository(db)
-	executionPlanRepo := postgres.NewExecutionPlanRepository(db)
-	levelEntryRepo := postgres.NewLevelEntryRepository(db)
-	orderExecutionRepo := postgres.NewOrderExecutionRepository(db)
-
-	// Initialize services
-	fibCalculator := service.NewFibonacciCalculator()
-	stockService := service.NewStockService(stockRepo, tradeParamsRepo, executionPlanRepo, levelEntryRepo)
-	tradeParamsService := service.NewTradeParametersService(tradeParamsRepo, stockRepo)
-	executionPlanService := service.NewExecutionPlanService(executionPlanRepo, levelEntryRepo, stockRepo, tradeParamsRepo)
-	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo, *orderService, *stockService)
-	utilityService := service.NewUtilityService(fibCalculator)
-	tradingCalendarService := service.NewTradingCalendarService(cfg.Trading.Market.ExcludeWeekends)
-
 	// UPSTOX configurations
 	// Initialize Upstox configuration
 	upstoxConfig := &upstox.AuthConfig{
@@ -146,40 +131,34 @@ func NewApp() *App {
 		BasePath:     cfg.Upstox.BasePath,
 	}
 
-	// Create token repository
+	// Initialize repositories
+	stockRepo := postgres.NewStockRepository(db)
+	tradeParamsRepo := postgres.NewTradeParametersRepository(db)
+	executionPlanRepo := postgres.NewExecutionPlanRepository(db)
+	levelEntryRepo := postgres.NewLevelEntryRepository(db)
+	orderExecutionRepo := postgres.NewOrderExecutionRepository(db)
 	tokenRepo := upstox.NewTokenRepository(cacheManager)
-
-	// Create Upstox service
-	upstoxAuthService := upstox.NewAuthService(upstoxConfig, tokenRepo, cacheManager)
 	candleRepo := postgres.NewCandleRepository(db)
-	candleProcessingService := service.NewCandleProcessingService(
-		upstoxAuthService,
-		candleRepo,
-		cfg.HistoricalData.BatchSize,
-		"upstox_session",
-	)
-
-	batchFetchService := service.NewBatchFetchService(
-		candleProcessingService,
-		cfg.HistoricalData.MaxConcurrentRequests,
-	)
-
-	candleAggService := service.NewCandleAggregationService(
-		candleRepo,
-		batchFetchService,
-		tradingCalendarService,
-	)
-
-	// Initialize stock universe components
 	stockUniverseRepo := postgres.NewStockUniverseRepository(db)
+
 	upstoxParser := parser.NewUpstoxParser(cfg.StockUniverse.FilePath)
 	stockNormalizer := normalizer.NewStockNormalizer()
-	stockUniverseService := service.NewStockUniverseService(
-		stockUniverseRepo,
-		upstoxParser,
-		stockNormalizer,
-		cfg.StockUniverse.FilePath,
-	)
+
+	// Initialize services
+	fibCalculator := service.NewFibonacciCalculator()
+	stockService := service.NewStockService(stockRepo, tradeParamsRepo, executionPlanRepo, levelEntryRepo)
+	tradeParamsService := service.NewTradeParametersService(tradeParamsRepo, stockRepo)
+	executionPlanService := service.NewExecutionPlanService(executionPlanRepo, levelEntryRepo, stockRepo, tradeParamsRepo)
+	orderExecutionService := service.NewOrderExecutionService(orderExecutionRepo, executionPlanRepo, stockRepo, levelEntryRepo, *orderService, *stockService)
+	utilityService := service.NewUtilityService(fibCalculator)
+	tradingCalendarService := service.NewTradingCalendarService(cfg.Trading.Market.ExcludeWeekends)
+	upstoxAuthService := upstox.NewAuthService(upstoxConfig, tokenRepo, cacheManager)
+	candleProcessingService := service.NewCandleProcessingService(upstoxAuthService, candleRepo, cfg.HistoricalData.BatchSize, "upstox_session")
+	batchFetchService := service.NewBatchFetchService(candleProcessingService, cfg.HistoricalData.MaxConcurrentRequests)
+	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService)
+	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
+	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
+	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService)
 
 	restServer := rest.NewServer(
 		orderService,
@@ -193,6 +172,7 @@ func NewApp() *App {
 		batchFetchService,
 		stockUniverseService,
 		candleProcessingService,
+		stockFilterPipeline,
 	)
 
 	return &App{
@@ -221,6 +201,7 @@ func NewApp() *App {
 		upstoxParser:            upstoxParser,
 		stockNormalizer:         stockNormalizer,
 		tradingCalendarService:  tradingCalendarService,
+		stockFilterPipeline:     stockFilterPipeline,
 	}
 }
 

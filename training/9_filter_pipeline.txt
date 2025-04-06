@@ -1,0 +1,27 @@
+High-Level Design
+System Overview
+A pipeline that processes stocks through multiple filters to identify bullish and bearish opportunities based on price, volume, EMA, and RSI criteria.
+Components
+StockFilterPipeline Service
+Orchestrates the entire filtering process
+Maintains lists of bullish and bearish stocks
+Coordinates between different filters
+Filter Components
+BasicFilter: Price and volume criteria
+EMAFilter: 50 EMA-based conditions
+RSIFilter: 14-day RSI conditions
+
+
+Implementation Phases
+Phase 1: Core Pipeline and Basic Filter
+Implement StockFilterPipeline structure
+Implement BasicFilter with price and volume criteria
+Set up logging and error handling
+Phase 2: Technical Indicators Filters
+Implement EMAFilter with 50 EMA calculations
+Implement RSIFilter with 14-day RSI calculations
+Add technical analysis result caching
+Phase 3: Results Processing
+Implement result aggregation
+Add detailed logging
+Implement performance optimizations

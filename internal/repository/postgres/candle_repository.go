@@ -124,7 +124,7 @@ func (r *CandleRepository) FindByInstrumentAndTimeRange(
 	var candles []domain.Candle
 
 	result := r.db.WithContext(ctx).
-		Where("instrument_key = ? AND interval = ? AND timestamp BETWEEN ? AND ?",
+		Where("instrument_key = ? AND time_interval = ? AND timestamp BETWEEN ? AND ?",
 			instrumentKey, interval, fromTime, toTime).
 		Order("timestamp").
 		Find(&candles)

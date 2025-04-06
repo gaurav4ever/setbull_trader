@@ -11,7 +11,7 @@ dhan:
 upstox:
   client_id: "abc"
   client_secret: "xyz" # API secret from Upstox Developer Console
-  redirect_uri: "https://95ea-114-142-166-214.ngrok-free.app/api/v1/upstox/callback" # Must match the URI registered in Upstox Developer Console
+  redirect_uri: "https://631b-114-142-166-214.ngrok-free.app/api/v1/upstox/callback" # Must match the URI registered in Upstox Developer Console
   base_path: "https://api.upstox.com"     # Upstox API base path
 
 historical_data:

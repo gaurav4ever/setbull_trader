@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"setbull_trader/internal/core/adapters/client/upstox"
 	"setbull_trader/internal/core/dto/request"
+	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/service"
@@ -32,6 +33,7 @@ type Server struct {
 	validator               *validator.Validate
 	stockUniverseService    *service.StockUniverseService
 	candleProcessingService *service.CandleProcessingService
+	stockFilterPipeline     *service.StockFilterPipeline
 }
 
 // NewServer creates a new REST API server
@@ -47,6 +49,7 @@ func NewServer(
 	batchFetchService *service.BatchFetchService,
 	stockUniverseService *service.StockUniverseService,
 	candleProcessingService *service.CandleProcessingService,
+	stockFilterPipeline *service.StockFilterPipeline,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -62,6 +65,7 @@ func NewServer(
 		stockUniverseService:    stockUniverseService,
 		candleProcessingService: candleProcessingService,
 		validator:               validator.New(),
+		stockFilterPipeline:     stockFilterPipeline,
 	}
 
 	s.setupRoutes()
@@ -138,6 +142,9 @@ func (s *Server) setupRoutes() {
 	// Candle routes
 	api.HandleFunc("/candles/{instrument_key}/{timeframe}", s.GetCandles).Methods(http.MethodGet)
 	api.HandleFunc("/candles/{instrument_key}/multi", s.GetMultiTimeframeCandles).Methods(http.MethodPost)
+
+	// Filter pipeline routes
+	api.HandleFunc("/filter-pipeline/run", s.RunFilterPipeline).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -579,5 +586,36 @@ func (s *Server) GetMultiTimeframeCandles(w http.ResponseWriter, r *http.Request
 	}
 
 	// Write response
+	respondSuccess(w, response)
+}
+
+// RunFilterPipeline handles running the filter pipeline
+func (s *Server) RunFilterPipeline(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	bullish, bearish, metrics, err := s.stockFilterPipeline.RunPipeline(ctx)
+	if err != nil {
+		log.Error("Failed to run filter pipeline: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to run filter pipeline: "+err.Error())
+		return
+	}
+
+	response := response.FilterPipelineResponse{
+		Status: "success",
+		Data: response.FilterPipelineData{
+			BullishStocks: bullish,
+			BearishStocks: bearish,
+			Metrics: response.PipelineMetrics{
+				TotalStocks:     metrics.TotalStocks,
+				BasicFilterPass: metrics.BasicFilterPass,
+				EMAFilterPass:   metrics.EMAFilterPass,
+				RSIFilterPass:   metrics.RSIFilterPass,
+				BullishStocks:   metrics.BullishStocks,
+				BearishStocks:   metrics.BearishStocks,
+				ProcessingTime:  metrics.ProcessingTime,
+			},
+		},
+	}
+
 	respondSuccess(w, response)
 }
