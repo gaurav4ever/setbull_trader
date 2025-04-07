@@ -11,10 +11,10 @@
 ├── GOALS/
 │   ├── 1_next_2_weeks.txt
 │   ├── 2_next_2_week.txt
-│   └── 3_next_2_weekts.txt
+│   ├── 3_next_2_weekts.txt
+│   └── 4_2025_GOAL.md
 ├── Makefile
 ├── README.md
-├── __debug_bin2695729984
 ├── application.dev.yaml
 ├── application.yaml
 ├── cmd/
@@ -31,8 +31,8 @@
 │               ├── responses.go
 │               ├── server.go
 │               ├── stock_handlers.go
+│               ├── stock_universe_handler.go
 │               ├── trade_parameters_handlers.go
-│               ├── upstox_auth_handlers.go
 │               └── utility_handlers.go
 ├── consolidated_code/
 │   ├── config.txt
@@ -44,6 +44,7 @@
 ├── consolidated_code.sh
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
+├── current_schema.txt
 ├── dhan/
 │   ├── all_in_one.txt
 │   ├── get_history_orders.txt
@@ -133,44 +134,67 @@
 │   │   │       ├── dhan/
 │   │   │       │   ├── dhan_client.go
 │   │   │       │   └── models.go
-│   │   │       └── upstox/
-│   │   │           ├── auth_service.go
-│   │   │           ├── config.go
-│   │   │           ├── kb/
-│   │   │           │   └── 1.authentication.txt
-│   │   │           └── token_repository.go
 │   │   ├── constant/
 │   │   ├── dto/
 │   │   │   ├── request/
 │   │   │   │   └── orders.go
 │   │   │   └── response/
+│   │   │       ├── filter_pipeline.go
 │   │   │       └── orders.go
 │   │   └── service/
 │   │       └── orders/
 │   │           └── service.go
 │   ├── domain/
 │   │   ├── candle.go
+│   │   ├── filtered_stock.go
+│   │   ├── indicator.go
+│   │   ├── mamba_types.go
 │   │   ├── models.go
+│   │   ├── sequence_metrics.go
+│   │   ├── stock_filter.go
+│   │   ├── stock_universe.go
 │   │   └── utility.go
 │   ├── repository/
 │   │   ├── interfaces.go
 │   │   └── postgres/
 │   │       ├── candle_repository.go
 │   │       ├── execution_plan_repository.go
+│   │       ├── filtered_stock_repository.go
 │   │       ├── level_entry_repository.go
 │   │       ├── order_execution_repository.go
 │   │       ├── stock_repository.go
+│   │       ├── stock_universe_repository.go
 │   │       └── trade_parameters_repository.go
 │   ├── service/
+│   │   ├── basic_filter.go
 │   │   ├── batch_fetch_service.go
 │   │   ├── candle_aggregation_service.go
 │   │   ├── candle_processing_service.go
+│   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
+│   │   ├── mamba_filter.go
+│   │   ├── move_analyzer.go
+│   │   ├── normalizer/
+│   │   │   └── stock_normalizer.go
 │   │   ├── order_execution_service.go
+│   │   ├── parser/
+│   │   ├── pipline_monitor.go
+│   │   ├── report_generator.go
+│   │   ├── rsi_filter.go
+│   │   ├── sequence_analyzer.go
+│   │   ├── sequence_detector.go
+│   │   ├── sequence_pattern_analyzer.go
+│   │   ├── stock_filter_pipeline.go
 │   │   ├── stock_service.go
+│   │   ├── stock_universe_service.go
+│   │   ├── technical_indicator_service.go
 │   │   ├── trade_parameters_service.go
-│   │   └── utility_service.go
+│   │   ├── trading_calendar_service.go
+│   │   ├── trend_analyzer.go
+│   │   ├── trend_detector.go
+│   │   ├── utility_service.go
+│   │   └── volatility_calculator.go
 │   └── trading/
 │       ├── config/
 │       │   └── config.go
@@ -178,7 +202,6 @@
 │           └── query/
 ├── main.go
 ├── nse_stocks.txt
-├── nse_upstox.json
 ├── pkg/
 │   ├── apperrors/
 │   │   └── errors.go
@@ -197,7 +220,13 @@
 │   │   │   ├── 20250317154127_add_security_id_to_stocks.down.sql
 │   │   │   ├── 20250317154127_add_security_id_to_stocks.up.sql
 │   │   │   ├── 20250331091305_create_candle_data_table.down.sql
-│   │   │   └── 20250331091305_create_candle_data_table.up.sql
+│   │   │   ├── 20250331091305_create_candle_data_table.up.sql
+│   │   │   ├── 20250403150051_create_stock_universe_table.down.sql
+│   │   │   ├── 20250403150051_create_stock_universe_table.up.sql
+│   │   │   ├── 20250406123051_create_filtered_stock_table.down.sql
+│   │   │   ├── 20250406123051_create_filtered_stock_table.up.sql
+│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.down.sql
+│   │   │   └── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
 │   │   └── queries/
 │   │       ├── stock_candle_data_1day_aggregation.sql
 │   │       └── stock_candle_data_5min_aggregation.sql
@@ -206,278 +235,19 @@
 │   └── util/
 │       └── stockparser/
 │           └── nse_parser.go
+├── reports/
+├── strategies/
+│   ├── 1st_entry_strategy.pine
+│   └── kb/
+│       ├── 1.1_design.md
+│       └── 1_init.md
 ├── training/
 │   ├── 1_execution_requirement.txt
 │   ├── 2_thoughts-timeline-1.txt
 │   ├── 3_design.txt
 │   ├── 4_required_apis.txt
 │   ├── 5_new_stock_file_format_knowledge.txt
-│   └── 6_pine_script_impl.txt
-└── upstox/
-    └── go_api_client/
-        ├── .swagger-codegen/
-        │   └── VERSION
-        ├── .swagger-codegen-ignore
-        ├── .travis.yml
-        ├── README.md
-        ├── api/
-        │   └── swagger.yaml
-        ├── api_charge.go
-        ├── api_history.go
-        ├── api_login.go
-        ├── api_market_holidays_and_timings.go
-        ├── api_market_quote.go
-        ├── api_options.go
-        ├── api_order.go
-        ├── api_order_controller_v3.go
-        ├── api_portfolio.go
-        ├── api_post_trade.go
-        ├── api_trade_profit_and_loss.go
-        ├── api_user.go
-        ├── api_websocket.go
-        ├── client.go
-        ├── configuration.go
-        ├── docs/
-        │   ├── AnalyticsData.md
-        │   ├── ApiGatewayErrorResponse.md
-        │   ├── BatchExecutionSummary.md
-        │   ├── BrokerageData.md
-        │   ├── BrokerageTaxes.md
-        │   ├── BrokerageWrapperData.md
-        │   ├── CancelOrExitMultiOrderData.md
-        │   ├── CancelOrExitMultiOrderResponse.md
-        │   ├── CancelOrExitOrderErrorData.md
-        │   ├── CancelOrderData.md
-        │   ├── CancelOrderResponse.md
-        │   ├── CancelOrderV3Response.md
-        │   ├── ChargeApi.md
-        │   ├── ConvertPositionData.md
-        │   ├── ConvertPositionRequest.md
-        │   ├── ConvertPositionResponse.md
-        │   ├── Depth.md
-        │   ├── DepthMap.md
-        │   ├── DpPlan.md
-        │   ├── ExchangeTimingData.md
-        │   ├── GetBrokerageResponse.md
-        │   ├── GetExchangeTimingResponse.md
-        │   ├── GetFullMarketQuoteResponse.md
-        │   ├── GetGttOrderResponse.md
-        │   ├── GetHistoricalCandleResponse.md
-        │   ├── GetHoldingsResponse.md
-        │   ├── GetHolidayResponse.md
-        │   ├── GetIntraDayCandleResponse.md
-        │   ├── GetMarketQuoteLastTradedPriceResponse.md
-        │   ├── GetMarketQuoteOhlcResponse.md
-        │   ├── GetMarketStatusResponse.md
-        │   ├── GetOptionChainResponse.md
-        │   ├── GetOptionContractResponse.md
-        │   ├── GetOrderBookResponse.md
-        │   ├── GetOrderDetailsResponse.md
-        │   ├── GetOrderResponse.md
-        │   ├── GetPositionResponse.md
-        │   ├── GetProfileResponse.md
-        │   ├── GetProfitAndLossChargesResponse.md
-        │   ├── GetTradeResponse.md
-        │   ├── GetTradeWiseProfitAndLossDataResponse.md
-        │   ├── GetTradeWiseProfitAndLossMetaDataResponse.md
-        │   ├── GetUserFundMarginResponse.md
-        │   ├── GttCancelOrderRequest.md
-        │   ├── GttModifyOrderRequest.md
-        │   ├── GttOrderData.md
-        │   ├── GttOrderDetails.md
-        │   ├── GttPlaceOrderRequest.md
-        │   ├── GttRule.md
-        │   ├── GttTriggerOrderResponse.md
-        │   ├── HistoricalCandleData.md
-        │   ├── HistoryApi.md
-        │   ├── HoldingsData.md
-        │   ├── HolidayData.md
-        │   ├── IndieUserTokenRequest.md
-        │   ├── Instrument.md
-        │   ├── InstrumentData.md
-        │   ├── IntraDayCandleData.md
-        │   ├── LoginApi.md
-        │   ├── LogoutResponse.md
-        │   ├── Margin.md
-        │   ├── MarginData.md
-        │   ├── MarginRequest.md
-        │   ├── MarketData.md
-        │   ├── MarketHolidaysAndTimingsApi.md
-        │   ├── MarketQuoteApi.md
-        │   ├── MarketQuoteOhlc.md
-        │   ├── MarketQuoteSymbol.md
-        │   ├── MarketQuoteSymbolLtp.md
-        │   ├── MarketStatusData.md
-        │   ├── ModifyOrderData.md
-        │   ├── ModifyOrderRequest.md
-        │   ├── ModifyOrderResponse.md
-        │   ├── ModifyOrderV3Response.md
-        │   ├── MultiOrderData.md
-        │   ├── MultiOrderError.md
-        │   ├── MultiOrderRequest.md
-        │   ├── MultiOrderResponse.md
-        │   ├── MultiOrderSummary.md
-        │   ├── MultiOrderV3Data.md
-        │   ├── OAuthClientException.md
-        │   ├── OAuthClientExceptionCause.md
-        │   ├── OAuthClientExceptionCauseStackTrace.md
-        │   ├── OAuthClientExceptionCauseSuppressed.md
-        │   ├── Ohlc.md
-        │   ├── OptionStrikeData.md
-        │   ├── OptionsApi.md
-        │   ├── OrderApi.md
-        │   ├── OrderBookData.md
-        │   ├── OrderControllerV3Api.md
-        │   ├── OrderData.md
-        │   ├── OrderMetadata.md
-        │   ├── OtherTaxes.md
-        │   ├── PlaceOrderData.md
-        │   ├── PlaceOrderRequest.md
-        │   ├── PlaceOrderResponse.md
-        │   ├── PlaceOrderV3Request.md
-        │   ├── PlaceOrderV3Response.md
-        │   ├── PortfolioApi.md
-        │   ├── PositionData.md
-        │   ├── PostMarginResponse.md
-        │   ├── PostTradeApi.md
-        │   ├── Problem.md
-        │   ├── ProfileData.md
-        │   ├── ProfitAndLossChargesData.md
-        │   ├── ProfitAndLossChargesTaxes.md
-        │   ├── ProfitAndLossChargesWrapperData.md
-        │   ├── ProfitAndLossMetaData.md
-        │   ├── ProfitAndLossMetaDataWrapper.md
-        │   ├── ProfitAndLossOtherChargesTaxes.md
-        │   ├── PutCallOptionChainData.md
-        │   ├── Rule.md
-        │   ├── TokenRequest.md
-        │   ├── TokenResponse.md
-        │   ├── TradeData.md
-        │   ├── TradeHistoryResponse.md
-        │   ├── TradeHistoryResponseMetaData.md
-        │   ├── TradeHistoryResponsePageData.md
-        │   ├── TradeHistoryResponseTradeData.md
-        │   ├── TradeProfitAndLossApi.md
-        │   ├── TradeWiseMetaData.md
-        │   ├── TradeWiseProfitAndLossData.md
-        │   ├── UserApi.md
-        │   ├── UserFundMarginData.md
-        │   ├── WebsocketApi.md
-        │   ├── WebsocketAuthRedirectResponse.md
-        │   └── WebsocketAuthRedirectResponseData.md
-        ├── git_push.sh
-        ├── model_analytics_data.go
-        ├── model_api_gateway_error_response.go
-        ├── model_batch_execution_summary.go
-        ├── model_brokerage_data.go
-        ├── model_brokerage_taxes.go
-        ├── model_brokerage_wrapper_data.go
-        ├── model_cancel_or_exit_multi_order_data.go
-        ├── model_cancel_or_exit_multi_order_response.go
-        ├── model_cancel_or_exit_order_error_data.go
-        ├── model_cancel_order_data.go
-        ├── model_cancel_order_response.go
-        ├── model_cancel_order_v3_response.go
-        ├── model_convert_position_data.go
-        ├── model_convert_position_request.go
-        ├── model_convert_position_response.go
-        ├── model_depth.go
-        ├── model_depth_map.go
-        ├── model_dp_plan.go
-        ├── model_exchange_timing_data.go
-        ├── model_get_brokerage_response.go
-        ├── model_get_exchange_timing_response.go
-        ├── model_get_full_market_quote_response.go
-        ├── model_get_gtt_order_response.go
-        ├── model_get_historical_candle_response.go
-        ├── model_get_holdings_response.go
-        ├── model_get_holiday_response.go
-        ├── model_get_intra_day_candle_response.go
-        ├── model_get_market_quote_last_traded_price_response.go
-        ├── model_get_market_quote_ohlc_response.go
-        ├── model_get_market_status_response.go
-        ├── model_get_option_chain_response.go
-        ├── model_get_option_contract_response.go
-        ├── model_get_order_book_response.go
-        ├── model_get_order_details_response.go
-        ├── model_get_order_response.go
-        ├── model_get_position_response.go
-        ├── model_get_profile_response.go
-        ├── model_get_profit_and_loss_charges_response.go
-        ├── model_get_trade_response.go
-        ├── model_get_trade_wise_profit_and_loss_data_response.go
-        ├── model_get_trade_wise_profit_and_loss_meta_data_response.go
-        ├── model_get_user_fund_margin_response.go
-        ├── model_gtt_cancel_order_request.go
-        ├── model_gtt_modify_order_request.go
-        ├── model_gtt_order_data.go
-        ├── model_gtt_order_details.go
-        ├── model_gtt_place_order_request.go
-        ├── model_gtt_rule.go
-        ├── model_gtt_trigger_order_response.go
-        ├── model_historical_candle_data.go
-        ├── model_holdings_data.go
-        ├── model_holiday_data.go
-        ├── model_indie_user_token_request.go
-        ├── model_instrument.go
-        ├── model_instrument_data.go
-        ├── model_intra_day_candle_data.go
-        ├── model_logout_response.go
-        ├── model_margin.go
-        ├── model_margin_data.go
-        ├── model_margin_request.go
-        ├── model_market_data.go
-        ├── model_market_quote_ohlc.go
-        ├── model_market_quote_symbol.go
-        ├── model_market_quote_symbol_ltp.go
-        ├── model_market_status_data.go
-        ├── model_modify_order_data.go
-        ├── model_modify_order_request.go
-        ├── model_modify_order_response.go
-        ├── model_modify_order_v3_response.go
-        ├── model_multi_order_data.go
-        ├── model_multi_order_error.go
-        ├── model_multi_order_request.go
-        ├── model_multi_order_response.go
-        ├── model_multi_order_summary.go
-        ├── model_multi_order_v3_data.go
-        ├── model_o_auth_client_exception.go
-        ├── model_o_auth_client_exception_cause.go
-        ├── model_o_auth_client_exception_cause_stack_trace.go
-        ├── model_o_auth_client_exception_cause_suppressed.go
-        ├── model_ohlc.go
-        ├── model_option_strike_data.go
-        ├── model_order_book_data.go
-        ├── model_order_data.go
-        ├── model_order_metadata.go
-        ├── model_other_taxes.go
-        ├── model_place_order_data.go
-        ├── model_place_order_request.go
-        ├── model_place_order_response.go
-        ├── model_place_order_v3_request.go
-        ├── model_place_order_v3_response.go
-        ├── model_position_data.go
-        ├── model_post_margin_response.go
-        ├── model_problem.go
-        ├── model_profile_data.go
-        ├── model_profit_and_loss_charges_data.go
-        ├── model_profit_and_loss_charges_taxes.go
-        ├── model_profit_and_loss_charges_wrapper_data.go
-        ├── model_profit_and_loss_meta_data.go
-        ├── model_profit_and_loss_meta_data_wrapper.go
-        ├── model_profit_and_loss_other_charges_taxes.go
-        ├── model_put_call_option_chain_data.go
-        ├── model_rule.go
-        ├── model_token_request.go
-        ├── model_token_response.go
-        ├── model_trade_data.go
-        ├── model_trade_history_response.go
-        ├── model_trade_history_response_meta_data.go
-        ├── model_trade_history_response_page_data.go
-        ├── model_trade_history_response_trade_data.go
-        ├── model_trade_wise_meta_data.go
-        ├── model_trade_wise_profit_and_loss_data.go
-        ├── model_user_fund_margin_data.go
-        ├── model_websocket_auth_redirect_response.go
-        ├── model_websocket_auth_redirect_response_data.go
-        └── response.go
+│   ├── 6_pine_script_impl.txt
+│   ├── 7_stock_universe_ingestion.txt
+│   ├── 8_stock_universe_daily_candle.txt
+│   └── 9_filter_pipeline.txt

@@ -1,0 +1,824 @@
+//@version=5
+// Limit strategy to consider only data from the last 27 days
+strategy("MR First Entry Backtester", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=100000, max_bars_back=2000, max_labels_count=500)
+
+// ========================================================================================================
+// 1. GLOBAL CONFIGURATION - Inputs and parameters common to all strategies
+// ========================================================================================================
+// Backtest timing parameters
+var int backTestStartBars = input.int(10, "Bars Back to Start Backtest", minval=0)
+var int startBarIndex = 0
+var int totalAvailableBacktestBars = 10060
+var int startBacktestBar = totalAvailableBacktestBars - (backTestStartBars * 75)
+var bool isBacktestActive = false
+
+// Strategy selection and options
+var string rangeType = input.string("5MR", "Morning Range Type", options=["5MR", "15MR"])
+var bool respectTrend = input.bool(true, "Respect Trend (Buy above 50EMA, Sell below 50EMA)")
+
+// Risk management parameters
+var float initRisk = input.float(30, "Risk in Money", minval=10, step=10000)
+var float stopLossPercent = input.float(0.75, "Stop Loss (% of entry price)", minval=0.1, step=0.1)
+var float tp1RR = input.float(3.0, "First Take Profit (R:R)", minval=1.0, step=0.5)
+var float tp2RR = input.float(5.0, "Second Take Profit (R:R)", minval=1.0, step=0.5)
+var float tp3RR = input.float(7.0, "Third Take Profit (R:R)", minval=1.0, step=0.5)
+var float tp1Size = input.float(10.0, "First Take Profit Size (%)", minval=5.0, step=5.0)
+var float tp2Size = input.float(40.0, "Second Take Profit Size (%)", minval=5.0, step=5.0)
+
+// Entry precision parameters
+var float tickSize = input.float(0.01, "Tick Size", minval=0.01, step=0.01)
+var int tickBuffer = input.int(5, "Entry Buffer in Ticks", minval=1, step=1)
+var float commissionPerShare = input.float(0.0, "Commission Per Share", minval=0.0, step=0.01)
+
+// ATR and visualization parameters
+var int atrLength = input.int(14, "ATR Length", minval=1)
+var float atrToMRRatioThreshold = input.float(3.0, "ATR/MR Ratio Threshold", minval=1.0, step=0.5)
+var int lookbackPeriod = input.int(27, "Lookback Period (Days)", minval=1)
+var bool enableVisualLabels = input.bool(true, "Show Entry/Exit Labels")
+var bool enableTradeLabels = input.bool(true, "Show Trade Stats Labels")
+var bool enableLogs = input.bool(true, "Enable Debug Logs")
+var color longColor = input.color(color.green, "Long Color")
+var color shortColor = input.color(color.red, "Short Color")
+
+// Global variables for ATR
+prevATR = request.security(syminfo.tickerid, "D", ta.atr(atrLength)[1])
+var float atr = ta.atr(atrLength)[1]
+
+// ========================================================================================================
+// 2. TIME MANAGEMENT - Session definitions
+// ========================================================================================================
+// Validate timeframe
+is_5min_timeframe = timeframe.period == "5"
+if not is_5min_timeframe
+    runtime.error("This script requires 5-minute timeframe")
+
+// Time-based session definitions
+// TODO: Add strategy trading hours also so that I can define which strategy works in which hours. 
+isTradingHours = (time >= timestamp(year, month, dayofmonth, 9, 15, 0)) and (time <= timestamp(year, month, dayofmonth, 15, 30, 0))
+is5MRPeriod = (time >= timestamp(year, month, dayofmonth, 9, 15, 0)) and (time < timestamp(year, month, dayofmonth, 9, 20, 0))
+is15MRPeriod = (time >= timestamp(year, month, dayofmonth, 9, 15, 0)) and (time < timestamp(year, month, dayofmonth, 9, 30, 0))
+
+// VERY IMPORTANT
+// This is where I'm defining the exact 9:20AM trade time.
+isEntryAllowed = (rangeType == "5MR") ? (time >= timestamp(year, month, dayofmonth, 9, 20, 0)) : (time >= timestamp(year, month, dayofmonth, 9, 30, 0))
+isLastCandleOfDay = (time >= timestamp(year, month, dayofmonth, 15, 15, 0)) and (time < timestamp(year, month, dayofmonth, 15, 20, 0))
+isNewTradingDay = ta.change(dayofmonth) != 0 or (na(dayofmonth[1]) and not na(dayofmonth))
+
+// ========================================================================================================
+// 3. MARKET CONTEXT - Daily trend analysis
+// ========================================================================================================
+// Daily trend determination
+var bool dailyTrendBullish = na
+var string currentDailyTrend = na
+prevDay50EMA = request.security(syminfo.tickerid, "D", ta.ema(close, 50)[1], barmerge.gaps_off, barmerge.lookahead_off)
+prevDayClose = request.security(syminfo.tickerid, "D", close[1], barmerge.gaps_off, barmerge.lookahead_off)
+
+// ========================================================================================================
+// 4. RANGE CALCULATION - Morning range formation
+// ========================================================================================================
+// Morning Range variables
+var float mrHigh = 0.0
+var float mrLow = 0.0
+var float mrSize = 0.0
+var float longEntryPrice = 0.0
+var float shortEntryPrice = 0.0
+var bool mrCalculated = false
+var bool mrRangeValid = false
+
+// ==========================
+// Helper Functions
+// ==========================
+// FOR LOGGING
+// if enabled it will add a Grey lable with the logs so that,
+// you can check on each bar what happened
+logDebug(message) =>
+    if enableLogs
+        label.new(bar_index, high, message, color=color.gray, textcolor=color.white, style=label.style_label_down, size=size.small)
+    message
+
+
+// SCRIPT STARTS
+if bar_index == startBacktestBar
+    isBacktestActive := true
+log.info("bar_index: " + str.tostring(bar_index) + " backTestStartBars: " + str.tostring(backTestStartBars))
+
+// Update ATR daily
+// LOGIC: As soon as 9:15AM passes. The very next MINUTE. 9:16AM candle, calcaulate ATR of previous 
+// day to calculate MR range
+if is5MRPeriod and time >= timestamp(year, month, dayofmonth, 9, 15, 0) and time < timestamp(year, month, dayofmonth, 9, 16, 0)
+    atr := prevATR  // Get previous day's ATR at the start of each day
+
+// ==========================
+// Morning Range Calculation
+// ==========================
+// Reset MR values and trade status on new trading day
+var bool tradedToday = false
+var string lastLogMessage = ""
+if isNewTradingDay or na(dailyTrendBullish)
+
+    // Set trend for the entire day
+    dailyTrendBullish := prevDayClose > prevDay50EMA
+    currentDailyTrend := dailyTrendBullish ? "BULLISH" : "BEARISH"
+    
+    mrHigh := 0.0
+    mrLow := 0.0
+    mrSize := 0.0
+    mrCalculated := false
+    mrRangeValid := false
+    // Reset the tradedToday flag to allow new trades
+    tradedToday := false
+    lastLogMessage := logDebug("New Day - Reset MR values and trade status")
+
+// Calculate 5MR
+if rangeType == "5MR" and is5MRPeriod
+    if not mrCalculated
+        // Record high/low for the first 5 min candle
+        mrHigh := high
+        mrLow := low
+        mrSize := mrHigh - mrLow
+        
+        // Calculate entry prices with 5-tick buffer
+        longEntryPrice := mrHigh + (tickSize * tickBuffer)
+        shortEntryPrice := mrLow - (tickSize * tickBuffer)
+        
+        float atrToMRRatio = mrSize > 0 ? atr / mrSize : 0
+        mrRangeValid := atrToMRRatio > atrToMRRatioThreshold // this is where I decide to Trade MR trades
+        mrCalculated := true
+        // logDebug("5MR Calculated - High: " + "MR: " + str.tostring(mrSize) + " Long Entry: " + str.tostring(longEntryPrice) + " Short Entry: " + str.tostring(shortEntryPrice) + " Valid: " + (mrRangeValid ? "Yes" : "No"))
+        if enableLogs
+            logDebug("MR: " + str.tostring(mrSize) + " Valid: " + (mrRangeValid ? "Yes" : "No") + " Execution " + " Prev 50EMA: " + str.tostring(prevDay50EMA) + " close: " + str.tostring(close))
+
+// Calculate 15MR
+if rangeType == "15MR" and is15MRPeriod
+    // Update high/low during the 15 min period
+    if mrHigh == 0.0 or high > mrHigh
+        mrHigh := high
+    if mrLow == 0.0 or low < mrLow
+        mrLow := low
+    
+    // Finalize MR at the end of 15MR period
+    if time >= timestamp(year, month, dayofmonth, 9, 29, 55)
+        mrSize := mrHigh - mrLow
+        
+        // Calculate entry prices with 5-tick buffer
+        longEntryPrice := mrHigh + (tickSize * tickBuffer)
+        shortEntryPrice := mrLow - (tickSize * tickBuffer)
+        
+        // Calculate ATR to MR ratio instead of using threshold
+        float atrToMRRatio = mrSize > 0 ? atr / mrSize : 0
+        mrRangeValid := atrToMRRatio > atrToMRRatioThreshold
+        mrCalculated := true
+        
+        if enableLogs
+            lastLogMessage := logDebug("15MR Calculated - High: " + str.tostring(mrHigh) + 
+                           " Low: " + str.tostring(mrLow) + 
+                           " Size: " + str.tostring(mrSize) + 
+                           " Long Entry: " + str.tostring(longEntryPrice) + 
+                           " Short Entry: " + str.tostring(shortEntryPrice) + 
+                           " ATR/MR Ratio: " + str.tostring(atrToMRRatio) + 
+                           " Valid: " + (mrRangeValid ? "Yes" : "No"))
+
+// Plot MR levels if calculated
+if mrCalculated
+    var line mrhighLine = na
+    var line mrlowLine = na
+    var line longEntryLine = na
+    var line shortEntryLine = na
+    
+    if barstate.isfirst or ta.change(dayofmonth) != 0
+        mrhighLine := line.new(bar_index, mrHigh, bar_index, mrHigh, color=color.green, width=2)
+        mrlowLine := line.new(bar_index, mrLow, bar_index, mrLow, color=color.red, width=2)
+        longEntryLine := line.new(bar_index, longEntryPrice, bar_index, longEntryPrice, color=color.green, width=1, style=line.style_dashed)
+        shortEntryLine := line.new(bar_index, shortEntryPrice, bar_index, shortEntryPrice, color=color.red, width=1, style=line.style_dashed)
+    else
+        line.set_x2(mrhighLine, bar_index)
+        line.set_x2(mrlowLine, bar_index)
+        line.set_y1(mrhighLine, mrHigh)
+        line.set_y2(mrhighLine, mrHigh)
+        line.set_y1(mrlowLine, mrLow)
+        line.set_y2(mrlowLine, mrLow)
+        line.set_x2(longEntryLine, bar_index)
+        line.set_x2(shortEntryLine, bar_index)
+        line.set_y1(longEntryLine, longEntryPrice)
+        line.set_y2(longEntryLine, longEntryPrice)
+        line.set_y1(shortEntryLine, shortEntryPrice)
+        line.set_y2(shortEntryLine, shortEntryPrice)
+
+// ========================================================================================================
+// 5. TRADE MANAGEMENT VARIABLES
+// ========================================================================================================
+// Trade state variables
+var bool inLongTrade = false
+var bool inShortTrade = false
+var float entryPrice = 0.0
+var float stopPrice = 0.0
+var float riskPoints = 0.0
+
+// Take profit levels
+var float tp1Price = 0.0 // take at 1:3
+var float tp2Price = 0.0 // take at 1:5
+var float tp3Price = 0.0 // take at 1:7
+
+// Position management
+var float quantity = 0
+var float tp1_quantity = 0.0
+var float tp2_quantity = 0.0
+var float tp3_quantity = 0.0
+
+// Trade tracking
+var bool hitBreakeven = false
+var bool hitTp1 = false
+var bool hitTp2 = false
+var float tp1_pnl = 0.0
+var float tp2_pnl = 0.0
+var float tp3_pnl = 0.0
+var float tp1_pnl_abs = 0.0
+var float tp2_pnl_abs = 0.0
+var float tp3_pnl_abs = 0.0
+var float todayPnL = 0.0
+var float todayPnL_abs = 0.0
+var bool dayWon = false
+var bool dayLost = false
+
+// Performance statistics
+var float totalProfitAbs = 0.0
+var float totalLossAbs = 0.0
+var float largestWin = 0.0
+var float largestLoss = 0.0
+var float avgWinAbs = 0.0
+var float avgLossAbs = 0.0
+var int tradeDays = 0
+var int executedDays = 0
+var int profitDays = 0 
+var int lossDays = 0
+var float totalProfit = 0.0
+var float totalLoss = 0.0
+var int consecutiveWins = 0
+var int consecutiveLosses = 0
+var int maxConsecutiveWins = 0
+var int maxConsecutiveLosses = 0
+var int longTrades = 0
+var int shortTrades = 0
+var int longWins = 0
+var int longLosses = 0
+var int shortWins = 0
+var int shortLosses = 0
+
+// =======================================================================
+// First Entry Strategy Logic - MODIFIED FOR SINGLE ENTRY PER DAY
+// EXECUTION LOGIC
+// =======================================================================
+
+// Only process trades if within lookback period
+if isBacktestActive
+    // Check for entry conditions - only if we haven't traded today
+    if isEntryAllowed and mrRangeValid and not inLongTrade and not inShortTrade and mrCalculated and not tradedToday and barstate.isconfirmed
+        // ******** LONG ENTRY **********
+        // Long entry when price reaches the buffered entry price (5 ticks above MR high)
+        // respectTrend and isAboveEMA
+        if high >= longEntryPrice and (not respectTrend or dailyTrendBullish) and currentDailyTrend == "BULLISH"
+            entryPrice := longEntryPrice  // Using the buffered entry price
+            stopPrice := entryPrice * (1 - stopLossPercent/100)
+            riskPoints := entryPrice - stopPrice
+            
+            tp1Price := entryPrice + (riskPoints * tp1RR)
+            tp2Price := entryPrice + (riskPoints * tp2RR)
+            tp3Price := entryPrice + (riskPoints * tp3RR)
+            
+            strategy.entry("First_Long", strategy.long, limit=longEntryPrice)
+            inLongTrade := true
+            tradedToday := true  // Mark that we've traded today
+            longTrades := longTrades + 1
+
+            // Set quantity
+            quantity := initRisk / riskPoints
+
+            // Calculate quantities for each TP level
+            tp1_quantity := (tp1Size/100) * quantity
+            tp2_quantity := (tp2Size/100) * quantity
+            tp3_quantity := quantity - tp1_quantity - tp2_quantity
+            
+            // Add blue label to mark the breakout candle
+            //label.new(bar_index, high * 1.01, "BREAKOUT", color=color.blue, style=label.style_label_down, textcolor=color.white, size=size.normal)
+            
+            if enableLogs
+                lastLogMessage := logDebug("LONG ENTRY - Price: " + str.tostring(entryPrice) + " Stop: " + str.tostring(stopPrice) + " TP1: " + str.tostring(tp1Price) + " TP2: " + str.tostring(tp2Price) + " TP3: " + str.tostring(tp3Price))
+            
+            // Visual entry marker
+            if enableVisualLabels
+                label.new(bar_index, low * 0.999, "LONG\nEntry: " + str.tostring(entryPrice, "#.##") + 
+                         "\nStop: " + str.tostring(stopPrice, "#.##"), 
+                         color=longColor, style=label.style_label_up, textcolor=color.white)
+        
+        // Short entry when price reaches the buffered entry price (5 ticks below MR low)
+        // ******** SHORT ENTRY **********
+        else if low <= shortEntryPrice and (not respectTrend or not dailyTrendBullish) and currentDailyTrend == "BEARISH"
+            entryPrice := shortEntryPrice  // Using the buffered entry price
+            stopPrice := entryPrice * (1 + stopLossPercent/100)
+            riskPoints := stopPrice - entryPrice
+            
+            tp1Price := entryPrice - (riskPoints * tp1RR)
+            tp2Price := entryPrice - (riskPoints * tp2RR)
+            tp3Price := entryPrice - (riskPoints * tp3RR)
+            
+            strategy.entry("First_Short", strategy.short, limit=shortEntryPrice)
+            inShortTrade := true
+            tradedToday := true  // Mark that we've traded today
+            shortTrades := shortTrades + 1
+
+            // Set quantity
+            quantity := initRisk / riskPoints
+
+            // Calculate quantities for each TP level
+            tp1_quantity := (tp1Size/100) * quantity
+            tp2_quantity := (tp2Size/100) * quantity
+            tp3_quantity := quantity - tp1_quantity - tp2_quantity
+
+            // Reset PnL trackers
+            tp1_pnl_abs := 0.0
+            tp2_pnl_abs := 0.0
+            tp3_pnl_abs := 0.0
+            todayPnL_abs := 0.0
+            
+            // Add blue label to mark the breakout candle
+            //label.new(bar_index, low * 0.99, "BREAKDOWN", color=color.blue, style=label.style_label_up, textcolor=color.white, size=size.normal)
+            
+            if enableLogs
+                lastLogMessage := logDebug("SHORT ENTRY - Price: " + str.tostring(entryPrice) + 
+                         " Stop: " + str.tostring(stopPrice) + 
+                         " TP1: " + str.tostring(tp1Price) + 
+                         " TP2: " + str.tostring(tp2Price) + 
+                         " TP3: " + str.tostring(tp3Price))
+            
+            // Visual entry marker
+            if enableVisualLabels
+                label.new(bar_index, high * 1.001, "SHORT\nEntry: " + str.tostring(entryPrice, "#.##") + 
+                         "\nStop: " + str.tostring(stopPrice, "#.##"), 
+                         color=shortColor, style=label.style_label_down, textcolor=color.white)
+    
+
+// =======================================================================
+// TRADE MANAGEMENT LOGIC
+// =======================================================================
+// Long trade management
+if inLongTrade
+    // Stop loss hit
+    if low <= stopPrice and not hitBreakeven
+        strategy.close("First_Long", comment="SL")
+        inLongTrade := false
+        todayPnL := -riskPoints / entryPrice * 100  // Convert to percentage
+        dayLost := true
+        longLosses := longLosses + 1
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG STOPPED OUT - Loss: " + str.tostring(todayPnL) + "%")
+        
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "SL", color=color.red, style=label.style_label_up, textcolor=color.white)
+    
+    // Move to breakeven after price reaches 1:1 R:R
+    if high >= entryPrice + riskPoints and not hitBreakeven
+        stopPrice := entryPrice
+        hitBreakeven := true
+        
+        //if enableLogs
+          //  lastLogMessage := logDebug("LONG MOVED TO BREAKEVEN")
+        
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "BE", color=color.blue, style=label.style_label_up, textcolor=color.white)
+    
+    // Take profit 1 (10%)
+    if high >= tp1Price and not hitTp1
+        strategy.order("TP1_Long", strategy.long, qty=math.abs((strategy.position_size * tp1Size / 100)), limit=tp1Price)
+        hitTp1 := true
+
+        // Calculate absolute PnL
+        tp1_pnl_abs := tp1_quantity * (tp1Price - entryPrice)
+        tp1_pnl_abs := tp1_pnl_abs - (tp1_quantity * commissionPerShare)  // Subtract commission
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG TP1 HIT - " + str.tostring(tp1Size) + "% (" + str.tostring(tp1_quantity) + " shares)" + " Profit: ₹" + str.tostring(tp1_pnl_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "TP1", color=color.green, style=label.style_label_down, textcolor=color.white)
+    
+    // Take profit 2 (40%)
+    if high >= tp2Price and not hitTp2
+        strategy.order("TP2_Long", strategy.long, qty=math.abs((strategy.position_size * tp2Size / 100)), limit=tp2Price)
+        hitTp2 := true
+
+        // Calculate absolute PnL
+        tp2_pnl_abs := tp2_quantity * (tp2Price - entryPrice)
+        tp2_pnl_abs := tp2_pnl_abs - (tp2_quantity * commissionPerShare)  // Subtract commission
+        
+        // Move stop after TP2 to lock in more profit
+        stopPrice := entryPrice + (tp1Price - entryPrice) * 0.5
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG TP2 HIT - " + str.tostring(tp2Size) + "% (" + str.tostring(tp2_quantity) + " shares)" + " Profit: ₹" + str.tostring(tp2_pnl_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "TP2", color=color.green, style=label.style_label_down, textcolor=color.white)
+    
+    // Take profit 3 (remaining 50%)
+    if high >= tp3Price
+        strategy.close("First_Long", comment="TP3")
+        inLongTrade := false
+
+        // Calculate absolute PnL
+        tp3_pnl_abs := tp3_quantity * (tp3Price - entryPrice)
+        tp3_pnl_abs := tp3_pnl_abs - (tp3_quantity * commissionPerShare)  // Subtract commission
+        
+        // Calculate the blended P&L
+        float remaining_size = 100 - tp1Size - tp2Size
+        tp1_pnl := tp1Size/100 * (tp1Price - entryPrice)
+        tp2_pnl := tp2Size/100 * (tp2Price - entryPrice)
+        tp3_pnl := remaining_size/100 * (tp3Price - entryPrice)
+        todayPnL := (tp1_pnl + tp2_pnl + tp3_pnl) / entryPrice * 100
+        dayWon := true
+        longWins := longWins + 1
+
+        // Total absolute PnL for the trade
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + tp3_pnl_abs
+        dayWon := true
+        longWins := longWins + 1
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG TP3 HIT - Remaining " + str.tostring(100-tp1Size-tp2Size) + "% (" + str.tostring(tp3_quantity) + " shares)" + " Profit: ₹" + str.tostring(tp3_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "TP3", color=color.green, style=label.style_label_down, textcolor=color.white)
+    
+    // FOR STOP LOSS
+    if low <= stopPrice and not hitBreakeven
+        strategy.close("First_Long", comment="SL")
+        inLongTrade := false
+        
+        // Calculate absolute loss
+        float remainingQty = quantity
+        if hitTp1
+            remainingQty := remainingQty - tp1_quantity
+        if hitTp2
+            remainingQty := remainingQty - tp2_quantity
+        
+        float sl_pnl_abs = remainingQty * (stopPrice - entryPrice)
+        sl_pnl_abs := sl_pnl_abs - (remainingQty * commissionPerShare)  // Subtract commission
+        
+        // Calculate blended PnL if partial exits occurred
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + sl_pnl_abs
+        dayLost := true
+        longLosses := longLosses + 1
+        
+        // Update absolute statistics
+        if todayPnL_abs < 0
+            totalLossAbs := totalLossAbs + math.abs(todayPnL_abs)
+            largestLoss := math.max(largestLoss, math.abs(todayPnL_abs))
+        else
+            totalProfitAbs := totalProfitAbs + todayPnL_abs
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG STOPPED OUT - Remaining " + str.tostring(remainingQty) + " shares" + " Loss: ₹" + str.tostring(sl_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+
+
+// Short trade management
+if inShortTrade
+    // WORST CONDITION: SL HIT
+    if high >= stopPrice and not hitBreakeven
+        strategy.close("First_Short", comment="SL")
+        inShortTrade := false
+
+        // Calculate absolute loss
+        float remainingQty = quantity
+        if hitTp1
+            remainingQty := remainingQty - tp1_quantity
+        if hitTp2
+            remainingQty := remainingQty - tp2_quantity
+
+        float sl_pnl_abs = remainingQty * (entryPrice - stopPrice)
+        sl_pnl_abs := sl_pnl_abs - (remainingQty * commissionPerShare)  // Subtract commission
+
+        // Calculate blended PnL if partial exits occurred
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + sl_pnl_abs
+        dayLost := true
+        shortLosses := shortLosses + 1
+
+        // Update absolute statistics
+        if todayPnL_abs < 0
+            totalLossAbs := totalLossAbs + math.abs(todayPnL_abs)
+            largestLoss := math.max(largestLoss, math.abs(todayPnL_abs))
+        else
+            totalProfitAbs := totalProfitAbs + todayPnL_abs
+        
+        if enableLogs
+            lastLogMessage := logDebug("SHORT STOPPED OUT - Remaining " + str.tostring(remainingQty) + " shares" + " Loss: ₹" + str.tostring(sl_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "SL\n₹" + str.tostring(math.round(sl_pnl_abs * 100) / 100), color=color.red, style=label.style_label_down, textcolor=color.white)
+    
+    // CONDITION 1: Price reached 1:1 R, move SL to BREAKEVEN
+    if low <= entryPrice - riskPoints and not hitBreakeven
+        stopPrice := entryPrice
+        hitBreakeven := true
+        
+        //if enableLogs
+          //  lastLogMessage := logDebug("SHORT MOVED TO BREAKEVEN")
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "BE", color=color.blue, style=label.style_label_down, textcolor=color.white)
+    
+    // CONDITION 2: Take profit 1 (10%) at 1:3
+    if low <= tp1Price and not hitTp1
+        strategy.order("TP1_Short", strategy.short, qty=math.abs((strategy.position_size * tp1Size / 100)), limit=tp1Price)
+        hitTp1 := true
+        
+        // Calculate absolute PnL
+        tp1_pnl_abs := tp1_quantity * (entryPrice - tp1Price)
+        tp1_pnl_abs := tp1_pnl_abs - (tp1_quantity * commissionPerShare)  // Subtract commission
+
+        if enableLogs
+            lastLogMessage := logDebug("SHORT TP1 HIT - " + str.tostring(tp1Size) + 
+                                  "% (" + str.tostring(tp1_quantity) + " shares)" + 
+                                  " Profit: ₹" + str.tostring(tp1_pnl_abs))
+    
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "TP1\n₹" + str.tostring(math.round(tp1_pnl_abs * 100) / 100), color=color.green, style=label.style_label_up, textcolor=color.white)
+
+    
+    // CONDITION 3: Take profit 2 (40%) at 1:5
+    if low <= tp2Price and not hitTp2
+        strategy.order("TP2_Short", strategy.short, qty=math.abs((strategy.position_size * tp2Size / 100)), limit=tp2Price)
+        hitTp2 := true
+        
+        // Calculate absolute PnL
+        tp2_pnl_abs := tp2_quantity * (entryPrice - tp2Price)
+        tp2_pnl_abs := tp2_pnl_abs - (tp2_quantity * commissionPerShare)  // Subtract commission
+        
+        // Move stop after TP2 to lock in more profit
+        stopPrice := entryPrice - (entryPrice - tp1Price) * 0.5
+        
+        if enableLogs
+            lastLogMessage := logDebug("SHORT TP2 HIT - " + str.tostring(tp2Size) + "% (" + str.tostring(tp2_quantity) + " shares)" + " Profit: ₹" + str.tostring(tp2_pnl_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "TP2\n₹" + str.tostring(math.round(tp2_pnl_abs * 100) / 100), color=color.green, style=label.style_label_up, textcolor=color.white)
+    
+    // CONDITION 4: Take profit 3 (remaining 50%) 1:7
+    if low <= tp3Price
+        strategy.close("First_Short", comment="TP3")
+        inShortTrade := false
+        
+        // Calculate absolute PnL
+        tp3_pnl_abs := tp3_quantity * (entryPrice - tp3Price)
+        tp3_pnl_abs := tp3_pnl_abs - (tp3_quantity * commissionPerShare)  // Subtract commission
+        
+        // Total absolute PnL for the trade
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + tp3_pnl_abs
+        dayWon := true
+        shortWins := shortWins + 1
+        
+        // Update absolute statistics
+        totalProfitAbs := totalProfitAbs + todayPnL_abs
+        largestWin := math.max(largestWin, todayPnL_abs)
+        
+        if enableLogs
+            lastLogMessage := logDebug("SHORT TP3 HIT - Remaining " + str.tostring(100-tp1Size-tp2Size) + "% (" + str.tostring(tp3_quantity) + " shares)" + " Profit: ₹" + str.tostring(tp3_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "TP3\n₹" + str.tostring(math.round(tp3_pnl_abs * 100) / 100), color=color.green, style=label.style_label_up, textcolor=color.white)
+
+
+
+// =======================================================================
+// DAY END CLOSING AT 3:15PM - CLOSING MANAGEMENT
+// =======================================================================
+// End of Day closing logic
+if isLastCandleOfDay and isBacktestActive
+    // For long positions
+    if inLongTrade
+        // Calculate current P&L including partial exits
+        float remaining_size = 100.0
+        float currentPnl = 0.0
+        float remainingQty = quantity
+        
+        // Calculate P&L for EOD close
+        float eod_pnl_abs = remainingQty * (close - entryPrice)
+        eod_pnl_abs := eod_pnl_abs - (remainingQty * commissionPerShare)  // Subtract commission
+
+        // Calculate blended P&L
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + eod_pnl_abs
+        
+        // Add current position P&L based on remaining size
+        float currentPositionPnl = remaining_size/100 * (close - entryPrice)
+        currentPnl := currentPnl + currentPositionPnl
+        
+        // Update daily P&L
+        todayPnL := currentPnl / entryPrice * 100
+        
+        // Mark as win or loss
+        if todayPnL > 0
+            dayWon := true
+            longWins := longWins + 1
+        else
+            dayLost := true
+            longLosses := longLosses + 1
+    
+        if todayPnL_abs > 0
+            dayWon := true
+            longWins := longWins + 1
+            totalProfitAbs := totalProfitAbs + todayPnL_abs
+        else
+            dayLost := true
+            longLosses := longLosses + 1
+            totalLossAbs := totalLossAbs + math.abs(todayPnL_abs)
+        
+        // Close position
+        strategy.close("First_Long", comment="EOD_CLOSE")
+        inLongTrade := false
+        
+        if enableLogs
+            lastLogMessage := logDebug("LONG EOD CLOSE - Remaining " + str.tostring(remainingQty) + " shares" + " P&L: ₹" + str.tostring(eod_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, high * 1.001, "EOD", color=color.blue, style=label.style_label_down, textcolor=color.white)
+    
+    // For short positions
+    if inShortTrade
+        // Calculate remaining quantity
+        float remainingQty = quantity
+        
+        if hitTp1
+            remainingQty := remainingQty - tp1_quantity
+        if hitTp2
+            remainingQty := remainingQty - tp2_quantity
+        
+        // Calculate P&L for EOD close
+        float eod_pnl_abs = remainingQty * (entryPrice - close)
+        eod_pnl_abs := eod_pnl_abs - (remainingQty * commissionPerShare)  // Subtract commission
+
+        // Calculate blended P&L
+        todayPnL_abs := tp1_pnl_abs + tp2_pnl_abs + eod_pnl_abs
+        
+        if todayPnL_abs > 0
+            dayWon := true
+            shortWins := shortWins + 1
+            totalProfitAbs := totalProfitAbs + todayPnL_abs
+        else
+            dayLost := true
+            shortLosses := shortLosses + 1
+            totalLossAbs := totalLossAbs + math.abs(todayPnL_abs)
+        
+        // Close position
+        strategy.close("First_Short", comment="EOD_CLOSE")
+        inShortTrade := false
+        
+        if enableLogs
+            lastLogMessage := logDebug("SHORT EOD CLOSE - Remaining " + str.tostring(remainingQty) + " shares" + " P&L: ₹" + str.tostring(eod_pnl_abs) + " Total: ₹" + str.tostring(todayPnL_abs))
+        
+        if enableVisualLabels
+            label.new(bar_index, low * 0.999, "EOD\n₹" + str.tostring(math.round(eod_pnl_abs * 100) / 100), color=color.blue, style=label.style_label_up, textcolor=color.white)
+
+
+
+// =======================================================================
+// End of Day Processing
+// =======================================================================
+if isLastCandleOfDay and isBacktestActive
+    if tradedToday
+        executedDays := executedDays + 1
+        
+        if dayWon
+            profitDays := profitDays + 1
+            totalProfit := totalProfit + todayPnL
+            consecutiveWins := consecutiveWins + 1
+            consecutiveLosses := 0
+            maxConsecutiveWins := math.max(maxConsecutiveWins, consecutiveWins)
+            
+            if enableLogs
+                lastLogMessage := logDebug("DAY STATS: WIN - Profit: " + str.tostring(todayPnL) + "%")
+        else if dayLost
+            lossDays := lossDays + 1
+            totalLoss := totalLoss + todayPnL
+            consecutiveLosses := consecutiveLosses + 1
+            consecutiveWins := 0
+            maxConsecutiveLosses := math.max(maxConsecutiveLosses, consecutiveLosses)
+            
+            if enableLogs
+                lastLogMessage := logDebug("DAY STATS: LOSS - Loss: " + str.tostring(todayPnL) + "%")
+        
+        // Display daily result
+        if enableTradeLabels
+            resultColor = dayWon ? color.green : color.red
+            resultText = dayWon ? "WIN: +" + str.tostring(math.round(todayPnL_abs * 100) / 100) : "LOSS: " + str.tostring(math.round(todayPnL_abs * 100) / 100)
+            label.new(bar_index, close, resultText, color=resultColor, textcolor=color.white)
+    else if enableLogs
+        lastLogMessage := logDebug("DAY STATS: No trade executed today")
+    tradeDays := tradeDays + 1
+    
+    // Reset daily variables
+    todayPnL := 0.0
+    dayWon := false
+    dayLost := false
+    inLongTrade := false
+    inShortTrade := false
+    hitBreakeven := false
+    hitTp1 := false
+    hitTp2 := false
+    
+    // Reset MR values for next day
+    mrHigh := 0.0
+    mrLow := 0.0
+    mrSize := 0.0
+    mrCalculated := false
+    mrRangeValid := false
+    longEntryPrice := 0.0
+    shortEntryPrice := 0.0
+
+// =======================================================================
+// Results Calculation & Display
+// =======================================================================
+if barstate.islast
+    // Calculate metrics
+    avgProfit = profitDays > 0 ? totalProfit / profitDays : 0
+    avgLoss = lossDays > 0 ? totalLoss / lossDays : 0
+    winRate = executedDays > 0 ? (profitDays / executedDays) * 100 : 0
+    expectancy = (winRate/100 * avgProfit) + ((1 - winRate/100) * avgLoss)
+    
+    longWinRate = longTrades > 0 ? (longWins / longTrades) * 100 : 0
+    shortWinRate = shortTrades > 0 ? (shortWins / shortTrades) * 100 : 0
+
+    avgWinAbs := profitDays > 0 ? totalProfitAbs / profitDays : 0
+    avgLossAbs := lossDays > 0 ? totalLossAbs / lossDays : 0
+    
+    // Create results table
+    var table resultsTable = table.new(position.bottom_right, 2, 19, border_width=1)
+    
+    // Table header
+    table.cell(resultsTable, 0, 0, rangeType + " First Entry Results (Single Entry)", text_color=color.white, bgcolor=color.blue)
+    table.cell(resultsTable, 1, 0, "", text_color=color.white, bgcolor=color.blue)
+    
+    // Statistics rows
+    table.cell(resultsTable, 0, 1, "Trading Days:")
+    table.cell(resultsTable, 1, 1, str.tostring(tradeDays))
+    
+    table.cell(resultsTable, 0, 2, "Executed Days:")
+    table.cell(resultsTable, 1, 2, str.tostring(executedDays))
+    
+    table.cell(resultsTable, 0, 3, "Win/Loss Days:")
+    table.cell(resultsTable, 1, 3, str.tostring(profitDays) + " / " + str.tostring(lossDays))
+
+    // Update results table with absolute values
+    table.cell(resultsTable, 0, 5, "Avg Win:")
+    table.cell(resultsTable, 1, 5, "₹" + str.tostring(math.round(avgWinAbs * 100) / 100), text_color=color.green)
+    
+    table.cell(resultsTable, 0, 6, "Avg Loss:")
+    table.cell(resultsTable, 1, 6, "₹" + str.tostring(math.round(avgLossAbs * 100) / 100), text_color=color.red)
+    
+    table.cell(resultsTable, 0, 4, "Win Rate:")
+    winRateColor = winRate >= 50 ? color.green : color.red
+    table.cell(resultsTable, 1, 4, str.tostring(math.round(winRate * 100) / 100) + "%", text_color=winRateColor)
+    
+    table.cell(resultsTable, 0, 7, "Expectancy:")
+    expColor = expectancy > 0 ? color.green : color.red
+    table.cell(resultsTable, 1, 7, str.tostring(expectancy), text_color=expColor)
+    
+    if dailyTrendBullish
+        table.cell(resultsTable, 0, 8, "Long Trades:")
+        table.cell(resultsTable, 1, 8, str.tostring(longTrades) + " (" + str.tostring(longWins) + "W/" + str.tostring(longLosses) + "L)")
+        
+        table.cell(resultsTable, 0, 9, "Long Win Rate:")
+        longWinRateColor = longWinRate >= 50 ? color.green : color.red
+        table.cell(resultsTable, 1, 9, str.tostring(math.round(longWinRate * 100) / 100) + "%", text_color=longWinRateColor)
+    
+    if not dailyTrendBullish
+        table.cell(resultsTable, 0, 10, "Short Trades:")
+        table.cell(resultsTable, 1, 10, str.tostring(shortTrades) + " (" + str.tostring(shortWins) + "W/" + str.tostring(shortLosses) + "L)")
+        
+        table.cell(resultsTable, 0, 11, "Short Win Rate:")
+        shortWinRateColor = shortWinRate >= 50 ? color.green : color.red
+        table.cell(resultsTable, 1, 11, str.tostring(math.round(shortWinRate * 100) / 100) + "%", text_color=shortWinRateColor)
+    
+    table.cell(resultsTable, 0, 12, "Max Consec. Wins:")
+    table.cell(resultsTable, 1, 12, str.tostring(maxConsecutiveWins))
+    
+    table.cell(resultsTable, 0, 13, "Max Consec. Losses:")
+    table.cell(resultsTable, 1, 13, str.tostring(maxConsecutiveLosses))
+    
+    table.cell(resultsTable, 0, 14, "Total Profit:")
+    table.cell(resultsTable, 1, 14, "₹" + str.tostring(math.round(totalProfitAbs * 100) / 100), text_color=color.green)
+    
+    table.cell(resultsTable, 0, 15, "Total Loss:")
+    table.cell(resultsTable, 1, 15, "₹" + str.tostring(math.round(totalLossAbs * 100) / 100), text_color=color.red)
+    
+    table.cell(resultsTable, 0, 16, "Net P&L:")
+    float netPnL = totalProfitAbs - totalLossAbs
+    color netColor = netPnL >= 0 ? color.green : color.red
+    table.cell(resultsTable, 1, 16, "₹" + str.tostring(math.round(netPnL * 100) / 100), text_color=netColor)
+    
+    table.cell(resultsTable, 0, 17, "Largest Win:")
+    table.cell(resultsTable, 1, 17, "₹" + str.tostring(math.round(largestWin * 100) / 100), text_color=color.green)
+    
+    table.cell(resultsTable, 0, 18, "Largest Loss:")
+    table.cell(resultsTable, 1, 18, "₹" + str.tostring(math.round(largestLoss * 100) / 100), text_color=color.red)
+    
+    if enableLogs
+        lastLogMessage := logDebug("CURRENT TREND: " + currentDailyTrend + " (Close: " + str.tostring(close) + " EMA50: " + str.tostring(prevDay50EMA) + ")")
