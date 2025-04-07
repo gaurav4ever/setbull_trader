@@ -78,7 +78,7 @@ func (s *CandleAggregationService) GetDailyCandles(
 	ctx context.Context,
 	instrumentKey string,
 	start, end time.Time,
-) ([]domain.AggregatedCandle, error) {
+) ([]domain.Candle, error) {
 	// Validate inputs
 	if instrumentKey == "" {
 		return nil, fmt.Errorf("instrument key is required")
@@ -102,7 +102,7 @@ func (s *CandleAggregationService) GetDailyCandles(
 		instrumentKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
 
 	// Get the aggregated candles from the repository
-	candles, err := s.candleRepo.GetAggregatedDailyCandles(ctx, instrumentKey, start, end)
+	candles, err := s.candleRepo.GetDailyCandlesByTimeframe(ctx, instrumentKey, start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregated daily candles: %w", err)
 	}
@@ -153,12 +153,6 @@ func (s *CandleAggregationService) GetMultiTimeframeCandles(
 				return nil, fmt.Errorf("failed to get 5-minute candles: %w", err)
 			}
 
-		case "day":
-			candles, err = s.GetDailyCandles(ctx, instrumentKey, start, end)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get daily candles: %w", err)
-			}
-
 		default:
 			log.Warn("Unsupported timeframe: %s", timeframe)
 			continue
@@ -185,8 +179,6 @@ func (s *CandleAggregationService) CacheAggregatedCandles(
 	switch timeframe {
 	case "5minute":
 		candles, err = s.Get5MinCandles(ctx, instrumentKey, start, end)
-	case "day":
-		candles, err = s.GetDailyCandles(ctx, instrumentKey, start, end)
 	default:
 		return fmt.Errorf("unsupported timeframe for caching: %s", timeframe)
 	}

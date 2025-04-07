@@ -31,16 +31,17 @@ class CandleProcessor:
         Returns:
             DataFrame with candle data
         """
+
         # Check if the response contains data
-        if not candle_data or 'data' not in candle_data:
-            logger.warning("No candle data found in API response")
-            return pd.DataFrame()
+        # if not candle_data or 'data' not in candle_data:
+        #     logger.warning("No candle data found in API response")
+        #     return pd.DataFrame()
         
         # Extract candles from the response
-        candles = candle_data['data']
-        if not candles:
-            logger.warning("Empty candle list in API response")
-            return pd.DataFrame()
+        candles = candle_data
+        # if not candles:
+        #     logger.warning("Empty candle list in API response")
+        #     return pd.DataFrame()
         
         # Convert to DataFrame
         df = pd.DataFrame(candles)
@@ -148,6 +149,7 @@ class CandleProcessor:
         Returns:
             DataFrame with filtered candles
         """
+        logger.info(f"Filtering trading day candles for date: {trading_date}")
         if df.empty:
             return df
         

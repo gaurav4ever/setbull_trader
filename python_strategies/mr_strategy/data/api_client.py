@@ -88,9 +88,9 @@ class ApiClient:
         
         params = {}
         if start_time:
-            params['start'] = start_time.isoformat()
+            params['start'] = start_time
         if end_time:
-            params['end'] = end_time.isoformat()
+            params['end'] = end_time
         
         url = f"{self.base_url}{endpoint}"
         logger.debug(f"Fetching candles from {url} with params {params}")

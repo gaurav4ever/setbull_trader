@@ -79,6 +79,13 @@ class SignalGenerator:
         # Check for short breakout
         short_breakout = candle['low'] <= short_entry
         
+        # Get timestamp info if available for better logging
+        timestamp_str = candle['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if 'timestamp' in candle else 'N/A'
+        
+        # Log the detailed condition checks
+        logger.info(f"Candle at {timestamp_str} - High: {candle['high']} vs Long entry: {long_entry} = {long_breakout}")
+        logger.info(f"Candle at {timestamp_str} - Low: {candle['low']} vs Short entry: {short_entry} = {short_breakout}")
+        
         # Determine breakout type (prefer long if both occur in same candle)
         breakout_type = None
         if long_breakout:
@@ -86,7 +93,7 @@ class SignalGenerator:
         elif short_breakout:
             breakout_type = 'short'
         
-        logger.debug(f"Breakout check: long={long_breakout}, short={short_breakout}, type={breakout_type}")
+        logger.info(f"Breakout check: long={long_breakout}, short={short_breakout}, type={breakout_type}")
         
         return {
             'has_breakout': long_breakout or short_breakout,
@@ -119,6 +126,10 @@ class SignalGenerator:
         if isinstance(candles.index, pd.DatetimeIndex):
             candles = candles.reset_index()
         
+        # Log morning range values and entry prices for reference
+        logger.info(f"Scanning for breakout with MR high={mr_values.get('high')}, low={mr_values.get('low')}")
+        logger.info(f"Entry prices: long={entry_prices.get('long_entry')}, short={entry_prices.get('short_entry')}")
+        
         morning_end_time = None
         if 'range_type' in mr_values:
             if mr_values['range_type'] == '5MR':
@@ -130,16 +141,33 @@ class SignalGenerator:
         if morning_end_time is None:
             morning_end_time = time(9, 30)
         
+        skip_morning_range = False
+        logger.info(f"Morning end time set to {morning_end_time}, skip_morning_range={skip_morning_range}")
+        logger.info(f"Starting to process {len(candles)} candles for breakout detection")
+        
         # Loop through candles looking for breakout
         for idx, candle in candles.iterrows():
+            # Add timestamp info to the log if available
+            timestamp_str = candle['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if 'timestamp' in candle else 'N/A'
+            
             # Skip candles within morning range if requested
             if skip_morning_range and 'timestamp' in candle:
                 candle_time = candle['timestamp'].time()
                 if candle_time <= morning_end_time:
+                    logger.info(f"Skipping candle #{idx} at {timestamp_str} - within morning range")
                     continue
+            
+            # Log candle being processed with price data
+            logger.info(f"Processing candle #{idx} at {timestamp_str} - O:{candle.get('open', 'N/A')} H:{candle.get('high', 'N/A')} L:{candle.get('low', 'N/A')} C:{candle.get('close', 'N/A')}")
             
             # Check for breakout
             breakout_result = self.check_breakout(candle, mr_values, entry_prices)
+            
+            # Log the check result for each candle
+            if breakout_result['has_breakout']:
+                logger.info(f"Breakout detected in candle #{idx} at {timestamp_str} - Type: {breakout_result['breakout_type']} - H:{candle.get('high', 'N/A')} L:{candle.get('low', 'N/A')}")
+            else:
+                logger.info(f"No breakout in candle #{idx} - High {candle.get('high', 'N/A')} vs long entry {entry_prices.get('long_entry')}, Low {candle.get('low', 'N/A')} vs short entry {entry_prices.get('short_entry')}")
             
             if breakout_result['has_breakout']:
                 # Add timestamp to result
@@ -149,7 +177,7 @@ class SignalGenerator:
                 # Add candle index
                 breakout_result['candle_index'] = idx
                 
-                logger.info(f"Breakout found: {breakout_result['breakout_type']} at index {idx}")
+                logger.info(f"Breakout found: {breakout_result['breakout_type']} at index {idx}, timestamp {timestamp_str}")
                 return breakout_result
         
         # No breakout found
@@ -177,11 +205,17 @@ class SignalGenerator:
             logger.warning("Empty candle data provided for signal generation")
             return None
         
+        logger.info(f"Generating entry signals for {len(candles)} candles")
+        
         # Calculate morning range
         mr_values = mr_calculator.calculate_morning_range(candles)
+        logger.info(f"Calculated morning range - High: {mr_values.get('high')}, Low: {mr_values.get('low')}, Size: {mr_values.get('size')}")
         
         # Check if morning range is valid
-        if not mr_calculator.is_morning_range_valid(mr_values):
+        is_valid = mr_calculator.is_morning_range_valid(mr_values)
+        logger.info(f"Morning range validity check: {is_valid}")
+        
+        if not is_valid:
             logger.warning("Invalid morning range, cannot generate signals")
             return None
         
@@ -195,8 +229,12 @@ class SignalGenerator:
             tick_size=self.tick_size
         )
         
+        logger.info(f"Entry prices calculated - Long: {entry_prices.get('long_entry')}, Short: {entry_prices.get('short_entry')}")
+        
         # Apply additional validations if daily candles are provided
         if daily_candles is not None and not daily_candles.empty:
+            logger.info(f"Applying trend and ATR validations with {len(daily_candles)} daily candles")
+            
             # Get valid signals with trend and ATR validations
             signal_validation = mr_calculator.get_valid_signals(
                 mr_values=mr_values,
@@ -205,6 +243,8 @@ class SignalGenerator:
                 buffer_ticks=self.buffer_ticks,
                 tick_size=self.tick_size
             )
+            
+            logger.info(f"Signal validation - Valid long: {signal_validation.get('valid_long')}, Valid short: {signal_validation.get('valid_short')}, Trend: {signal_validation.get('trend')}")
             
             # If no valid signals, return the validation result with error
             if not signal_validation['valid_long'] and not signal_validation['valid_short']:
@@ -216,6 +256,8 @@ class SignalGenerator:
             # Set validation status
             signal_validation['status'] = 'success'
         else:
+            logger.info("No daily candles provided, using basic validation without ATR and trend")
+            
             # Basic validation without ATR and trend
             signal_validation = {
                 'valid_long': True,
@@ -230,22 +272,31 @@ class SignalGenerator:
             }
         
         # Look for actual breakout in the candle data
-        breakout = self.scan_for_breakout(candles, mr_values, entry_prices)
+        logger.info("Scanning candles for breakout")
+        breakout = self.scan_for_breakout(candles, mr_values, entry_prices, skip_morning_range=False)
         
         # If breakout found, add to signal validation
         if breakout is not None:
+            breakout_time = breakout.get('timestamp', 'unknown time')
+            logger.info(f"Breakout found: {breakout['breakout_type']} at {breakout_time}")
+            
             signal_validation['breakout'] = breakout
             signal_validation['has_breakout'] = True
             signal_validation['breakout_type'] = breakout['breakout_type']
             
             # Check if this breakout direction is valid based on trend
             if breakout['breakout_type'] == 'long' and not signal_validation.get('valid_long', True):
+                logger.warning(f"Long breakout found but not valid due to trend {signal_validation.get('trend', 'unknown')}")
                 signal_validation['status'] = 'error'
                 signal_validation['message'] = f"Long breakout found but not valid due to trend"
             elif breakout['breakout_type'] == 'short' and not signal_validation.get('valid_short', True):
+                logger.warning(f"Short breakout found but not valid due to trend {signal_validation.get('trend', 'unknown')}")
                 signal_validation['status'] = 'error'
                 signal_validation['message'] = f"Short breakout found but not valid due to trend"
+            else:
+                logger.info(f"Valid {breakout['breakout_type']} breakout signal generated")
         else:
+            logger.info("No breakout found in the provided candles")
             signal_validation['has_breakout'] = False
         
         return signal_validation

@@ -499,8 +499,12 @@ func (s *Server) GetCandles(w http.ResponseWriter, r *http.Request) {
 	if startStr != "" {
 		start, err = time.Parse(time.RFC3339, startStr)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid start time format, use RFC3339")
-			return
+			// Try parsing with the local timezone offset
+			start, err = time.Parse("2006-01-02T15:04:05+05:30", startStr)
+			if err != nil {
+				respondWithError(w, http.StatusBadRequest, "Invalid start time format, use RFC3339")
+				return
+			}
 		}
 	}
 
@@ -508,8 +512,12 @@ func (s *Server) GetCandles(w http.ResponseWriter, r *http.Request) {
 	if endStr != "" {
 		end, err = time.Parse(time.RFC3339, endStr)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid end time format, use RFC3339")
-			return
+			// Try parsing with the local timezone offset
+			end, err = time.Parse("2006-01-02T15:04:05+05:30", endStr)
+			if err != nil {
+				respondWithError(w, http.StatusBadRequest, "Invalid end time format, use RFC3339")
+				return
+			}
 		}
 	}
 

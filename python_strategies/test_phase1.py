@@ -16,6 +16,7 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime, time, timedelta
+import pytz  # Add this import at the top of your file
 
 # Configure logging
 logging.basicConfig(
@@ -27,6 +28,9 @@ logger = logging.getLogger('mr_strategy_test')
 # Add the parent directory to sys.path to allow importing the package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Define IST timezone
+IST = pytz.timezone('Asia/Kolkata')
+
 # Import strategy components
 from mr_strategy.data.api_client import ApiClient
 from mr_strategy.data.data_processor import CandleProcessor
@@ -37,9 +41,9 @@ from mr_strategy.utils.time_utils import is_market_open, get_trading_days_betwee
 # Test configuration
 TEST_CONFIG = {
     'api_base_url': 'http://localhost:8080/api/v1',  # Update with your actual API URL
-    'instrument_key': 'NSE_EQ|INE070D01027',  # Example: HDFC Bank
-    'start_date': datetime.now() - timedelta(days=7),
-    'end_date': datetime.now(),
+    'instrument_key': 'NSE_EQ|INE777F01014',  # Example: EXICOM
+    'start_date': datetime.now(IST) - timedelta(days=1),  # Set to IST
+    'end_date': datetime.now(IST),  # Set to IST
     'range_type': '5MR',  # '5MR' or '15MR'
     'buffer_ticks': 5,
     'tick_size': 0.05
@@ -57,18 +61,30 @@ def test_api_client():
         health = client.get_health()
         logger.info(f"API Health: {health}")
         
+        # Format start and end times to RFC3339
+        start_time = TEST_CONFIG['start_date'].strftime('%Y-%m-%dT%H:%M:%SZ')  # Format to RFC3339
+        end_time = TEST_CONFIG['end_date'].strftime('%Y-%m-%dT%H:%M:%SZ')      # Format to RFC3339
+
+        start_time = "2025-04-07T09:15:00+05:30"
+        end_time = "2025-04-07T15:25:00+05:30"
+        
+        logger.info(f"Formatted start time: {start_time}, end time: {end_time}")
+        
         # Test candle data fetching
         candles = client.get_candles(
             instrument_key=TEST_CONFIG['instrument_key'],
             timeframe='5minute',
-            start_time=TEST_CONFIG['start_date'],
-            end_time=TEST_CONFIG['end_date']
+            start_time=start_time,
+            end_time=end_time
         )
+
+        logger.info(f"Candles fetched")
         
-        if 'data' in candles and candles['data']:
-            candle_count = len(candles['data'])
+        if 'data' in candles and 'data' in candles['data']:
+            candle_data = candles['data']['data']  # Access the inner data array
+            candle_count = len(candle_data)
             logger.info(f"Successfully fetched {candle_count} candles for {TEST_CONFIG['instrument_key']}")
-            return candles
+            return candle_data  # Return the extracted candle data
         else:
             logger.error("No candle data retrieved")
             return None
@@ -82,6 +98,7 @@ def test_api_client():
 
 def generate_mock_candle_data():
     """Generate mock candle data for testing when API is not available."""
+    logger.info("Generating mock candle data...")
     # Current date
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
@@ -106,7 +123,7 @@ def generate_mock_candle_data():
     for i in range(70):  # Rest of the day
         candle_time = start_time + timedelta(minutes=5*i)
         # Create a breakout around 10:30
-        if i == this_high in range(10, 15):
+        if i in range(10, 15):
             high_value = 102 + np.random.uniform(0, 1)  # Breakout above morning range
             low_value = 100 + np.random.uniform(-0.5, 0.5)
         # Create a breakdown around 11:30
@@ -138,6 +155,8 @@ def generate_mock_candle_data():
             'close': 100 + np.random.uniform(-5, 5),
             'volume': int(np.random.uniform(100000, 500000))
         })
+    
+    logger.info("Mock candle data generated successfully.")
     
     return {
         'status': 'success',
@@ -176,7 +195,7 @@ def test_data_processor(candle_data):
         logger.info(f"Morning candles count: {len(morning_candles)}")
         
         # Test filtering trading day candles
-        today = datetime.now().date()
+        today = datetime.now() - timedelta(days=1)  # This is a datetime, not just a date
         day_candles = processor.filter_trading_day_candles(df, today)
         logger.info(f"Trading day candles count: {len(day_candles)}")
         
@@ -270,6 +289,8 @@ def test_signal_generator(candle_df, mr_calculator, mr_values, daily_df=None):
             buffer_ticks=TEST_CONFIG['buffer_ticks'],
             tick_size=TEST_CONFIG['tick_size']
         )
+        
+        logger.debug(f"Entry prices for signal generation: {entry_prices}")
         
         # Scan for breakout
         breakout = signal_generator.scan_for_breakout(candle_df, mr_values, entry_prices)
