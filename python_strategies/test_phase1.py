@@ -6,6 +6,9 @@ This script tests the functionality of:
 2. Data Processor
 3. Morning Range Calculator
 4. Signal Generator
+5. Configuration and State Management
+6. Signal Models and Types
+7. Enhanced Signal Generator
 
 Run this script to verify the basic functionality of the Morning Range strategy components.
 """
@@ -17,6 +20,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, time, timedelta
 import pytz  # Add this import at the top of your file
+from mr_strategy.strategy.config import MRStrategyConfig, BreakoutState
+from mr_strategy.strategy.models import SignalType, SignalDirection, Signal, SignalGroup
 
 # Configure logging
 logging.basicConfig(
@@ -320,7 +325,7 @@ def test_signal_generator(candle_df, mr_calculator, mr_values, daily_df=None):
             logger.info("No signal generated")
         
         # Test signals for day
-        today = datetime.now()
+        today = datetime.now() - timedelta(days=1)
         day_signals = signal_generator.generate_signals_for_day(
             mr_calculator=mr_calculator,
             intraday_candles=candle_df,
@@ -336,9 +341,249 @@ def test_signal_generator(candle_df, mr_calculator, mr_values, daily_df=None):
         logger.error(f"Signal Generator test failed: {str(e)}")
         return None
 
+def test_configuration():
+    """Test the configuration and state management functionality."""
+    logger.info("Testing Configuration and State Management...")
+    
+    try:
+        # Test default configuration
+        default_config = MRStrategyConfig()
+        logger.info(f"Default configuration: {default_config}")
+        
+        # Test custom configuration
+        custom_config = MRStrategyConfig(
+            breakout_percentage=0.005,  # 0.5%
+            invalidation_percentage=0.008,  # 0.8%
+            max_retest_candles=10,
+            buffer_ticks=3,
+            tick_size=0.1,
+            range_type='15MR',
+            market_open=time(9, 15),
+            respect_trend=False
+        )
+        logger.info(f"Custom configuration: {custom_config}")
+        
+        # Test invalid configurations
+        try:
+            MRStrategyConfig(breakout_percentage=-0.001)
+            logger.error("Should have raised ValueError for negative breakout_percentage")
+            return False
+        except ValueError:
+            logger.info("Correctly caught negative breakout_percentage")
+        
+        try:
+            MRStrategyConfig(range_type='invalid')
+            logger.error("Should have raised ValueError for invalid range_type")
+            return False
+        except ValueError:
+            logger.info("Correctly caught invalid range_type")
+        
+        # Test state management
+        state = BreakoutState()
+        logger.info(f"Initial state: {state.to_dict()}")
+        
+        # Test state updates
+        state.is_breakout_confirmed = True
+        state.breakout_type = 'LONG'
+        state.breakout_price = 100.0
+        state.breakout_time = datetime.now()
+        state.mr_level = 99.0
+        state.threshold_level = 100.3
+        
+        logger.info(f"Updated state: {state.to_dict()}")
+        
+        # Test state validation
+        logger.info(f"State is valid: {state.is_valid()}")
+        
+        # Test state reset
+        state.reset()
+        logger.info(f"Reset state: {state.to_dict()}")
+        logger.info(f"State is valid after reset: {state.is_valid()}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Configuration test failed: {str(e)}")
+        return False
+
+def test_models():
+    """Test the signal models and types functionality."""
+    logger.info("Testing Signal Models and Types...")
+    
+    try:
+        # Test SignalType enum
+        logger.info("Testing SignalType enum...")
+        assert SignalType.IMMEDIATE_BREAKOUT.value == "immediate_breakout"
+        assert SignalType.BREAKOUT_CONFIRMATION.value == "breakout_confirmation"
+        assert SignalType.RETEST_ENTRY.value == "retest_entry"
+        
+        # Test SignalDirection enum
+        logger.info("Testing SignalDirection enum...")
+        assert SignalDirection.LONG.value == "LONG"
+        assert SignalDirection.SHORT.value == "SHORT"
+        
+        # Test Signal creation
+        logger.info("Testing Signal creation...")
+        timestamp = datetime.now()
+        mr_values = {'high': 100.0, 'low': 99.0}
+        
+        signal = Signal(
+            type=SignalType.IMMEDIATE_BREAKOUT,
+            direction=SignalDirection.LONG,
+            timestamp=timestamp,
+            price=100.5,
+            mr_values=mr_values,
+            metadata={'test': 'value'}
+        )
+        
+        logger.info(f"Created signal: {signal}")
+        logger.info(f"Signal as dict: {signal.to_dict()}")
+        
+        # Test SignalGroup creation
+        logger.info("Testing SignalGroup creation...")
+        signal_group = SignalGroup(
+            signals=[signal],
+            start_time=timestamp,
+            end_time=timestamp,
+            status='active'
+        )
+        
+        logger.info(f"Created signal group: {signal_group}")
+        logger.info(f"Signal group as dict: {signal_group.to_dict()}")
+        
+        # Test adding signal to group
+        new_signal = Signal(
+            type=SignalType.RETEST_ENTRY,
+            direction=SignalDirection.LONG,
+            timestamp=timestamp + timedelta(minutes=5),
+            price=100.2,
+            mr_values=mr_values
+        )
+        
+        signal_group.add_signal(new_signal)
+        logger.info(f"Updated signal group: {signal_group}")
+        
+        # Test invalid signal creation
+        try:
+            Signal(
+                type="invalid_type",  # Should be SignalType
+                direction=SignalDirection.LONG,
+                timestamp=timestamp,
+                price=100.5,
+                mr_values=mr_values
+            )
+            logger.error("Should have raised TypeError for invalid signal type")
+            return False
+        except TypeError:
+            logger.info("Correctly caught invalid signal type")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Models test failed: {str(e)}")
+        return False
+
+def test_enhanced_signal_generator():
+    """Test the enhanced signal generator functionality."""
+    logger.info("Testing Enhanced Signal Generator...")
+    
+    try:
+        # Create configuration
+        config = MRStrategyConfig(
+            breakout_percentage=0.003,  # 0.3%
+            invalidation_percentage=0.005,  # 0.5%
+            buffer_ticks=5,
+            tick_size=0.05
+        )
+        
+        # Create signal generator
+        signal_generator = SignalGenerator(config=config)
+        
+        # Create test data
+        mr_values = {
+            'high': 100.0,
+            'low': 99.0,
+            'range_type': '5MR'
+        }
+        
+        # Test immediate breakout
+        logger.info("Testing immediate breakout...")
+        candle = {
+            'timestamp': datetime.now(),
+            'open': 99.5,
+            'high': 100.1,  # Above MR high
+            'low': 99.4,
+            'close': 100.0
+        }
+        
+        signals = signal_generator.process_candle(candle, mr_values)
+        logger.info(f"Generated signals: {[s.to_dict() for s in signals]}")
+        
+        # Test breakout confirmation
+        logger.info("Testing breakout confirmation...")
+        candle = {
+            'timestamp': datetime.now(),
+            'open': 100.1,
+            'high': 100.4,
+            'low': 100.0,
+            'close': 100.3  # Above threshold (100.0 * 1.003 = 100.3)
+        }
+        
+        signals = signal_generator.process_candle(candle, mr_values)
+        logger.info(f"Generated signals: {[s.to_dict() for s in signals]}")
+        
+        # Test retest
+        logger.info("Testing retest...")
+        candle = {
+            'timestamp': datetime.now(),
+            'open': 100.2,
+            'high': 100.3,
+            'low': 99.9,  # Tests MR high
+            'close': 100.1  # Closes above MR high
+        }
+        
+        signals = signal_generator.process_candle(candle, mr_values)
+        logger.info(f"Generated signals: {[s.to_dict() for s in signals]}")
+        
+        # Test multiple candles
+        logger.info("Testing multiple candles...")
+        candles = pd.DataFrame([
+            {
+                'timestamp': datetime.now() + timedelta(minutes=i),
+                'open': 99.5,
+                'high': 100.1,
+                'low': 99.4,
+                'close': 100.0
+            } for i in range(5)
+        ])
+        
+        signals = signal_generator.process_candles(candles, mr_values)
+        logger.info(f"Generated signals from multiple candles: {[s.to_dict() for s in signals]}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Enhanced Signal Generator test failed: {str(e)}")
+        return False
+
 def run_all_tests():
     """Run all tests in sequence."""
     logger.info("Starting Phase 1 component tests...")
+    
+    # Test configuration first
+    if not test_configuration():
+        logger.error("Configuration tests failed, aborting further tests")
+        return False
+    
+    # Test models
+    if test_models():
+        logger.error("Models tests failed, aborting further tests")
+        return False
+    
+    # Test enhanced signal generator
+    if not test_enhanced_signal_generator():
+        logger.error("Enhanced Signal Generator tests failed, aborting further tests")
+        return False
     
     # Test API client
     candle_data = test_api_client()

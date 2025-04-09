@@ -1,0 +1,257 @@
+"""
+Base Morning Range Strategy Implementation.
+
+This module implements the core Morning Range strategy logic that is
+common across different variants.
+"""
+
+from typing import Dict, Optional, Union, List, Tuple
+import pandas as pd
+import numpy as np
+from datetime import datetime, time
+import logging
+
+from .base_strategy import BaseStrategy, StrategyState, StrategyConfig
+from ..data.data_processor import CandleProcessor
+from .position_manager import PositionManager
+from .trade_manager import TradeManager
+from .risk_calculator import RiskCalculator
+
+logger = logging.getLogger(__name__)
+
+class MorningRangeStrategy(BaseStrategy):
+    """Base implementation of Morning Range strategy."""
+    
+    def __init__(self, 
+                 config: StrategyConfig,
+                 position_manager: PositionManager,
+                 trade_manager: TradeManager,
+                 risk_calculator: RiskCalculator):
+        """Initialize Morning Range strategy."""
+        super().__init__(config)
+        self.position_manager = position_manager
+        self.trade_manager = trade_manager
+        self.risk_calculator = risk_calculator
+        self.candle_processor = CandleProcessor()
+        
+        logger.info(f"Initialized Morning Range Strategy: {config.range_type} - {config.entry_type}")
+
+    def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
+        """Calculate morning range values."""
+        if candles.empty:
+            logger.warning("Empty candle data provided")
+            return {}
+            
+        morning_candles, mr_values = self.candle_processor.extract_morning_range(
+            candles,
+            range_type=self.config.range_type
+        )
+        
+        if not mr_values:
+            logger.warning("Failed to calculate morning range")
+            self.update_state(StrategyState.ERROR)
+            return {}
+            
+        self.morning_range = mr_values
+        self.update_state(StrategyState.RANGE_CALCULATED)
+        
+        logger.info(f"Calculated morning range: {mr_values}")
+        return mr_values
+
+    def calculate_entry_levels(self) -> Dict:
+        """Calculate entry and exit levels."""
+        if not self.morning_range:
+            logger.warning("Morning range not calculated")
+            return {}
+            
+        mr_high = self.morning_range['high']
+        mr_low = self.morning_range['low']
+        
+        # Calculate buffer
+        buffer = self.config.buffer_ticks * self.config.tick_size
+        
+        # Calculate entry levels
+        long_entry = mr_high + buffer
+        short_entry = mr_low - buffer
+        
+        # Calculate stop loss levels
+        long_sl = long_entry * (1 - self.config.sl_percentage/100)
+        short_sl = short_entry * (1 + self.config.sl_percentage/100)
+        
+        # Calculate target levels based on R-multiple
+        long_risk = long_entry - long_sl
+        short_risk = short_sl - short_entry
+        
+        long_target = long_entry + (long_risk * self.config.target_r)
+        short_target = short_entry - (short_risk * self.config.target_r)
+        
+        levels = {
+            'long_entry': round(long_entry, 2),
+            'short_entry': round(short_entry, 2),
+            'long_sl': round(long_sl, 2),
+            'short_sl': round(short_sl, 2),
+            'long_target': round(long_target, 2),
+            'short_target': round(short_target, 2),
+            'long_risk': round(long_risk, 2),
+            'short_risk': round(short_risk, 2)
+        }
+        
+        self.entry_levels = levels
+        logger.info(f"Calculated entry levels: {levels}")
+        return levels
+
+    def validate_setup(self, candles: pd.DataFrame) -> bool:
+        """Validate strategy setup conditions."""
+        if not self.morning_range or not self.entry_levels:
+            logger.warning("Missing morning range or entry levels")
+            return False
+            
+        # Validate range size
+        range_size = self.morning_range['high'] - self.morning_range['low']
+        min_range = 10 * self.config.tick_size
+        max_range = 100 * self.config.tick_size
+        
+        if not min_range <= range_size <= max_range:
+            logger.warning(f"Invalid range size: {range_size}")
+            return False
+        
+        # Validate risk-reward
+        long_rr = abs(self.entry_levels['long_target'] - self.entry_levels['long_entry']) / \
+                  abs(self.entry_levels['long_entry'] - self.entry_levels['long_sl'])
+                  
+        short_rr = abs(self.entry_levels['short_entry'] - self.entry_levels['short_target']) / \
+                   abs(self.entry_levels['short_sl'] - self.entry_levels['short_entry'])
+        
+        min_rr = 1.5
+        if long_rr < min_rr and short_rr < min_rr:
+            logger.warning(f"Insufficient risk-reward: long={long_rr}, short={short_rr}")
+            return False
+        
+        self.update_state(StrategyState.SETUP_CONFIRMED)
+        return True
+
+    @abstractmethod
+    def check_entry_conditions(self, candle: Dict) -> Tuple[bool, str]:
+        """To be implemented by specific entry type strategies."""
+        pass
+
+    def check_exit_conditions(self, candle: Dict) -> Tuple[bool, str]:
+        """Check exit conditions."""
+        if not self.position:
+            return False, "No active position"
+            
+        position_type = self.position['position_type']
+        current_price = candle['close']
+        
+        # Check stop loss
+        if position_type == "LONG":
+            if current_price <= self.position['stop_loss']:
+                return True, "Stop loss hit"
+        else:  # SHORT
+            if current_price >= self.position['stop_loss']:
+                return True, "Stop loss hit"
+        
+        # Check target
+        if position_type == "LONG":
+            if current_price >= self.position['take_profit']:
+                return True, "Target reached"
+        else:  # SHORT
+            if current_price <= self.position['take_profit']:
+                return True, "Target reached"
+        
+        return False, "Exit conditions not met"
+
+    def process_candle(self, candle: Dict) -> Dict:
+        """Process new candle data."""
+        if self.state == StrategyState.WAITING_FOR_RANGE:
+            return {'action': 'waiting_for_range'}
+            
+        if self.state == StrategyState.RANGE_CALCULATED:
+            if not self.validate_setup(pd.DataFrame([candle])):
+                return {'action': 'invalid_setup'}
+        
+        if self.state == StrategyState.SETUP_CONFIRMED:
+            should_enter, entry_type = self.check_entry_conditions(candle)
+            if should_enter:
+                entry_result = self.execute_entry(candle, entry_type)
+                return {'action': 'entry', 'result': entry_result}
+        
+        if self.state == StrategyState.IN_POSITION:
+            should_exit, exit_reason = self.check_exit_conditions(candle)
+            if should_exit:
+                exit_result = self.execute_exit(candle, exit_reason)
+                return {'action': 'exit', 'result': exit_result}
+        
+        return {'action': 'no_action'}
+
+    def execute_entry(self, candle: Dict, entry_type: str) -> Dict:
+        """Execute entry order."""
+        current_price = candle['close']
+        position_type = "LONG" if current_price >= self.entry_levels['long_entry'] else "SHORT"
+        
+        # Calculate position size
+        risk_amount = self.entry_levels[f'{position_type.lower()}_risk']
+        position_size = self.position_manager.calculate_position_size(
+            current_price,
+            self.config.sl_percentage,
+            position_type
+        )
+        
+        # Validate position risk
+        position_risk = self.risk_calculator.calculate_position_risk(
+            position_size,
+            current_price,
+            self.entry_levels[f'{position_type.lower()}_sl'],
+            self.position_manager.account_info.total_capital
+        )
+        
+        is_valid, reason = self.risk_calculator.validate_position_risk(
+            position_risk,
+            self.config.instrument_key,
+            datetime.now()
+        )
+        
+        if not is_valid:
+            logger.warning(f"Position risk validation failed: {reason}")
+            return {'status': 'rejected', 'reason': reason}
+        
+        # Create trade
+        trade = self.trade_manager.create_trade(
+            instrument_key=self.config.instrument_key,
+            entry_price=current_price,
+            position_size=position_size,
+            position_type=position_type,
+            sl_percentage=self.config.sl_percentage
+        )
+        
+        self.position = trade
+        self.update_state(StrategyState.IN_POSITION)
+        
+        logger.info(f"Executed entry: {trade}")
+        return {'status': 'success', 'trade': trade}
+
+    def execute_exit(self, candle: Dict, reason: str) -> Dict:
+        """Execute exit order."""
+        if not self.position:
+            return {'status': 'error', 'reason': 'No position to exit'}
+        
+        exit_price = candle['close']
+        
+        # Close trade
+        trade_result = self.trade_manager.close_trade(
+            instrument_key=self.config.instrument_key,
+            exit_price=exit_price,
+            status=reason
+        )
+        
+        # Update position manager
+        self.position_manager.close_position(
+            instrument_key=self.config.instrument_key,
+            exit_price=exit_price
+        )
+        
+        self.position = {}
+        self.update_state(StrategyState.POSITION_CLOSED)
+        
+        logger.info(f"Executed exit: {trade_result}")
+        return {'status': 'success', 'result': trade_result} 

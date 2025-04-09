@@ -33,6 +33,14 @@
             "dependsOn": [
                 "Launch Trading App (Go)"
             ]
+        },
+        {
+            "name": "Python: Test Phase1",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/python_strategies/test_phase1.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ],
     "compounds": [

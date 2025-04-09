@@ -12,26 +12,462 @@ from datetime import datetime, time, timedelta
 import logging
 
 from .morning_range import MorningRangeCalculator
+from .config import MRStrategyConfig, BreakoutState
+from .models import Signal, SignalType, SignalDirection, SignalGroup
 
+# Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class SignalGenerator:
     """Generator for Morning Range strategy trading signals."""
     
     def __init__(self, 
+                config: Optional[MRStrategyConfig] = None,
                 buffer_ticks: int = 5,
                 tick_size: float = 0.05):
         """
         Initialize the Signal Generator.
         
         Args:
+            config: Strategy configuration (optional)
             buffer_ticks: Number of ticks to add as buffer for entries
             tick_size: Size of one price tick
         """
-        self.buffer_ticks = buffer_ticks
-        self.tick_size = tick_size
+        if config is None:
+            config = MRStrategyConfig(
+                buffer_ticks=buffer_ticks,
+                tick_size=tick_size
+            )
         
-        logger.info(f"Initialized SignalGenerator with buffer_ticks={buffer_ticks}, tick_size={tick_size}")
+        self.config = config
+        self.state = BreakoutState()
+        self.active_signal_groups: List[SignalGroup] = []
+        self.breakout_candles: List[Dict[str, Any]] = []  # Track candles after breakout
+        
+        logger.info(f"Initialized SignalGenerator with config: {config}")
+        logger.debug(f"Buffer ticks: {buffer_ticks}, Tick size: {tick_size}")
+    
+    def is_valid_breakout_candle(self, candle: Dict[str, Any], threshold: float, direction: str) -> bool:
+        """
+        Check if a candle is a valid breakout candle.
+        
+        Args:
+            candle: Candle data
+            threshold: Breakout threshold level
+            direction: 'LONG' or 'SHORT'
+            
+        Returns:
+            True if valid breakout candle, False otherwise
+        """
+        logger.debug(f"Validating breakout candle - Direction: {direction}, Threshold: {threshold}")
+        logger.debug(f"Candle data - Open: {candle['open']}, High: {candle['high']}, Low: {candle['low']}, Close: {candle['close']}")
+        
+        if direction == 'LONG':
+            # For long breakout, close must be above threshold
+            is_valid = candle['close'] > threshold
+            logger.debug(f"Long breakout validation - Close: {candle['close']} > Threshold: {threshold} = {is_valid}")
+            return is_valid
+        else:
+            # For short breakout, close must be below threshold
+            is_valid = candle['close'] < threshold
+            logger.debug(f"Short breakout validation - Close: {candle['close']} < Threshold: {threshold} = {is_valid}")
+            return is_valid
+    
+    def check_immediate_breakout(self, 
+                               candle: Dict[str, Any], 
+                               mr_values: Dict[str, Any]) -> Optional[Signal]:
+        """
+        Check for immediate breakout (original 5MR strategy).
+        
+        Args:
+            candle: Single candle data
+            mr_values: Morning range values
+            
+        Returns:
+            Signal if breakout detected, None otherwise
+        """
+        logger.debug("Checking for immediate breakout")
+        logger.debug(f"MR Values - High: {mr_values.get('high')}, Low: {mr_values.get('low')}")
+        logger.debug(f"Candle data - High: {candle['high']}, Low: {candle['low']}")
+        
+        if not mr_values or 'high' not in mr_values or 'low' not in mr_values:
+            logger.warning("Missing morning range high/low values")
+            return None
+            
+        timestamp = candle.get('timestamp')
+        if isinstance(timestamp, str):
+            timestamp = pd.to_datetime(timestamp)
+            
+        # Check long breakout
+        if candle['high'] >= mr_values['high']:
+            logger.info(f"Immediate long breakout detected at {timestamp}")
+            logger.debug(f"High: {candle['high']} >= MR High: {mr_values['high']}")
+            return Signal(
+                type=SignalType.IMMEDIATE_BREAKOUT,
+                direction=SignalDirection.LONG,
+                timestamp=timestamp,
+                price=mr_values['high'],
+                mr_values=mr_values,
+                metadata={'breakout_type': 'immediate'}
+            )
+            
+        # Check short breakout
+        if candle['low'] <= mr_values['low']:
+            logger.info(f"Immediate short breakout detected at {timestamp}")
+            logger.debug(f"Low: {candle['low']} <= MR Low: {mr_values['low']}")
+            return Signal(
+                type=SignalType.IMMEDIATE_BREAKOUT,
+                direction=SignalDirection.SHORT,
+                timestamp=timestamp,
+                price=mr_values['low'],
+                mr_values=mr_values,
+                metadata={'breakout_type': 'immediate'}
+            )
+            
+        logger.debug("No immediate breakout detected")
+        return None
+    
+    def check_breakout_confirmation(self, 
+                                  candle: Dict[str, Any], 
+                                  mr_values: Dict[str, Any]) -> Optional[Signal]:
+        """
+        Check if this candle confirms a breakout beyond threshold.
+        
+        Args:
+            candle: Single candle data
+            mr_values: Morning range values
+            
+        Returns:
+            Signal if breakout confirmed, None otherwise
+        """
+        logger.debug("Checking breakout confirmation")
+        logger.debug(f"MR Values - High: {mr_values.get('high')}, Low: {mr_values.get('low')}")
+        logger.debug(f"Candle data - Open: {candle['open']}, High: {candle['high']}, Low: {candle['low']}, Close: {candle['close']}")
+        
+        if not mr_values or 'high' not in mr_values or 'low' not in mr_values:
+            logger.warning("Missing morning range high/low values")
+            return None
+            
+        timestamp = pd.to_datetime(candle['timestamp']) if isinstance(candle['timestamp'], str) else candle['timestamp']
+        
+        # Calculate threshold levels
+        long_threshold = mr_values['high'] * (1 + self.config.breakout_percentage)
+        short_threshold = mr_values['low'] * (1 - self.config.breakout_percentage)
+        
+        logger.debug(f"Threshold levels - Long: {long_threshold}, Short: {short_threshold}")
+        
+        # Check long breakout confirmation
+        if self.is_valid_breakout_candle(candle, long_threshold, 'LONG'):
+            logger.debug("Potential long breakout detected, validating...")
+            # Validate breakout with additional checks
+            if self.validate_breakout(candle, mr_values, 'LONG'):
+                logger.info(f"Long breakout confirmed at {timestamp}")
+                self.state.is_breakout_confirmed = True
+                self.state.breakout_type = 'LONG'
+                self.state.breakout_price = candle['close']
+                self.state.breakout_time = timestamp
+                self.state.mr_level = mr_values['high']
+                self.state.threshold_level = long_threshold
+                
+                # Create signal group for this breakout
+                signal_group = SignalGroup(
+                    signals=[],
+                    start_time=timestamp,
+                    end_time=timestamp,
+                    status='active'
+                )
+                self.active_signal_groups.append(signal_group)
+                
+                signal = Signal(
+                    type=SignalType.BREAKOUT_CONFIRMATION,
+                    direction=SignalDirection.LONG,
+                    timestamp=timestamp,
+                    price=candle['close'],
+                    mr_values=mr_values,
+                    metadata={
+                        'threshold_level': long_threshold,
+                        'breakout_percentage': self.config.breakout_percentage,
+                        'candle_data': {
+                            'open': candle['open'],
+                            'high': candle['high'],
+                            'low': candle['low'],
+                            'close': candle['close']
+                        }
+                    }
+                )
+                
+                signal_group.add_signal(signal)
+                logger.debug(f"Created signal group with status: {signal_group.status}")
+                return signal
+            
+        # Check short breakout confirmation
+        if self.is_valid_breakout_candle(candle, short_threshold, 'SHORT'):
+            logger.debug("Potential short breakout detected, validating...")
+            # Validate breakout with additional checks
+            if self.validate_breakout(candle, mr_values, 'SHORT'):
+                logger.info(f"Short breakout confirmed at {timestamp}")
+                self.state.is_breakout_confirmed = True
+                self.state.breakout_type = 'SHORT'
+                self.state.breakout_price = candle['close']
+                self.state.breakout_time = timestamp
+                self.state.mr_level = mr_values['low']
+                self.state.threshold_level = short_threshold
+                
+                # Create signal group for this breakout
+                signal_group = SignalGroup(
+                    signals=[],
+                    start_time=timestamp,
+                    end_time=timestamp,
+                    status='active'
+                )
+                self.active_signal_groups.append(signal_group)
+                
+                signal = Signal(
+                    type=SignalType.BREAKOUT_CONFIRMATION,
+                    direction=SignalDirection.SHORT,
+                    timestamp=timestamp,
+                    price=candle['close'],
+                    mr_values=mr_values,
+                    metadata={
+                        'threshold_level': short_threshold,
+                        'breakout_percentage': self.config.breakout_percentage,
+                        'candle_data': {
+                            'open': candle['open'],
+                            'high': candle['high'],
+                            'low': candle['low'],
+                            'close': candle['close']
+                        }
+                    }
+                )
+                
+                signal_group.add_signal(signal)
+                logger.debug(f"Created signal group with status: {signal_group.status}")
+                return signal
+            
+        logger.debug("No breakout confirmation detected")
+        return None
+    
+    def validate_breakout(self, candle: Dict[str, Any], mr_values: Dict[str, Any], direction: str) -> bool:
+        """
+        Validate a potential breakout with additional checks.
+        
+        Args:
+            candle: Candle data
+            mr_values: Morning range values
+            direction: 'LONG' or 'SHORT'
+            
+        Returns:
+            True if breakout is valid, False otherwise
+        """
+        logger.debug(f"Validating {direction} breakout")
+        
+        # Check if we're already tracking a breakout
+        if self.state.is_breakout_confirmed:
+            logger.debug("Already tracking a breakout, skipping validation")
+            return False
+            
+        # Check if price has moved too far against the breakout
+        if direction == 'LONG':
+            invalidation_level = mr_values['high'] * (1 - self.config.invalidation_percentage)
+            if candle['low'] < invalidation_level:
+                logger.info(f"Long breakout invalidated - price moved below {invalidation_level}")
+                logger.debug(f"Low: {candle['low']} < Invalidation: {invalidation_level}")
+                return False
+        else:
+            invalidation_level = mr_values['low'] * (1 + self.config.invalidation_percentage)
+            if candle['high'] > invalidation_level:
+                logger.info(f"Short breakout invalidated - price moved above {invalidation_level}")
+                logger.debug(f"High: {candle['high']} > Invalidation: {invalidation_level}")
+                return False
+        
+        # Check if we have too many candles after breakout
+        if (self.config.max_retest_candles is not None and 
+            len(self.breakout_candles) >= self.config.max_retest_candles):
+            logger.info("Maximum retest candles reached, invalidating breakout")
+            logger.debug(f"Candles tracked: {len(self.breakout_candles)}, Max allowed: {self.config.max_retest_candles}")
+            return False
+        
+        # Add candle to breakout tracking
+        self.breakout_candles.append(candle)
+        logger.debug(f"Added candle to breakout tracking. Total candles: {len(self.breakout_candles)}")
+        
+        return True
+    
+    def check_retest(self, candle: Dict[str, Any]) -> Optional[Signal]:
+        """
+        Check if this candle creates a valid retest signal after confirmed breakout.
+        
+        Args:
+            candle: Single candle data
+            
+        Returns:
+            Signal if retest detected, None otherwise
+        """
+        logger.debug("Checking for retest")
+        logger.debug(f"Current state - Breakout confirmed: {self.state.is_breakout_confirmed}, Type: {self.state.breakout_type}")
+        logger.debug(f"Candle data - Open: {candle['open']}, High: {candle['high']}, Low: {candle['low']}, Close: {candle['close']}")
+        
+        if not self.state.is_breakout_confirmed:
+            logger.debug("No breakout confirmed, skipping retest check")
+            return None
+            
+        timestamp = pd.to_datetime(candle['timestamp']) if isinstance(candle['timestamp'], str) else candle['timestamp']
+        
+        # Add candle to breakout tracking
+        self.breakout_candles.append(candle)
+        logger.debug(f"Added candle to breakout tracking. Total candles: {len(self.breakout_candles)}")
+        
+        if self.state.breakout_type == 'LONG':
+            # Check if price has tested the MR level (came down to test MR high)
+            if candle['low'] <= self.state.mr_level:
+                logger.debug(f"Price tested MR level - Low: {candle['low']} <= MR Level: {self.state.mr_level}")
+                # Confirm retest with close above MR level
+                if candle['close'] > self.state.mr_level:
+                    logger.info(f"Long retest confirmed at {timestamp}")
+                    signal = Signal(
+                        type=SignalType.RETEST_ENTRY,
+                        direction=SignalDirection.LONG,
+                        timestamp=timestamp,
+                        price=candle['close'],
+                        mr_values={'high': self.state.mr_level, 'threshold': self.state.threshold_level},
+                        metadata={
+                            'breakout_price': self.state.breakout_price,
+                            'breakout_time': self.state.breakout_time,
+                            'candles_since_breakout': len(self.breakout_candles),
+                            'candle_data': {
+                                'open': candle['open'],
+                                'high': candle['high'],
+                                'low': candle['low'],
+                                'close': candle['close']
+                            }
+                        }
+                    )
+                    
+                    # Update signal group
+                    if self.active_signal_groups:
+                        self.active_signal_groups[-1].add_signal(signal)
+                        self.active_signal_groups[-1].status = 'completed'
+                        logger.debug(f"Updated signal group status to: {self.active_signal_groups[-1].status}")
+                    
+                    self.reset_state()
+                    return signal
+                    
+        elif self.state.breakout_type == 'SHORT':
+            # Check if price has tested the MR level (came up to test MR low)
+            if candle['high'] >= self.state.mr_level:
+                logger.debug(f"Price tested MR level - High: {candle['high']} >= MR Level: {self.state.mr_level}")
+                # Confirm retest with close below MR level
+                if candle['close'] < self.state.mr_level:
+                    logger.info(f"Short retest confirmed at {timestamp}")
+                    signal = Signal(
+                        type=SignalType.RETEST_ENTRY,
+                        direction=SignalDirection.SHORT,
+                        timestamp=timestamp,
+                        price=candle['close'],
+                        mr_values={'low': self.state.mr_level, 'threshold': self.state.threshold_level},
+                        metadata={
+                            'breakout_price': self.state.breakout_price,
+                            'breakout_time': self.state.breakout_time,
+                            'candles_since_breakout': len(self.breakout_candles),
+                            'candle_data': {
+                                'open': candle['open'],
+                                'high': candle['high'],
+                                'low': candle['low'],
+                                'close': candle['close']
+                            }
+                        }
+                    )
+                    
+                    # Update signal group
+                    if self.active_signal_groups:
+                        self.active_signal_groups[-1].add_signal(signal)
+                        self.active_signal_groups[-1].status = 'completed'
+                        logger.debug(f"Updated signal group status to: {self.active_signal_groups[-1].status}")
+                    
+                    self.reset_state()
+                    return signal
+        
+        # Check if we've exceeded max retest candles
+        if (self.config.max_retest_candles is not None and 
+            len(self.breakout_candles) >= self.config.max_retest_candles):
+            logger.info("Maximum retest candles reached, invalidating breakout")
+            logger.debug(f"Candles tracked: {len(self.breakout_candles)}, Max allowed: {self.config.max_retest_candles}")
+            if self.active_signal_groups:
+                self.active_signal_groups[-1].status = 'invalidated'
+                logger.debug(f"Updated signal group status to: {self.active_signal_groups[-1].status}")
+            self.reset_state()
+        
+        logger.debug("No retest detected")
+        return None
+    
+    def reset_state(self) -> None:
+        """Reset the state and clear breakout tracking."""
+        logger.info("Resetting state and breakout tracking")
+        logger.debug(f"Previous state - Breakout confirmed: {self.state.is_breakout_confirmed}, Type: {self.state.breakout_type}")
+        self.state.reset()
+        self.breakout_candles = []
+        logger.debug("State and breakout tracking reset")
+    
+    def process_candle(self, candle: Dict[str, Any], mr_values: Dict[str, Any]) -> List[Signal]:
+        """
+        Process a single candle and generate all applicable signals.
+        
+        Args:
+            candle: Single candle data
+            mr_values: Morning range values
+            
+        Returns:
+            List of generated signals
+        """
+        logger.debug("Processing new candle")
+        logger.debug(f"Candle timestamp: {candle.get('timestamp')}")
+        signals = []
+        
+        # 1. Check for immediate breakout (original 5MR strategy)
+        immediate_signal = self.check_immediate_breakout(candle, mr_values)
+        if immediate_signal:
+            logger.info(f"Generated immediate breakout signal: {immediate_signal.type}")
+            signals.append(immediate_signal)
+        
+        # 2. If no breakout confirmed yet, check for confirmation
+        if not self.state.is_breakout_confirmed:
+            breakout_signal = self.check_breakout_confirmation(candle, mr_values)
+            if breakout_signal:
+                logger.info(f"Generated breakout confirmation signal: {breakout_signal.type}")
+                signals.append(breakout_signal)
+        
+        # 3. If breakout is confirmed, check for retest
+        elif self.state.is_breakout_confirmed:
+            retest_signal = self.check_retest(candle)
+            if retest_signal:
+                logger.info(f"Generated retest signal: {retest_signal.type}")
+                signals.append(retest_signal)
+        
+        logger.debug(f"Generated {len(signals)} signals for this candle")
+        return signals
+    
+    def process_candles(self, candles: pd.DataFrame, mr_values: Dict[str, Any]) -> List[Signal]:
+        """
+        Process multiple candles and generate all signals.
+        
+        Args:
+            candles: DataFrame with candle data
+            mr_values: Morning range values
+            
+        Returns:
+            List of all generated signals
+        """
+        logger.info(f"Processing {len(candles)} candles")
+        all_signals = []
+        
+        for _, candle in candles.iterrows():
+            candle_dict = candle.to_dict()
+            signals = self.process_candle(candle_dict, mr_values)
+            all_signals.extend(signals)
+        
+        logger.info(f"Generated total of {len(all_signals)} signals")
+        return all_signals
     
     def check_breakout(self, 
                      candle: Dict[str, Any], 
@@ -51,6 +487,10 @@ class SignalGenerator:
                 - breakout_type: 'long', 'short', or None
                 - breakout_candle: The candle that caused the breakout
         """
+        logger.debug("Checking for breakout")
+        logger.debug(f"Entry prices - Long: {entry_prices.get('long_entry')}, Short: {entry_prices.get('short_entry')}")
+        logger.debug(f"Candle data - High: {candle['high']}, Low: {candle['low']}")
+        
         # Check if morning range values are valid
         if 'high' not in mr_values or 'low' not in mr_values:
             logger.warning("Missing morning range high/low values")
@@ -75,9 +515,11 @@ class SignalGenerator:
         
         # Check for long breakout
         long_breakout = candle['high'] >= long_entry
+        logger.debug(f"Long breakout check - High: {candle['high']} >= Entry: {long_entry} = {long_breakout}")
         
         # Check for short breakout
         short_breakout = candle['low'] <= short_entry
+        logger.debug(f"Short breakout check - Low: {candle['low']} <= Entry: {short_entry} = {short_breakout}")
         
         # Get timestamp info if available for better logging
         timestamp_str = candle['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if 'timestamp' in candle else 'N/A'
@@ -118,6 +560,10 @@ class SignalGenerator:
         Returns:
             Dict with breakout information or None if no breakout found
         """
+        logger.info(f"Scanning {len(candles)} candles for breakout")
+        logger.debug(f"MR Values - High: {mr_values.get('high')}, Low: {mr_values.get('low')}")
+        logger.debug(f"Entry prices - Long: {entry_prices.get('long_entry')}, Short: {entry_prices.get('short_entry')}")
+        
         if candles.empty:
             logger.warning("Empty candle data provided for breakout scanning")
             return None
@@ -201,11 +647,12 @@ class SignalGenerator:
         Returns:
             Dict with signal information or None if no valid signal
         """
+        logger.info(f"Generating entry signals for {len(candles)} candles")
+        logger.debug(f"Respect trend: {respect_trend}")
+        
         if candles.empty:
             logger.warning("Empty candle data provided for signal generation")
             return None
-        
-        logger.info(f"Generating entry signals for {len(candles)} candles")
         
         # Calculate morning range
         mr_values = mr_calculator.calculate_morning_range(candles)
@@ -225,8 +672,8 @@ class SignalGenerator:
         # Calculate entry prices
         entry_prices = mr_calculator.get_entry_prices(
             mr_values, 
-            buffer_ticks=self.buffer_ticks,
-            tick_size=self.tick_size
+            buffer_ticks=self.config.buffer_ticks,
+            tick_size=self.config.tick_size
         )
         
         logger.info(f"Entry prices calculated - Long: {entry_prices.get('long_entry')}, Short: {entry_prices.get('short_entry')}")
@@ -240,8 +687,8 @@ class SignalGenerator:
                 mr_values=mr_values,
                 daily_candles=daily_candles,
                 intraday_candles=candles,
-                buffer_ticks=self.buffer_ticks,
-                tick_size=self.tick_size
+                buffer_ticks=self.config.buffer_ticks,
+                tick_size=self.config.tick_size
             )
             
             logger.info(f"Signal validation - Valid long: {signal_validation.get('valid_long')}, Valid short: {signal_validation.get('valid_short')}, Trend: {signal_validation.get('trend')}")
@@ -318,6 +765,8 @@ class SignalGenerator:
         Returns:
             Dict with signal information for the trading day
         """
+        logger.info(f"Generating signals for trading date: {trading_date}")
+        
         if intraday_candles.empty:
             logger.warning("Empty intraday candle data provided")
             return {
@@ -335,6 +784,7 @@ class SignalGenerator:
             # Filter candles for the specific date
             if 'timestamp' in intraday_candles.columns:
                 day_candles = intraday_candles[intraday_candles['timestamp'].dt.date == trading_date.date()]
+                logger.info(f"Filtered {len(day_candles)} candles for date {trading_date.date()}")
             else:
                 logger.error("Cannot filter by date: no timestamp column in candles")
                 day_candles = intraday_candles
@@ -357,6 +807,7 @@ class SignalGenerator:
         )
         
         if signals is None:
+            logger.warning("Failed to generate signals")
             return {
                 'status': 'error',
                 'message': 'Failed to generate signals',
@@ -369,4 +820,5 @@ class SignalGenerator:
         elif 'timestamp' in day_candles.columns:
             signals['date'] = day_candles['timestamp'].iloc[0].date()
         
+        logger.info(f"Successfully generated signals for date: {signals.get('date')}")
         return signals 
