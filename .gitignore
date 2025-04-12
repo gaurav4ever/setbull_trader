@@ -73,6 +73,7 @@ GOALS/
 venv/
 python_strategies/venv/
 python_strategies/backtest_results/
+reports/
 
 # Python specific
 *.pyc
