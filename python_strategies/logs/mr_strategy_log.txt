@@ -1,0 +1,10 @@
+results: {'signals': [], 'trades': [], 'metrics': {'NSE_EQ|INE070D01027_5MR_1ST_ENTRY': {'total_signals': 0, 'total_trades': 0, 'win_rate': 0.0, 'profit_factor': inf, 'max_drawdown': 0.0, 'sharpe_ratio': 0.0}, 'NSE_EQ|INE070D01027_5MR_RETEST_ENTRY': {'total_signals': 0, 'total_trades': 0, 'win_rate': 0.0, 'profit_factor': inf, 'max_drawdown': 0.0, 'sharpe_ratio': 0.0}, 'overall': {'total_signals': 0, 'total_trades': 0, 'win_rate': 0.0, 'profit_factor': inf, 'max_drawdown': 0.0, 'sharpe_ratio': 0.0}}}
+
+=============================================
+MORNING RANGE STRATEGY BACKTEST RESULTS
+=============================================
+Instrument: NSE_EQ|INE070D01027
+Period: 2025-01-01 to 2025-04-09
+---------------------------------------------
+
+OVERALL PERFORMANCE:

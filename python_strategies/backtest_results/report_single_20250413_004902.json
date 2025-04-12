@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "total_trades": 7,
+    "win_rate": 0.86,
+    "profit_factor": 25.68,
+    "total_return": 3834.91,
+    "max_drawdown": 0.0,
+    "sharpe_ratio": 1.24,
+    "sortino_ratio": 0.0,
+    "avg_trade": 5.48,
+    "avg_win": 665.05,
+    "avg_loss": 155.4,
+    "largest_win": 0.0,
+    "largest_loss": 0.0,
+    "winning_trades": 6,
+    "losing_trades": 1,
+    "consecutive_wins": 0,
+    "consecutive_losses": 0
+  },
+  "performance_metrics": {
+    "NSE_EQ|INE070D01027_5MR_1ST_ENTRY": {
+      "total_signals": 0,
+      "total_trades": 7,
+      "winning_trades": 6,
+      "losing_trades": 1,
+      "win_rate": 0.86,
+      "profit_factor": 25.68,
+      "total_profit": 3990.31,
+      "total_loss": 155.4,
+      "average_win": 665.05,
+      "average_loss": 155.4,
+      "overall_pnl": 3834.91,
+      "profit_percentage": 3.99,
+      "loss_percentage": 0.16,
+      "expectancy": 547.84,
+      "net_pnl": 3834.91,
+      "average_r": 5.48,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 1.24
+    },
+    "overall": {
+      "total_signals": 0,
+      "total_trades": 7,
+      "winning_trades": 6,
+      "losing_trades": 1,
+      "win_rate": 0.86,
+      "profit_factor": 25.68,
+      "total_profit": 3990.31,
+      "total_loss": 155.4,
+      "average_win": 665.05,
+      "average_loss": 155.4,
+      "overall_pnl": 3834.91,
+      "profit_percentage": 3.99,
+      "loss_percentage": 0.16,
+      "expectancy": 547.84,
+      "net_pnl": 3834.91,
+      "average_r": 5.48,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 1.24
+    }
+  },
+  "equity_curve": {
+    "timestamps": [],
+    "equity_values": [],
+    "drawdowns": [],
+    "max_drawdown": 0.0,
+    "final_equity": 100000.0
+  },
+  "recommendations": []
+}

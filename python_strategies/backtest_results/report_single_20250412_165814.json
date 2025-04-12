@@ -1,0 +1,64 @@
+{
+  "summary": {
+    "total_trades": 12,
+    "win_rate": 100.0,
+    "profit_factor": Infinity,
+    "total_return": 9690.695209999996,
+    "max_drawdown": 0.0,
+    "sharpe_ratio": 3.5667174372071258,
+    "sortino_ratio": 0.0,
+    "avg_trade": 8.07322032377428,
+    "avg_win": 807.5579341666663,
+    "avg_loss": 0,
+    "largest_win": 0.0,
+    "largest_loss": 0.0,
+    "winning_trades": 12,
+    "losing_trades": 0,
+    "consecutive_wins": 0,
+    "consecutive_losses": 0
+  },
+  "performance_metrics": {
+    "NSE_EQ|INE070D01027_5MR_1ST_ENTRY": {
+      "total_signals": 0,
+      "total_trades": 12,
+      "winning_trades": 12,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "profit_factor": Infinity,
+      "total_profit": 9690.695209999996,
+      "total_loss": 0,
+      "net_pnl": 9690.695209999996,
+      "average_r": 8.07322032377428,
+      "average_duration": 3.1388888888888885e-05,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 3.5667174372071258,
+      "average_win": 807.5579341666663,
+      "average_loss": 0
+    },
+    "overall": {
+      "total_signals": 0,
+      "total_trades": 12,
+      "winning_trades": 12,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "profit_factor": Infinity,
+      "total_profit": 9690.695209999996,
+      "total_loss": 0,
+      "net_pnl": 9690.695209999996,
+      "average_r": 8.07322032377428,
+      "average_duration": 3.1388888888888885e-05,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 3.5667174372071258,
+      "average_win": 807.5579341666663,
+      "average_loss": 0
+    }
+  },
+  "equity_curve": {
+    "timestamps": [],
+    "equity_values": [],
+    "drawdowns": [],
+    "max_drawdown": 0.0,
+    "final_equity": 100000.0
+  },
+  "recommendations": []
+}

@@ -1,0 +1,2529 @@
+{
+  "signals": [
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 09:30:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 11:40:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 13:00:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 13:30:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 15:20:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-24 15:25:00+05:30, price=101.2)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-25 09:20:00+05:30, price=99.35)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-25 15:20:00+05:30, price=99.35)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-25 15:25:00+05:30, price=99.35)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-26 09:20:00+05:30, price=94.5)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-26 15:20:00+05:30, price=94.5)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-26 15:25:00+05:30, price=94.5)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-03-27 09:20:00+05:30, price=90.0)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-03-27 10:40:00+05:30, price=90.0)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-03-27 14:30:00+05:30, price=90.0)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-03-27 15:20:00+05:30, price=90.0)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-03-27 15:25:00+05:30, price=90.0)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-28 10:05:00+05:30, price=92.0)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-28 15:20:00+05:30, price=92.0)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-03-28 15:25:00+05:30, price=92.0)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-01 09:20:00+05:30, price=91.14)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-01 09:30:00+05:30, price=91.14)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-01 15:20:00+05:30, price=91.14)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-01 15:25:00+05:30, price=91.14)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-02 09:20:00+05:30, price=92.22)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-02 12:45:00+05:30, price=94.99)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-03 09:20:00+05:30, price=93.7)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-03 15:20:00+05:30, price=93.7)",
+    "Signal(type=immediate_breakout, direction=LONG, timestamp=2025-04-03 15:25:00+05:30, price=93.7)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-04 09:20:00+05:30, price=94.15)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-04 15:20:00+05:30, price=94.15)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-04 15:25:00+05:30, price=94.15)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-08 09:20:00+05:30, price=87.71)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-08 15:20:00+05:30, price=87.71)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-08 15:25:00+05:30, price=87.71)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-09 09:20:00+05:30, price=83.57)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-09 15:20:00+05:30, price=83.57)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-09 15:25:00+05:30, price=83.57)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-11 09:40:00+05:30, price=85.0)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-11 15:20:00+05:30, price=85.0)",
+    "Signal(type=immediate_breakout, direction=SHORT, timestamp=2025-04-11 15:25:00+05:30, price=85.0)"
+  ],
+  "trades": [
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 101.88,
+      "initial_position_size": 196.0,
+      "current_position_size": 196.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:22.980790",
+      "stop_loss": 101.71,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -133.27999999999855,
+      "realized_pnl": -133.27999999999855,
+      "max_favorable_excursion": 56.840000000001226,
+      "max_adverse_excursion": -133.27999999999855,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-24 09:50:00",
+      "exit_price": 101.88,
+      "exit_time": "2025-04-12 20:14:22.981723",
+      "duration": 1.5550000000000002e-05,
+      "r_multiple": -1.3333333333333188,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 101.91,
+      "initial_position_size": 196.0,
+      "current_position_size": 196.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:22.983255",
+      "stop_loss": 101.71,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -139.15999999999877,
+      "realized_pnl": -139.15999999999877,
+      "max_favorable_excursion": 127.40000000000111,
+      "max_adverse_excursion": -139.15999999999877,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-24 12:35:00",
+      "exit_price": 101.91,
+      "exit_time": "2025-04-12 20:14:22.988669",
+      "duration": 9.023333333333334e-05,
+      "r_multiple": -1.3921568627450858,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 101.73,
+      "initial_position_size": 196.0,
+      "current_position_size": 196.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:22.990790",
+      "stop_loss": 101.71,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -103.88000000000022,
+      "realized_pnl": -103.88000000000022,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": -103.88000000000022,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-24 13:10:00",
+      "exit_price": 101.73,
+      "exit_time": "2025-04-12 20:14:22.991645",
+      "duration": 1.4249999999999999e-05,
+      "r_multiple": -1.0392156862745119,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 99.23,
+      "initial_position_size": 196.0,
+      "current_position_size": 195.412,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:22.992602",
+      "stop_loss": 101.2,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        }
+      ],
+      "unrealized_pnl": 392.778120000001,
+      "realized_pnl": 385.9200799999998,
+      "max_favorable_excursion": 392.778120000001,
+      "max_adverse_excursion": -39.20000000000056,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 99.57,
+          "exit_size": 0.588,
+          "realized_pnl": 0.9584400000000056,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:22.994481"
+        }
+      ],
+      "current_time": "2025-03-24 15:15:00",
+      "exit_price": 99.23,
+      "exit_time": "2025-04-12 20:14:22.995600",
+      "duration": 4.9966666666666664e-05,
+      "r_multiple": 3.8607450980392137,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 99.16,
+      "initial_position_size": 196.0,
+      "current_position_size": 196.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:22.996599",
+      "stop_loss": 101.71,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 399.8400000000012,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-24 15:20:00",
+      "exit_price": 99.16,
+      "exit_time": "2025-04-12 20:14:22.996850",
+      "duration": 4.183333333333333e-06,
+      "r_multiple": 4.0000000000000115,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 101.2,
+      "current_price": 99.28,
+      "initial_position_size": 196.0,
+      "current_position_size": 196.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:22.997665",
+      "stop_loss": 101.71,
+      "breakeven_level": 100.69,
+      "risk_amount": 0.51,
+      "take_profit_levels": [
+        {
+          "price": 99.68200000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 98.67000000000007,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 97.6580000000001,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 376.32000000000033,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-24 15:25:00",
+      "exit_price": 99.28,
+      "exit_time": "2025-04-12 20:14:22.997884",
+      "duration": 3.65e-06,
+      "r_multiple": 3.7647058823529442,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 99.35,
+      "current_price": 94.24,
+      "initial_position_size": 200.0,
+      "current_position_size": 196.4,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:22.999274",
+      "stop_loss": 96.86625000000004,
+      "breakeven_level": 98.85,
+      "risk_amount": 0.5,
+      "take_profit_levels": [
+        {
+          "price": 97.85975000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.86625000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 95.87275000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 97.85975000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.86625000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 95.87275000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 999.6759999999979,
+      "realized_pnl": 1014.8839999999999,
+      "max_favorable_excursion": 1003.6039999999999,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 97.4,
+          "exit_size": 0.6,
+          "realized_pnl": 1.169999999999993,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.001784"
+        },
+        {
+          "exit_price": 96.6,
+          "exit_size": 1.0,
+          "realized_pnl": 2.75,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.002101"
+        },
+        {
+          "exit_price": 95.67,
+          "exit_size": 2.0,
+          "realized_pnl": 7.359999999999985,
+          "r_multiple": 7.0,
+          "exit_time": "2025-04-12 20:14:23.003611"
+        }
+      ],
+      "current_time": "2025-03-25 15:15:00",
+      "exit_price": 94.24,
+      "exit_time": "2025-04-12 20:14:23.009004",
+      "duration": 0.0001621666666666667,
+      "r_multiple": 10.14884,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 99.35,
+      "current_price": 94.23,
+      "initial_position_size": 200.0,
+      "current_position_size": 200.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.009829",
+      "stop_loss": 99.85,
+      "breakeven_level": 98.85,
+      "risk_amount": 0.5,
+      "take_profit_levels": [
+        {
+          "price": 97.85975000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.86625000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 95.87275000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 1023.9999999999981,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-25 15:20:00",
+      "exit_price": 94.23,
+      "exit_time": "2025-04-12 20:14:23.010031",
+      "duration": 3.366666666666667e-06,
+      "r_multiple": 10.23999999999998,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 99.35,
+      "current_price": 94.23,
+      "initial_position_size": 200.0,
+      "current_position_size": 200.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.010743",
+      "stop_loss": 99.85,
+      "breakeven_level": 98.85,
+      "risk_amount": 0.5,
+      "take_profit_levels": [
+        {
+          "price": 97.85975000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.86625000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 95.87275000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 1023.9999999999981,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-25 15:25:00",
+      "exit_price": 94.23,
+      "exit_time": "2025-04-12 20:14:23.010963",
+      "duration": 3.666666666666667e-06,
+      "r_multiple": 10.23999999999998,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.5,
+      "current_price": 89.85,
+      "initial_position_size": 213.0,
+      "current_position_size": 209.166,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.013043",
+      "stop_loss": 92.13750000000002,
+      "breakeven_level": 94.03,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 93.08250000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.13750000000002,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 91.19250000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 93.08250000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.13750000000002,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 91.19250000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 941.247,
+      "realized_pnl": 984.2623500000011,
+      "max_favorable_excursion": 983.0802000000006,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 92.45,
+          "exit_size": 0.639,
+          "realized_pnl": 1.3099499999999982,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.013779"
+        },
+        {
+          "exit_price": 92.0,
+          "exit_size": 1.065,
+          "realized_pnl": 2.6624999999999996,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.015082"
+        },
+        {
+          "exit_price": 90.9,
+          "exit_size": 2.13,
+          "realized_pnl": 7.667999999999988,
+          "r_multiple": 7.0,
+          "exit_time": "2025-04-12 20:14:23.017586"
+        }
+      ],
+      "current_time": "2025-03-26 15:15:00",
+      "exit_price": 89.85,
+      "exit_time": "2025-04-12 20:14:23.020156",
+      "duration": 0.00011855000000000001,
+      "r_multiple": 9.831808510638309,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.5,
+      "current_price": 89.8,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.021748",
+      "stop_loss": 94.97,
+      "breakeven_level": 94.03,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 93.08250000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.13750000000002,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 91.19250000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 1001.1000000000006,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-26 15:20:00",
+      "exit_price": 89.8,
+      "exit_time": "2025-04-12 20:14:23.022032",
+      "duration": 4.7333333333333335e-06,
+      "r_multiple": 10.000000000000005,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.5,
+      "current_price": 89.65,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.022581",
+      "stop_loss": 94.97,
+      "breakeven_level": 94.03,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 93.08250000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.13750000000002,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 91.19250000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 1033.0499999999988,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-26 15:25:00",
+      "exit_price": 89.65,
+      "exit_time": "2025-04-12 20:14:23.022834",
+      "duration": 4.216666666666667e-06,
+      "r_multiple": 10.319148936170201,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 90.0,
+      "current_price": 89.3,
+      "initial_position_size": 222.0,
+      "current_position_size": 222.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:23.023960",
+      "stop_loss": 89.55,
+      "breakeven_level": 90.45,
+      "risk_amount": 0.45,
+      "take_profit_levels": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -155.40000000000063,
+      "realized_pnl": -155.40000000000063,
+      "max_favorable_excursion": 71.03999999999849,
+      "max_adverse_excursion": -155.40000000000063,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-27 09:30:00",
+      "exit_price": 89.3,
+      "exit_time": "2025-04-12 20:14:23.024299",
+      "duration": 5.65e-06,
+      "r_multiple": -1.5555555555555618,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 90.0,
+      "current_price": 91.98,
+      "initial_position_size": 222.0,
+      "current_position_size": 218.004,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:23.025236",
+      "stop_loss": 92.25000000000001,
+      "breakeven_level": 90.45,
+      "risk_amount": 0.45,
+      "take_profit_levels": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 431.64792000000085,
+      "realized_pnl": 445.20768000000083,
+      "max_favorable_excursion": 937.4171999999993,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 91.71,
+          "exit_size": 0.666,
+          "realized_pnl": 1.138859999999996,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.028098"
+        },
+        {
+          "exit_price": 93.65,
+          "exit_size": 1.11,
+          "realized_pnl": 4.051500000000007,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.030812"
+        },
+        {
+          "exit_price": 93.77,
+          "exit_size": 2.22,
+          "realized_pnl": 8.369399999999992,
+          "r_multiple": 7.0,
+          "exit_time": "2025-04-12 20:14:23.031375"
+        }
+      ],
+      "current_time": "2025-03-27 14:25:00",
+      "exit_price": 91.98,
+      "exit_time": "2025-04-12 20:14:23.033747",
+      "duration": 0.00014184999999999998,
+      "r_multiple": 4.456533333333342,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 90.0,
+      "current_price": 90.55,
+      "initial_position_size": 222.0,
+      "current_position_size": 221.334,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.042931",
+      "stop_loss": 90.0,
+      "breakeven_level": 90.45,
+      "risk_amount": 0.45,
+      "take_profit_levels": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        }
+      ],
+      "unrealized_pnl": 132.80039999999875,
+      "realized_pnl": 122.91251999999938,
+      "max_favorable_excursion": 407.25456000000077,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 91.77,
+          "exit_size": 0.666,
+          "realized_pnl": 1.1788199999999973,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.043739"
+        }
+      ],
+      "current_time": "2025-03-27 15:15:00",
+      "exit_price": 90.55,
+      "exit_time": "2025-04-12 20:14:23.048633",
+      "duration": 9.503333333333333e-05,
+      "r_multiple": 1.2303555555555492,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 90.0,
+      "current_price": 90.3,
+      "initial_position_size": 222.0,
+      "current_position_size": 222.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.050471",
+      "stop_loss": 89.55,
+      "breakeven_level": 90.45,
+      "risk_amount": 0.45,
+      "take_profit_levels": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 66.59999999999937,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-27 15:20:00",
+      "exit_price": 90.3,
+      "exit_time": "2025-04-12 20:14:23.051475",
+      "duration": 1.673333333333333e-05,
+      "r_multiple": 0.6666666666666603,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 90.0,
+      "current_price": 90.4,
+      "initial_position_size": 222.0,
+      "current_position_size": 222.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.052842",
+      "stop_loss": 89.55,
+      "breakeven_level": 90.45,
+      "risk_amount": 0.45,
+      "take_profit_levels": [
+        {
+          "price": 91.35000000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 92.25000000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 93.15000000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 88.80000000000126,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-27 15:25:00",
+      "exit_price": 90.4,
+      "exit_time": "2025-04-12 20:14:23.053530",
+      "duration": 1.1466666666666666e-05,
+      "r_multiple": 0.8888888888889015,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 92.0,
+      "current_price": 89.74,
+      "initial_position_size": 217.0,
+      "current_position_size": 215.26399999999998,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.063184",
+      "stop_loss": 90.62000000000002,
+      "breakeven_level": 91.54,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 90.62000000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 89.70000000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 88.78000000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 90.62000000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 89.70000000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 409.0016000000012,
+      "realized_pnl": 490.24206000000106,
+      "max_favorable_excursion": 656.5551999999993,
+      "max_adverse_excursion": -62.93000000000136,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 90.33,
+          "exit_size": 0.651,
+          "realized_pnl": 1.087170000000001,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.068980"
+        },
+        {
+          "exit_price": 89.55,
+          "exit_size": 1.085,
+          "realized_pnl": 2.658250000000003,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.071645"
+        }
+      ],
+      "current_time": "2025-03-28 15:15:00",
+      "exit_price": 89.74,
+      "exit_time": "2025-04-12 20:14:23.078186",
+      "duration": 0.0002500333333333333,
+      "r_multiple": 4.911260869565227,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 92.0,
+      "current_price": 89.79,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.079838",
+      "stop_loss": 92.46,
+      "breakeven_level": 91.54,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 90.62000000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 89.70000000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 88.78000000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 479.56999999999863,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-28 15:20:00",
+      "exit_price": 89.79,
+      "exit_time": "2025-04-12 20:14:23.080170",
+      "duration": 5.5333333333333334e-06,
+      "r_multiple": 4.804347826086943,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 92.0,
+      "current_price": 89.4,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.081303",
+      "stop_loss": 92.46,
+      "breakeven_level": 91.54,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 90.62000000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 89.70000000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 88.78000000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 564.1999999999988,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-03-28 15:25:00",
+      "exit_price": 89.4,
+      "exit_time": "2025-04-12 20:14:23.081713",
+      "duration": 6.833333333333333e-06,
+      "r_multiple": 5.652173913043466,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 91.14,
+      "current_price": 90.65,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:23.084657",
+      "stop_loss": 90.68,
+      "breakeven_level": 91.6,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 92.50710000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 93.41850000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 94.32990000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -106.32999999999889,
+      "realized_pnl": -106.32999999999889,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": -106.32999999999889,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-01 09:20:00",
+      "exit_price": 90.65,
+      "exit_time": "2025-04-12 20:14:23.085210",
+      "duration": 9.216666666666666e-06,
+      "r_multiple": -1.0652173913043366,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 91.14,
+      "current_price": 93.55,
+      "initial_position_size": 217.0,
+      "current_position_size": 215.26399999999998,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.086989",
+      "stop_loss": 92.50710000000002,
+      "breakeven_level": 91.6,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 92.50710000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 93.41850000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 94.32990000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 92.50710000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 93.41850000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 574.7548800000003,
+      "realized_pnl": 522.4795799999993,
+      "max_favorable_excursion": 650.097279999999,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 92.63,
+          "exit_size": 0.651,
+          "realized_pnl": 0.9699899999999967,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.088035"
+        },
+        {
+          "exit_price": 93.65,
+          "exit_size": 1.085,
+          "realized_pnl": 2.7233500000000053,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.090991"
+        }
+      ],
+      "current_time": "2025-04-01 15:15:00",
+      "exit_price": 93.55,
+      "exit_time": "2025-04-12 20:14:23.093560",
+      "duration": 0.00010951666666666665,
+      "r_multiple": 5.23421739130434,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 91.14,
+      "current_price": 93.5,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.094406",
+      "stop_loss": 90.68,
+      "breakeven_level": 91.6,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 92.50710000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 93.41850000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 94.32990000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 512.1199999999999,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-01 15:20:00",
+      "exit_price": 93.5,
+      "exit_time": "2025-04-12 20:14:23.094644",
+      "duration": 3.966666666666667e-06,
+      "r_multiple": 5.1304347826086945,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 91.14,
+      "current_price": 93.58,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.095051",
+      "stop_loss": 90.68,
+      "breakeven_level": 91.6,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 92.50710000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 93.41850000000004,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 94.32990000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 529.4799999999996,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-01 15:25:00",
+      "exit_price": 93.58,
+      "exit_time": "2025-04-12 20:14:23.095190",
+      "duration": 2.3166666666666664e-06,
+      "r_multiple": 5.304347826086952,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 92.22,
+      "current_price": 93.12,
+      "initial_position_size": 217.0,
+      "current_position_size": 217.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:23.096239",
+      "stop_loss": 92.68,
+      "breakeven_level": 91.76,
+      "risk_amount": 0.46,
+      "take_profit_levels": [
+        {
+          "price": 90.83670000000004,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 89.91450000000006,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 88.99230000000009,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -195.30000000000123,
+      "realized_pnl": -195.30000000000123,
+      "max_favorable_excursion": 208.31999999999863,
+      "max_adverse_excursion": -195.30000000000123,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-02 10:45:00",
+      "exit_price": 93.12,
+      "exit_time": "2025-04-12 20:14:23.097465",
+      "duration": 2.0433333333333336e-05,
+      "r_multiple": -1.956521739130447,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.99,
+      "current_price": 94.47,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "stopped_out",
+      "entry_time": "2025-04-12 20:14:23.098189",
+      "stop_loss": 94.52,
+      "breakeven_level": 95.46,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 96.41485000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 97.36475000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 98.31465000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -110.75999999999915,
+      "realized_pnl": -110.75999999999915,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": -110.75999999999915,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-02 12:50:00",
+      "exit_price": 94.47,
+      "exit_time": "2025-04-12 20:14:23.099015",
+      "duration": 1.3766666666666666e-05,
+      "r_multiple": -1.1063829787233959,
+      "exit_reason": "stop_loss"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 93.7,
+      "current_price": 95.62,
+      "initial_position_size": 213.0,
+      "current_position_size": 212.361,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.102486",
+      "stop_loss": 93.7,
+      "breakeven_level": 94.17,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 95.10550000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.04250000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 96.97950000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 95.10550000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        }
+      ],
+      "unrealized_pnl": 441.71087999999963,
+      "realized_pnl": 408.69162000000034,
+      "max_favorable_excursion": 473.56503000000083,
+      "max_adverse_excursion": -97.9800000000017,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 95.2,
+          "exit_size": 0.639,
+          "realized_pnl": 0.9585,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.105414"
+        }
+      ],
+      "current_time": "2025-04-03 15:15:00",
+      "exit_price": 95.62,
+      "exit_time": "2025-04-12 20:14:23.109783",
+      "duration": 0.00012161666666666666,
+      "r_multiple": 4.082425531914897,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 93.7,
+      "current_price": 95.7,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.110500",
+      "stop_loss": 93.23,
+      "breakeven_level": 94.17,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 95.10550000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.04250000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 96.97950000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 426.0,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-03 15:20:00",
+      "exit_price": 95.7,
+      "exit_time": "2025-04-12 20:14:23.110740",
+      "duration": 4e-06,
+      "r_multiple": 4.25531914893617,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 93.7,
+      "current_price": 95.9,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "LONG",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.111160",
+      "stop_loss": 93.23,
+      "breakeven_level": 94.17,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 95.10550000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 96.04250000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 96.97950000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 468.6000000000006,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-03 15:25:00",
+      "exit_price": 95.9,
+      "exit_time": "2025-04-12 20:14:23.111473",
+      "duration": 5.216666666666667e-06,
+      "r_multiple": 4.6808510638297935,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.15,
+      "current_price": 90.9,
+      "initial_position_size": 213.0,
+      "current_position_size": 211.296,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.115690",
+      "stop_loss": 92.73775000000002,
+      "breakeven_level": 93.68,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 92.73775000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 91.79625000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 90.85475000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 92.73775000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 91.79625000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 686.712,
+      "realized_pnl": 690.8868,
+      "max_favorable_excursion": 686.712,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 92.6,
+          "exit_size": 0.639,
+          "realized_pnl": 0.9904500000000073,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.117745"
+        },
+        {
+          "exit_price": 91.16,
+          "exit_size": 1.065,
+          "realized_pnl": 3.1843500000000096,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.118986"
+        }
+      ],
+      "current_time": "2025-04-04 15:15:00",
+      "exit_price": 90.9,
+      "exit_time": "2025-04-12 20:14:23.130528",
+      "duration": 0.0002473,
+      "r_multiple": 6.90127659574468,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.15,
+      "current_price": 90.9,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.131392",
+      "stop_loss": 94.62,
+      "breakeven_level": 93.68,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 92.73775000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 91.79625000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 90.85475000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 692.25,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-04 15:20:00",
+      "exit_price": 90.9,
+      "exit_time": "2025-04-12 20:14:23.131725",
+      "duration": 5.55e-06,
+      "r_multiple": 6.914893617021277,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 94.15,
+      "current_price": 90.9,
+      "initial_position_size": 213.0,
+      "current_position_size": 213.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.133746",
+      "stop_loss": 94.62,
+      "breakeven_level": 93.68,
+      "risk_amount": 0.47,
+      "take_profit_levels": [
+        {
+          "price": 92.73775000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 91.79625000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 90.85475000000004,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 692.25,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-04 15:25:00",
+      "exit_price": 90.9,
+      "exit_time": "2025-04-12 20:14:23.134069",
+      "duration": 5.383333333333333e-06,
+      "r_multiple": 6.914893617021277,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 87.71,
+      "current_price": 84.53,
+      "initial_position_size": 227.0,
+      "current_position_size": 222.914,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.136746",
+      "stop_loss": 85.51725000000003,
+      "breakeven_level": 87.27,
+      "risk_amount": 0.44,
+      "take_profit_levels": [
+        {
+          "price": 86.39435000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 85.51725000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 84.64015000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [
+        {
+          "price": 86.39435000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 85.51725000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 84.64015000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "unrealized_pnl": 726.6996399999979,
+      "realized_pnl": 721.9712299999983,
+      "max_favorable_excursion": 1127.9448399999974,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": true,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [
+        {
+          "exit_price": 85.65,
+          "exit_size": 0.681,
+          "realized_pnl": 1.402859999999992,
+          "r_multiple": 3.0,
+          "exit_time": "2025-04-12 20:14:23.137117"
+        },
+        {
+          "exit_price": 84.24,
+          "exit_size": 1.135,
+          "realized_pnl": 3.9384499999999987,
+          "r_multiple": 5.0,
+          "exit_time": "2025-04-12 20:14:23.137317"
+        },
+        {
+          "exit_price": 84.29,
+          "exit_size": 2.27,
+          "realized_pnl": 7.763399999999971,
+          "r_multiple": 7.0,
+          "exit_time": "2025-04-12 20:14:23.137471"
+        }
+      ],
+      "current_time": "2025-04-08 15:15:00",
+      "exit_price": 84.53,
+      "exit_time": "2025-04-12 20:14:23.143618",
+      "duration": 0.00011453333333333333,
+      "r_multiple": 7.228386363636347,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 87.71,
+      "current_price": 84.55,
+      "initial_position_size": 227.0,
+      "current_position_size": 227.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.144105",
+      "stop_loss": 88.15,
+      "breakeven_level": 87.27,
+      "risk_amount": 0.44,
+      "take_profit_levels": [
+        {
+          "price": 86.39435000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 85.51725000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 84.64015000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 717.3199999999993,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-08 15:20:00",
+      "exit_price": 84.55,
+      "exit_time": "2025-04-12 20:14:23.144712",
+      "duration": 1.0116666666666667e-05,
+      "r_multiple": 7.1818181818181746,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 87.71,
+      "current_price": 84.48,
+      "initial_position_size": 227.0,
+      "current_position_size": 227.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.146136",
+      "stop_loss": 88.15,
+      "breakeven_level": 87.27,
+      "risk_amount": 0.44,
+      "take_profit_levels": [
+        {
+          "price": 86.39435000000002,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 85.51725000000003,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 84.64015000000005,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 733.2099999999976,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-08 15:25:00",
+      "exit_price": 84.48,
+      "exit_time": "2025-04-12 20:14:23.146289",
+      "duration": 2.55e-06,
+      "r_multiple": 7.340909090909068,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 83.57,
+      "current_price": 83.43,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.147549",
+      "stop_loss": 83.99,
+      "breakeven_level": 83.15,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 82.31645000000003,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 81.48075000000006,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 80.64505000000008,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": -4.760000000002435,
+      "realized_pnl": 33.31999999999675,
+      "max_favorable_excursion": 283.21999999999946,
+      "max_adverse_excursion": -35.70000000000135,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-09 15:15:00",
+      "exit_price": 83.43,
+      "exit_time": "2025-04-12 20:14:23.158588",
+      "duration": 0.00018398333333333332,
+      "r_multiple": 0.3333333333333009,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 83.57,
+      "current_price": 83.4,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.158966",
+      "stop_loss": 83.99,
+      "breakeven_level": 83.15,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 82.31645000000003,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 81.48075000000006,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 80.64505000000008,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 40.459999999997024,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-09 15:20:00",
+      "exit_price": 83.4,
+      "exit_time": "2025-04-12 20:14:23.159120",
+      "duration": 2.5666666666666665e-06,
+      "r_multiple": 0.404761904761875,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 83.57,
+      "current_price": 83.48,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.159777",
+      "stop_loss": 83.99,
+      "breakeven_level": 83.15,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 82.31645000000003,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 81.48075000000006,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 80.64505000000008,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 21.41999999999743,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-09 15:25:00",
+      "exit_price": 83.48,
+      "exit_time": "2025-04-12 20:14:23.160789",
+      "duration": 1.686666666666667e-05,
+      "r_multiple": 0.21428571428568857,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 85.0,
+      "current_price": 84.15,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.163212",
+      "stop_loss": 85.42,
+      "breakeven_level": 84.58,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 83.72500000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 82.87500000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 82.02500000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 145.17999999999986,
+      "realized_pnl": 202.29999999999865,
+      "max_favorable_excursion": 161.84000000000162,
+      "max_adverse_excursion": -80.92000000000081,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-11 15:15:00",
+      "exit_price": 84.15,
+      "exit_time": "2025-04-12 20:14:23.173629",
+      "duration": 0.00017361666666666664,
+      "r_multiple": 2.0238095238095104,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 85.0,
+      "current_price": 84.12,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.174331",
+      "stop_loss": 85.42,
+      "breakeven_level": 84.58,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 83.72500000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 82.87500000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 82.02500000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 209.43999999999892,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-11 15:20:00",
+      "exit_price": 84.12,
+      "exit_time": "2025-04-12 20:14:23.175513",
+      "duration": 1.97e-05,
+      "r_multiple": 2.0952380952380847,
+      "exit_reason": "market_close"
+    },
+    {
+      "instrument_key": "NSE_EQ|INE070D01027",
+      "entry_price": 85.0,
+      "current_price": 84.2,
+      "initial_position_size": 238.0,
+      "current_position_size": 238.0,
+      "position_type": "SHORT",
+      "trade_type": "1ST_ENTRY",
+      "status": "closed",
+      "entry_time": "2025-04-12 20:14:23.177092",
+      "stop_loss": 85.42,
+      "breakeven_level": 84.58,
+      "risk_amount": 0.42,
+      "take_profit_levels": [
+        {
+          "price": 83.72500000000001,
+          "size_percentage": 0.3,
+          "r_multiple": 3.0,
+          "trail_activation": false,
+          "move_sl_to_be": true
+        },
+        {
+          "price": 82.87500000000001,
+          "size_percentage": 0.5,
+          "r_multiple": 5.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        },
+        {
+          "price": 82.02500000000002,
+          "size_percentage": 1.0,
+          "r_multiple": 7.0,
+          "trail_activation": true,
+          "move_sl_to_be": false
+        }
+      ],
+      "executed_take_profits": [],
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 190.39999999999932,
+      "max_favorable_excursion": 0.0,
+      "max_adverse_excursion": 0.0,
+      "trailing_stop_active": false,
+      "trailing_stop_level": null,
+      "re_entries": 0,
+      "partial_exits": [],
+      "current_time": "2025-04-11 15:25:00",
+      "exit_price": 84.2,
+      "exit_time": "2025-04-12 20:14:23.177546",
+      "duration": 7.5666666666666665e-06,
+      "r_multiple": 1.9047619047618982,
+      "exit_reason": "market_close"
+    }
+  ],
+  "metrics": {
+    "NSE_EQ|INE070D01027_5MR_1ST_ENTRY": {
+      "total_signals": 0,
+      "total_trades": 41,
+      "winning_trades": 34,
+      "losing_trades": 7,
+      "win_rate": 82.92682926829268,
+      "profit_factor": 18.338443528826115,
+      "total_profit": 17313.50791999998,
+      "total_loss": 944.1099999999975,
+      "net_pnl": 16369.397919999981,
+      "average_r": 3.993001356592588,
+      "average_duration": 5.0913414634146345e-05,
+      "max_drawdown": 0.0027716063199331306,
+      "sharpe_ratio": 1.0534676684109758,
+      "average_win": 509.22082117646994,
+      "average_loss": 134.8728571428568
+    },
+    "overall": {
+      "total_signals": 0,
+      "total_trades": 41,
+      "winning_trades": 34,
+      "losing_trades": 7,
+      "win_rate": 82.92682926829268,
+      "profit_factor": 18.338443528826115,
+      "total_profit": 17313.50791999998,
+      "total_loss": 944.1099999999975,
+      "net_pnl": 16369.397919999981,
+      "average_r": 3.993001356592588,
+      "average_duration": 5.0913414634146345e-05,
+      "max_drawdown": 0.0027716063199331306,
+      "sharpe_ratio": 1.0534676684109758,
+      "average_win": 509.22082117646994,
+      "average_loss": 134.8728571428568
+    }
+  }
+}

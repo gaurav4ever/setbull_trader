@@ -1,0 +1,64 @@
+{
+  "summary": {
+    "total_trades": 23,
+    "win_rate": 95.65217391304348,
+    "profit_factor": 1438.4391050419597,
+    "total_return": 10263.315209999982,
+    "max_drawdown": 6.480584035308284e-05,
+    "sharpe_ratio": 1.0656398479782987,
+    "sortino_ratio": 0.0,
+    "avg_trade": 4.461169676187403,
+    "avg_win": 466.83887318181735,
+    "avg_loss": 7.140000000000271,
+    "largest_win": 0.0,
+    "largest_loss": 0.0,
+    "winning_trades": 22,
+    "losing_trades": 1,
+    "consecutive_wins": 0,
+    "consecutive_losses": 0
+  },
+  "performance_metrics": {
+    "NSE_EQ|INE070D01027_5MR_1ST_ENTRY": {
+      "total_signals": 0,
+      "total_trades": 23,
+      "winning_trades": 22,
+      "losing_trades": 1,
+      "win_rate": 95.65217391304348,
+      "profit_factor": 1438.4391050419597,
+      "total_profit": 10270.455209999982,
+      "total_loss": 7.140000000000271,
+      "net_pnl": 10263.315209999982,
+      "average_r": 4.461169676187403,
+      "average_duration": 1.3308695652173915e-05,
+      "max_drawdown": 6.480584035308284e-05,
+      "sharpe_ratio": 1.0656398479782987,
+      "average_win": 466.83887318181735,
+      "average_loss": 7.140000000000271
+    },
+    "overall": {
+      "total_signals": 0,
+      "total_trades": 23,
+      "winning_trades": 22,
+      "losing_trades": 1,
+      "win_rate": 95.65217391304348,
+      "profit_factor": 1438.4391050419597,
+      "total_profit": 10270.455209999982,
+      "total_loss": 7.140000000000271,
+      "net_pnl": 10263.315209999982,
+      "average_r": 4.461169676187403,
+      "average_duration": 1.3308695652173915e-05,
+      "max_drawdown": 6.480584035308284e-05,
+      "sharpe_ratio": 1.0656398479782987,
+      "average_win": 466.83887318181735,
+      "average_loss": 7.140000000000271
+    }
+  },
+  "equity_curve": {
+    "timestamps": [],
+    "equity_values": [],
+    "drawdowns": [],
+    "max_drawdown": 0.0,
+    "final_equity": 100000.0
+  },
+  "recommendations": []
+}
