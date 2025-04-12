@@ -35,12 +35,40 @@
             ]
         },
         {
-            "name": "Python: Test Phase1",
-            "type": "python",
+            "name": "Python: Test Mr Strategy",
+            "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/python_strategies/test_phase1.py",
+            "program": "${workspaceFolder}/python_strategies/test_mr_strategy.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": false,
+            "subProcess": true
+        },
+        {
+            "name": "Python: MR Strategy Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/python_strategies/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "subProcess": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/python_strategies"
+            }
+        },
+        {
+            "name": "Attach to Python",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/python_strategies",
+                    "remoteRoot": "."
+                }
+            ]
         }
     ],
     "compounds": [

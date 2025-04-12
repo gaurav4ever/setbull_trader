@@ -14,7 +14,7 @@ import logging
 from .base_strategy import BaseStrategy, StrategyState, StrategyConfig
 from ..data.data_processor import CandleProcessor
 from .position_manager import PositionManager
-from .trade_manager import TradeManager
+from .trade_manager import TradeManager, TradeType
 from .risk_calculator import RiskCalculator
 
 logger = logging.getLogger(__name__)
@@ -32,31 +32,82 @@ class MorningRangeStrategy(BaseStrategy):
         self.position_manager = position_manager
         self.trade_manager = trade_manager
         self.risk_calculator = risk_calculator
-        self.candle_processor = CandleProcessor()
+        self.candle_processor = CandleProcessor(config={
+            'instrument_key': config.instrument_key
+        })
         
         logger.info(f"Initialized Morning Range Strategy: {config.range_type} - {config.entry_type}")
 
-    def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
-        """Calculate morning range values."""
+    async def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
+        """
+        Calculate morning range values.
+        
+        Args:
+            candles: DataFrame containing candle data
+            
+        Returns:
+            Dictionary containing morning range values and validation status
+        """
         if candles.empty:
             logger.warning("Empty candle data provided")
-            return {}
+            return {
+                'is_valid': False,
+                'validation_reason': 'Empty candle data',
+                'mr_high': None,
+                'mr_low': None,
+                'validation_details': {}
+            }
             
-        morning_candles, mr_values = self.candle_processor.extract_morning_range(
-            candles,
-            range_type=self.config.range_type
-        )
-        
-        if not mr_values:
-            logger.warning("Failed to calculate morning range")
+        try:
+            # Use CandleProcessor with async context manager
+            async with self.candle_processor as processor:
+                # Calculate morning range using the new async method
+                mr_values = await processor.calculate_morning_range(candles)
+                
+                if not mr_values:
+                    logger.warning("Failed to calculate morning range")
+                    self.update_state(StrategyState.ERROR)
+                    return {
+                        'is_valid': False,
+                        'validation_reason': 'Failed to calculate MR',
+                        'mr_high': None,
+                        'mr_low': None,
+                        'validation_details': {}
+                    }
+                    
+                # Store MR values and update state
+                self.morning_range = {
+                    'high': mr_values['mr_high'],
+                    'low': mr_values['mr_low']
+                }
+                
+                # Add validation details
+                mr_values['validation_details'] = {
+                    'range_size': mr_values['mr_high'] - mr_values['mr_low'],
+                    'range_type': self.config.range_type,
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+                # Ensure all required fields are present
+                mr_values.update({
+                    'is_valid': mr_values['is_valid'],
+                    'validation_reason': mr_values['error']
+                })
+                
+                self.update_state(StrategyState.RANGE_CALCULATED)
+                logger.info(f"Calculated morning range: {mr_values} for the day {candles['timestamp'].iloc[0].date()}")
+                return mr_values
+                
+        except Exception as e:
+            logger.error(f"Error calculating morning range: {str(e)}")
             self.update_state(StrategyState.ERROR)
-            return {}
-            
-        self.morning_range = mr_values
-        self.update_state(StrategyState.RANGE_CALCULATED)
-        
-        logger.info(f"Calculated morning range: {mr_values}")
-        return mr_values
+            return {
+                'is_valid': False,
+                'validation_reason': f'Error calculating MR: {str(e)}',
+                'mr_high': None,
+                'mr_low': None,
+                'validation_details': {}
+            }
 
     def calculate_entry_levels(self) -> Dict:
         """Calculate entry and exit levels."""
@@ -130,10 +181,21 @@ class MorningRangeStrategy(BaseStrategy):
         self.update_state(StrategyState.SETUP_CONFIRMED)
         return True
 
-    @abstractmethod
     def check_entry_conditions(self, candle: Dict) -> Tuple[bool, str]:
-        """To be implemented by specific entry type strategies."""
-        pass
+        """Check entry conditions based on the current candle data."""
+        
+        current_price = candle['close']
+        
+        # Check for long entry condition
+        if current_price >= self.entry_levels['long_entry']:
+            return True, "LONG"
+        
+        # Check for short entry condition
+        if current_price <= self.entry_levels['short_entry']:
+            return True, "SHORT"
+        
+        # If no conditions are met, return False
+        return False, "No entry conditions met"
 
     def check_exit_conditions(self, candle: Dict) -> Tuple[bool, str]:
         """Check exit conditions."""
@@ -216,11 +278,14 @@ class MorningRangeStrategy(BaseStrategy):
             return {'status': 'rejected', 'reason': reason}
         
         # Create trade
+        trade_type = TradeType.IMMEDIATE_BREAKOUT if entry_type == "LONG" else TradeType.RETEST_ENTRY
+        
         trade = self.trade_manager.create_trade(
             instrument_key=self.config.instrument_key,
             entry_price=current_price,
             position_size=position_size,
             position_type=position_type,
+            trade_type=trade_type,
             sl_percentage=self.config.sl_percentage
         )
         

@@ -69,3 +69,20 @@ coverage.html
 .DS_Store
 
 GOALS/
+
+venv/
+python_strategies/venv/
+
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+__pycache__
+__debug_bin*
+__pycache__/
+*.pyc~
+*.pyo~
+*.pyd~
+*.pyw~
+

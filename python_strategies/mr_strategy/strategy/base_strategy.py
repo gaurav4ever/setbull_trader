@@ -39,6 +39,9 @@ class StrategyConfig:
     respect_trend: bool = True
     enable_trailing: bool = False
     partial_exits: bool = False
+    breakout_percentage: float = 0.003
+    invalidation_percentage: float = 0.005
+    max_retest_candles: Optional[int] = None
 
 class BaseStrategy(ABC):
     """Abstract base class for strategy implementation."""
@@ -55,8 +58,16 @@ class BaseStrategy(ABC):
         logger.info(f"Initialized {self.__class__.__name__} with config: {config}")
 
     @abstractmethod
-    def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
-        """Calculate morning range values."""
+    async def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
+        """
+        Calculate morning range values.
+        
+        Args:
+            candles: DataFrame containing candle data
+            
+        Returns:
+            Dictionary containing morning range values and validation status
+        """
         pass
 
     @abstractmethod

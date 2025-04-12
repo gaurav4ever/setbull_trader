@@ -273,7 +273,6 @@ class RiskCalculator:
             "metrics": {
                 "r_multiple": round(metrics.r_multiple, 2),
                 "risk_reward_ratio": round(metrics.risk_reward_ratio, 2),
-                "sharpe_ratio": round(metrics.sharpe_ratio, 2),
                 "sortino_ratio": round(metrics.sortino_ratio, 2),
                 "max_drawdown": round(metrics.max_drawdown, 2),
                 "risk_adjusted_return": round(metrics.risk_adjusted_return, 2),

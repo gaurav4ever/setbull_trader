@@ -72,7 +72,7 @@ class PositionMetrics:
     exit_efficiency: float = 0.0  # Exit timing efficiency
     r_multiple: float = 0.0  # R-multiple achieved
 
-class ExtendedPositionManager:
+class PositionManager:
     """Enhanced Position Manager with advanced risk management."""
     
     def __init__(self, 
@@ -99,6 +99,19 @@ class ExtendedPositionManager:
         
         logger.info("Initialized Extended Position Manager")
         logger.info(f"Risk Limits: {risk_limits}")
+
+    def _format_candle_info(self, candle_data: Dict) -> str:
+        """Format candle information for logging."""
+        if not candle_data:
+            return ""
+            
+        time_str = candle_data.get("timestamp", "unknown")
+        open_price = candle_data.get("open", 0)
+        high_price = candle_data.get("high", 0)
+        low_price = candle_data.get("low", 0)
+        close_price = candle_data.get("close", 0)
+        
+        return f"[{time_str}] [O:{open_price:.2f} H:{high_price:.2f} L:{low_price:.2f} C:{close_price:.2f}] - "
 
     def _init_daily_stats(self) -> Dict:
         """Initialize daily trading statistics."""
@@ -371,6 +384,7 @@ class ExtendedPositionManager:
         Returns:
             bool: True if position size is valid
         """
+        logger.info("###VALIDATE POSITION SIZE size: %s, price: %s", size, price)
         position_value = size * price
         
         # Check minimum size
@@ -505,116 +519,143 @@ class ExtendedPositionManager:
         return size
 
     def add_position(self, 
-                    instrument_key: str, 
-                    size: float, 
-                    entry_price: float,
-                    sl_percentage: float,
-                    position_type: str = "LONG") -> Dict:
+                    instrument: str, 
+                    direction: str, 
+                    entry_price: float, 
+                    size: float,
+                    stop_loss: float,
+                    take_profit: float,
+                    candle_data: Dict = None) -> bool:
         """
-        Add a new position to tracking.
+        Add a new position with enhanced validation and risk checks.
         
         Args:
-            instrument_key: Unique identifier for the instrument
-            size: Position size
+            instrument: Trading instrument
+            direction: 'long' or 'short'
             entry_price: Entry price
-            sl_percentage: Stop loss percentage
-            position_type: Type of position ("LONG" or "SHORT")
+            size: Position size
+            stop_loss: Stop loss price
+            take_profit: Take profit price
+            candle_data: Current candle data for logging
             
         Returns:
-            Dict: Position information
+            bool: True if position was added successfully
         """
-        if instrument_key in self.positions:
-            logger.warning(f"Position already exists for {instrument_key}")
-            return {}
+        candle_info = self._format_candle_info(candle_data)
+        
+        # Validate inputs
+        if not self._validate_position_inputs(instrument, direction, entry_price, size, stop_loss, take_profit):
+            logger.error(f"{candle_info}Invalid position inputs")
+            return False
             
-        # Calculate stop loss price
-        stop_loss = self.calculate_stop_loss_price(entry_price, sl_percentage, position_type)
+        # Check risk limits
+        if not self._check_risk_limits(instrument, size):
+            logger.error(f"{candle_info}Risk limits exceeded")
+            return False
             
+        # Check correlation
+        if not self._check_correlation(instrument):
+            logger.error(f"{candle_info}Correlation limit exceeded")
+            return False
+            
+        # Calculate position metrics
+        risk_amount = self._calculate_risk_amount(entry_price, stop_loss, size)
+        reward_amount = self._calculate_reward_amount(entry_price, take_profit, size)
+        risk_reward_ratio = reward_amount / risk_amount if risk_amount > 0 else 0
+        
+        # Create position
         position = {
-            "instrument_key": instrument_key,
-            "size": size,
-            "entry_price": entry_price,
-            "current_price": entry_price,
-            "stop_loss": stop_loss,
-            "sl_percentage": sl_percentage,
-            "position_type": position_type,
-            "unrealized_pnl": 0.0,
-            "risk_amount": abs(entry_price - stop_loss) * size
+            'instrument': instrument,
+            'direction': direction,
+            'entry_price': entry_price,
+            'size': size,
+            'stop_loss': stop_loss,
+            'take_profit': take_profit,
+            'risk_amount': risk_amount,
+            'reward_amount': reward_amount,
+            'risk_reward_ratio': risk_reward_ratio,
+            'entry_time': datetime.now(),
+            'status': 'open'
         }
         
-        self.positions[instrument_key] = position
-        logger.info(f"Added new position for {instrument_key}: {position}")
+        self.positions[instrument] = position
+        logger.info(f"{candle_info}Added new position: {position}")
         
-        return position
+        # Update daily stats
+        self._update_daily_stats('positions_opened', 1)
+        self._update_daily_stats('total_risk', risk_amount)
+        
+        return True
 
     def update_position(self, 
-                       instrument_key: str, 
+                       instrument: str, 
                        current_price: float,
-                       new_sl_percentage: Optional[float] = None) -> Dict:
+                       candle_data: Dict = None) -> bool:
         """
-        Update an existing position with new price and optional stop loss.
+        Update position with current price and check for exit conditions.
         
         Args:
-            instrument_key: Unique identifier for the instrument
+            instrument: Trading instrument
             current_price: Current market price
-            new_sl_percentage: New stop loss percentage (optional)
+            candle_data: Current candle data for logging
             
         Returns:
-            Dict: Updated position information
+            bool: True if position was updated successfully
         """
-        if instrument_key not in self.positions:
-            logger.warning(f"No position found for {instrument_key}")
-            return {}
+        candle_info = self._format_candle_info(candle_data)
+        
+        if instrument not in self.positions:
+            logger.error(f"{candle_info}Position not found for {instrument}")
+            return False
             
-        position = self.positions[instrument_key]
-        position["current_price"] = current_price
+        position = self.positions[instrument]
         
-        # Update stop loss if provided
-        if new_sl_percentage is not None:
-            position["sl_percentage"] = new_sl_percentage
-            position["stop_loss"] = self.calculate_stop_loss_price(
-                current_price, 
-                new_sl_percentage, 
-                position["position_type"]
-            )
-            position["risk_amount"] = abs(current_price - position["stop_loss"]) * position["size"]
+        # Update current price and calculate P&L
+        position['current_price'] = current_price
+        position['unrealized_pnl'] = self._calculate_unrealized_pnl(position)
         
-        # Calculate unrealized P&L
-        if position["position_type"] == "LONG":
-            position["unrealized_pnl"] = (current_price - position["entry_price"]) * position["size"]
-        else:  # SHORT
-            position["unrealized_pnl"] = (position["entry_price"] - current_price) * position["size"]
-        
-        logger.info(f"Updated position for {instrument_key}: {position}")
-        return position
+        # Check for stop loss or take profit
+        if self._check_stop_loss(position, current_price) or self._check_take_profit(position, current_price):
+            logger.info(f"{candle_info}Position {instrument} hit exit condition")
+            self.close_position(instrument, current_price, candle_data)
+            return True
+            
+        logger.debug(f"{candle_info}Updated position {instrument}: {position}")
+        return True
 
-    def close_position(self, instrument_key: str, exit_price: float) -> Dict:
+    def close_position(self, 
+                      instrument: str, 
+                      exit_price: float,
+                      candle_data: Dict = None) -> Dict:
         """
-        Close an existing position and calculate final P&L.
+        Close an existing position and calculate realized P&L.
         
         Args:
-            instrument_key: Unique identifier for the instrument
-            exit_price: Exit price
+            instrument: Trading instrument
+            exit_price: Price at which to close the position
+            candle_data: Current candle data for logging
             
         Returns:
-            Dict: Closed position information with realized P&L
+            Dict: Closed position information
         """
-        if instrument_key not in self.positions:
-            logger.warning(f"No position found for {instrument_key}")
+        candle_info = self._format_candle_info(candle_data)
+        
+        if instrument not in self.positions:
+            logger.error(f"{candle_info}Position not found for {instrument}")
             return {}
             
-        position = self.positions.pop(instrument_key)
+        position = self.positions[instrument]
         
         # Calculate realized P&L
-        if position["position_type"] == "LONG":
-            realized_pnl = (exit_price - position["entry_price"]) * position["size"]
-        else:  # SHORT
-            realized_pnl = (position["entry_price"] - exit_price) * position["size"]
+        position['exit_price'] = exit_price
+        position['realized_pnl'] = self._calculate_realized_pnl(position)
         
-        position["exit_price"] = exit_price
-        position["realized_pnl"] = realized_pnl
+        # Log position closure
+        logger.info(f"{candle_info}Closed position {instrument}: {position}")
         
-        logger.info(f"Closed position for {instrument_key} with P&L: {realized_pnl}")
+        # Remove position from active positions
+        del self.positions[instrument]
+        
         return position
 
     def get_position_summary(self) -> Dict:
