@@ -34,40 +34,72 @@ logger = logging.getLogger(__name__)
 
 # Test parameters
 INSTRUMENT_CONFIGS = [
+  {
+    "name": "FUSION",
+    "key": "NSE_EQ|INE139R01012",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "EXICOM",
+    "key": "NSE_EQ|INE777F01014",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "OLAELEC",
+    "key": "NSE_EQ|INE0LXG01040",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "FOODSIN",
+    "key": "NSE_EQ|INE976E01023",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "MEDICO",
+    "key": "NSE_EQ|INE630Y01024",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "JAICORPLTD",
+    "key": "NSE_EQ|INE070D01027",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "NAVKARCORP",
+    "key": "NSE_EQ|INE278M01019",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "NACLIND",
+    "key": "NSE_EQ|INE295D01020",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "DREAMFOLKS",
+    "key": "NSE_EQ|INE0JS101016",
+    "direction": "BEARISH"
+  },
+  {
+    "name": "SHAREINDIA",
+    "key": "NSE_EQ|INE932X01026",
+    "direction": "BEARISH"
+  }
+]
+INSTRUMENT_CONFIGSS = [
     {
         'key': 'NSE_EQ|INE070D01027',
         "name": "JAICORP",
         'direction': 'BEARISH'
-    },
-    {
-        'key': 'NSE_EQ|INE139R01012',
-        "name": "FUSION",
-        'direction': 'BEARISH'
-    },
-    {
-        'key': 'NSE_EQ|INE0G5901015',
-        "name": "EPACK",
-        'direction': 'BEARISH'
-    },
-    {
-        'key': 'NSE_EQ|INE133E01013',
-        "name": "TI",
-        'direction': 'BEARISH'
-    },
-    {
-        'key': 'NSE_EQ|INE777F01014',
-        "name": "EXICOM",
-        'direction': 'BEARISH'
     }
 ]
-START_DATE = "2025-01-01T09:15:00+05:30"
+START_DATE = "2025-04-01T09:15:00+05:30"
 END_DATE = "2025-04-11T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
 ENTRY_TYPES = ["1ST_ENTRY"]
 
-async def run_entry_type_comparison():
+async def run_entry_type_comparison(instrument_configs):
     print(">> Running Entry Type Comparison")
     """Run backtest to compare different entry types."""    
     
@@ -76,7 +108,7 @@ async def run_entry_type_comparison():
         mode=BacktestMode.SINGLE,
         start_date=START_DATE,
         end_date=END_DATE,
-        instruments=INSTRUMENT_CONFIGS,
+        instruments=instrument_configs,
         strategies=[{
             "type": "MorningRange",
             "params": {
@@ -96,8 +128,23 @@ async def run_entry_type_comparison():
     
     # Display results
     print_and_visualize_results(results, runner.reports)
-    
+    # create series of PNL values for each instrument
+    # Stock A: [1.2, 0.5, -0.7, -1.5, 0.8]
+    # Stock B: [0.8, 0.3, -0.9, -1.2, 1.0]
+    # Stock C: [-0.5, -0.2, 1.1, 0.8, -0.6]
+    # Stock D: [-1.0, -0.8, 0.7, 1.5, -1.2]
+    # create a dataframe with the above values
+    trades = results.get('trades')
+    # create a dataframe with the above values
+    df = pd.DataFrame(trades)
+    # create a series of PNL values for each instrument
+    pnl_series = df.groupby('instrument_key')['realized_pnl'].apply(list)
+    # print the pnl series
+    print("PNL Series: ", pnl_series)
+
+
     print(">> Finished Backtest")
+    results['pnl_series'] = pnl_series
     return results
 
 def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
@@ -128,6 +175,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
             pnl = trade.get('realized_pnl', 0)
             direction = trade.get('position_type', 'UNKNOWN')
             trade_type = trade.get('trade_type', 'UNKNOWN')
+            max_r_multiple = trade.get('max_r_multiple', 0)
             
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
@@ -136,7 +184,8 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                 trade_days[trade_date][instrument_name] = {
                     "pnl": 0,
                     "direction": direction,
-                    "trade_type": trade_type
+                    "trade_type": trade_type,
+                    "max_r_multiple": max_r_multiple
                 }
             
             trade_days[trade_date][instrument_name]["pnl"] += pnl
@@ -157,6 +206,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
             direction = data["direction"]
             trade_type = data["trade_type"]
             status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
+            max_r_multiple = data["max_r_multiple"]
             
             csv_data.append({
                 'Date': date,
@@ -165,6 +215,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                 'Status': status,
                 'Direction': direction,
                 'Trade Type': trade_type,
+                'Max R Multiple': f"{max_r_multiple:.2f}",
                 'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}"
             })
     
@@ -302,4 +353,4 @@ def print_and_visualize_results(results, reports):
         print("-" * 100)
 
 if __name__ == "__main__":
-    asyncio.run(run_entry_type_comparison())
+    asyncio.run(run_entry_type_comparison(INSTRUMENT_CONFIGS))

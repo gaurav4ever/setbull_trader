@@ -199,4 +199,7 @@ type FilteredStockRepository interface {
 
 	// GetLatestBySymbol retrieves the most recent filtered stock record for a symbol
 	GetLatestBySymbol(ctx context.Context, symbol string) (*domain.FilteredStockRecord, error)
+
+	// GetTop10FilteredStocks retrieves the top 10 filtered stocks
+	GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error)
 }

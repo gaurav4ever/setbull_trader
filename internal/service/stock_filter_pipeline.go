@@ -90,6 +90,11 @@ type MoveStats struct {
 	Date               time.Time
 }
 
+// GetTop10FilteredStocks retrieves the top 10 filtered stocks
+func (p *StockFilterPipeline) GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error) {
+	return p.filteredStockRepo.GetTop10FilteredStocks(ctx)
+}
+
 // RunPipeline executes the complete filtering process
 func (p *StockFilterPipeline) RunPipeline(
 	ctx context.Context,

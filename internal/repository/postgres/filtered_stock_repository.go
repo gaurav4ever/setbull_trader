@@ -251,3 +251,20 @@ func (r *FilteredStockRepository) GetLatestBySymbol(ctx context.Context, symbol 
 
 	return &record, nil
 }
+
+// Get Top 10 Filtered Stocks
+func (r *FilteredStockRepository) GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error) {
+	var records []domain.FilteredStockRecord
+
+	result := r.db.WithContext(ctx).
+		Table("filtered_stocks").
+		Order("mamba_count DESC").
+		Limit(10).
+		Find(&records)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get top 10 filtered stocks: %w", result.Error)
+	}
+
+	return records, nil
+}

@@ -514,7 +514,8 @@ class BacktestEngine:
             'average_r': round(float(trade_stats['average_r']), 2),
             'max_drawdown': round(float(max_drawdown), 2),
             # 'direction': direction,  # Add direction to metrics
-            'sharpe_ratio': round(float(sharpe_ratio), 2)
+            # make sharpe ratio 0 if nan
+            'sharpe_ratio': round(float(sharpe_ratio), 2) if not math.isnan(sharpe_ratio) else 0.0
         }
 
         logger.info(f"Calculated performance metrics: {metrics}")

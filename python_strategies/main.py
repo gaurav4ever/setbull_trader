@@ -5,6 +5,7 @@ from typing import List, Optional
 import asyncio
 import logging
 from datetime import datetime
+import httpx
 from utils.utils import convert_numpy_types
 # Import the backtest function from test_mr_strategy
 from test_mr_strategy import run_entry_type_comparison, print_and_visualize_results
@@ -52,12 +53,30 @@ async def run_backtest(request: BacktestRequest):
     try:
         logger.info(f"Starting backtest with parameters: {request.dict()}")
         
-        # Run the backtest
-        results = await run_entry_type_comparison()
+        # Fetch top 10 filtered stocks from the filter pipeline API
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://localhost:8080/api/v1/filter-pipeline/fetch/top-10")
+            if response.status_code != 200:
+                raise HTTPException(status_code=500, detail="Failed to fetch filtered stocks")
+            
+            filtered_stocks = response.json()
+            if not filtered_stocks.get("success", False):
+                raise HTTPException(status_code=500, detail="Failed to fetch filtered stocks")
+            
+            # Extract instrument configs from filtered stocks
+            instrument_configs = []
+            for stock in filtered_stocks.get("data", []):
+                instrument_configs.append({
+                    "key": stock["instrument_key"],
+                    "name": stock["symbol"],
+                    "direction": stock["trend"]
+                })
+            
+            # Run the backtest with the filtered stocks
+            results = await run_entry_type_comparison(instrument_configs=instrument_configs)
         
         # Format the results
         response = BacktestResponse(success=True, results=results['metrics'], error=None)
-        # convert response to json
         
         logger.info("Backtest completed successfully")
         return response

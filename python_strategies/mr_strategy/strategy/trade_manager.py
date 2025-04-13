@@ -7,6 +7,7 @@ multiple take profit levels, dynamic stop loss, breakeven, and trailing stops.
 
 from dataclasses import dataclass
 from enum import Enum
+import math
 from typing import Dict, Optional, Union, List, Tuple
 import logging
 from datetime import datetime, time
@@ -246,7 +247,9 @@ class TradeManager:
             "trailing_stop_level": None,
             "re_entries": 0,
             "partial_exits": [],
-            "entry_candle": candle_data
+            "entry_candle": candle_data,
+            "max_r_multiple": 0.0,
+            "initial_r_multiple": abs(entry_price - levels["stop_loss"])
         }
         
         self.active_trades[instrument_key] = trade
@@ -380,7 +383,7 @@ class TradeManager:
             logger.info(f"{candle_info}Stop loss hit for trade {instrument_key}, closing trade")
             return self.close_trade(
                 instrument_key,
-                current_price,
+                trade["stop_loss"],
                 TradeStatus.STOPPED_OUT,
                 candle_data
             )
@@ -490,7 +493,7 @@ class TradeManager:
         trade["exit_candle"] = candle_data
         trade["status"] = status.value
         trade["duration"] = (trade["exit_time"] - trade["entry_time"]).total_seconds() / 60
-        
+        trade["max_r_multiple"] = (trade["entry_price"] - exit_price) / trade["initial_r_multiple"]
         # Calculate overall R-multiple
         if trade["risk_amount"] > 0:
             trade["r_multiple"] = trade["realized_pnl"] / (trade["risk_amount"] * trade["initial_position_size"])

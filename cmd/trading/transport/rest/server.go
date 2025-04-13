@@ -145,6 +145,7 @@ func (s *Server) setupRoutes() {
 
 	// Filter pipeline routes
 	api.HandleFunc("/filter-pipeline/run", s.RunFilterPipeline).Methods(http.MethodPost)
+	api.HandleFunc("/filter-pipeline/fetch/top-10", s.GetTop10FilteredStocks).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -636,4 +637,18 @@ func (s *Server) RunFilterPipeline(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondSuccess(w, response)
+}
+
+// GetTop10FilteredStocks handles getting the top 10 filtered stocks
+func (s *Server) GetTop10FilteredStocks(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	top10Stocks, err := s.stockFilterPipeline.GetTop10FilteredStocks(ctx)
+	if err != nil {
+		log.Error("Failed to get top 10 filtered stocks: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to get top 10 filtered stocks: "+err.Error())
+		return
+	}
+
+	respondSuccess(w, top10Stocks)
 }
