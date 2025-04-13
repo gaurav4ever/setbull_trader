@@ -90,11 +90,11 @@ class BacktestRunner:
         all_data = {}
         for instrument in self.config.instruments:
             data = await self.data_processor.load_intraday_data(
-                instrument_key=instrument,
+                instrument_key=instrument.get('key'),
                 start_date=self.config.start_date,
                 end_date=self.config.end_date
             )
-            all_data[instrument] = data
+            all_data[instrument.get('key')] = data
         
         # Run backtest with loaded data
         logger.info(f"Running backtest for {len(all_data)} instruments")
@@ -105,7 +105,7 @@ class BacktestRunner:
         self.reports["single"] = self._generate_backtest_report(results)
         
         # Save results
-        self._save_results("single")
+        # self._save_results("single")
         
         return self.results["single"]
 
@@ -229,17 +229,18 @@ class BacktestRunner:
             # Convert dictionary strategies to StrategyConfig objects
             strategy_configs = []
             for strategy_dict in self.config.strategies:
-                strategy_configs.append(
-                    StrategyConfig(
-                        instrument_key=self.config.instruments[0],  # Use first instrument as default
+                for instrument in self.config.instruments:
+                    strategy_configs.append(
+                        StrategyConfig(
+                            instrument_key=instrument,  # Use first instrument as default
                         range_type=strategy_dict["params"]["range_type"],
                         entry_type=strategy_dict["params"]["entry_type"],
                         sl_percentage=strategy_dict["params"]["sl_percentage"],
                         target_r=strategy_dict["params"]["target_r"],
                         buffer_ticks=5,  # Default value
-                        tick_size=0.05  # Default value
+                            tick_size=0.05  # Default value
+                        )
                     )
-                )
             
             config = BacktestConfig(
                 start_date=self.config.start_date,
@@ -257,25 +258,6 @@ class BacktestRunner:
 
     def _generate_backtest_report(self, results: Dict) -> Dict:
         """Generate comprehensive backtest report."""
-        # Initialize default summary
-        default_summary = {
-            "total_trades": 0,
-            "win_rate": 0.0,
-            "profit_factor": 0.0,
-            "total_return": 0.0,
-            "max_drawdown": 0.0,
-            "sortino_ratio": 0.0,
-            "avg_trade": 0.0,
-            "avg_win": 0.0,
-            "avg_loss": 0.0,
-            "largest_win": 0.0,
-            "largest_loss": 0.0,
-            "winning_trades": 0,
-            "losing_trades": 0,
-            "consecutive_wins": 0,
-            "consecutive_losses": 0
-        }
-        
         # Get trade list safely
         trade_list = results.get("trade_list", [])
         
@@ -287,41 +269,59 @@ class BacktestRunner:
                 "entry": self.performance_analyzer.calculate_entry_metrics(trade_list),
                 "range": self.performance_analyzer.calculate_range_metrics(trade_list)
             }
-        
-        # Extract summary from overall metrics
-        overall_metrics = metrics.get("overall", {})
-        if overall_metrics:
-            summary = {
-                "total_trades": overall_metrics.get("total_trades", 0),
-                "win_rate": overall_metrics.get("win_rate", 0.0),
-                "profit_factor": overall_metrics.get("profit_factor", 0.0),
-                "total_return": overall_metrics.get("net_pnl", 0.0),
-                "max_drawdown": overall_metrics.get("max_drawdown", 0.0),
-                "sortino_ratio": overall_metrics.get("sortino_ratio", 0.0),
-                "avg_trade": overall_metrics.get("average_r", 0.0),
-                "avg_win": overall_metrics.get("average_win", 0.0),
-                "avg_loss": overall_metrics.get("average_loss", 0.0),
-                "largest_win": overall_metrics.get("largest_win", 0.0),
-                "largest_loss": overall_metrics.get("largest_loss", 0.0),
-                "winning_trades": overall_metrics.get("winning_trades", 0),
-                "losing_trades": overall_metrics.get("losing_trades", 0),
-                "consecutive_wins": overall_metrics.get("consecutive_wins", 0),
-                "consecutive_losses": overall_metrics.get("consecutive_losses", 0)
+        total_trades = 0
+        winning_trades = 0
+        losing_trades = 0
+        avg_win = 0
+        avg_loss = 0
+        total_profit = 0
+        total_loss = 0
+        net_pnl = 0
+        for key, value in metrics.items():
+            total_trades += value["total_trades"]
+            winning_trades += value["winning_trades"]
+            losing_trades += value["losing_trades"]
+            avg_win += value["average_win"]
+            avg_loss += value["average_loss"]
+            net_pnl += value["net_pnl"]
+            total_profit += value["total_profit"]
+            total_loss += value["total_loss"]
+
+        summary = {
+                "total_trades": total_trades,
+                "win_rate": winning_trades / total_trades,
+                "profit_factor": net_pnl / abs(net_pnl),
+                "total_return": net_pnl,
+                "avg_trade": avg_win + avg_loss,
+                "avg_win": avg_win,
+                "avg_loss": avg_loss,
+                "winning_trades": winning_trades,
+                "losing_trades": losing_trades
             }
-        else:
-            summary = default_summary
         
         # Generate equity curve safely
-        equity_curve = self._generate_equity_curve(trade_list)
+        # equity_curve = self._generate_equity_curve(trade_list)
         
         # Generate recommendations safely
-        recommendations = self._generate_recommendations(summary)
+        # recommendations = self._generate_recommendations(summary)
+        
+        # Generate instrument-specific reports
+        instrument_reports = {}
+        for instrument_key, instrument_data in results.get('instruments', {}).items():
+            instrument_reports[instrument_key] = {
+                'direction': instrument_data['direction'],
+                'metrics': instrument_data['metrics'],
+                'signals': len(instrument_data['signals']),
+                'trades': len(instrument_data['trades'])
+                # 'equity_curve': self._generate_equity_curve(instrument_data['trades'])
+            }
         
         report = {
             "summary": summary,
             "performance_metrics": metrics,
-            "equity_curve": equity_curve,
-            "recommendations": recommendations
+            # "equity_curve": equity_curve,
+            # "recommendations": recommendations,
+            "instruments": instrument_reports
         }
         
         return report
@@ -408,6 +408,15 @@ class BacktestRunner:
         with open(report_file, "w") as f:
             json.dump(self.reports[mode], f, indent=2, default=str)
         
+        # Save instrument-specific results
+        instruments_dir = self.output_dir / "instruments"
+        instruments_dir.mkdir(exist_ok=True)
+        
+        for instrument_key, instrument_data in self.results[mode].get('instruments', {}).items():
+            instrument_file = instruments_dir / f"{instrument_key}_{timestamp}.json"
+            with open(instrument_file, "w") as f:
+                json.dump(instrument_data, f, indent=2, default=str)
+        
         # Generate and save plots
         # self._save_visualization(mode, timestamp)
         
@@ -420,101 +429,155 @@ class BacktestRunner:
         
         # Generate plots based on mode
         if mode == "single":
+            # Plot overall equity curve
             self._plot_equity_curve(plot_dir)
+            
+            # Plot instrument-specific equity curves
+            instruments_dir = plot_dir / "instruments"
+            instruments_dir.mkdir(exist_ok=True)
+            
+            for instrument_key, instrument_data in self.results[mode].get('instruments', {}).items():
+                self._plot_instrument_equity_curve(instrument_key, instrument_data, instruments_dir)
+            
+            # Plot drawdown
             self._plot_drawdown(plot_dir)
+            
+            # Plot trade distribution
             self._plot_trade_distribution(plot_dir)
+            
+            # Plot instrument-specific trade distributions
+            for instrument_key, instrument_data in self.results[mode].get('instruments', {}).items():
+                self._plot_instrument_trade_distribution(instrument_key, instrument_data, instruments_dir)
+        
         elif mode == "batch":
             self._plot_batch_performance(plot_dir)
             self._plot_correlation_matrix(plot_dir)
+        
         elif mode == "optimization":
             self._plot_parameter_sensitivity(plot_dir)
             self._plot_performance_surface(plot_dir)
+        
         elif mode == "walk_forward":
             self._plot_walk_forward_performance(plot_dir)
             self._plot_stability_metrics(plot_dir)
 
-    def _plot_equity_curve(self, trade_list: List[Dict]) -> Dict:
-        """Generate equity curve data from trade list.
+    def _plot_instrument_equity_curve(self, instrument_key: str, instrument_data: Dict, plot_dir: Path):
+        """Plot equity curve for a specific instrument."""
+        if 'equity_curve' not in instrument_data:
+            return
+        
+        plt.figure(figsize=(12, 6))
+        plt.plot(instrument_data['equity_curve'].index, instrument_data['equity_curve'])
+        plt.title(f'Equity Curve - {instrument_key} ({instrument_data["direction"]})')
+        plt.xlabel('Date')
+        plt.ylabel('Equity')
+        plt.grid(True)
+        
+        # Save the plot
+        plt.savefig(plot_dir / f"equity_curve_{instrument_key}.png")
+        plt.close()
 
-        Args:
-            trade_list (List[Dict]): List of trade dictionaries with PnL information
-
-        Returns:
-            Dict: Dictionary containing equity curve data points and metadata
-        """
-        if not trade_list:
-            return {
-                "timestamps": [],
-                "equity_values": [],
-                "drawdowns": [],
-                "max_drawdown": 0.0,
-                "final_equity": self.config.initial_capital
-            }
-
-        equity = self.config.initial_capital
-        equity_points = [(pd.Timestamp(trade_list[0]["entry_time"]), equity)]
+    def _plot_instrument_trade_distribution(self, instrument_key: str, instrument_data: Dict, plot_dir: Path):
+        """Plot trade distribution for a specific instrument."""
+        if 'trades' not in instrument_data:
+            return
         
-        for trade in trade_list:
-            equity += trade["pnl"]
-            equity_points.append((pd.Timestamp(trade["exit_time"]), equity))
+        trades_df = pd.DataFrame(instrument_data['trades'])
+        if trades_df.empty:
+            return
         
-        # Convert to DataFrame for easier calculations
-        df = pd.DataFrame(equity_points, columns=["timestamp", "equity"])
-        df = df.sort_values("timestamp")
+        plt.figure(figsize=(12, 6))
+        plt.hist(trades_df['realized_pnl'], bins=20)
+        plt.title(f'Trade Distribution - {instrument_key} ({instrument_data["direction"]})')
+        plt.xlabel('P&L')
+        plt.ylabel('Frequency')
+        plt.grid(True)
         
-        # Calculate drawdown
-        df["peak"] = df["equity"].cummax()
-        df["drawdown"] = (df["equity"] - df["peak"]) / df["peak"] * 100
-        max_drawdown = abs(df["drawdown"].min())
-        
-        return {
-            "timestamps": df["timestamp"].tolist(),
-            "equity_values": df["equity"].tolist(),
-            "drawdowns": df["drawdown"].tolist(),
-            "max_drawdown": max_drawdown,
-            "final_equity": equity
-        }
+        # Save the plot
+        plt.savefig(plot_dir / f"trade_distribution_{instrument_key}.png")
+        plt.close()
 
     def _generate_equity_curve(self, trade_list: List[Dict]) -> Dict:
-        """Generate equity curve data from trade list.
-
+        """
+        Generate equity curve from trade list.
+        
         Args:
-            trade_list (List[Dict]): List of trade dictionaries with PnL information
-
+            trade_list: List of trade dictionaries, each containing:
+                - instrument_key: str
+                - entry_time: datetime
+                - exit_time: datetime
+                - entry_price: float
+                - exit_price: float
+                - position_size: float
+                - realized_pnl: float
+                - status: str
+                
         Returns:
-            Dict: Dictionary containing equity curve data points and metadata
+            Dictionary containing:
+                - equity_curve: pd.Series with timestamp index and equity values
+                - drawdown_curve: pd.Series with timestamp index and drawdown values
+                - instrument_curves: Dict[str, pd.Series] mapping instrument keys to their equity curves
         """
         if not trade_list:
             return {
-                "timestamps": [],
-                "equity_values": [],
-                "drawdowns": [],
-                "max_drawdown": 0.0,
-                "final_equity": self.config.initial_capital
+                'equity_curve': pd.Series(),
+                'drawdown_curve': pd.Series(),
+                'instrument_curves': {}
             }
-
-        equity = self.config.initial_capital
-        equity_points = [(pd.Timestamp(trade_list[0]["entry_time"]), equity)]
         
-        for trade in trade_list:
-            equity += trade["pnl"]
-            equity_points.append((pd.Timestamp(trade["exit_time"]), equity))
+        # Convert trade list to DataFrame
+        trades_df = pd.DataFrame(trade_list)
         
-        # Convert to DataFrame for easier calculations
-        df = pd.DataFrame(equity_points, columns=["timestamp", "equity"])
-        df = df.sort_values("timestamp")
+        # Convert timestamps to datetime
+        trades_df['entry_time'] = pd.to_datetime(trades_df['entry_time'])
+        trades_df['exit_time'] = pd.to_datetime(trades_df['exit_time'])
         
-        # Calculate drawdown
-        df["peak"] = df["equity"].cummax()
-        df["drawdown"] = (df["equity"] - df["peak"]) / df["peak"] * 100
-        max_drawdown = abs(df["drawdown"].min())
+        # Sort trades by exit time
+        trades_df = trades_df.sort_values('exit_time')
+        
+        # Group trades by instrument
+        instrument_groups = trades_df.groupby('instrument_key')
+        
+        # Calculate equity curves for each instrument
+        instrument_curves = {}
+        for instrument_key, instrument_trades in instrument_groups:
+            # Calculate cumulative P&L for this instrument
+            instrument_pnl = instrument_trades['realized_pnl'].cumsum()
+            
+            # Create equity curve for this instrument
+            instrument_curve = self.config.initial_capital + instrument_pnl
+            
+            # Set index to exit times
+            instrument_curve.index = instrument_trades['exit_time']
+            
+            # Store instrument curve
+            instrument_curves[instrument_key] = instrument_curve
+        
+        # Calculate portfolio equity curve
+        if instrument_curves:
+            # Combine all instrument curves
+            portfolio_curve = pd.concat(instrument_curves.values())
+            
+            # Sort by timestamp
+            portfolio_curve = portfolio_curve.sort_index()
+            
+            # Calculate cumulative sum
+            portfolio_curve = portfolio_curve.groupby(portfolio_curve.index).sum()
+            
+            # Add initial capital
+            portfolio_curve = self.config.initial_capital + portfolio_curve.cumsum()
+        else:
+            portfolio_curve = pd.Series([self.config.initial_capital])
+            portfolio_curve.index = [trades_df['exit_time'].min()]
+        
+        # Calculate drawdown curve
+        rolling_max = portfolio_curve.expanding().max()
+        drawdown_curve = (portfolio_curve - rolling_max) / rolling_max
         
         return {
-            "timestamps": df["timestamp"].tolist(),
-            "equity_values": df["equity"].tolist(),
-            "drawdowns": df["drawdown"].tolist(),
-            "max_drawdown": max_drawdown,
-            "final_equity": equity
+            'equity_curve': portfolio_curve,
+            'drawdown_curve': drawdown_curve,
+            'instrument_curves': instrument_curves
         }
 
     def _generate_trade_list(self, results: Dict) -> List[Dict]:
@@ -576,59 +639,99 @@ def print_and_visualize_results(results, reports):
     print("\n=============================================")
     print("MORNING RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
-    print(f"Instrument: {INSTRUMENT_KEY}")
-    print(f"Period: {START_DATE} to {END_DATE}")
+    print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in results['instruments'].keys()]}")
+    print(f"Period: {results['start_date']} to {results['end_date']}")
     print("---------------------------------------------")
     
     # Print summary statistics
     print("\nOVERALL PERFORMANCE:")
     summary = reports['single']['summary']
     
+    # Calculate additional metrics
+    winning_trades = int(summary['winning_trades'])
+    losing_trades = int(summary['losing_trades'])
+    avg_profit = summary.get('avg_win', 0)
+    avg_loss = summary.get('avg_loss', 0)
+    total_profit = winning_trades * avg_profit if avg_profit else 0
+    total_loss = losing_trades * avg_loss if avg_loss else 0
+    overall_pnl = total_profit + total_loss
+    profit_percentage = (avg_profit / results['initial_capital'] * 100) if avg_profit else 0
+    loss_percentage = (avg_loss / results['initial_capital'] * 100) if avg_loss else 0
+    expectancy = (summary['win_rate'] * avg_profit) + ((1 - summary['win_rate']) * avg_loss)
+    
     # Print table format
     print("-" * 60)
     print(f"{'Metric':<25} {'Value':<20}")
     print("-" * 60)
     print(f"{'Total Trades':<25} {summary['total_trades']:<20}")
-    print(f"{'Winning Trades':<25} {summary['winning_trades']:<20}")
-    print(f"{'Losing Trades':<25} {summary['losing_trades']:<20}")
+    print(f"{'Winning Trades':<25} {winning_trades:<20}")
+    print(f"{'Losing Trades':<25} {losing_trades:<20}")
     print(f"{'Win Rate':<25} {summary['win_rate']:.2%}")
     print(f"{'Profit Factor':<25} {summary['profit_factor']:.2f}")
-    print(f"{'Average Profit':<25} {summary['average_win']:.2f}")
-    print(f"{'Average Loss':<25} {summary['average_loss']:.2f}")
-    print(f"{'Profit %':<25} {summary['profit_percentage']:.2f}%")
-    print(f"{'Loss %':<25} {summary['loss_percentage']:.2f}%")
-    print(f"{'Expectancy':<25} {summary['expectancy']:.2f}")
-    print(f"{'Total Profit':<25} {summary['total_profit']:.2f}")
-    print(f"{'Total Loss':<25} {summary['total_loss']:.2f}")
-    print(f"{'Overall PNL':<25} {summary['overall_pnl']:.2f}")
+    print(f"{'Average Profit':<25} {avg_profit:.2f}")
+    print(f"{'Average Loss':<25} {avg_loss:.2f}")
+    print(f"{'Profit %':<25} {profit_percentage*100:.2f}%")
+    print(f"{'Loss %':<25} {loss_percentage*100:.2f}%")
+    print(f"{'Expectancy':<25} {expectancy:.2f}")
+    print(f"{'Total Profit':<25} {total_profit:.2f}")
+    print(f"{'Total Loss':<25} {total_loss:.2f}")
+    print(f"{'Overall PNL':<25} {overall_pnl:.2f}")
     print(f"{'Total Return':<25} {summary['total_return']:.2f}")
     print(f"{'Max Drawdown':<25} {summary['max_drawdown']:.2f}")
     print("-" * 60)
     
-    # Extract and compare strategy results
-    strategy_results = reports['single']['performance_metrics']
+    # Print instrument-specific results
+    print("\nINSTRUMENT-SPECIFIC PERFORMANCE:")
+    for instrument_key, instrument_data in results['instruments'].items():
+        print(f"\n{instrument_key} ({instrument_data['direction']}):")
+        print("-" * 60)
+        print(f"{'Metric':<25} {'Value':<20}")
+        print("-" * 60)
+        print(f"{'Total Trades':<25} {instrument_data['metrics']['total_trades']:<20}")
+        print(f"{'Win Rate':<25} {instrument_data['metrics']['win_rate']:.2%}")
+        print(f"{'Profit Factor':<25} {instrument_data['metrics']['profit_factor']:.2f}")
+        print(f"{'Average R':<25} {instrument_data['metrics']['average_r']:.2f}")
+        print(f"{'Max Drawdown':<25} {instrument_data['metrics']['max_drawdown']:.2f}")
+        print(f"{'Sharpe Ratio':<25} {instrument_data['metrics']['sharpe_ratio']:.2f}")
+        print("-" * 60)
     
-    print("\nENTRY TYPE COMPARISON:")
+    # Print overall portfolio results
+    print("\nOVERALL PORTFOLIO PERFORMANCE:")
+    portfolio_metrics = results['portfolio']['metrics']
     print("-" * 60)
-    print(f"{'Entry Type':<15} {'Total Trades':<12} {'Win Rate':<10} {'Avg Profit':<12} {'Avg Loss':<12}")
+    print(f"{'Metric':<25} {'Value':<20}")
+    print("-" * 60)
+    print(f"{'Total Trades':<25} {portfolio_metrics['total_trades']:<20}")
+    print(f"{'Win Rate':<25} {portfolio_metrics['win_rate']:.2%}")
+    print(f"{'Profit Factor':<25} {portfolio_metrics['profit_factor']:.2f}")
+    print(f"{'Average R':<25} {portfolio_metrics['average_r']:.2f}")
+    print(f"{'Max Drawdown':<25} {portfolio_metrics['max_drawdown']:.2f}")
+    print(f"{'Sharpe Ratio':<25} {portfolio_metrics['sharpe_ratio']:.2f}")
     print("-" * 60)
     
-    for strategy_id, metrics in strategy_results.items():
-        entry_type = strategy_id.split('_')[-1]
-        print(f"{entry_type:<15} {metrics['total_trades']:<12} {metrics['win_rate']:<12} "
-              f"{metrics['average_win']:<12} {metrics['average_loss']:<12}")
-    
-    # Visualize equity curves if available
-    if 'equity_curve' in results and not results['equity_curve'].empty:
+    # Visualize equity curves
+    if 'equity_curve' in results['portfolio'] and not results['portfolio']['equity_curve'].empty:
         plt.figure(figsize=(12, 6))
         
-        # Group by strategy_id and plot
-        for strategy_id in results['equity_curve']['strategy_id'].unique():
-            strategy_data = results['equity_curve'][results['equity_curve']['strategy_id'] == strategy_id]
-            entry_type = strategy_id.split('_')[-1]
-            plt.plot(strategy_data['timestamp'], strategy_data['equity'], label=entry_type)
+        # Plot individual instrument equity curves
+        for instrument_key, instrument_data in results['instruments'].items():
+            if 'equity_curve' in instrument_data:
+                plt.plot(
+                    instrument_data['equity_curve'].index,
+                    instrument_data['equity_curve'],
+                    label=f"{instrument_key} ({instrument_data['direction']})"
+                )
         
-        plt.title('Equity Curve Comparison by Entry Type')
+        # Plot portfolio equity curve
+        plt.plot(
+            results['portfolio']['equity_curve'].index,
+            results['portfolio']['equity_curve'],
+            label='Portfolio',
+            linestyle='--',
+            linewidth=2
+        )
+        
+        plt.title('Equity Curve Comparison')
         plt.xlabel('Date')
         plt.ylabel('Equity')
         plt.legend()
@@ -642,38 +745,43 @@ def print_and_visualize_results(results, reports):
         
         print(f"\nEquity curve comparison saved to {output_dir}/equity_comparison.png")
     
-    # Print recommendations
-    if 'recommendations' in reports['single']:
-        print("\nRECOMMENDATIONS:")
-        for rec in reports['single']['recommendations']:
-            print(f"- {rec}")
-    
     # Print daily P&L information
-    trade_list = results.get('trade_list', []) or results.get('trades', [])
+    trade_list = results.get('trades', [])
     if trade_list:
         print("\nDAILY PROFIT/LOSS BREAKDOWN:")
         print("-" * 60)
-        print(f"{'Date':<12} {'Profit/Loss':<15} {'Status':<10}")
+        print(f"{'Date':<12} {'Instrument':<15} {'Profit/Loss':<15} {'Status':<10} {'Direction':<10}")
         print("-" * 60)
         
-        # Process trades by date
-        trade_days = {}
+        # Process trades by date and instrument
+        trade_days = dict()
         for trade in trade_list:
             # Extract date in YYYY-MM-DD format
-            entry_time = trade.get('entry_time')
+            entry_time = trade.get('current_time')
             if entry_time:
                 trade_date = pd.to_datetime(entry_time).strftime('%Y-%m-%d')
+                instrument_key = trade.get('instrument_key', 'UNKNOWN')
                 pnl = trade.get('realized_pnl', 0)
+                direction = trade.get('position_type', 'UNKNOWN')
                 
                 if trade_date not in trade_days:
-                    trade_days[trade_date] = 0
+                    trade_days[trade_date] = {}
                 
-                trade_days[trade_date] += pnl
+                if instrument_key not in trade_days[trade_date]:
+                    trade_days[trade_date][instrument_key] = {
+                        "pnl": 0,
+                        "direction": direction
+                    }
+                
+                trade_days[trade_date][instrument_key]["pnl"] += pnl
         
         # Sort dates and print
         for date in sorted(trade_days.keys()):
-            pnl = trade_days[date]
-            status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
-            print(f"{date:<12} {pnl:<15.2f} {status:<10}")
+            print(f"\n{date}:")
+            for instrument_key, data in trade_days[date].items():
+                pnl = data["pnl"]
+                direction = data["direction"]
+                status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
+                print(f"{'':<12} {instrument_key:<15} {pnl:<15.2f} {status:<10} {direction:<10}")
             
         print("-" * 60)

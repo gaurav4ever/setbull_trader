@@ -419,7 +419,7 @@ class CandleProcessor:
             current_date = current_date + "T00:00:00+05:30"
             
             # Get instrument key from config or use default
-            instrument_key = self.config.get('instrument_key', 'NSE_EQ|INE070D01027')
+            instrument_key = self.config.get('instrument_key', 'NSE_EQ|INE070D01027').get('key')
             logger.info(f"Fetching daily candles for {instrument_key} from {start_date} to {current_date}")
 
             # Fetch daily candles for the period

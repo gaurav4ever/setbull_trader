@@ -45,7 +45,7 @@ class BacktestConfig:
     """Configuration for backtest execution."""
     start_date: datetime
     end_date: datetime
-    instruments: List[str]
+    instruments: List[Dict[str, str]]  # Changed from List[str] to List[Dict]
     strategies: List[MRStrategyConfig]
     initial_capital: float
     position_size_type: str
@@ -54,6 +54,16 @@ class BacktestConfig:
     cache_data: bool = True
     trading_hours: Optional[Dict[str, time]] = None
     excluded_dates: Optional[List[datetime]] = None
+
+    def __post_init__(self):
+        """Validate instrument configurations."""
+        for instrument in self.instruments:
+            if not isinstance(instrument, dict):
+                raise ValueError("Each instrument must be a dictionary with 'key' and 'direction'")
+            if 'key' not in instrument or 'direction' not in instrument:
+                raise ValueError("Instrument configuration must contain 'key' and 'direction'")
+            if instrument['direction'] not in ['BULLISH', 'BEARISH']:
+                raise ValueError("Direction must be either 'BULLISH' or 'BEARISH'")
 
 class BacktestEngine:
     """Core backtesting engine for Morning Range strategy."""
@@ -84,7 +94,7 @@ class BacktestEngine:
         # Create position config
         position_config = PositionSizeConfig(
             size_type=PositionSizeType[config.position_size_type],
-            value=0.1,  # 1% risk or account size
+            value=0.05,  # 1% risk or account size
             min_size=1.0,
             max_size=float('inf'),
             round_to=0
@@ -195,28 +205,60 @@ class BacktestEngine:
             data: Dictionary of instrument keys to their respective DataFrames with OHLCV data
             
         Returns:
-            Dictionary containing backtest results
+            Dictionary containing backtest results:
+                - signals: List of all generated signals
+                - trades: List of all executed trades
+                - metrics: Dictionary of strategy-specific metrics
+                - instruments: Dictionary of instrument-specific results
+                - portfolio: Dictionary containing portfolio-level results
         """
         logger.info("Starting backtest run")
         
         all_results = {
             'signals': [],
             'trades': [],
-            'metrics': {}
+            'metrics': {},
+            'instruments': {},
+            'portfolio': {
+                'equity_curve': pd.Series(),
+                'metrics': {}
+            }
         }
         
-        # Process candles for each instrument
+        # Process each instrument sequentially
         for instrument_key, instrument_data in data.items():
+            # Find instrument config
+            instrument_config = next(
+                (inst for inst in self.config.instruments 
+                 if inst['key'] == instrument_key),
+                None
+            )
+            
+            if not instrument_config:
+                logger.warning(f"No configuration found for instrument {instrument_key}")
+                continue
+            
+            logger.info(f"Processing instrument {instrument_key} ({instrument_config['direction']})")
+            
             # Process candles using CandleProcessor
             async with self.data_processor as processor:
                 processed_data = processor.process_candles(instrument_data)
-                logger.info(f"Processed candle data for {instrument_key}")
+                logger.info(f"Processed {len(processed_data)} candles for {instrument_key}")
                 
                 # Run backtest for each strategy
                 for strategy_config in self.config.strategies:
-                    if strategy_config.instrument_key == instrument_key:
+                    if strategy_config.instrument_key.get('key') == instrument_key:
                         self.signal_generator = SignalGenerator(strategy_config)
-                        strategy_results = await self._run_single_strategy(processed_data)
+                        strategy_results = await self._run_single_strategy(processed_data, instrument_config, strategy_config)
+                        
+                        # Store instrument-specific results
+                        all_results['instruments'][instrument_key] = {
+                            'direction': instrument_config['direction'],
+                            'signals': strategy_results['signals'],
+                            'trades': strategy_results['trades'],
+                            'metrics': strategy_results['metrics'],
+                            'equity_curve': self._build_equity_curve(strategy_results['trades'])
+                        }
                         
                         # Combine results
                         all_results['signals'].extend(strategy_results['signals'])
@@ -226,9 +268,13 @@ class BacktestEngine:
                         strategy_id = f"{strategy_config.instrument_key}_{strategy_config.range_type}_{strategy_config.entry_type}"
                         all_results['metrics'][strategy_id] = strategy_results['metrics']
         
-        # Calculate overall metrics
-        self.metrics = self._calculate_metrics()
-        all_results['metrics']['overall'] = self.metrics
+        # Calculate portfolio-level metrics
+        portfolio_metrics = self._calculate_portfolio_metrics(all_results)
+        all_results['portfolio']['metrics'] = portfolio_metrics
+        
+        # Build portfolio equity curve
+        portfolio_equity = self._build_portfolio_equity_curve(all_results)
+        all_results['portfolio']['equity_curve'] = portfolio_equity
         
         logger.info("Completed backtest run")
         return all_results
@@ -246,12 +292,13 @@ class BacktestEngine:
         
         return f"[{time_str}] [O:{open_price:.2f} H:{high_price:.2f} L:{low_price:.2f} C:{close_price:.2f}] - "
 
-    async def _run_single_strategy(self, data: pd.DataFrame) -> Dict[str, Any]:
+    async def _run_single_strategy(self, data: pd.DataFrame, instrument_config: Dict[str, Any], strategy_config: MRStrategyConfig) -> Dict[str, Any]:
         """
         Run backtest for a single strategy.
         
         Args:
             data: DataFrame containing processed candle data
+            instrument_config: Dictionary containing instrument configuration including direction
             
         Returns:
             Dictionary containing strategy results:
@@ -269,7 +316,7 @@ class BacktestEngine:
             
             # Create MorningRangeStrategy instance
             mr_strategy = MorningRangeStrategy(
-                config=self.config.strategies[0],
+                config=strategy_config,
                 position_manager=self.position_manager,
                 trade_manager=self.trade_manager,
                 risk_calculator=self.risk_calculator
@@ -330,31 +377,46 @@ class BacktestEngine:
                     strategy_signals = await self.signal_generator.process_candle(candle_dict, mr_values)
                     
                     if strategy_signals:
-                        signals.extend(strategy_signals)
-                        logger.info(f"{candle_info}Generated {len(strategy_signals)} signals")
-                        
-                        # Process each signal using trade manager
+                        # Filter signals based on instrument direction
+                        filtered_signals = []
                         for signal in strategy_signals:
-                            # Calculate position size
-                            position_size = self.position_manager.calculate_position_size(
-                                signal.price,
-                                self.config.strategies[0].sl_percentage,
-                                signal.direction.value
-                            )
+                            if signal.direction.value == "LONG" and instrument_config['direction'] == 'BULLISH':
+                                filtered_signals.append(signal)
+                                logger.info(f"{candle_info}Accepted LONG signal for BULLISH instrument")
+                            elif signal.direction.value == "SHORT" and instrument_config['direction'] == 'BEARISH':
+                                filtered_signals.append(signal)
+                                logger.info(f"{candle_info}Accepted SHORT signal for BEARISH instrument")
+                            else:
+                                logger.info(f"{candle_info}Skipping signal {signal.type} at price {signal.price} because it does not match instrument direction {instrument_config['direction']}")
+                        
+                        strategy_signals = filtered_signals
+                        
+                        if strategy_signals:
+                            signals.extend(strategy_signals)
+                            logger.info(f"{candle_info}Generated {len(strategy_signals)} filtered signals")
                             
-                            # Create trade using trade manager
-                            trade = self.trade_manager.create_trade(
-                                instrument_key=self.config.strategies[0].instrument_key,
-                                entry_price=signal.price,
-                                position_size=position_size,
-                                position_type=signal.direction.value,
-                                trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
-                                sl_percentage=self.config.strategies[0].sl_percentage
-                            )
-                            entry_candle = candle_dict
-                            
-                            if trade:
-                                logger.info(f"{candle_info}Created new trade for signal: {signal.type} at price {signal.price}")
+                            # Process each signal using trade manager
+                            for signal in strategy_signals:
+                                # Calculate position size
+                                position_size = self.position_manager.calculate_position_size(
+                                    signal.price,
+                                    self.config.strategies[0].sl_percentage,
+                                    signal.direction.value
+                                )
+                                
+                                # Create trade using trade manager
+                                trade = self.trade_manager.create_trade(
+                                    instrument_key=instrument_config.get('key'),
+                                    entry_price=signal.price,
+                                    position_size=position_size,
+                                    position_type=signal.direction.value,
+                                    trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
+                                    sl_percentage=self.config.strategies[0].sl_percentage
+                                )
+                                entry_candle = candle_dict
+                                
+                                if trade:
+                                    logger.info(f"{candle_info}Created new trade for signal: {signal.type} at price {signal.price}")
                     
                     # Process all active trades for this candle
                     for instrument_key in list(self.trade_manager.active_trades.keys()):
@@ -371,7 +433,7 @@ class BacktestEngine:
                                 if updated_trade['status'] in [TradeStatus.CLOSED.value, 
                                                              TradeStatus.STOPPED_OUT.value, 
                                                              TradeStatus.TAKE_PROFIT.value]:
-                                    logger.info(f"{candle_info}Trade {instrument_key} closed with status {updated_trade['status']} and pnl {updated_trade['realized_pnl']} and updated_trade: {updated_trade}")
+                                    logger.info(f"{candle_info}Trade {instrument_key} closed with status {updated_trade['status']} and pnl {updated_trade['realized_pnl']}")
                                     # check if same day trade is already present in the trades list
                                     same_day_trade = False
                                     for trade in trades:
@@ -388,7 +450,7 @@ class BacktestEngine:
                             continue
         
         # Calculate metrics for this strategy
-        metrics = self._calculate_metrics()
+        metrics = self._calculate_metrics(trades)
         
         return {
             'signals': signals,
@@ -396,10 +458,13 @@ class BacktestEngine:
             'metrics': metrics
         }
 
-    def _calculate_metrics(self) -> Dict[str, Any]:
+    def _calculate_metrics(self, trades: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Calculate backtest performance metrics using trade manager's statistics.
         
+        Args:
+            trades: List of trade dictionaries
+            
         Returns:
             Dictionary containing performance metrics
         """
@@ -407,7 +472,7 @@ class BacktestEngine:
         trade_stats = self.trade_manager.get_trade_statistics()
         
         # Calculate equity curve for drawdown calculation
-        equity_curve = self._build_equity_curve()
+        equity_curve = self._build_equity_curve(trades)
         
         # Calculate max drawdown from equity curve
         if not equity_curve.empty:
@@ -419,13 +484,16 @@ class BacktestEngine:
         
         # Calculate Sharpe ratio
         if trade_stats['total_trades'] > 0:
-            returns = pd.Series([trade.get('realized_pnl', 0) for trade in self.trade_manager.trade_history])
+            returns = pd.Series([trade.get('realized_pnl', 0) for trade in trades])
             excess_returns = returns.mean() - (0.02 / 252)  # Daily risk-free rate
             sharpe_ratio = excess_returns / returns.std() if returns.std() != 0 else 0.0
         else:
             sharpe_ratio = 0.0
         
         import math
+
+        # Get instrument direction
+        # direction = instrument_config['direction'] if instrument_config else 'UNKNOWN'
 
         metrics = {
             'total_signals': len(self.signals),
@@ -444,26 +512,29 @@ class BacktestEngine:
             'expectancy': round(float(trade_stats['expectancy']), 2),
             'net_pnl': round(float(trade_stats['total_profit'] - trade_stats['total_loss']), 2),
             'average_r': round(float(trade_stats['average_r']), 2),
-            'max_drawdown': round(float(max_drawdown), 2)
+            'max_drawdown': round(float(max_drawdown), 2),
+            # 'direction': direction,  # Add direction to metrics
+            'sharpe_ratio': round(float(sharpe_ratio), 2)
         }
-
-
 
         logger.info(f"Calculated performance metrics: {metrics}")
         return metrics
 
-    def _build_equity_curve(self) -> pd.Series:
+    def _build_equity_curve(self, trades: List[Dict[str, Any]]) -> pd.Series:
         """
         Build equity curve from trade history.
         
+        Args:
+            trades: List of trade dictionaries
+            
         Returns:
             Series representing equity curve
         """
-        if not self.trade_manager.trade_history:
+        if not trades:
             return pd.Series([])
         
         # Create DataFrame from trade history
-        trades_df = pd.DataFrame(self.trade_manager.trade_history)
+        trades_df = pd.DataFrame(trades)
         
         # Sort trades by exit time
         trades_df['exit_time'] = pd.to_datetime(trades_df['exit_time'])
@@ -475,5 +546,106 @@ class BacktestEngine:
         # Add initial capital
         equity_curve = self.config.initial_capital + cumulative_pnl
         
+        # Add direction information
+        instrument_config = next(
+            (inst for inst in self.config.instruments 
+             if inst['key'] == self.config.strategies[0].instrument_key),
+            None
+        )
+        if instrument_config:
+            trades_df['direction'] = instrument_config['direction']
+        
         logger.debug(f"Built equity curve with {len(equity_curve)} points")
+        return equity_curve
+
+    def _calculate_portfolio_metrics(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Calculate portfolio-level metrics from all instrument results.
+        
+        Args:
+            results: Dictionary containing all backtest results
+            
+        Returns:
+            Dictionary containing portfolio-level metrics
+        """
+        all_trades = results['trades']
+        if not all_trades:
+            return {
+                'total_trades': 0,
+                'win_rate': 0.0,
+                'profit_factor': 0.0,
+                'total_return': 0.0,
+                'max_drawdown': 0.0,
+                'sharpe_ratio': 0.0
+            }
+        
+        # Calculate basic metrics
+        winning_trades = [t for t in all_trades if t['realized_pnl'] > 0]
+        losing_trades = [t for t in all_trades if t['realized_pnl'] <= 0]
+        
+        total_trades = len(all_trades)
+        win_rate = len(winning_trades) / total_trades if total_trades > 0 else 0
+        
+        total_profit = sum(t['realized_pnl'] for t in winning_trades)
+        total_loss = abs(sum(t['realized_pnl'] for t in losing_trades))
+        profit_factor = total_profit / total_loss if total_loss > 0 else float('inf')
+        
+        # Calculate returns and Sharpe ratio
+        returns = pd.Series([t['realized_pnl'] for t in all_trades])
+        total_return = returns.sum() / self.config.initial_capital
+        excess_returns = returns.mean() - (0.02 / 252)  # Daily risk-free rate
+        sharpe_ratio = excess_returns / returns.std() if returns.std() != 0 else 0.0
+        
+        # Calculate max drawdown
+        equity_curve = self._build_portfolio_equity_curve(results)
+        if not equity_curve.empty:
+            rolling_max = equity_curve.expanding().max()
+            drawdowns = (equity_curve - rolling_max) / rolling_max
+            max_drawdown = abs(drawdowns.min())
+        else:
+            max_drawdown = 0.0
+        
+        return {
+            'total_trades': total_trades,
+            'win_rate': win_rate,
+            'profit_factor': profit_factor,
+            'total_return': total_return,
+            'max_drawdown': max_drawdown,
+            'sharpe_ratio': sharpe_ratio,
+            'total_profit': total_profit,
+            'total_loss': total_loss,
+            'average_win': total_profit / len(winning_trades) if winning_trades else 0,
+            'average_loss': total_loss / len(losing_trades) if losing_trades else 0
+        }
+
+    def _build_portfolio_equity_curve(self, results: Dict[str, Any]) -> pd.Series:
+        """
+        Build portfolio equity curve from all instrument trades.
+        
+        Args:
+            results: Dictionary containing all backtest results
+            
+        Returns:
+            Series representing portfolio equity curve
+        """
+        all_trades = results['trades']
+        if not all_trades:
+            return pd.Series()
+        
+        # Create DataFrame from all trades
+        trades_df = pd.DataFrame(all_trades)
+        
+        # Sort trades by exit time
+        trades_df['exit_time'] = pd.to_datetime(trades_df['exit_time'])
+        trades_df = trades_df.sort_values('exit_time')
+        
+        # Calculate cumulative P&L
+        cumulative_pnl = trades_df['realized_pnl'].cumsum()
+        
+        # Add initial capital
+        equity_curve = self.config.initial_capital + cumulative_pnl
+        
+        # Set index to exit times
+        equity_curve.index = trades_df['exit_time']
+        
         return equity_curve
