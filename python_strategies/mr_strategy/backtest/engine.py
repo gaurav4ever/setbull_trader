@@ -59,9 +59,9 @@ class BacktestConfig:
         """Validate instrument configurations."""
         for instrument in self.instruments:
             if not isinstance(instrument, dict):
-                raise ValueError("Each instrument must be a dictionary with 'key' and 'direction'")
-            if 'key' not in instrument or 'direction' not in instrument:
-                raise ValueError("Instrument configuration must contain 'key' and 'direction'")
+                raise ValueError("Each instrument must be a dictionary with 'name' and 'direction'")
+            if 'name' not in instrument or 'direction' not in instrument:
+                raise ValueError("Instrument configuration must contain 'name' and 'direction'")
             if instrument['direction'] not in ['BULLISH', 'BEARISH']:
                 raise ValueError("Direction must be either 'BULLISH' or 'BEARISH'")
 
@@ -439,7 +439,7 @@ class BacktestEngine:
                                     for trade in trades:
                                         trade_current_time = pd.to_datetime(trade['current_time'])
                                         updated_trade_current_time = pd.to_datetime(updated_trade['current_time'])
-                                        if trade['instrument_key'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
+                                        if trade['instrument_name'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
                                             same_day_trade = True
                                             break
                                     if not same_day_trade:

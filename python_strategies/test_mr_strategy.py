@@ -13,10 +13,13 @@ from datetime import datetime
 import logging
 import os
 import pytest
+from pathlib import Path
 
 from mr_strategy.backtest.runner import BacktestRunner, BacktestRunConfig, BacktestMode
 from mr_strategy.backtest.engine import BacktestConfig
 from mr_strategy.strategy.base_strategy import StrategyConfig
+from correlation_analysis.correlation_analyzer import CorrelationAnalyzer
+from correlation_analysis.correlation_visualizer import CorrelationVisualizer
 
 print(">> Script Started")
 
@@ -99,6 +102,69 @@ INITIAL_CAPITAL = 100000.0
 # Entry types to test
 ENTRY_TYPES = ["1ST_ENTRY"]
 
+def perform_correlation_analysis(csv_file: str) -> dict:
+    """Perform correlation analysis on trade data from CSV file."""
+    # Read the CSV file
+    df = pd.read_csv(csv_file)
+    
+    # Create instrument key to name mapping
+    instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGS}
+    
+    # Create a pivot table of P&L values using instrument names
+    pnl_df = df.pivot_table(
+        index='Date',
+        columns='Name',
+        values='P&L',
+        aggfunc='sum'
+    ).fillna(0)
+    
+    # Initialize correlation analyzer
+    analyzer = CorrelationAnalyzer(pnl_df)
+    
+    # Calculate different types of correlations
+    spearman_corr = analyzer.calculate_spearman_correlation()
+    binary_corr = analyzer.calculate_binary_correlation()
+    r_multiple_corr = analyzer.calculate_r_multiple_correlation()
+    
+    # Get significant correlations
+    significant_spearman = analyzer.get_significant_correlations(spearman_corr, threshold=0.5)
+    significant_binary = analyzer.get_significant_correlations(binary_corr, threshold=0.5)
+    significant_r_multiple = analyzer.get_significant_correlations(r_multiple_corr, threshold=0.5)
+    
+    # Create correlation matrices dictionary
+    correlation_matrices = {
+        'spearman': spearman_corr,
+        'binary': binary_corr,
+        'r_multiple': r_multiple_corr
+    }
+    
+    # Initialize visualizer
+    visualizer = CorrelationVisualizer(correlation_matrices)
+    
+    # Create output directory for visualizations
+    output_dir = Path("backtest_results/correlation_analysis")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save visualizations
+    visualizer.save_visualizations(str(output_dir))
+    
+    # Print significant correlations
+    print("\nSignificant Spearman Correlations:")
+    print(significant_spearman)
+    print("\nSignificant Binary Correlations:")
+    print(significant_binary)
+    print("\nSignificant R-Multiple Correlations:")
+    print(significant_r_multiple)
+    
+    return {
+        'correlation_matrices': correlation_matrices,
+        'significant_correlations': {
+            'spearman': significant_spearman,
+            'binary': significant_binary,
+            'r_multiple': significant_r_multiple
+        }
+    }
+
 async def run_entry_type_comparison(instrument_configs):
     print(">> Running Entry Type Comparison")
     """Run backtest to compare different entry types."""    
@@ -128,23 +194,17 @@ async def run_entry_type_comparison(instrument_configs):
     
     # Display results
     print_and_visualize_results(results, runner.reports)
-    # create series of PNL values for each instrument
-    # Stock A: [1.2, 0.5, -0.7, -1.5, 0.8]
-    # Stock B: [0.8, 0.3, -0.9, -1.2, 1.0]
-    # Stock C: [-0.5, -0.2, 1.1, 0.8, -0.6]
-    # Stock D: [-1.0, -0.8, 0.7, 1.5, -1.2]
-    # create a dataframe with the above values
-    trades = results.get('trades')
-    # create a dataframe with the above values
-    df = pd.DataFrame(trades)
-    # create a series of PNL values for each instrument
-    pnl_series = df.groupby('instrument_key')['realized_pnl'].apply(list)
-    # print the pnl series
-    print("PNL Series: ", pnl_series)
-
-
-    print(">> Finished Backtest")
-    results['pnl_series'] = pnl_series
+    
+    # Perform correlation analysis using the CSV file
+    csv_file = Path("backtest_results/daily_trades.csv")
+    if csv_file.exists():
+        print("\n>> Running Correlation Analysis")
+        correlation_results = perform_correlation_analysis(str(csv_file))
+        results['correlation_results'] = correlation_results
+    else:
+        print("\n>> Warning: Daily trades CSV file not found. Skipping correlation analysis.")
+    
+    print(">> Finished Backtest and Correlation Analysis")
     return results
 
 def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
