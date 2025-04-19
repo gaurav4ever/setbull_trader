@@ -16,6 +16,7 @@ import pytz
 from urllib.parse import urlencode
 import backoff
 from aiohttp import ClientError, ClientResponseError
+from .technical_indicators import TechnicalIndicators
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +191,7 @@ class ApiClient:
 class CandleProcessor:
     """Process and transform candle data for strategy calculations."""
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict] = None):
         """
         Initialize the candle processor.
         
@@ -199,6 +200,8 @@ class CandleProcessor:
         """
         self.config = config or {}
         self.api_client = ApiClient()
+        self.technical_indicators = TechnicalIndicators(config)
+        logger.info("Initialized CandleProcessor")
         
     async def __aenter__(self):
         """Create API client when entering context."""
@@ -333,14 +336,21 @@ class CandleProcessor:
         mr_low = morning_candles['low'].min()
         mr_size = mr_high - mr_low
         
+        # Calculate technical indicators for morning range
+        morning_candles = self.technical_indicators.calculate_all(morning_candles)
+        
         mr_values = {
             'high': mr_high,
             'low': mr_low,
             'size': mr_size,
-            'candle_count': len(morning_candles)
+            'candle_count': len(morning_candles),
+            'indicators': {
+                name: morning_candles[name].iloc[-1] 
+                for name in self.technical_indicators.get_indicator_names()
+            }
         }
         
-        logger.debug(f"Extracted {range_type} values: high={mr_high}, low={mr_low}, size={mr_size}")
+        logger.debug(f"Extracted {range_type} values: {mr_values}")
         
         return morning_candles, mr_values
     
@@ -711,142 +721,55 @@ class CandleProcessor:
             logger.error(f"Error loading daily data: {str(e)}")
             raise ValueError(f"Failed to load daily data: {str(e)}")
 
-    def process_candles(
-        self,
-        df: pd.DataFrame,
-        atr_period: int = 14,
-        vwap_period: int = None,
-        add_indicators: bool = False
-    ) -> pd.DataFrame:
-        """Process raw candle data by adding technical indicators and derived values.
-
-        Args:
-            df (pd.DataFrame): Raw candle data with OHLCV columns
-            atr_period (int, optional): Period for ATR calculation. Defaults to 14.
-            vwap_period (int, optional): Period for VWAP calculation. If None, calculates daily VWAP.
-            add_indicators (bool, optional): Whether to add technical indicators. Defaults to True.
-
-        Returns:
-            pd.DataFrame: Processed DataFrame with additional columns for indicators
+    def process_candles(self, candles: Union[pd.DataFrame, Dict[str, Any]], daily_candles: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
-        try:
-            logger.info("Processing candle data with indicators")
-            
-            # Make a copy to avoid modifying original data
-            processed_df = df.copy()
-            
-            # Ensure DataFrame is sorted by timestamp
-            if 'timestamp' in processed_df.columns:
-                processed_df = processed_df.sort_values('timestamp')
-            
-            if add_indicators:
-                # Add ATR
-                processed_df['atr'] = self.calculate_atr(processed_df, period=atr_period)
-                
-                # Calculate VWAP
-                if vwap_period:
-                    # Rolling VWAP for specified period
-                    typical_price = (processed_df['high'] + processed_df['low'] + processed_df['close']) / 3
-                    processed_df['vwap'] = (typical_price * processed_df['volume']).rolling(window=vwap_period).sum() / \
-                                         processed_df['volume'].rolling(window=vwap_period).sum()
-                else:
-                    # Daily VWAP
-                    processed_df['date'] = processed_df['timestamp'].dt.date
-                    typical_price = (processed_df['high'] + processed_df['low'] + processed_df['close']) / 3
-                    cumulative_tp_vol = (typical_price * processed_df['volume']).groupby(processed_df['date']).cumsum()
-                    cumulative_vol = processed_df['volume'].groupby(processed_df['date']).cumsum()
-                    processed_df['vwap'] = cumulative_tp_vol / cumulative_vol
-                    processed_df.drop('date', axis=1, inplace=True)
-                
-                # Add momentum indicators
-                processed_df['roc'] = processed_df['close'].pct_change(periods=1)  # Rate of Change
-                processed_df['momentum'] = processed_df['close'] - processed_df['close'].shift(1)
-                processed_df['rsi'] = self._calculate_rsi(processed_df['close'], period=14)
-                
-                # Add moving averages
-                processed_df['sma_20'] = processed_df['close'].rolling(window=20).mean()
-                processed_df['ema_20'] = processed_df['close'].ewm(span=20, adjust=False).mean()
-                processed_df['sma_50'] = processed_df['close'].rolling(window=50).mean()
-                processed_df['ema_50'] = processed_df['close'].ewm(span=50, adjust=False).mean()
-                
-                # Add volatility indicators
-                processed_df['daily_range'] = processed_df['high'] - processed_df['low']
-                processed_df['daily_range_pct'] = processed_df['daily_range'] / processed_df['close'] * 100
-                processed_df['bollinger_upper'], processed_df['bollinger_lower'] = self._calculate_bollinger_bands(processed_df['close'])
-                
-                # Add volume analysis
-                processed_df['volume_sma'] = processed_df['volume'].rolling(window=20).mean()
-                processed_df['volume_ratio'] = processed_df['volume'] / processed_df['volume_sma']
-                processed_df['obv'] = self._calculate_obv(processed_df)
-                
-                # Add trend indicators
-                processed_df['adx'] = self._calculate_adx(processed_df)
-                processed_df['macd'], processed_df['macd_signal'] = self._calculate_macd(processed_df['close'])
-                
-                # Clean up NaN values
-                processed_df = processed_df.fillna(method='bfill')
-                
-                logger.info("Successfully added technical indicators to candle data")
-            
-            return processed_df
-            
-        except Exception as e:
-            logger.error(f"Error processing candle data: {str(e)}")
-            raise
-
-    def _calculate_rsi(self, prices: pd.Series, period: int = 14) -> pd.Series:
-        """Calculate Relative Strength Index."""
-        delta = prices.diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
-        rs = gain / loss
-        return 100 - (100 / (1 + rs))
-
-    def _calculate_bollinger_bands(self, prices: pd.Series, period: int = 20, std_dev: float = 2) -> Tuple[pd.Series, pd.Series]:
-        """Calculate Bollinger Bands."""
-        sma = prices.rolling(window=period).mean()
-        std = prices.rolling(window=period).std()
-        upper_band = sma + (std * std_dev)
-        lower_band = sma - (std * std_dev)
-        return upper_band, lower_band
-
-    def _calculate_obv(self, df: pd.DataFrame) -> pd.Series:
-        """Calculate On Balance Volume."""
-        obv = (np.sign(df['close'].diff()) * df['volume']).fillna(0).cumsum()
-        return obv
-
-    def _calculate_adx(self, df: pd.DataFrame, period: int = 14) -> pd.Series:
-        """Calculate Average Directional Index."""
-        high = df['high']
-        low = df['low']
-        close = df['close']
+        Process candle data and calculate technical indicators.
         
-        plus_dm = high.diff()
-        minus_dm = low.diff()
-        plus_dm[plus_dm < 0] = 0
-        minus_dm[minus_dm > 0] = 0
+        Args:
+            candles: Candle data as DataFrame or API response dict
+            daily_candles: Optional DataFrame with daily candle data
+            
+        Returns:
+            Processed DataFrame with technical indicators
+        """
+        # Convert to DataFrame if needed
+        if isinstance(candles, dict):
+            df = self.parse_candles(candles)
+        else:
+            df = candles.copy()
+            
+        # Ensure required columns exist
+        required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+            
+        # Sort by timestamp
+        df = df.sort_values('timestamp')
         
-        tr1 = pd.DataFrame(high - low)
-        tr2 = pd.DataFrame(abs(high - close.shift(1)))
-        tr3 = pd.DataFrame(abs(low - close.shift(1)))
-        frames = [tr1, tr2, tr3]
-        tr = pd.concat(frames, axis=1, join='inner').max(axis=1)
-        atr = tr.rolling(period).mean()
+        # Calculate intraday indicators
+        df = self.technical_indicators.calculate_all(df, timeframe='intraday')
         
-        plus_di = 100 * (plus_dm.rolling(period).mean() / atr)
-        minus_di = abs(100 * (minus_dm.rolling(period).mean() / atr))
-        dx = (abs(plus_di - minus_di) / abs(plus_di + minus_di)) * 100
-        adx = dx.rolling(period).mean()
+        # If daily candles are provided, calculate and apply daily indicators
+        if daily_candles is not None:
+            # Update daily indicators
+            self.technical_indicators.update_daily_indicators(daily_candles)
+            
+            # Apply daily indicators to intraday data
+            df = self.technical_indicators.apply_daily_indicators(df)
         
-        return adx
+        logger.info(f"Processed {len(df)} candles with technical indicators")
+        return df
 
-    def _calculate_macd(self, prices: pd.Series, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9) -> Tuple[pd.Series, pd.Series]:
-        """Calculate MACD and Signal line."""
-        fast_ema = prices.ewm(span=fast_period, adjust=False).mean()
-        slow_ema = prices.ewm(span=slow_period, adjust=False).mean()
-        macd = fast_ema - slow_ema
-        signal = macd.ewm(span=signal_period, adjust=False).mean()
-        return macd, signal
+    def update_technical_config(self, new_config: Dict):
+        """
+        Update technical indicators configuration.
+        
+        Args:
+            new_config: New configuration dictionary
+        """
+        self.technical_indicators.update_config(new_config)
+        logger.info("Updated technical indicators configuration")
 
     def get_valid_trading_dates(self, df: pd.DataFrame) -> List[datetime.date]:
         """
@@ -908,3 +831,56 @@ class CandleProcessor:
             return False
             
         return True
+
+    async def load_and_process_candles(
+        self,
+        instrument_key: str,
+        start_date: str,
+        end_date: str,
+        timeframe: str = '5minute'
+    ) -> pd.DataFrame:
+        """
+        Load and process candles with both intraday and daily indicators.
+        
+        Args:
+            instrument_key: Instrument key
+            start_date: Start date in ISO format
+            end_date: End date in ISO format
+            timeframe: Timeframe for candles (default: 5minute)
+            
+        Returns:
+            DataFrame with processed candles and indicators
+        """
+        try:
+            # Load intraday candles
+            intraday_df = await self.load_intraday_data(
+                instrument_key=instrument_key,
+                start_date=start_date,
+                end_date=end_date,
+                timeframe=timeframe
+            )
+            
+            if intraday_df.empty:
+                logger.warning("No intraday data loaded")
+                return pd.DataFrame()
+            
+            # Load daily candles for the same period
+            daily_df = await self.load_daily_data(
+                instrument_key=instrument_key,
+                start_date=start_date,
+                end_date=end_date
+            )
+            
+            if daily_df.empty:
+                logger.warning("No daily data loaded")
+                return pd.DataFrame()
+            
+            # Process candles with both intraday and daily indicators
+            processed_df = self.process_candles(intraday_df, daily_df)
+            
+            logger.info(f"Successfully processed {len(processed_df)} candles")
+            return processed_df
+            
+        except Exception as e:
+            logger.error(f"Error loading and processing candles: {str(e)}")
+            raise

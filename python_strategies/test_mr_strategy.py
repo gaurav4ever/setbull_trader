@@ -90,11 +90,56 @@ INSTRUMENT_CONFIGSS = [
   }
 ]
 INSTRUMENT_CONFIGS = [
-    {
-        'key': 'NSE_EQ|INE070D01027',
-        "name": "JAICORP",
-        'direction': 'BULLISH'
-    }
+  {
+    "name": "OLAELEC",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE0LXG01040"
+  },
+  {
+    "name": "GPTINFRA",
+    "direction": "BULLISH",
+    "key": "NSE_EQ|INE390G01014"
+  },
+  {
+    "name": "BALUFORGE",
+    "direction": "BULLISH",
+    "key": "NSE_EQ|INE011E01029"
+  },
+  {
+    "name": "EPACK",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE0G5901015"
+  },
+  {
+    "name": "GREAVESCOT",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE224A01026"
+  },
+  {
+    "name": "THOMASCOOK",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE332A01027"
+  },
+  {
+    "name": "MARINE",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE01JE01028"
+  },
+  {
+    "name": "WALCHANNAG",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE711A01022"
+  },
+  {
+    "name": "EMBDL",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE069I01010"
+  },
+  {
+    "name": "PARACABLES",
+    "direction": "BEARISH",
+    "key": "NSE_EQ|INE074B01023"
+  }
 ]
 START_DATE = "2025-01-01T09:15:00+05:30"
 END_DATE = "2025-04-11T15:25:00+05:30"
@@ -193,7 +238,6 @@ def perform_correlation_analysis(csv_file: str) -> dict:
     }
 
 async def run_entry_type_comparison(instrument_configs):
-    print(">> Running Entry Type Comparison")
     """Run backtest to compare different entry types."""    
     
     # Create runner configuration
@@ -318,7 +362,8 @@ def print_and_visualize_results(results, reports):
     print("\n=============================================")
     print("MORNING RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
-    print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in INSTRUMENT_CONFIGS]}")
+    instrument_labels = [f"{inst['key']} ({inst['direction']})" for inst in INSTRUMENT_CONFIGS]
+    print(f"Instruments: {instrument_labels}")
     print(f"Period: {START_DATE} to {END_DATE}")
     print("---------------------------------------------")
     

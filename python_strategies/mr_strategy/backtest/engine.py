@@ -203,6 +203,7 @@ class BacktestEngine:
         
         Args:
             data: Dictionary of instrument keys to their respective DataFrames with OHLCV data
+                  and technical indicators (both intraday and daily)
             
         Returns:
             Dictionary containing backtest results:
@@ -240,33 +241,42 @@ class BacktestEngine:
             
             logger.info(f"Processing instrument {instrument_key} ({instrument_config['direction']})")
             
-            # Process candles using CandleProcessor
-            async with self.data_processor as processor:
-                processed_data = processor.process_candles(instrument_data)
-                logger.info(f"Processed {len(processed_data)} candles for {instrument_key}")
-                
-                # Run backtest for each strategy
-                for strategy_config in self.config.strategies:
-                    if strategy_config.instrument_key.get('key') == instrument_key:
-                        self.signal_generator = SignalGenerator(strategy_config)
-                        strategy_results = await self._run_single_strategy(processed_data, instrument_config, strategy_config)
-                        
-                        # Store instrument-specific results
-                        all_results['instruments'][instrument_key] = {
-                            'direction': instrument_config['direction'],
-                            'signals': strategy_results['signals'],
-                            'trades': strategy_results['trades'],
-                            'metrics': strategy_results['metrics'],
-                            'equity_curve': self._build_equity_curve(strategy_results['trades'])
-                        }
-                        
-                        # Combine results
-                        all_results['signals'].extend(strategy_results['signals'])
-                        all_results['trades'].extend(strategy_results['trades'])
-                        
-                        # Store metrics by strategy
-                        strategy_id = f"{strategy_config.instrument_key}_{strategy_config.range_type}_{strategy_config.entry_type}"
-                        all_results['metrics'][strategy_id] = strategy_results['metrics']
+            # Verify required columns exist
+            required_columns = [
+                'timestamp', 'open', 'high', 'low', 'close', 'volume',
+                'INTRADAY_EMA_5', 'INTRADAY_EMA_9', 'INTRADAY_EMA_50',
+                'INTRADAY_RSI_14', 'INTRADAY_ATR_14',
+                'DAILY_EMA_5', 'DAILY_EMA_9', 'DAILY_EMA_50',
+                'DAILY_RSI_14', 'DAILY_ATR_14'
+            ]
+            
+            missing_columns = [col for col in required_columns if col not in instrument_data.columns]
+            if missing_columns:
+                logger.error(f"Missing required columns for {instrument_key}: {missing_columns}")
+                continue
+            
+            # Run backtest for each strategy
+            for strategy_config in self.config.strategies:
+                if strategy_config.instrument_key.get('key') == instrument_key:
+                    self.signal_generator = SignalGenerator(strategy_config)
+                    strategy_results = await self._run_single_strategy(instrument_data, instrument_config, strategy_config)
+                    
+                    # Store instrument-specific results
+                    all_results['instruments'][instrument_key] = {
+                        'direction': instrument_config['direction'],
+                        'signals': strategy_results['signals'],
+                        'trades': strategy_results['trades'],
+                        'metrics': strategy_results['metrics'],
+                        'equity_curve': self._build_equity_curve(strategy_results['trades'])
+                    }
+                    
+                    # Combine results
+                    all_results['signals'].extend(strategy_results['signals'])
+                    all_results['trades'].extend(strategy_results['trades'])
+                    
+                    # Store metrics by strategy
+                    strategy_id = f"{strategy_config.instrument_key}_{strategy_config.range_type}_{strategy_config.entry_type}"
+                    all_results['metrics'][strategy_id] = strategy_results['metrics']
         
         # Calculate portfolio-level metrics
         portfolio_metrics = self._calculate_portfolio_metrics(all_results)
@@ -311,7 +321,8 @@ class BacktestEngine:
         
         # Process candles using CandleProcessor
         async with self.data_processor as processor:
-            processed_data = processor.process_candles(data)
+            # processed_data = processor.process_candles(data)
+            processed_data = data
             logger.info(f"Processed {len(processed_data)} candles for strategy")
             
             # Create MorningRangeStrategy instance

@@ -86,26 +86,31 @@ class BacktestRunner:
         """Run a single backtest."""
         engine = self._create_backtest_engine()
         
-        # Load data for each instrument
+        # Load and process data for each instrument
         all_data = {}
         for instrument in self.config.instruments:
-            data = await self.data_processor.load_intraday_data(
+            data = await self.data_processor.load_and_process_candles(
                 instrument_key=instrument.get('key'),
                 start_date=self.config.start_date,
-                end_date=self.config.end_date
+                end_date=self.config.end_date,
+                timeframe='5minute'  # Default timeframe for morning range strategy
             )
-            all_data[instrument.get('key')] = data
+            if not data.empty:
+                all_data[instrument.get('key')] = data
+            else:
+                logger.warning(f"No data loaded for instrument {instrument.get('key')}")
         
-        # Run backtest with loaded data
+        if not all_data:
+            logger.error("No data loaded for any instrument")
+            return {}
+        
+        # Run backtest with processed data
         logger.info(f"Running backtest for {len(all_data)} instruments")
         results = await engine.run_backtest(data=all_data)
         
         # Generate and save reports
         self.results["single"] = results
         self.reports["single"] = self._generate_backtest_report(results)
-        
-        # Save results
-        # self._save_results("single")
         
         return self.results["single"]
 
@@ -639,7 +644,9 @@ def print_and_visualize_results(results, reports):
     print("\n=============================================")
     print("MORNING RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
-    print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in results['instruments'].keys()]}")
+    # print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in results['instruments'].keys()]}")
+    instrument_labels = [f"{inst['key']} ({inst['direction']})" for inst in results['instruments'].keys()]
+    print(f"Instruments: {instrument_labels}")
     print(f"Period: {results['start_date']} to {results['end_date']}")
     print("---------------------------------------------")
     
