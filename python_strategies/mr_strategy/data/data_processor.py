@@ -2,10 +2,11 @@
 Data processor for candle data.
 
 This module processes candle data from the API into formats suitable for strategy calculations,
-with a focus on morning range extraction.
+with a focus on morning range extraction and Backtrader integration.
 """
 
 import logging
+import backtrader as bt
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional, Union, Any, Tuple
@@ -17,6 +18,7 @@ from urllib.parse import urlencode
 import backoff
 from aiohttp import ClientError, ClientResponseError
 from .technical_indicators import TechnicalIndicators
+from .backtrader_data import MorningRangeDataFeed
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +176,7 @@ class ApiClient:
             'end': end_date
         }
         url = f"{url}?{urlencode(params)}"
+        # url = f"{url}?start={start_date}&end={end_date}"
         
         try:
             # Make request with retry logic
@@ -242,9 +245,10 @@ class CandleProcessor:
             
             # Convert timestamp to datetime but keep it as a column
             if 'timestamp' in df.columns:
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df['timestamp_v2'] = pd.to_datetime(df['timestamp'])
                 # Don't set timestamp as index
-                # df.set_index('timestamp', inplace=True)
+                df.set_index('timestamp_v2', inplace=True)
+                df.index = pd.DatetimeIndex(df.index)
             
             # Ensure numeric columns are the correct type
             numeric_cols = ['open', 'high', 'low', 'close', 'volume', 'openInterest']
@@ -723,43 +727,92 @@ class CandleProcessor:
 
     def process_candles(self, candles: Union[pd.DataFrame, Dict[str, Any]], daily_candles: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
-        Process candle data and calculate technical indicators.
+        Process candle data and calculate indicators.
         
         Args:
-            candles: Candle data as DataFrame or API response dict
-            daily_candles: Optional DataFrame with daily candle data
+            candles: DataFrame or dict with candle data
+            daily_candles: Optional DataFrame with daily data
             
         Returns:
-            Processed DataFrame with technical indicators
+            Processed DataFrame with indicators
         """
-        # Convert to DataFrame if needed
-        if isinstance(candles, dict):
-            df = self.parse_candles(candles)
-        else:
-            df = candles.copy()
+        try:
+            # Convert to DataFrame if needed
+            if isinstance(candles, dict):
+                df = self.parse_candles(candles)
+            else:
+                df = candles.copy()
             
-        # Ensure required columns exist
-        required_columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            raise ValueError(f"Missing required columns: {missing_columns}")
+            # Ensure timestamp is datetime
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
             
-        # Sort by timestamp
-        df = df.sort_values('timestamp')
-        
-        # Calculate intraday indicators
-        df = self.technical_indicators.calculate_all(df, timeframe='intraday')
-        
-        # If daily candles are provided, calculate and apply daily indicators
-        if daily_candles is not None:
-            # Update daily indicators
-            self.technical_indicators.update_daily_indicators(daily_candles)
+            # Sort by timestamp
+            df = df.sort_values('timestamp')
             
-            # Apply daily indicators to intraday data
-            df = self.technical_indicators.apply_daily_indicators(df)
-        
-        logger.info(f"Processed {len(df)} candles with technical indicators")
-        return df
+            # Calculate intraday indicators
+            df['INTRADAY_EMA_5'] = df['close'].ewm(span=5, adjust=False).mean()
+            df['INTRADAY_EMA_9'] = df['close'].ewm(span=9, adjust=False).mean()
+            df['INTRADAY_EMA_50'] = df['close'].ewm(span=50, adjust=False).mean()
+            
+            # Calculate RSI
+            delta = df['close'].diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+            rs = gain / loss
+            df['INTRADAY_RSI_14'] = 100 - (100 / (1 + rs))
+            
+            # Calculate ATR
+            high_low = df['high'] - df['low']
+            high_close = np.abs(df['high'] - df['close'].shift())
+            low_close = np.abs(df['low'] - df['close'].shift())
+            ranges = pd.concat([high_low, high_close, low_close], axis=1)
+            true_range = np.max(ranges, axis=1)
+            df['INTRADAY_ATR_14'] = true_range.rolling(14).mean()
+            
+            # Calculate daily indicators if daily data is provided
+            if daily_candles is not None:
+                daily_df = daily_candles.copy()
+                daily_df['timestamp'] = pd.to_datetime(daily_df['timestamp'])
+                daily_df = daily_df.sort_values('timestamp')
+                
+                # Calculate daily EMAs
+                daily_df['DAILY_EMA_5'] = daily_df['close'].ewm(span=5, adjust=False).mean()
+                daily_df['DAILY_EMA_9'] = daily_df['close'].ewm(span=9, adjust=False).mean()
+                daily_df['DAILY_EMA_50'] = daily_df['close'].ewm(span=50, adjust=False).mean()
+                
+                # Calculate daily RSI
+                delta = daily_df['close'].diff()
+                gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+                rs = gain / loss
+                daily_df['DAILY_RSI_14'] = 100 - (100 / (1 + rs))
+                
+                # Calculate daily ATR
+                high_low = daily_df['high'] - daily_df['low']
+                high_close = np.abs(daily_df['high'] - daily_df['close'].shift())
+                low_close = np.abs(daily_df['low'] - daily_df['close'].shift())
+                ranges = pd.concat([high_low, high_close, low_close], axis=1)
+                true_range = np.max(ranges, axis=1)
+                daily_df['DAILY_ATR_14'] = true_range.rolling(14).mean()
+                
+                # Merge daily indicators back to intraday data
+                daily_df['date'] = daily_df['timestamp'].dt.date
+                df['date'] = df['timestamp'].dt.date
+                df = df.merge(
+                    daily_df[['date'] + [col for col in daily_df.columns if col.startswith('DAILY_')]],
+                    on='date',
+                    how='left'
+                )
+                df = df.drop('date', axis=1)
+            
+            # Forward fill NaN values
+            df = df.fillna(method='ffill')
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error processing candles: {str(e)}")
+            raise
 
     def update_technical_config(self, new_config: Dict):
         """
@@ -832,15 +885,69 @@ class CandleProcessor:
             
         return True
 
+    def create_backtrader_datafeed(self, df: pd.DataFrame, timeframe: str = '5minute', instrument_key: str = None, name: str = None) -> MorningRangeDataFeed:
+        """
+        Create a Backtrader data feed from processed candle data.
+        
+        Args:
+            df: Processed DataFrame with indicators
+            timeframe: Timeframe for the data
+            instrument_key: Instrument key for the data feed name
+            
+        Returns:
+            MorningRangeDataFeed instance
+        """
+        try:
+            # Ensure required columns exist
+            required_columns = [
+                'timestamp', 'open', 'high', 'low', 'close', 'volume',
+                'INTRADAY_EMA_5', 'INTRADAY_EMA_9', 'INTRADAY_EMA_50',
+                'INTRADAY_RSI_14', 'INTRADAY_ATR_14',
+                'DAILY_EMA_5', 'DAILY_EMA_9', 'DAILY_EMA_50',
+                'DAILY_RSI_14', 'DAILY_ATR_14'
+            ]
+            
+            # Check for missing columns
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                raise ValueError(f"Missing required columns: {missing_columns}")
+            
+            # Ensure timestamp is datetime
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            
+            # Set timestamp as index
+            df = df.set_index('timestamp')
+
+            print("DF HEAD:\n", df.head())
+            print("DF DTYPES:\n", df.dtypes)
+            print("DF COLUMNS:\n", df.columns.tolist())
+            
+            # Create data feed
+            data_feed = MorningRangeDataFeed(
+                dataname=df,
+                timeframe=bt.TimeFrame.Minutes if timeframe == '5minute' else bt.TimeFrame.Days,
+                compression=5 if timeframe == '5minute' else 1,
+                name=name or 'UNKNOWN'  # Set the name attribute
+            )
+            
+            logger.info(f"Created Backtrader data feed for {instrument_key or 'UNKNOWN'}")
+            return data_feed
+            
+        except Exception as e:
+            logger.error(f"Error creating Backtrader data feed: {str(e)}")
+            raise
+
     async def load_and_process_candles(
         self,
         instrument_key: str,
+        name: str,
         start_date: str,
         end_date: str,
         timeframe: str = '5minute'
-    ) -> pd.DataFrame:
+    ) -> Tuple[pd.DataFrame, Optional[MorningRangeDataFeed]]:
         """
         Load and process candles with both intraday and daily indicators.
+        Optionally create a Backtrader data feed.
         
         Args:
             instrument_key: Instrument key
@@ -849,7 +956,9 @@ class CandleProcessor:
             timeframe: Timeframe for candles (default: 5minute)
             
         Returns:
-            DataFrame with processed candles and indicators
+            Tuple containing:
+                - DataFrame with processed candles and indicators
+                - Optional MorningRangeDataFeed instance
         """
         try:
             # Load intraday candles
@@ -862,24 +971,31 @@ class CandleProcessor:
             
             if intraday_df.empty:
                 logger.warning("No intraday data loaded")
-                return pd.DataFrame()
+                return pd.DataFrame(), None
+            
+            # make start_date to time and make it 50 days back from start_date
+            start_date = start_date.split('T')[0]
+            start_date = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=50)).strftime('%Y-%m-%d')
             
             # Load daily candles for the same period
             daily_df = await self.load_daily_data(
                 instrument_key=instrument_key,
-                start_date=start_date,
+                start_date=start_date + "T09:15:00+05:30",
                 end_date=end_date
             )
             
             if daily_df.empty:
                 logger.warning("No daily data loaded")
-                return pd.DataFrame()
+                return pd.DataFrame(), None
             
             # Process candles with both intraday and daily indicators
             processed_df = self.process_candles(intraday_df, daily_df)
             
-            logger.info(f"Successfully processed {len(processed_df)} candles")
-            return processed_df
+            # Create Backtrader data feed with instrument key
+            datafeed = self.create_backtrader_datafeed(processed_df, timeframe, instrument_key, name)
+            
+            logger.info(f"Successfully processed {len(processed_df)} candles and created data feed for {instrument_key}")
+            return processed_df, datafeed
             
         except Exception as e:
             logger.error(f"Error loading and processing candles: {str(e)}")
