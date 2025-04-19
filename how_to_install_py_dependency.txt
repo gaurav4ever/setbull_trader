@@ -1,0 +1,23 @@
+brew update
+brew install pyenv pyenv-virtualenv
+
+echo -e '\n# pyenv' >> ~/.zshrc
+echo 'eval "$(pyenv init --path)"' >> ~/.zshrc
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+source ~/.zshrc
+
+pyenv install 3.11.9
+pyenv versions
+pyenv virtualenv 3.11.9 setbull-py311
+pyenv activate setbull-py311
+pip install --upgrade pip setuptools wheel # NO NEED NOW 
+pip install -r requirements.txt
+
+
+To deactivate:
+pyenv deactivate
+
+
+To delete the env:
+pyenv uninstall setbull-py311
