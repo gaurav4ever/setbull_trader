@@ -439,7 +439,7 @@ class BacktestEngine:
                                     for trade in trades:
                                         trade_current_time = pd.to_datetime(trade['current_time'])
                                         updated_trade_current_time = pd.to_datetime(updated_trade['current_time'])
-                                        if trade['instrument_name'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
+                                        if trade['instrument_key'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
                                             same_day_trade = True
                                             break
                                     if not same_day_trade:

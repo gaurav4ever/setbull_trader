@@ -12,6 +12,7 @@ import networkx as nx
 import logging
 from typing import Dict, Tuple, List
 from pathlib import Path
+from correlation_analysis.stock_clusterer import StockClusterer
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,76 @@ class CorrelationVisualizer:
                         G.add_edge(stock1, stock2, weight=abs(corr))
                         
         return G
+        
+    def visualize_clusters(self, clusterer: StockClusterer, original_df: pd.DataFrame, output_dir: str):
+        """
+        Visualize stock clusters and their performance.
+        
+        Args:
+            clusterer: StockClusterer instance with clustering results
+            original_df: DataFrame containing original P&L data
+            output_dir: Directory to save visualizations
+        """
+        logger.info("Visualizing stock clusters")
+        
+        # Get cluster members
+        cluster_members = clusterer.get_cluster_members()
+        
+        # Create cluster visualization
+        fig, ax = plt.subplots(figsize=(12, 10))
+        
+        # Create a color map for clusters
+        colors = plt.cm.tab10(np.linspace(0, 1, len(cluster_members)))
+        
+        # Create network graph
+        G = self.create_network_graph(clusterer.correlation_matrix)
+        
+        # Get positions
+        pos = nx.spring_layout(G, k=1, iterations=50)
+        
+        # Draw nodes with cluster colors
+        for i, (cluster_id, stocks) in enumerate(cluster_members.items()):
+            nx.draw_networkx_nodes(
+                G, pos,
+                nodelist=stocks,
+                node_color=[colors[i]] * len(stocks),
+                node_size=500,
+                alpha=0.8,
+                ax=ax
+            )
+            
+        # Draw edges
+        nx.draw_networkx_edges(
+            G, pos,
+            width=1.0,
+            alpha=0.3,
+            ax=ax
+        )
+        
+        # Draw labels
+        nx.draw_networkx_labels(G, pos, ax=ax)
+        
+        # Add legend
+        legend_elements = [
+            plt.Line2D([0], [0], marker='o', color='w', label=f'Cluster {i+1}',
+                      markerfacecolor=colors[i], markersize=10)
+            for i in range(len(cluster_members))
+        ]
+        ax.legend(handles=legend_elements, title='Clusters')
+        
+        # Set title
+        ax.set_title('Stock Clusters Based on Correlation', pad=20)
+        
+        # Save figure
+        output_path = Path(output_dir) / 'stock_clusters.png'
+        fig.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        logger.info(f"Saved cluster visualization to {output_path}")
+        
+        # Create and save cluster performance table
+        performance_df = clusterer.calculate_cluster_performance(original_df)
+        performance_df.to_csv(Path(output_dir) / 'cluster_performance.csv', index=False)
+        logger.info("Saved cluster performance metrics to CSV")
         
     def save_visualizations(self, output_dir: str):
         """

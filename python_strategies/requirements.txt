@@ -17,3 +17,7 @@ pydantic==2.4.2
 python-multipart==0.0.6
 debugpy==1.6.0
 networkx==3.1
+backtrader>=1.9.76  # For strategy implementation
+pandas-ta>=0.3.14   # For technical indicators
+empyrical>=0.5.5    # For performance metrics
+quantstats>=0.0.59  # For portfolio analytics

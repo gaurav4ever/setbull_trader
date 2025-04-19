@@ -20,6 +20,7 @@ from mr_strategy.backtest.engine import BacktestConfig
 from mr_strategy.strategy.base_strategy import StrategyConfig
 from correlation_analysis.correlation_analyzer import CorrelationAnalyzer
 from correlation_analysis.correlation_visualizer import CorrelationVisualizer
+from correlation_analysis.stock_clusterer import StockClusterer
 
 print(">> Script Started")
 
@@ -36,7 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Test parameters
-INSTRUMENT_CONFIGS = [
+INSTRUMENT_CONFIGSS = [
   {
     "name": "FUSION",
     "key": "NSE_EQ|INE139R01012",
@@ -88,14 +89,14 @@ INSTRUMENT_CONFIGS = [
     "direction": "BEARISH"
   }
 ]
-INSTRUMENT_CONFIGSS = [
+INSTRUMENT_CONFIGS = [
     {
         'key': 'NSE_EQ|INE070D01027',
         "name": "JAICORP",
-        'direction': 'BEARISH'
+        'direction': 'BULLISH'
     }
 ]
-START_DATE = "2025-04-01T09:15:00+05:30"
+START_DATE = "2025-01-01T09:15:00+05:30"
 END_DATE = "2025-04-11T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
@@ -106,9 +107,6 @@ def perform_correlation_analysis(csv_file: str) -> dict:
     """Perform correlation analysis on trade data from CSV file."""
     # Read the CSV file
     df = pd.read_csv(csv_file)
-    
-    # Create instrument key to name mapping
-    instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGS}
     
     # Create a pivot table of P&L values using instrument names
     pnl_df = df.pivot_table(
@@ -145,8 +143,32 @@ def perform_correlation_analysis(csv_file: str) -> dict:
     output_dir = Path("backtest_results/correlation_analysis")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Save visualizations
+    # Save correlation visualizations
     visualizer.save_visualizations(str(output_dir))
+    
+    # Perform clustering analysis
+    print("\n>> Running Clustering Analysis")
+    clusterer = StockClusterer(spearman_corr)
+    
+    # Find optimal number of clusters
+    n_clusters = clusterer.find_optimal_clusters()
+    
+    # Apply clustering
+    clusterer.apply_hierarchical_clustering(n_clusters)
+    
+    # Visualize clusters
+    visualizer.visualize_clusters(clusterer, pnl_df, str(output_dir))
+    
+    # Get cluster members
+    cluster_members = clusterer.get_cluster_members()
+    print("\nCluster Members:")
+    for cluster_id, stocks in cluster_members.items():
+        print(f"Cluster {cluster_id}: {', '.join(stocks)}")
+    
+    # Calculate and print cluster performance
+    performance_df = clusterer.calculate_cluster_performance(pnl_df)
+    print("\nCluster Performance Metrics:")
+    print(performance_df.to_string(index=False))
     
     # Print significant correlations
     print("\nSignificant Spearman Correlations:")
@@ -162,6 +184,11 @@ def perform_correlation_analysis(csv_file: str) -> dict:
             'spearman': significant_spearman,
             'binary': significant_binary,
             'r_multiple': significant_r_multiple
+        },
+        'clustering_results': {
+            'n_clusters': n_clusters,
+            'cluster_members': cluster_members,
+            'performance_metrics': performance_df
         }
     }
 
@@ -180,7 +207,7 @@ async def run_entry_type_comparison(instrument_configs):
             "params": {
                 "range_type": "5MR",
                 "entry_type": entry_type,
-                "sl_percentage": 0.5,
+                "sl_percentage": 0.75,
                 "target_r": 7.0
             }
         } for entry_type in ENTRY_TYPES],
