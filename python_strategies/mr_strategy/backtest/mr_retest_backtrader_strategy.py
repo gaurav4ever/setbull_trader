@@ -1,7 +1,7 @@
 """
-Backtrader strategy implementation for Morning Range strategy.
+Backtrader strategy implementation for Morning Range Retest strategy.
 
-This module implements the Morning Range strategy using Backtrader's framework,
+This module implements the Morning Range Retest strategy using Backtrader's framework,
 maintaining the core logic while leveraging Backtrader's features.
 """
 
@@ -50,7 +50,7 @@ def setup_logger(name: str) -> logging.Logger:
     # Create file handler with date-based filename
     current_date = datetime.now().strftime('%Y-%m-%d')
     file_handler = logging.FileHandler(
-        log_dir / f'mr_strategy_{current_date}.log',
+        log_dir / f'mr_retest_strategy_{current_date}.log',
         mode='a'
     )
     file_handler.setLevel(logging.INFO)
@@ -85,7 +85,6 @@ class TradeStatus(Enum):
 
 class TradeType(Enum):
     """Type of trade entry."""
-    IMMEDIATE_BREAKOUT = "1ST_ENTRY"
     RETEST_ENTRY = "RETEST_ENTRY"
 
 @dataclass
@@ -113,15 +112,15 @@ class TakeProfitLevel:
     trail_activation: bool = False  # Whether to activate trailing stop
     move_sl_to_be: bool = False  # Whether to move stop loss to breakeven
 
-class MorningRangeStrategy(bt.Strategy):
+class MorningRangeRetestStrategy(bt.Strategy):
     """
-    Backtrader implementation of the Morning Range strategy.
+    Backtrader implementation of the Morning Range Retest strategy.
     
     This strategy:
     1. Identifies the morning range (9:15-9:20)
     2. Validates MR range size and conditions
-    3. Generates signals based on range breakouts and technical indicators
-    4. Manages positions with advanced features from trade_manager.py
+    3. Detects breakouts and retests
+    4. Manages positions with advanced features
     """
     
     # ============================================
@@ -131,10 +130,8 @@ class MorningRangeStrategy(bt.Strategy):
         ('mr_start_time', time(9, 15)),  # Morning range start time
         ('mr_end_time', time(9, 20)),    # Morning range end time
         ('market_close_time', time(15, 20)),  # Market close time
-        ('stop_loss_pct', 0.005),         # Stop loss percentage
-        ('target_pct', 0.02),            # Target percentage
-        ('position_size', 1),            # Position size in units
-        ('risk_per_trade', 50),          # Risk per trade in percentage
+        ('stop_loss_pct', 0.75),         # Stop loss percentage
+        ('risk_per_trade', 30),          # Risk per trade in percentage
         ('use_daily_indicators', True),  # Whether to use daily indicators
         ('min_mr_size_pct', 0.002),     # Minimum MR size as percentage of price
         ('max_mr_size_pct', 0.01),      # Maximum MR size as percentage of price
@@ -143,6 +140,14 @@ class MorningRangeStrategy(bt.Strategy):
         ('breakeven_r', 1.0),           # R multiple to move to breakeven
         ('trail_activation_r', 2.0),    # R multiple to activate trailing stop
         ('trail_step_pct', 0.002),      # Trailing stop step size
+        ('max_retest_distance', 0.1),   # Maximum distance for valid retest (%)
+        ('min_breakout_move', 0.3),     # Minimum move away from range (%)
+        ('respect_trend', True),        # Whether to respect daily trend
+        ('tp1_rr', 3.0),               # First take profit R:R
+        ('tp2_rr', 5.0),               # Second take profit R:R
+        ('tp3_rr', 7.0),               # Third take profit R:R
+        ('tp1_size', 10.0),            # First take profit size (%)
+        ('tp2_size', 40.0),            # Second take profit size (%)
     )
 
     # ============================================
@@ -166,8 +171,24 @@ class MorningRangeStrategy(bt.Strategy):
         self.mr_size = None
         self.mr_established = False
         self.mr_valid = False
-        self.day_skipped = False  # Flag to track if we're skipping the current day
-        self.trade_closed_today = False  # Flag to track if a trade was closed today
+        self.day_skipped = False
+        self.trade_closed_today = False
+        
+        # Breakout tracking
+        self.long_breakout_detected = False
+        self.short_breakout_detected = False
+        self.long_breakout_price = None
+        self.short_breakout_price = None
+        self.long_max_move = None
+        self.short_max_move = None
+        
+        # Retest tracking
+        self.long_retest_detected = False
+        self.short_retest_detected = False
+        self.long_retest_qualified = False
+        self.short_retest_qualified = False
+        self.long_retest_price = None
+        self.short_retest_price = None
         
         # Position tracking
         self.entry_price_long = None
@@ -182,9 +203,9 @@ class MorningRangeStrategy(bt.Strategy):
         self._short_2_r_multiple_achieved = False
         self.take_profit_levels_long = None
         self.take_profit_levels_short = None
-        self.position_size_long = self.p.position_size
+        self.position_size_long = 0
         self.position_size_remaining_long = 0
-        self.position_size_short = self.p.position_size
+        self.position_size_short = 0
         self.position_size_remaining_short = 0
         self.trade_status_long = None
         self.trade_status_short = None
@@ -192,27 +213,26 @@ class MorningRangeStrategy(bt.Strategy):
         self.entry_time_short = None
         self.trailing_stop_active = False
         self.trailing_stop_level = None
-
         self.entry_executed_long = False
         self.entry_executed_short = False
         
-        # Take profit levels as dictionaries
+        # Take profit levels
         self.take_profit_levels_long = [
             {
-                "r_multiple": 3.0,
-                "size_percentage": 30,
+                "r_multiple": self.p.tp1_rr,
+                "size_percentage": self.p.tp1_size,
                 "move_sl_to_be": True,
                 "trail_activation": True
             },
             {
-                "r_multiple": 5.0,
-                "size_percentage": 50,
+                "r_multiple": self.p.tp2_rr,
+                "size_percentage": self.p.tp2_size,
                 "move_sl_to_be": False,
                 "trail_activation": True
             },
             {
-                "r_multiple": 7.0,
-                "size_percentage": 100,
+                "r_multiple": self.p.tp3_rr,
+                "size_percentage": 100 - self.p.tp1_size - self.p.tp2_size,
                 "move_sl_to_be": False,
                 "trail_activation": False
             }
@@ -225,7 +245,7 @@ class MorningRangeStrategy(bt.Strategy):
         self.rsi = bt.indicators.RSI(self.data.close, period=14)
         self.atr = bt.indicators.ATR(self.data, period=14)
         
-        logger.info(f"{self._get_log_prefix()} - Initialized MorningRangeStrategy with params: {self.p}")
+        logger.info(f"{self._get_log_prefix()} - Initialized MorningRangeRetestStrategy with params: {self.p}")
 
     # ============================================
     # Utility Methods
@@ -245,6 +265,7 @@ class MorningRangeStrategy(bt.Strategy):
 
     def _reset_day_state(self):
         """Reset all day-specific state variables."""
+        # Reset MR values
         self.mr_high = None
         self.mr_low = None
         self.mr_high_long_entry_price = None
@@ -253,14 +274,49 @@ class MorningRangeStrategy(bt.Strategy):
         self.mr_established = False
         self.mr_valid = False
         self.day_skipped = False
-        self.trade_closed_today = False  # Reset trade closed flag
-        self.entry_price = None
-        self.stop_loss = None
-        self.target = None
-        self.trade_status = None
-        self.entry_time = None
+        self.trade_closed_today = False
+        
+        # Reset breakout tracking
+        self.long_breakout_detected = False
+        self.short_breakout_detected = False
+        self.long_breakout_price = None
+        self.short_breakout_price = None
+        self.long_max_move = None
+        self.short_max_move = None
+        
+        # Reset retest tracking
+        self.long_retest_detected = False
+        self.short_retest_detected = False
+        self.long_retest_qualified = False
+        self.short_retest_qualified = False
+        self.long_retest_price = None
+        self.short_retest_price = None
+        
+        # Reset position tracking
+        self.entry_price_long = None
+        self.entry_price_short = None
+        self.stop_loss_long = None
+        self.stop_loss_short = None
+        self.stop_loss_original_long = None
+        self.stop_loss_original_short = None
+        self.breakeven_level_long = None
+        self.breakeven_level_short = None
+        self._long_2_r_multiple_achieved = False
+        self._short_2_r_multiple_achieved = False
+        self.take_profit_levels_long = None
+        self.take_profit_levels_short = None
+        self.position_size_long = 0
+        self.position_size_remaining_long = 0
+        self.position_size_short = 0
+        self.position_size_remaining_short = 0
+        self.trade_status_long = None
+        self.trade_status_short = None
+        self.entry_time_long = None
+        self.entry_time_short = None
         self.trailing_stop_active = False
         self.trailing_stop_level = None
+        self.entry_executed_long = False
+        self.entry_executed_short = False
         self.executed_take_profits = []
         self.max_r_multiple = 0.0
 
@@ -277,9 +333,6 @@ class MorningRangeStrategy(bt.Strategy):
             self._reset_day_state()
         return is_new_day
 
-    # ============================================
-    # Morning Range Management
-    # ============================================
     def _update_morning_range(self):
         """Update morning range values."""
         # Update high and low during morning range period
@@ -318,84 +371,83 @@ class MorningRangeStrategy(bt.Strategy):
         self.mr_valid = True
         logger.info(f"{self._get_log_prefix()} - MR range validated - Size: {mr_size_pct:.4f}, High: {self.mr_high:.2f}, Low: {self.mr_low:.2f}")
 
-        # add a stop order above the mr_high and below the mr_low
-        logger.info(f"{self._get_log_prefix()} - Adding long and short Stop limit orders")
-        self._add_long_stop_limit_order()
-        self._add_short_stop_limit_order()
         return True
 
-    def _check_trading_signals(self):
-        if self.trade_closed_today:
-            logger.info(f"{self._get_log_prefix()} - Trade closed today, skipping trading signals")
+    def _detect_breakouts(self):
+        """Detect breakouts from the morning range."""
+        if not self.mr_established or not self.mr_valid:
             return
-        
-        # --------------------------------
-        # VALIDATE MR RANGE & ADD STOP LIMIT ORDERS FOR ENTRY
-        # --------------------------------
-        if not self._validate_mr_range():
-            self.day_skipped = True
-            logger.info(f"{self._get_log_prefix()} - MR range not valid, skipping rest of the day")
+            
+        # Long breakout detection
+        if not self.long_breakout_detected and self.data.high[0] > self.mr_high:
+            move_pct = ((self.data.high[0] - self.mr_high) / self.mr_high) * 100
+            if move_pct >= self.p.min_breakout_move:
+                self.long_breakout_detected = True
+                self.long_breakout_price = self.data.high[0]
+                self.long_max_move = self.data.high[0]
+                logger.info(f"{self._get_log_prefix()} - Long breakout detected at {self.long_breakout_price:.2f} ({move_pct:.2f}%)")
+                
+        # Update maximum move after long breakout
+        if self.long_breakout_detected and self.data.high[0] > self.long_max_move:
+            self.long_max_move = self.data.high[0]
+            
+        # Short breakout detection
+        if not self.short_breakout_detected and self.data.low[0] < self.mr_low:
+            move_pct = ((self.mr_low - self.data.low[0]) / self.mr_low) * 100
+            if move_pct >= self.p.min_breakout_move:
+                self.short_breakout_detected = True
+                self.short_breakout_price = self.data.low[0]
+                self.short_max_move = self.data.low[0]
+                logger.info(f"{self._get_log_prefix()} - Short breakout detected at {self.short_breakout_price:.2f} ({move_pct:.2f}%)")
+                
+        # Update maximum move after short breakout
+        if self.short_breakout_detected and self.data.low[0] < self.short_max_move:
+            self.short_max_move = self.data.low[0]
+
+    def _detect_retests(self):
+        """Detect retests of the morning range levels."""
+        if not self.mr_established or not self.mr_valid:
             return
-    # ============================================
-    # Trade Entry Management
-    # ============================================
-    def _add_long_stop_limit_order(self):
-        """Add a stop order above the mr_high."""
-        if self._validate_bullish_signal():
-            self.entry_price_long = self.mr_high_long_entry_price
-            self.entry_time_long = self.data.datetime.datetime(0)
-            self.trade_status_long = TradeStatus.ACTIVE
             
-            # Calculate trade levels
-            levels = self._calculate_trade_levels(self.entry_price_long, "LONG")
-            self.stop_loss_original_long = levels["stop_loss"]
-            self.stop_loss_long = levels["stop_loss"]
-            self.breakeven_level_long = levels["breakeven_level"]
-            self.take_profit_levels_long = levels["take_profit_levels"]
-            self.executed_take_profits = []
-
-            sl_points = self.entry_price_long - self.stop_loss_long
-            self.position_size_long = math.floor(self.p.risk_per_trade / sl_points)
-            self.position_size_remaining_long = math.floor(self.position_size_long)
-            self.buy_stop_order = self.buy(size=self.position_size_long, exectype=bt.Order.StopLimit, price=self.mr_high, plimit=self.mr_high_long_entry_price)
-
-    def _add_short_stop_limit_order(self):
-        """Add a stop order below the mr_low."""
-        if self._validate_bearish_signal():
-            self.entry_price_short = self.mr_low_short_entry_price
-            self.entry_time_short = self.data.datetime.datetime(0)
-            self.trade_status_short = TradeStatus.ACTIVE
-            
-            # Calculate trade levels
-            levels = self._calculate_trade_levels(self.entry_price_short, "SHORT")
-            self.stop_loss_original_short = levels["stop_loss"]
-            self.stop_loss_short = levels["stop_loss"]
-            self.breakeven_level_short = levels["breakeven_level"]
-            self.take_profit_levels_short = levels["take_profit_levels"]
-            self.executed_take_profits = []
-
-            sl_points = self.stop_loss_short - self.entry_price_short
-            self.position_size_short = math.floor(self.p.risk_per_trade / sl_points)
-            self.position_size_remaining_short = math.floor(self.position_size_short)
-            self.sell_stop_order = self.sell(size=self.position_size_short, exectype=bt.Order.StopLimit, price=self.mr_low, plimit=self.mr_low_short_entry_price)
-
-    def _validate_bullish_signal(self) -> bool:
-        """Validate bullish breakout signal."""
-        # Validate trade setup
-        if not self._validate_trade_setup(self.mr_high_long_entry_price, "LONG"):
-            return False
-            
-        logger.info(f"{self._get_log_prefix()} - Bullish signal validated - RSI: {self.rsi[0]:.2f}, Price: {self.data.close[0]:.2f}, EMA: {self.ema_50[0]:.2f}")
-        return True
-
-    def _validate_bearish_signal(self) -> bool:
-        """Validate bearish breakout signal."""
-        # Validate trade setup
-        if not self._validate_trade_setup(self.mr_low_short_entry_price, "SHORT"):
-            return False
-            
-        logger.info(f"{self._get_log_prefix()} - Bearish signal validated - RSI: {self.rsi[0]:.2f}, Price: {self.data.close[0]:.2f}, EMA: {self.ema_50[0]:.2f}")
-        return True
+        # Long retest detection (retest of MR high)
+        if self.long_breakout_detected and not self.long_retest_detected:
+            # Check if there was a meaningful breakout first
+            move_pct = ((self.long_max_move - self.mr_high) / self.mr_high) * 100
+            if move_pct >= self.p.min_breakout_move:
+                # Check if price has pulled back to MR high level (within tolerance)
+                high_retest_tolerance = self.mr_high * (1 + self.p.max_retest_distance / 100)
+                low_retest_tolerance = self.mr_high * (1 - self.p.max_retest_distance / 100)
+                
+                if self.data.low[0] <= high_retest_tolerance and self.data.low[0] >= low_retest_tolerance:
+                    self.long_retest_detected = True
+                    self.long_retest_price = min(self.data.high[0], self.mr_high)
+                    
+                    # Qualify the retest by checking if it's a pullback (not a failed breakout)
+                    if self.data.high[0] > self.mr_high:
+                        self.long_retest_qualified = True
+                        logger.info(f"{self._get_log_prefix()} - Long retest qualified at {self.long_retest_price:.2f}")
+                    else:
+                        logger.info(f"{self._get_log_prefix()} - Long retest detected but not qualified")
+                        
+        # Short retest detection (retest of MR low)
+        if self.short_breakout_detected and not self.short_retest_detected:
+            # Check if there was a meaningful breakout first
+            move_pct = ((self.mr_low - self.short_max_move) / self.mr_low) * 100
+            if move_pct >= self.p.min_breakout_move:
+                # Check if price has pulled back to MR low level (within tolerance)
+                high_retest_tolerance = self.mr_low * (1 + self.p.max_retest_distance / 100)
+                low_retest_tolerance = self.mr_low * (1 - self.p.max_retest_distance / 100)
+                
+                if self.data.high[0] >= low_retest_tolerance and self.data.high[0] <= high_retest_tolerance:
+                    self.short_retest_detected = True
+                    self.short_retest_price = max(self.data.low[0], self.mr_low)
+                    
+                    # Qualify the retest by checking if it's a pullback (not a failed breakout)
+                    if self.data.low[0] < self.mr_low:
+                        self.short_retest_qualified = True
+                        logger.info(f"{self._get_log_prefix()} - Short retest qualified at {self.short_retest_price:.2f}")
+                    else:
+                        logger.info(f"{self._get_log_prefix()} - Short retest detected but not qualified")
 
     def _validate_trade_setup(self, entry_price: float, position_type: str) -> bool:
         """Validate trade setup before entry."""
@@ -421,7 +473,7 @@ class MorningRangeStrategy(bt.Strategy):
     def _calculate_trade_levels(self, entry_price: float, position_type: str) -> Dict[str, float]:
         """Calculate trade levels including take profit targets."""
         if position_type == "LONG":
-            stop_loss = entry_price * (1 - self.p.stop_loss_pct)
+            stop_loss = entry_price * (1 - self.p.stop_loss_pct/100)
             risk_amount = entry_price - stop_loss
             breakeven_level = entry_price + (risk_amount * self.p.breakeven_r)
             
@@ -437,7 +489,7 @@ class MorningRangeStrategy(bt.Strategy):
                 for tp in self.take_profit_levels_long
             ]
         else:  # SHORT
-            stop_loss = entry_price * (1 + self.p.stop_loss_pct)
+            stop_loss = entry_price * (1 + self.p.stop_loss_pct/100)
             risk_amount = stop_loss - entry_price
             breakeven_level = entry_price - (risk_amount * self.p.breakeven_r)
             
@@ -460,63 +512,53 @@ class MorningRangeStrategy(bt.Strategy):
             "take_profit_levels": take_profit_levels
         }
 
-    # ============================================
-    # Order Management
-    # ============================================
-    def cancel_open_stop_limit_orders(self):
-        """Cancel open stop limit orders."""
-        if hasattr(self, 'buy_stop_order'):
-            self.buy_stop_order.cancel()
-        if hasattr(self, 'sell_stop_order'):
-            self.sell_stop_order.cancel()
+    def _add_long_retest_order(self):
+        """Add a long order on retest of MR high."""
+        if self._validate_trade_setup(self.long_retest_price, "LONG"):
+            self.entry_price_long = self.long_retest_price
+            self.entry_time_long = self.data.datetime.datetime(0)
+            self.trade_status_long = TradeStatus.ACTIVE
+            
+            # Calculate trade levels
+            levels = self._calculate_trade_levels(self.entry_price_long, "LONG")
+            self.stop_loss_original_long = levels["stop_loss"]
+            self.stop_loss_long = levels["stop_loss"]
+            self.breakeven_level_long = levels["breakeven_level"]
+            self.take_profit_levels_long = levels["take_profit_levels"]
+            self.executed_take_profits = []
 
-    def cancel_all_pending_orders(self):
-        """Cancel all pending orders."""
-        for order in self.broker.pending:
-            if order.status in [order.Submitted, order.Accepted]:
-                order.cancel()
-                # add more details here like order type, order status, order size, order price, order datetime
-                logger.info(f"{self._get_log_prefix()} - Cancelled pending order - Size: {order.size}, Price: {order.price}, Type: {order.exectype}, Status: {order.status}")
+            sl_points = self.entry_price_long - self.stop_loss_long
+            self.position_size_long = math.floor(self.p.risk_per_trade / sl_points)
+            self.position_size_remaining_long = math.floor(self.position_size_long)
+            
+            # Execute entry order
+            self.buy(size=self.position_size_long, exectype=bt.Order.StopLimit, 
+                    price=self.long_retest_price, plimit=self.long_retest_price)
+            logger.info(f"{self._get_log_prefix()} - Long retest entry order placed at {self.long_retest_price:.2f}")
 
-    def _add_long_stoploss_order(self, stop_loss: float):
-        """Add a stop loss order for a long position."""
-        stop_loss_limit = get_closest_limit_price(stop_loss, above=False)
-        self.buy_stop_order = self.sell(
-            size=self.position_size_long,
-            exectype=bt.Order.StopLimit, 
-            price=stop_loss, 
-            plimit=stop_loss_limit)
+    def _add_short_retest_order(self):
+        """Add a short order on retest of MR low."""
+        if self._validate_trade_setup(self.short_retest_price, "SHORT"):
+            self.entry_price_short = self.short_retest_price
+            self.entry_time_short = self.data.datetime.datetime(0)
+            self.trade_status_short = TradeStatus.ACTIVE
+            
+            # Calculate trade levels
+            levels = self._calculate_trade_levels(self.entry_price_short, "SHORT")
+            self.stop_loss_original_short = levels["stop_loss"]
+            self.stop_loss_short = levels["stop_loss"]
+            self.breakeven_level_short = levels["breakeven_level"]
+            self.take_profit_levels_short = levels["take_profit_levels"]
+            self.executed_take_profits = []
 
-    def _add_short_stoploss_order(self, stop_loss: float):
-        """Add a stop loss order for a short position."""
-        stop_loss_limit = get_closest_limit_price(stop_loss, above=True)
-        self.sell_stop_order = self.buy(
-            size=self.position_size_short, 
-            exectype=bt.Order.StopLimit, 
-            price=stop_loss, 
-            plimit=stop_loss_limit)
-
-    def _update_long_stoploss_order(self, stop_loss: float):
-        """Update the stop loss order for a long position."""
-        if self.buy_stop_order and self.buy_stop_order.status in [bt.Order.Submitted, bt.Order.Accepted]:
-            self.buy_stop_order.cancel()
-        self._add_long_stoploss_order(stop_loss)
-
-    def _update_short_stoploss_order(self, stop_loss: float):
-        """Update the stop loss order for a short position."""
-        if self.sell_stop_order and self.sell_stop_order.status in [bt.Order.Submitted, bt.Order.Accepted]:
-            self.sell_stop_order.cancel()
-        self._add_short_stoploss_order(stop_loss)
-
-    # ============================================
-    # Position Management
-    # ============================================
-    def _validate_position_state(self) -> bool:
-        """Validate if we can submit new orders based on position state."""
-        if self.position_size_remaining_long <= 0 and self.position_size_remaining_short <= 0:
-            logger.info(f"{self._get_log_prefix()} - Position state invalid - No remaining size")
-            return False
-        return True
+            sl_points = self.stop_loss_short - self.entry_price_short
+            self.position_size_short = math.floor(self.p.risk_per_trade / sl_points)
+            self.position_size_remaining_short = math.floor(self.position_size_short)
+            
+            # Execute entry order
+            self.sell(size=self.position_size_short, exectype=bt.Order.StopLimit, 
+                     price=self.short_retest_price, plimit=self.short_retest_price)
+            logger.info(f"{self._get_log_prefix()} - Short retest entry order placed at {self.short_retest_price:.2f}")
 
     def _manage_position(self):
         """Manage open position."""
@@ -526,60 +568,20 @@ class MorningRangeStrategy(bt.Strategy):
         
         logger.info(f"{self._get_log_prefix()} - Position State - Size: {self.position.size}, Remaining Long: {self.position_size_remaining_long}, Remaining Short: {self.position_size_remaining_short}")
         
-        # --------------------------------
-        # VALIDATE POSITION STATE
-        # --------------------------------
-        # Validate position state before proceeding
-        if not self._validate_position_state():
-            self.cancel_all_pending_orders()
-            self.cancel_open_stop_limit_orders()
-            return
-        
-        # --------------------------------
-        # TRADE DURATION CHECK
-        # --------------------------------
-        if self.entry_time_long is not None:
-            trade_duration = (current_time - self.entry_time_long).total_seconds() / 60
-            if trade_duration > self.p.max_trade_duration:
-                logger.info(f"{self._get_log_prefix()} - Trade duration exceeded {self.p.max_trade_duration} minutes")
-                self.cancel_all_pending_orders()
+        # Check if we're in a long position
+        if self.position.size > 0:
+            # Check stop loss
+            if current_price <= self.stop_loss_long:
                 self.close()
+                logger.info(f"{self._get_log_prefix()} - Long position stopped out at {current_price:.2f}")
                 return
-        elif self.entry_time_short is not None:
-            trade_duration = (current_time - self.entry_time_short).total_seconds() / 60
-            if trade_duration > self.p.max_trade_duration:
-                logger.info(f"{self._get_log_prefix()} - Trade duration exceeded {self.p.max_trade_duration} minutes")
-                self.cancel_all_pending_orders()
-                self.close()
-                return
-        else:
-            logger.warning(f"{self._get_log_prefix()} - Skipping trade duration check: entry_time is None")
-
-        # --------------------------------
-        # TRADE ENTRY MANAGEMENT
-        # --------------------------------
-        if self.entry_executed_long:
-            # add stop loss limit orders
-            self._add_long_stoploss_order(self.stop_loss_long)
-            self.entry_executed_long = False
-        elif self.entry_executed_short:
-            self._add_short_stoploss_order(self.stop_loss_short)
-            self.entry_executed_short = False
-            
-        # Check stop loss
-        if self.position.size > 0:  # Long position
-
-            # -------------------------------
-            # TRAIL SL - Price moves 1:2
-            # -------------------------------
-            if self._long_2_r_multiple_achieved is False and self.stop_loss_long is not None and current_price > (self.entry_price_long + 2*(self.entry_price_long - self.stop_loss_long)):
+                
+            # Move to breakeven after 1R
+            if not self._long_2_r_multiple_achieved and current_price >= self.breakeven_level_long:
                 self._long_2_r_multiple_achieved = True
-                # Trail SL
-                stop_loss = self.entry_price_long + (self.entry_price_long - self.stop_loss_long)
-                logger.info(f"{self._get_log_prefix()} - Trailing stop loss to: {stop_loss:.2f}")
-                self.cancel_all_pending_orders()
-                self._update_long_stoploss_order(stop_loss)
-
+                self.stop_loss_long = self.entry_price_long
+                logger.info(f"{self._get_log_prefix()} - Long position moved to breakeven at {self.entry_price_long:.2f}")
+                
             # Check take profit levels
             for i, tp in enumerate(self.take_profit_levels_long):
                 if tp in self.executed_take_profits:
@@ -588,47 +590,35 @@ class MorningRangeStrategy(bt.Strategy):
                 if current_price >= tp["price"]:
                     # Execute partial exit
                     exit_size = math.floor(self.position_size_remaining_long * (tp["size_percentage"] / 100))
-                    if exit_size > 0:  # Only execute if we have size to exit
+                    if exit_size > 0:
                         self.sell(size=exit_size)
                         self.executed_take_profits.append(tp)
                         self.position_size_remaining_long -= exit_size
                         
                         if self.max_r_multiple < tp["r_multiple"]:
                             self.max_r_multiple = tp["r_multiple"]
-                        
-                        # --------------------------------
-                        # Move stop loss based on take profit level
-                        # --------------------------------
-                        if i == 1:  # Second take profit level (R=5)
-                            # Move SL to first take profit level (R=3)
-                            self.stop_loss_long = self.take_profit_levels_long[0]["price"]
-                            self._update_long_stoploss_order(self.stop_loss_long)
-                            logger.info(f"{self._get_log_prefix()} - Moved stop loss to TP1: {self.stop_loss_long:.2f}")
-                        elif i == 2:  # Third take profit level (R=7)
-                            # Move SL to second take profit level (R=5)
-                            self.stop_loss_long = self.take_profit_levels_long[1]["price"]
-                            self._update_long_stoploss_order(self.stop_loss_long)
-                            logger.info(f"{self._get_log_prefix()} - Moved stop loss to TP2: {self.stop_loss_long:.2f}")
-                        # For first take profit level (R=3), don't move SL
                             
-                        logger.info(f"{self._get_log_prefix()} - Executed take profit {tp['r_multiple']}R - Price: {current_price:.2f}, Size: {exit_size}, Remaining Size: {self.position_size_remaining_long:.2f}")
+                        logger.info(f"{self._get_log_prefix()} - Long take profit {tp['r_multiple']}R hit at {current_price:.2f}, exited {exit_size} shares")
                         
                         # If remaining size is zero, close the position
                         if self.position_size_remaining_long <= 0:
-                            logger.info(f"{self._get_log_prefix()} - Position closed due to no remaining size")
-                            self.cancel_all_pending_orders()
-                            self.cancel_open_stop_limit_orders()
+                            logger.info(f"{self._get_log_prefix()} - Long position fully closed")
                             return
-                    
-        else:  # Short position       
-            if self._short_2_r_multiple_achieved is False and self.stop_loss_short is not None and current_price < (self.entry_price_short - 2*(self.stop_loss_short - self.entry_price_short)):
+                            
+        # Check if we're in a short position
+        elif self.position.size < 0:
+            # Check stop loss
+            if current_price >= self.stop_loss_short:
+                self.close()
+                logger.info(f"{self._get_log_prefix()} - Short position stopped out at {current_price:.2f}")
+                return
+                
+            # Move to breakeven after 1R
+            if not self._short_2_r_multiple_achieved and current_price <= self.breakeven_level_short:
                 self._short_2_r_multiple_achieved = True
-                # Trail SL
-                self.stop_loss_short = self.entry_price_short - (self.stop_loss_short - self.entry_price_short)
-                logger.info(f"{self._get_log_prefix()} - Trailing stop loss to: {self.stop_loss_short:.2f}")
-                self.cancel_all_pending_orders()
-                self._update_short_stoploss_order(self.stop_loss_short)
-
+                self.stop_loss_short = self.entry_price_short
+                logger.info(f"{self._get_log_prefix()} - Short position moved to breakeven at {self.entry_price_short:.2f}")
+                
             # Check take profit levels
             for i, tp in enumerate(self.take_profit_levels_short):
                 if tp in self.executed_take_profits:
@@ -637,45 +627,21 @@ class MorningRangeStrategy(bt.Strategy):
                 if current_price <= tp["price"]:
                     # Execute partial exit
                     exit_size = math.floor(self.position_size_remaining_short * (tp["size_percentage"] / 100))
-                    if exit_size > 0:  # Only execute if we have size to exit
+                    if exit_size > 0:
                         self.buy(size=exit_size)
                         self.executed_take_profits.append(tp)
                         self.position_size_remaining_short -= exit_size
-
+                        
                         if self.max_r_multiple < tp["r_multiple"]:
                             self.max_r_multiple = tp["r_multiple"]
-                        
-                        # Move stop loss based on take profit level
-                        if i == 1:  # Second take profit level (R=5)
-                            # Move SL to first take profit level (R=3)
-                            self.stop_loss_short = self.take_profit_levels_short[0]["price"]
-                            self._update_short_stoploss_order(self.stop_loss_short)
-                            logger.info(f"{self._get_log_prefix()} - Moved stop loss to TP1: {self.stop_loss_short:.2f}")
-                        elif i == 2:  # Third take profit level (R=7)
-                            # Move SL to second take profit level (R=5)
-                            self.stop_loss_short = self.take_profit_levels_short[1]["price"]
-                            self._update_short_stoploss_order(self.stop_loss_short)
-                            logger.info(f"{self._get_log_prefix()} - Moved stop loss to TP2: {self.stop_loss_short:.2f}")
-                        # For first take profit level (R=3), don't move SL
                             
-                        logger.info(f"{self._get_log_prefix()} - Executed take profit {tp['r_multiple']}R - Price: {current_price:.2f}, Size: {exit_size}, Remaining Size: {self.position_size_remaining_short:.2f}")
+                        logger.info(f"{self._get_log_prefix()} - Short take profit {tp['r_multiple']}R hit at {current_price:.2f}, exited {exit_size} shares")
                         
                         # If remaining size is zero, close the position
                         if self.position_size_remaining_short <= 0:
-                            logger.info(f"{self._get_log_prefix()} - Position closed due to no remaining size")
-                            self.cancel_all_pending_orders()
-                            self.cancel_open_stop_limit_orders()
+                            logger.info(f"{self._get_log_prefix()} - Short position fully closed")
                             return
 
-        # Check market close
-        if current_time_ist.time() >= self.p.market_close_time:
-            logger.info(f"{self._get_log_prefix()} - Position Closed at Market Close - Price: {current_price:.2f}")
-            self.cancel_all_pending_orders()
-            self.close()
-
-    # ============================================
-    # Backtrader Callbacks
-    # ============================================
     def next(self):
         """Called for each new candle."""
         try:
@@ -689,18 +655,15 @@ class MorningRangeStrategy(bt.Strategy):
             
             # Check if we're starting a new day
             if self._is_new_day(current_time_ist):
-                # close open stop limit orders
-                self.cancel_open_stop_limit_orders()
                 logger.info(f"{self._get_log_prefix()} - Starting new trading day")
                 
             # If we're skipping this day, return early
             if self.day_skipped:
-                self.cancel_open_stop_limit_orders()
                 return
             
+            # Check if we're in trading hours
             if current_time_ist.time() > self.p.market_close_time:
                 logger.info(f"{self._get_log_prefix()} - Market closed timing reached, skipping rest of the day")
-                self.cancel_open_stop_limit_orders()
                 return
                 
             candle_info = f"Time: {current_time_ist}, Open: {self.data.open[0]:.2f}, High: {self.data.high[0]:.2f}, Low: {self.data.low[0]:.2f}, Close: {self.data.close[0]:.2f}, Volume: {self.data.volume[0]}"
@@ -710,14 +673,19 @@ class MorningRangeStrategy(bt.Strategy):
                 logger.info(f"{self._get_log_prefix()} - {candle_info} - Updating morning range")
                 self._update_morning_range()
                 
-            # Trading logic after morning range is established
-            if self.mr_established and not self.position and current_time_ist.time() == self.p.mr_start_time:
-                logger.info(f"{self._get_log_prefix()} - {candle_info} - Checking trading signals")
-                self._check_trading_signals()
+            # Breakout and retest detection after morning range is established
+            if self.mr_established and not self.position:
+                self._detect_breakouts()
+                self._detect_retests()
+                
+                # Check for qualified retests and place orders
+                if self.long_retest_qualified and not self.entry_executed_long:
+                    self._add_long_retest_order()
+                elif self.short_retest_qualified and not self.entry_executed_short:
+                    self._add_short_retest_order()
                 
             # Position management
-            if self.position and not self.position_size_remaining_long == 0 and not self.position_size_remaining_short == 0:
-                logger.info(f"{self._get_log_prefix()} - {candle_info} - Managing position")
+            if self.position:
                 self._manage_position()
                 
         except Exception as e:
@@ -794,7 +762,7 @@ class MorningRangeStrategy(bt.Strategy):
             pnl=trade.pnl,
             status=TradeStatus.CLOSED.value,
             direction=direction,
-            trade_type=TradeType.IMMEDIATE_BREAKOUT.value,
+            trade_type=TradeType.RETEST_ENTRY.value,
             max_r_multiple=self.max_r_multiple,
             entry_time=trade.dtopen,
             exit_time=trade.dtclose,
@@ -809,7 +777,6 @@ class MorningRangeStrategy(bt.Strategy):
         self.trade_closed_today = True
         self.current_trade = None
         self.max_r_multiple = 0.0
-        self.cancel_open_stop_limit_orders()
 
         stop_loss = self.stop_loss_long if direction == "LONG" else self.stop_loss_short
         
@@ -851,4 +818,4 @@ class MorningRangeStrategy(bt.Strategy):
             for trade in existing_trades.values():
                 writer.writerow(trade)
                 
-        logger.info(f"{self._get_log_prefix()} - Trade summary updated in {csv_path}") 
+        logger.info(f"{self._get_log_prefix()} - Trade summary updated in {csv_path}")

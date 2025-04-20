@@ -1,0 +1,7 @@
+1. Use multiple EMA for confirmation of Trend type
+2. Perfrom backtest on larger stocks. 
+3. Underline stocks of NIfty 
+4. Use GenAI for screenshot of stocks in Review Process. 
+5. Check Breakout and retest till 15min 
+    - Count Retest candles -> Insight
+6. 5min, 15min, 30min automate for breakout and retest.

@@ -2,6 +2,7 @@ import numpy as np
 import pytz
 from datetime import datetime, time
 from typing import Union
+import math
 
 def convert_numpy_types(obj):
     if isinstance(obj, dict):
@@ -62,3 +63,36 @@ def get_nearest_price(price: Union[float, int]) -> float:
         # Round up to nearest 5 multiple
         base = int(price)
         return base + 0.05
+
+def get_closest_limit_price(price: Union[float, int], above: bool = True) -> float:
+    """
+    Get the closest 0.05 multiple to the given price, either above or below.
+    
+    Examples:
+    >>> get_closest_limit_price(95.03, above=True)  # Returns 95.05
+    >>> get_closest_limit_price(95.03, above=False) # Returns 95.00
+    >>> get_closest_limit_price(93.01, above=True)  # Returns 93.05
+    >>> get_closest_limit_price(93.01, above=False) # Returns 93.00
+    >>> get_closest_limit_price(92.2, above=True)   # Returns 92.25
+    >>> get_closest_limit_price(92.2, above=False)  # Returns 92.20
+    
+    Args:
+        price: The price to find closest 0.05 multiple for
+        above: If True, returns the next higher 0.05 multiple
+               If False, returns the next lower 0.05 multiple
+        
+    Returns:
+        float: The closest 0.05 multiple price
+    """
+    # Multiply by 20 to convert to 0.05 steps
+    steps = price * 20
+    
+    if above:
+        # Round up to next 0.05
+        steps = math.ceil(steps)
+    else:
+        # Round down to previous 0.05
+        steps = math.floor(steps)
+    
+    # Convert back to price
+    return steps / 20
