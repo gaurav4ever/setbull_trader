@@ -33,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Test parameters
-INSTRUMENT_CONFIGS = [
+INSTRUMENT_CONFIGSS = [
   {
     "name": "FUSION",
     "key": "NSE_EQ|INE139R01012",
@@ -85,7 +85,7 @@ INSTRUMENT_CONFIGS = [
     "direction": "BEARISH"
   }
 ]
-INSTRUMENT_CONFIGSS = [
+INSTRUMENT_CONFIGS = [
   {
     "key": "NSE_EQ|INE188A01015",
     "name": "FACT",
@@ -223,7 +223,7 @@ async def run_entry_type_comparison(instrument_configs):
     return results
 
 def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
-    """Save trade data to CSV files in the same format as console output.
+    """Save trade data to CSV files and update existing rows if duplicate (by Date, Name, Direction).
     
     Args:
         trade_list (list): List of trade dictionaries
@@ -231,16 +231,13 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
     """
     if not trade_list:
         return
-    
-    # Create output directory if it doesn't exist
+
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Create instrument key to name mapping
+
     instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGSS}
-    
-    # Process trades by date and instrument
     trade_days = {}
     cumulative_pnl = {}
+
     for trade in trade_list:
         entry_time = trade.get('current_time')
         if entry_time:
@@ -251,10 +248,10 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
             direction = trade.get('position_type', 'UNKNOWN')
             trade_type = trade.get('trade_type', 'UNKNOWN')
             max_r_multiple = trade.get('max_r_multiple', 0)
-            
+
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
-            
+
             if instrument_name not in trade_days[trade_date]:
                 trade_days[trade_date][instrument_name] = {
                     "pnl": 0,
@@ -262,28 +259,23 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                     "trade_type": trade_type,
                     "max_r_multiple": max_r_multiple
                 }
-            
+
             trade_days[trade_date][instrument_name]["pnl"] += pnl
-            
-            # Track cumulative P&L per instrument
+
             if instrument_name not in cumulative_pnl:
                 cumulative_pnl[instrument_name] = 0
             cumulative_pnl[instrument_name] += pnl
-    
-    # Prepare data for CSV
-    csv_data = []
-    
-    # Add trades by date
+
+    # Prepare new CSV data
+    new_csv_data = []
     for date in sorted(trade_days.keys()):
-        # Add trades for each instrument
         for instrument_name, data in trade_days[date].items():
             pnl = data["pnl"]
             direction = data["direction"]
             trade_type = data["trade_type"]
             status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
             max_r_multiple = data["max_r_multiple"]
-            
-            csv_data.append({
+            new_csv_data.append({
                 'Date': date,
                 'Name': instrument_name,
                 'P&L': f"{pnl:.2f}",
@@ -293,12 +285,22 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                 'Max R Multiple': f"{max_r_multiple:.2f}",
                 'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}"
             })
-    
-    # Convert to DataFrame and save
-    df = pd.DataFrame(csv_data)
+
+    new_df = pd.DataFrame(new_csv_data)
     output_file = os.path.join(output_dir, "daily_trades.csv")
-    df.to_csv(output_file, index=False)
-    print(f"\nDaily trades saved to: {output_file}")
+
+    # Load existing CSV if available
+    if os.path.exists(output_file):
+        existing_df = pd.read_csv(output_file)
+        # Drop duplicates based on Date, Name, Direction, and keep new version
+        combined_df = pd.concat([existing_df, new_df])
+        combined_df.drop_duplicates(subset=['Date', 'Name', 'Direction'], keep='last', inplace=True)
+    else:
+        combined_df = new_df
+
+    combined_df.sort_values(by=['Date', 'Name'], inplace=True)
+    combined_df.to_csv(output_file, index=False)
+    print(f"\n✅ Daily trades saved to: {output_file}")
 
 def print_and_visualize_results(results, reports):
     """Print and visualize backtest results."""
