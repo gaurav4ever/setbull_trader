@@ -23,7 +23,7 @@ func NewRSIFilter(technicalIndicators *TechnicalIndicatorService,
 	return &RSIFilter{
 		technicalIndicators: technicalIndicators,
 		rsiPeriod:           14,
-		bullishThreshold:    60.0,
+		bullishThreshold:    50.0,
 		bearishThreshold:    55.0,
 		tradingCalendar:     tradingCalendar,
 	}

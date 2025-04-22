@@ -86,14 +86,89 @@ INSTRUMENT_CONFIGS = [
   }
 ]
 INSTRUMENT_CONFIGSS = [
-    {
-        'key': 'NSE_EQ|INE070D01027',
-        "name": "JAICORP",
-        'direction': 'BEARISH'
-    }
+  {
+    "key": "NSE_EQ|INE188A01015",
+    "name": "FACT",
+    "direction": "BULLISH"
+  },
+  {
+    "key": "NSE_EQ|INE027A01015",
+    "name": "RCF",
+    "direction": "BULLISH"
+  },
+  {
+    "key": "NSE_EQ|INE503A01015",
+    "name": "DCBBANK",
+    "direction": "BULLISH"
+  },
+  {
+    "key": "NSE_EQ|INE510A01028",
+    "name": "ENGINERSIN",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "PARADEEP",
+    "key": "NSE_EQ|INE088F01024",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "GPTINFRA",
+    "key": "NSE_EQ|INE390G01014",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "BALUFORGE",
+    "key": "NSE_EQ|INE011E01029",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "YATHARTH",
+    "key": "NSE_EQ|INE0JO301016",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "AVANTIFEED",
+    "key": "NSE_EQ|INE871C01038",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "SUPRIYA",
+    "key": "NSE_EQ|INE07RO01027",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "GRMOVER",
+    "key": "NSE_EQ|INE192H01020",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "TDPOWERSYS",
+    "key": "NSE_EQ|INE419M01027",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "AVALON",
+    "key": "NSE_EQ|INE0LCL01028",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "NACLIND",
+    "key": "NSE_EQ|INE295D01020",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "DBREALTY",
+    "key": "NSE_EQ|INE879I01012",
+    "direction": "BULLISH"
+  },
+  {
+    "name": "POONAWALLA",
+    "key": "NSE_EQ|INE511C01022",
+    "direction": "BULLISH"
+  }
 ]
-START_DATE = "2025-04-01T09:15:00+05:30"
-END_DATE = "2025-04-11T15:25:00+05:30"
+START_DATE = "2025-01-01T09:15:00+05:30"
+END_DATE = "2025-04-21T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
@@ -161,7 +236,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
     os.makedirs(output_dir, exist_ok=True)
     
     # Create instrument key to name mapping
-    instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGS}
+    instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGSS}
     
     # Process trades by date and instrument
     trade_days = {}
@@ -353,4 +428,4 @@ def print_and_visualize_results(results, reports):
         print("-" * 100)
 
 if __name__ == "__main__":
-    asyncio.run(run_entry_type_comparison(INSTRUMENT_CONFIGS))
+    asyncio.run(run_entry_type_comparison(INSTRUMENT_CONFIGSS))

@@ -573,7 +573,7 @@ class CandleProcessor:
                 }
             
             # Calculate MR value
-            mr_value = (atr_14 / mr_size)
+            mr_value = (atr_14 / mr_size) * 1.1
             
             # Validate MR value
             is_valid = mr_value > 3
