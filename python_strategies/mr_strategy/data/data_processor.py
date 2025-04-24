@@ -19,6 +19,8 @@ import backoff
 from aiohttp import ClientError, ClientResponseError
 from .technical_indicators import TechnicalIndicators
 from .backtrader_data import MorningRangeDataFeed
+from .intraday_data_processor import IntradayDataProcessor
+from .daily_data_processor import DailyDataProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -725,6 +727,9 @@ class CandleProcessor:
             logger.error(f"Error loading daily data: {str(e)}")
             raise ValueError(f"Failed to load daily data: {str(e)}")
 
+    # ======================================================================
+    # Method to make Information with Intraday and Daily candles together
+    # ======================================================================
     def process_candles(self, candles: Union[pd.DataFrame, Dict[str, Any]], daily_candles: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         """
         Process candle data and calculate indicators.
@@ -749,60 +754,30 @@ class CandleProcessor:
             # Sort by timestamp
             df = df.sort_values('timestamp')
             
-            # Calculate intraday indicators
-            df['INTRADAY_EMA_5'] = df['close'].ewm(span=5, adjust=False).mean()
-            df['INTRADAY_EMA_9'] = df['close'].ewm(span=9, adjust=False).mean()
-            df['INTRADAY_EMA_50'] = df['close'].ewm(span=50, adjust=False).mean()
+            # Process intraday data
+            df = IntradayDataProcessor(self.config).process(df)
             
-            # Calculate RSI
-            delta = df['close'].diff()
-            gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-            loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-            rs = gain / loss
-            df['INTRADAY_RSI_14'] = 100 - (100 / (1 + rs))
-            
-            # Calculate ATR
-            high_low = df['high'] - df['low']
-            high_close = np.abs(df['high'] - df['close'].shift())
-            low_close = np.abs(df['low'] - df['close'].shift())
-            ranges = pd.concat([high_low, high_close, low_close], axis=1)
-            true_range = np.max(ranges, axis=1)
-            df['INTRADAY_ATR_14'] = true_range.rolling(14).mean()
-            
-            # Calculate daily indicators if daily data is provided
+            # Process daily data if available
             if daily_candles is not None:
-                daily_df = daily_candles.copy()
-                daily_df['timestamp'] = pd.to_datetime(daily_df['timestamp'])
-                daily_df = daily_df.sort_values('timestamp')
+                # Process daily data
+                processed_daily_df = DailyDataProcessor(self.config).process(daily_candles)
                 
-                # Calculate daily EMAs
-                daily_df['DAILY_EMA_5'] = daily_df['close'].ewm(span=5, adjust=False).mean()
-                daily_df['DAILY_EMA_9'] = daily_df['close'].ewm(span=9, adjust=False).mean()
-                daily_df['DAILY_EMA_50'] = daily_df['close'].ewm(span=50, adjust=False).mean()
-                
-                # Calculate daily RSI
-                delta = daily_df['close'].diff()
-                gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-                loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-                rs = gain / loss
-                daily_df['DAILY_RSI_14'] = 100 - (100 / (1 + rs))
-                
-                # Calculate daily ATR
-                high_low = daily_df['high'] - daily_df['low']
-                high_close = np.abs(daily_df['high'] - daily_df['close'].shift())
-                low_close = np.abs(daily_df['low'] - daily_df['close'].shift())
-                ranges = pd.concat([high_low, high_close, low_close], axis=1)
-                true_range = np.max(ranges, axis=1)
-                daily_df['DAILY_ATR_14'] = true_range.rolling(14).mean()
-                
-                # Merge daily indicators back to intraday data
-                daily_df['date'] = daily_df['timestamp'].dt.date
+                # Merge daily data with intraday data
+                processed_daily_df['date'] = processed_daily_df['timestamp'].dt.date
                 df['date'] = df['timestamp'].dt.date
+                
+                # Get all columns from daily data except timestamp and date
+                daily_columns = [col for col in processed_daily_df.columns 
+                               if col not in ['timestamp', 'date']]
+                
+                # Merge the data
                 df = df.merge(
-                    daily_df[['date'] + [col for col in daily_df.columns if col.startswith('DAILY_')]],
+                    processed_daily_df[['date'] + daily_columns],
                     on='date',
                     how='left'
                 )
+                
+                # Drop the temporary date column
                 df = df.drop('date', axis=1)
             
             # Forward fill NaN values
@@ -937,6 +912,9 @@ class CandleProcessor:
             logger.error(f"Error creating Backtrader data feed: {str(e)}")
             raise
 
+    # ============================================
+    # Method to load Intraday and Daily candles
+    # ============================================
     async def load_and_process_candles(
         self,
         instrument_key: str,

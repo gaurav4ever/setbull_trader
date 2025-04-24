@@ -87,6 +87,9 @@ class BacktestEngine:
             if processed_df.empty or datafeed is None:
                 logger.error("No data available for backtest")
                 return {}
+            
+            logger.info(f"Datafeed: {datafeed}, saving to csv")
+            datafeed._dataname.to_csv('/Users/gaurav/setbull_projects/setbull_trader/python_strategies/results/datafeed/datafeed.csv')
                 
             # Add data to cerebro
             self.cerebro.adddata(datafeed)
