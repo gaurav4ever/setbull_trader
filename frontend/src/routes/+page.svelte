@@ -1,5 +1,5 @@
 <!-- frontend/src/routes/+page.svelte (Updated Section) -->
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import EnhancedStockSelector from '../lib/components/EnhancedStockSelector.svelte';
 	import StockCard from '../lib/components/StockCard.svelte';
@@ -10,6 +10,99 @@
 	import { executeOrdersForAllSelectedStocks } from '../lib/services/executionService';
 	import { createStock } from '../lib/services/stocksService';
 	import { tradeApi } from '$lib/services/apiService';
+
+	interface BacktestData {
+		long: {
+			last5: Array<{ stock: string; rate: number }>;
+			last10: Array<{ stock: string; rate: number }>;
+			last15: Array<{ stock: string; rate: number }>;
+		};
+		short: {
+			last5: Array<{ stock: string; rate: number }>;
+			last10: Array<{ stock: string; rate: number }>;
+			last15: Array<{ stock: string; rate: number }>;
+		};
+	}
+
+	// Backtest performance state
+	let backtestData: BacktestData = {
+		long: {
+			last5: [],
+			last10: [],
+			last15: []
+		},
+		short: {
+			last5: [],
+			last10: [],
+			last15: []
+		}
+	};
+	let isLoadingBacktest = false;
+	let backtestError: string | null = null;
+
+	// Function to parse backtest file
+	async function parseBacktestFile(event: Event) {
+		const input = event.target as HTMLInputElement;
+		if (!input.files || input.files.length === 0) return;
+
+		isLoadingBacktest = true;
+		backtestError = null;
+
+		try {
+			const file = input.files[0];
+			const text = await file.text();
+
+			// Split into long and short sections
+			const sections = text.split('SHORT DIRECTION PERFORMANCE REPORT');
+			const longSection = sections[0];
+			const shortSection = sections[1];
+
+			// Parse long section
+			backtestData.long = {
+				last5: parseTimeframeData(longSection, 'Last 5 Entries'),
+				last10: parseTimeframeData(longSection, 'Last 10 Entries'),
+				last15: parseTimeframeData(longSection, 'Last 15 Entries')
+			};
+
+			// Parse short section
+			backtestData.short = {
+				last5: parseTimeframeData(shortSection, 'Last 5 Entries'),
+				last10: parseTimeframeData(shortSection, 'Last 10 Entries'),
+				last15: parseTimeframeData(shortSection, 'Last 15 Entries')
+			};
+		} catch (err) {
+			console.error('Error parsing backtest file:', err);
+			backtestError = err instanceof Error ? err.message : 'Failed to parse backtest file';
+		} finally {
+			isLoadingBacktest = false;
+		}
+	}
+
+	// Helper function to parse timeframe data
+	function parseTimeframeData(
+		section: string,
+		timeframe: string
+	): Array<{ stock: string; rate: number }> {
+		const lines = section.split('\n');
+		const startIndex = lines.findIndex((line: string) => line.includes(timeframe));
+		if (startIndex === -1) return [];
+
+		const data: Array<{ stock: string; rate: number }> = [];
+		let i = startIndex + 3; // Skip header lines
+
+		while (i < lines.length && lines[i].trim() && !lines[i].includes('Last')) {
+			const [stock, rate] = lines[i].split(/\s+/).filter(Boolean);
+			if (stock && rate) {
+				data.push({
+					stock,
+					rate: parseFloat(rate.replace('%', ''))
+				});
+			}
+			i++;
+		}
+
+		return data;
+	}
 
 	// Stock selection state
 	let selectedStocks = [];
@@ -250,6 +343,308 @@
 </svelte:head>
 
 <div class="py-6">
+	<!-- Backtest Performance Section -->
+	<div class="mb-8">
+		<div class="bg-white shadow rounded-lg p-6">
+			<h2 class="text-lg font-medium text-gray-900 mb-4">Backtest Performance Analysis</h2>
+
+			<!-- File Input -->
+			<div class="mb-6">
+				<label class="block text-sm font-medium text-gray-700 mb-2">Backtest Report File</label>
+				<input
+					type="file"
+					accept=".txt"
+					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+					on:change={parseBacktestFile}
+				/>
+			</div>
+
+			{#if isLoadingBacktest}
+				<div class="flex justify-center py-4">
+					<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+					<span class="ml-2 text-sm text-gray-500">Loading backtest data...</span>
+				</div>
+			{:else if backtestError}
+				<div class="bg-red-50 border-l-4 border-red-400 p-4">
+					<p class="text-sm text-red-700">{backtestError}</p>
+				</div>
+			{:else if backtestData.long.last5.length > 0}
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<!-- Long Trades Section -->
+					<div>
+						<h3 class="text-md font-medium text-gray-900 mb-3">Long Trades Performance</h3>
+						<div class="space-y-6">
+							<!-- Last 5 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 5 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.long.last5 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Last 10 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 10 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.long.last10 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Last 15 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 15 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.long.last15 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Short Trades Section -->
+					<div>
+						<h3 class="text-md font-medium text-gray-900 mb-3">Short Trades Performance</h3>
+						<div class="space-y-6">
+							<!-- Last 5 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 5 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.short.last5 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Last 10 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 10 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.short.last10 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Last 15 Entries -->
+							<div class="bg-white rounded-lg shadow">
+								<div class="px-4 py-3 border-b border-gray-200">
+									<h4 class="text-sm font-medium text-gray-700">Last 15 Entries</h4>
+								</div>
+								<div class="overflow-x-auto max-h-60">
+									<table class="min-w-full divide-y divide-gray-200">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Stock</th
+												>
+												<th
+													class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+													>Success Rate</th
+												>
+											</tr>
+										</thead>
+										<tbody class="bg-white divide-y divide-gray-200">
+											{#each backtestData.short.last15 as item}
+												<tr class="hover:bg-gray-50">
+													<td class="px-4 py-3 text-sm font-medium text-gray-900">{item.stock}</td>
+													<td class="px-4 py-3 text-sm">
+														<span
+															class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+																item.rate >= 70
+																	? 'bg-green-100 text-green-800'
+																	: item.rate >= 50
+																		? 'bg-yellow-100 text-yellow-800'
+																		: 'bg-red-100 text-red-800'
+															}`}
+														>
+															{item.rate}%
+														</span>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Existing Stats Cards Section -->
 	<div class="flex justify-between items-center mb-8">
 		<h1 class="text-2xl font-bold text-gray-900">Trading Dashboard</h1>
 		<a
