@@ -197,12 +197,12 @@ class BacktestEngine:
         logger.info("Initialized BacktestEngine")
         logger.debug(f"Backtest config: {config}")
 
-    async def run_backtest(self, data: Dict[str, pd.DataFrame]) -> Dict[str, Any]:
+    async def run_backtest(self, all_data_feed: Dict[str, pd.DataFrame]) -> Dict[str, Any]:
         """
-        Run backtest on the provided data.
+        Run backtest on the provided intraday data.
         
         Args:
-            data: Dictionary of instrument keys to their respective DataFrames with OHLCV data
+            intraday_data: Dictionary of instrument keys to their respective DataFrames with OHLCV data
             
         Returns:
             Dictionary containing backtest results:
@@ -226,7 +226,7 @@ class BacktestEngine:
         }
         
         # Process each instrument sequentially
-        for instrument_key, instrument_data in data.items():
+        for instrument_key, instrument_data_feed in all_data_feed.items():
             # Find instrument config
             instrument_config = next(
                 (inst for inst in self.config.instruments 
@@ -241,33 +241,34 @@ class BacktestEngine:
             logger.info(f"Processing instrument {instrument_key} ({instrument_config['direction']})")
             
             # Process candles using CandleProcessor
-            async with self.data_processor as processor:
-                processed_data = processor.process_candles(instrument_data)
-                logger.info(f"Processed {len(processed_data)} candles for {instrument_key}")
-                
-                # Run backtest for each strategy
-                for strategy_config in self.config.strategies:
-                    if strategy_config.instrument_key.get('key') == instrument_key:
-                        self.signal_generator = SignalGenerator(strategy_config)
-                        strategy_results = await self._run_single_strategy(processed_data, instrument_config, strategy_config)
-                        
-                        # Store instrument-specific results
-                        all_results['instruments'][instrument_key] = {
-                            'direction': instrument_config['direction'],
-                            'signals': strategy_results['signals'],
-                            'trades': strategy_results['trades'],
-                            'metrics': strategy_results['metrics'],
-                            'equity_curve': self._build_equity_curve(strategy_results['trades'])
-                        }
-                        
-                        # Combine results
-                        all_results['signals'].extend(strategy_results['signals'])
-                        all_results['trades'].extend(strategy_results['trades'])
-                        
-                        # Store metrics by strategy
-                        strategy_id = f"{strategy_config.instrument_key}_{strategy_config.range_type}_{strategy_config.entry_type}"
-                        all_results['metrics'][strategy_id] = strategy_results['metrics']
-        
+            logger.info(f"Processed {len(instrument_data_feed)} candles for {instrument_key}")
+            # Run backtest for each strategy
+            for strategy_config in self.config.strategies:
+                if strategy_config.instrument_key.get('key') == instrument_key:
+                    self.signal_generator = SignalGenerator(strategy_config)
+                    # ---------------------------------------------
+                    # Finally run the backtest for the strategy
+                    # BACKTEST IMPLEMENTATION STARTS HERE
+                    # ---------------------------------------------
+                    strategy_results = await self._run_single_strategy(instrument_data_feed, instrument_config, strategy_config)
+                    
+                    # Store instrument-specific results
+                    all_results['instruments'][instrument_key] = {
+                        'direction': instrument_config['direction'],
+                        'signals': strategy_results['signals'],
+                        'trades': strategy_results['trades'],
+                        'metrics': strategy_results['metrics'],
+                        'equity_curve': self._build_equity_curve(strategy_results['trades'])
+                    }
+                    
+                    # Combine results
+                    all_results['signals'].extend(strategy_results['signals'])
+                    all_results['trades'].extend(strategy_results['trades'])
+                    
+                    # Store metrics by strategy
+                    strategy_id = f"{strategy_config.instrument_key}_{strategy_config.range_type}_{strategy_config.entry_type}"
+                    all_results['metrics'][strategy_id] = strategy_results['metrics']
+
         # Calculate portfolio-level metrics
         portfolio_metrics = self._calculate_portfolio_metrics(all_results)
         all_results['portfolio']['metrics'] = portfolio_metrics
@@ -292,7 +293,11 @@ class BacktestEngine:
         
         return f"[{time_str}] [O:{open_price:.2f} H:{high_price:.2f} L:{low_price:.2f} C:{close_price:.2f}] - "
 
-    async def _run_single_strategy(self, data: pd.DataFrame, instrument_config: Dict[str, Any], strategy_config: MRStrategyConfig) -> Dict[str, Any]:
+    async def _run_single_strategy(
+            self, 
+            data: pd.DataFrame, 
+            instrument_config: Dict[str, Any], 
+            strategy_config: MRStrategyConfig) -> Dict[str, Any]:
         """
         Run backtest for a single strategy.
         
@@ -310,144 +315,152 @@ class BacktestEngine:
         trades: List[Dict[str, Any]] = []
         
         # Process candles using CandleProcessor
-        async with self.data_processor as processor:
-            processed_data = processor.process_candles(data)
-            logger.info(f"Processed {len(processed_data)} candles for strategy")
-            
-            # Create MorningRangeStrategy instance
-            mr_strategy = MorningRangeStrategy(
-                config=strategy_config,
-                position_manager=self.position_manager,
-                trade_manager=self.trade_manager,
-                risk_calculator=self.risk_calculator
-            )
-            
-            # Get unique dates from timestamp column
-            unique_dates = processed_data['timestamp'].dt.date.unique()
-            logger.info(f"Found {len(unique_dates)} unique trading days")
-            
-            # Dictionary to store valid dates and their MR values
-            valid_dates_mr: Dict[date, Dict] = {}
-            
-            # PHASE 1: MR Validation and Date Filtering
-            logger.info(f"#########################################")
-            logger.info("Starting MR validation phase")
-            for date in unique_dates:
-                # Filter candles for this date
-                day_candles = processed_data[processed_data['timestamp'].dt.date == date]
-                if day_candles.empty:
-                    logger.debug(f"No candles found for {date}")
-                    continue
-                    
-                # Calculate morning range values
-                mr_values = await mr_strategy.calculate_morning_range(day_candles)
-                logger.info(f"MR values: {mr_values}")
+        processed_data = data.copy()
+        logger.info(f"Processed {len(processed_data)} candles for strategy {strategy_config.instrument_key}")
+        
+        # Create MorningRangeStrategy instance
+        mr_strategy = MorningRangeStrategy(
+            config=strategy_config,
+            position_manager=self.position_manager,
+            trade_manager=self.trade_manager,
+            risk_calculator=self.risk_calculator
+        )
+        
+        # Get unique dates from timestamp column
+        unique_dates = processed_data['timestamp'].dt.date.unique()
+        logger.info(f"Found {len(unique_dates)} unique trading days")
+        
+        # Dictionary to store valid dates and their MR values
+        valid_dates_mr: Dict[date, Dict] = {}
+        
+        # PHASE 1: MR Validation and Date Filtering
+        logger.info(f"#########################################")
+        logger.info("Starting MR validation phase")
+        for date in unique_dates:
+            # Filter candles for this date
+            day_candles = processed_data[processed_data['timestamp'].dt.date == date]
+            if day_candles.empty:
+                logger.debug(f"No candles found for {date}")
+                continue
                 
-                # Validate MR values
-                if mr_values.get('is_valid', False):
-                    logger.info(f"Valid MR for {date}: High={mr_values['mr_high']}, Low={mr_values['mr_low']}")
-                    logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
-                    valid_dates_mr[date] = mr_values
-                else:
-                    logger.warning(f"Invalid MR for {date}: {mr_values.get('validation_reason', 'Unknown reason')}")
-                    logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
-                    continue
-                    
-                # Calculate entry levels for valid dates
-                entry_levels = mr_strategy.calculate_entry_levels()
-                logger.debug(f"Calculated entry levels for {date}: {entry_levels}")
+            # Calculate morning range values
+            mr_values = await mr_strategy.calculate_morning_range(day_candles)
+            logger.info(f"MR values: {mr_values}")
             
-            logger.info(f"MR validation complete. Found {len(valid_dates_mr)} valid trading days")
-            
-            # PHASE 2: Signal Generation for Valid Dates
-            logger.info(f"#########################################")
-            logger.info(f"Starting signal generation phase for valid dates: {valid_dates_mr}")
-            for date, mr_values in valid_dates_mr.items():
-                # Get candles for this valid date
-                day_candles = processed_data[processed_data['timestamp'].dt.date == date]
-                logger.debug(f"Processing {len(day_candles)} candles for valid date {date} with mr_values: {mr_values}")
-                entry_candle = None
+            # Validate MR values
+            if mr_values.get('is_valid', False):
+                logger.info(f"Valid MR for {date}: High={mr_values['mr_high']}, Low={mr_values['mr_low']}")
+                logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
+                valid_dates_mr[date] = mr_values
+            else:
+                logger.warning(f"Invalid MR for {date}: {mr_values.get('validation_reason', 'Unknown reason')}")
+                logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
+                continue
                 
-                # Generate signals for each candle
-                for idx, candle in day_candles.iterrows():
-                    candle_dict = candle.to_dict()
-                    candle_info = self._format_candle_info(candle_dict)
+            # Calculate entry levels for valid dates if MR is valid
+            entry_levels = mr_strategy.calculate_entry_levels()
+            logger.debug(f"Calculated entry levels for {date}: {entry_levels}")
+        
+        logger.info(f"MR validation complete. Found {len(valid_dates_mr)} valid trading days")
+        
+        # PHASE 2: Signal Generation for Valid Dates
+        logger.info(f"#########################################")
+        logger.info(f"Starting signal generation phase for valid dates: {valid_dates_mr}")
+        for date, mr_values in valid_dates_mr.items():
+            # Get candles for this valid date
+            day_candles = processed_data[processed_data['timestamp'].dt.date == date]
+            logger.debug(f"Processing {len(day_candles)} candles for valid date {date} with mr_values: {mr_values}")
+            entry_candle = None
+            
+            # Generate signals for each candle
+            for idx, candle in day_candles.iterrows():
+                candle_dict = candle.to_dict()
+                candle_info = self._format_candle_info(candle_dict)
+                
+                # --------------------------
+                # SIGNAL GENERATION PHASE
+                # --------------------------
+                strategy_signals = await self.signal_generator.process_candle(candle_dict, mr_values)
+                
+                if strategy_signals:
+                    # Filter signals based on instrument direction
+                    filtered_signals = []
+                    for signal in strategy_signals:
+                        if signal.direction.value == "LONG" and instrument_config['direction'] == 'BULLISH':
+                            filtered_signals.append(signal)
+                            logger.info(f"{candle_info}Accepted LONG signal for BULLISH instrument")
+                        elif signal.direction.value == "SHORT" and instrument_config['direction'] == 'BEARISH':
+                            filtered_signals.append(signal)
+                            logger.info(f"{candle_info}Accepted SHORT signal for BEARISH instrument")
+                        else:
+                            logger.info(f"{candle_info}Skipping signal {signal.type} at price {signal.price} because it does not match instrument direction {instrument_config['direction']}")
                     
-                    # Generate signals using morning range values
-                    strategy_signals = await self.signal_generator.process_candle(candle_dict, mr_values)
+                    strategy_signals = filtered_signals
                     
                     if strategy_signals:
-                        # Filter signals based on instrument direction
-                        filtered_signals = []
+                        signals.extend(strategy_signals)
+                        logger.info(f"{candle_info}Generated {len(strategy_signals)} filtered signals")
+                        
+                        # Process each signal using trade manager
                         for signal in strategy_signals:
-                            if signal.direction.value == "LONG" and instrument_config['direction'] == 'BULLISH':
-                                filtered_signals.append(signal)
-                                logger.info(f"{candle_info}Accepted LONG signal for BULLISH instrument")
-                            elif signal.direction.value == "SHORT" and instrument_config['direction'] == 'BEARISH':
-                                filtered_signals.append(signal)
-                                logger.info(f"{candle_info}Accepted SHORT signal for BEARISH instrument")
-                            else:
-                                logger.info(f"{candle_info}Skipping signal {signal.type} at price {signal.price} because it does not match instrument direction {instrument_config['direction']}")
-                        
-                        strategy_signals = filtered_signals
-                        
-                        if strategy_signals:
-                            signals.extend(strategy_signals)
-                            logger.info(f"{candle_info}Generated {len(strategy_signals)} filtered signals")
-                            
-                            # Process each signal using trade manager
-                            for signal in strategy_signals:
-                                # Calculate position size
-                                position_size = self.position_manager.calculate_position_size(
-                                    signal.price,
-                                    self.config.strategies[0].sl_percentage,
-                                    signal.direction.value
-                                )
-                                
-                                # Create trade using trade manager
-                                trade = self.trade_manager.create_trade(
-                                    instrument_key=instrument_config.get('key'),
-                                    entry_price=signal.price,
-                                    position_size=position_size,
-                                    position_type=signal.direction.value,
-                                    trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
-                                    sl_percentage=self.config.strategies[0].sl_percentage
-                                )
-                                entry_candle = candle_dict
-                                
-                                if trade:
-                                    logger.info(f"{candle_info}Created new trade for signal: {signal.type} at price {signal.price}")
-                    
-                    # Process all active trades for this candle
-                    for instrument_key in list(self.trade_manager.active_trades.keys()):
-                        try:
-                            updated_trade = self.trade_manager.update_trade(
-                                instrument_key=instrument_key,
-                                current_price=candle_dict['close'],
-                                current_time=candle_dict['timestamp'],
-                                candle_data=candle_dict,
-                                entry_candle=entry_candle
+                            # Calculate position size
+                            position_size = self.position_manager.calculate_position_size(
+                                signal.price,
+                                self.config.strategies[0].sl_percentage,
+                                signal.direction.value
                             )
                             
-                            if updated_trade:
-                                if updated_trade['status'] in [TradeStatus.CLOSED.value, 
-                                                             TradeStatus.STOPPED_OUT.value, 
-                                                             TradeStatus.TAKE_PROFIT.value]:
-                                    logger.info(f"{candle_info}Trade {instrument_key} closed with status {updated_trade['status']} and pnl {updated_trade['realized_pnl']}")
-                                    # check if same day trade is already present in the trades list
-                                    same_day_trade = False
-                                    for trade in trades:
-                                        trade_current_time = pd.to_datetime(trade['current_time'])
-                                        updated_trade_current_time = pd.to_datetime(updated_trade['current_time'])
-                                        if trade['instrument_key'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
-                                            same_day_trade = True
-                                            break
-                                    if not same_day_trade:
-                                        trades.append(updated_trade)
-                                    self.signal_generator.reset_signal_and_state()
-                        except Exception as e:
-                            logger.error(f"{candle_info}Error updating trade {instrument_key}: {str(e)}")
-                            continue
+                            # --------------------------
+                            # TRADE CREATION PHASE
+                            # --------------------------
+                            entry_candle = candle_dict
+                            trade = self.trade_manager.create_trade(
+                                instrument_key=instrument_config.get('key'),
+                                entry_price=signal.price,
+                                position_size=position_size,
+                                position_type=signal.direction.value,
+                                trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
+                                sl_percentage=self.config.strategies[0].sl_percentage,
+                                candle_data=candle_dict
+                            )
+                            
+                            
+                            if trade:
+                                logger.info(f"{candle_info}Created new trade for signal: {signal.type} at price {signal.price}")
+                
+                # --------------------------
+                # TRADE MANAGEMENT PHASE
+                # --------------------------
+                # Process all active trades for this candle
+                for instrument_key in list(self.trade_manager.active_trades.keys()):
+                    try:
+                        updated_trade = self.trade_manager.update_trade(
+                            instrument_key=instrument_key,
+                            current_price=candle_dict['close'],
+                            current_time=candle_dict['timestamp'],
+                            candle_data=candle_dict,
+                            entry_candle=entry_candle
+                        )
+                        
+                        if updated_trade:
+                            if updated_trade['status'] in [TradeStatus.CLOSED.value, 
+                                                            TradeStatus.STOPPED_OUT.value, 
+                                                            TradeStatus.TAKE_PROFIT.value]:
+                                logger.info(f"{candle_info}Trade {instrument_key} closed with status {updated_trade['status']} and pnl {updated_trade['realized_pnl']}")
+                                # check if same day trade is already present in the trades list
+                                same_day_trade = False
+                                for trade in trades:
+                                    trade_current_time = pd.to_datetime(trade['current_time'])
+                                    updated_trade_current_time = pd.to_datetime(updated_trade['current_time'])
+                                    if trade['instrument_key'] == instrument_key and trade_current_time.date() == updated_trade_current_time.date():
+                                        same_day_trade = True
+                                        break
+                                if not same_day_trade:
+                                    trades.append(updated_trade)
+                                self.signal_generator.reset_signal_and_state()
+                    except Exception as e:
+                        logger.error(f"{candle_info}Error updating trade {instrument_key}: {str(e)}")
+                        continue
         
         # Calculate metrics for this strategy
         metrics = self._calculate_metrics(trades)

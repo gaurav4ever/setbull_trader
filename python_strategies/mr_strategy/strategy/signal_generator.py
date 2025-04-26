@@ -560,32 +560,6 @@ class SignalGenerator:
                 logger.info(f"Generated lower breakout signal at {candle['timestamp']}")
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT, SignalDirection.SHORT)
             
-        # # Check for upper pullback (retest)
-        # elif high < mr_high and close > mr_high - (mr_high - mr_low) * 0.2:
-        #     if self.can_generate_signal(SignalType.RETEST_ENTRY, SignalDirection.LONG):
-        #         signals.append(Signal(
-        #             type=SignalType.RETEST_ENTRY,
-        #             direction=SignalDirection.LONG,
-        #             price=close,
-        #             timestamp=candle['timestamp'],
-        #             mr_values=mr_values
-        #         ))
-        #         logger.info(f"Generated upper pullback signal at {candle['timestamp']}")
-        #         self.update_signal_state(SignalType.RETEST_ENTRY, SignalDirection.LONG)
-            
-        # # Check for lower pullback (retest)
-        # elif low > mr_low and close < mr_low + (mr_high - mr_low) * 0.2:
-        #     if self.can_generate_signal(SignalType.RETEST_ENTRY, SignalDirection.SHORT):
-        #         signals.append(Signal(
-        #             type=SignalType.RETEST_ENTRY,
-        #             direction=SignalDirection.SHORT,
-        #             price=close,
-        #             timestamp=candle['timestamp'],
-        #             mr_values=mr_values
-        #         ))
-        #         logger.info(f"Generated lower pullback signal at {candle['timestamp']}")
-        #         self.update_signal_state(SignalType.RETEST_ENTRY, SignalDirection.SHORT)
-            
         return signals
     
     def process_candles(self, candles: pd.DataFrame, mr_values: Dict[str, Any]) -> List[Signal]:

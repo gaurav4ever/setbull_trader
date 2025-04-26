@@ -167,8 +167,8 @@ INSTRUMENT_CONFIGS = [
     "direction": "BULLISH"
   }
 ]
-START_DATE = "2025-01-01T09:15:00+05:30"
-END_DATE = "2025-04-21T15:25:00+05:30"
+START_DATE = "2025-03-01T09:15:00+05:30"
+END_DATE = "2025-04-26T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
@@ -202,7 +202,7 @@ async def run_entry_type_comparison(instrument_configs):
     results = await runner.run_backtests()
     
     # Display results
-    print_and_visualize_results(results, runner.reports)
+    print_and_visualize_results(results, runner.reports, instrument_configs)
     # create series of PNL values for each instrument
     # Stock A: [1.2, 0.5, -0.7, -1.5, 0.8]
     # Stock B: [0.8, 0.3, -0.9, -1.2, 1.0]
@@ -222,7 +222,7 @@ async def run_entry_type_comparison(instrument_configs):
     results['pnl_series'] = pnl_series
     return results
 
-def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
+def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_results"):
     """Save trade data to CSV files and update existing rows if duplicate (by Date, Name, Direction).
     
     Args:
@@ -234,7 +234,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
 
     os.makedirs(output_dir, exist_ok=True)
 
-    instrument_name_map = {inst['key']: inst['name'] for inst in INSTRUMENT_CONFIGSS}
+    instrument_name_map = {inst['key']: inst['name'] for inst in instrument_configs}
     trade_days = {}
     cumulative_pnl = {}
 
@@ -248,6 +248,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
             direction = trade.get('position_type', 'UNKNOWN')
             trade_type = trade.get('trade_type', 'UNKNOWN')
             max_r_multiple = trade.get('max_r_multiple', 0)
+            opening_type = trade.get('opening_type', 'UNKNOWN')
 
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
@@ -257,7 +258,8 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                     "pnl": 0,
                     "direction": direction,
                     "trade_type": trade_type,
-                    "max_r_multiple": max_r_multiple
+                    "max_r_multiple": max_r_multiple,
+                    "opening_type": opening_type
                 }
 
             trade_days[trade_date][instrument_name]["pnl"] += pnl
@@ -275,6 +277,7 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
             trade_type = data["trade_type"]
             status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
             max_r_multiple = data["max_r_multiple"]
+            opening_type = data["opening_type"]
             new_csv_data.append({
                 'Date': date,
                 'Name': instrument_name,
@@ -283,7 +286,8 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
                 'Direction': direction,
                 'Trade Type': trade_type,
                 'Max R Multiple': f"{max_r_multiple:.2f}",
-                'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}"
+                'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}",
+                'Opening Type': opening_type
             })
 
     new_df = pd.DataFrame(new_csv_data)
@@ -302,13 +306,13 @@ def save_trade_data_to_csv(trade_list, output_dir="backtest_results"):
     combined_df.to_csv(output_file, index=False)
     print(f"\n✅ Daily trades saved to: {output_file}")
 
-def print_and_visualize_results(results, reports):
+def print_and_visualize_results(results, reports, instrument_configs):
     """Print and visualize backtest results."""
     
     print("\n=============================================")
     print("MORNING RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
-    print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in INSTRUMENT_CONFIGS]}")
+    print(f"Instruments: {[f'{inst['name']} ({inst['direction']})' for inst in instrument_configs]}")
     print(f"Period: {START_DATE} to {END_DATE}")
     print("---------------------------------------------")
     
@@ -352,7 +356,7 @@ def print_and_visualize_results(results, reports):
     trade_list = results.get('trade_list', []) or results.get('trades', [])
     if trade_list:
         # Save trade data to CSV files
-        save_trade_data_to_csv(trade_list)
+        save_trade_data_to_csv(trade_list, instrument_configs)
         
         print("\nDAILY PROFIT/LOSS BREAKDOWN:")
         print("-" * 100)

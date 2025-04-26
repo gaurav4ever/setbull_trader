@@ -226,6 +226,7 @@ class TradeManager:
         # Create trade object with features
         trade = {
             "instrument_key": instrument_key,
+            "opening_type": "OAH" if candle_data["OAH"] == True else "OAL" if candle_data["OAL"] == True else "OAM",
             "entry_price": entry_price,
             "current_price": entry_price,
             "initial_position_size": position_size,

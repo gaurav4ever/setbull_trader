@@ -16,6 +16,8 @@ import pytz
 from urllib.parse import urlencode
 import backoff
 from aiohttp import ClientError, ClientResponseError
+from .intraday_data_processor import IntradayDataProcessor
+from .daily_data_processor import DailyDataProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -558,7 +560,8 @@ class CandleProcessor:
                 }
             
             # Calculate 14-day ATR using daily candles
-            atr_14 = await self.calculate_atr(candles, period=14)
+            logger.info("DAILY 14-ATR: {morning_candle['DAILY_ATR_14']}")
+            atr_14 = morning_candle['DAILY_ATR_14']
             
             if atr_14 <= 0:
                 error_msg = "Invalid ATR value (must be positive)"
@@ -908,3 +911,138 @@ class CandleProcessor:
             return False
             
         return True
+
+    # ============================================
+    # Method to load Intraday and Daily candles
+    # ============================================
+    async def load_and_process_candles(
+        self,
+        instrument_key: str,
+        name: str,
+        start_date: str,
+        end_date: str,
+        timeframe: str = '5minute'
+    ) -> Tuple[pd.DataFrame]:
+        """
+        Load and process candles with both intraday and daily indicators.
+        Optionally create a Backtrader data feed.
+        
+        Args:
+            instrument_key: Instrument key
+            start_date: Start date in ISO format
+            end_date: End date in ISO format
+            timeframe: Timeframe for candles (default: 5minute)
+            
+        Returns:
+            Tuple containing:
+                - DataFrame with processed candles and indicators
+                - Optional MorningRangeDataFeed instance
+        """
+        try:
+            # Load intraday candles
+            intraday_df = await self.load_intraday_data(
+                instrument_key=instrument_key,
+                start_date=start_date,
+                end_date=end_date,
+                timeframe=timeframe
+            )
+            
+            if intraday_df.empty:
+                logger.warning("No intraday data loaded")
+                return pd.DataFrame(), None
+            
+            # make start_date to time and make it 50 days back from start_date
+            start_date = start_date.split('T')[0]
+            start_date = (datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=50)).strftime('%Y-%m-%d')
+            
+            # Load daily candles for the same period
+            daily_df = await self.load_daily_data(
+                instrument_key=instrument_key,
+                start_date=start_date + "T09:15:00+05:30",
+                end_date=end_date
+            )
+            
+            if daily_df.empty:
+                logger.warning("No daily data loaded")
+                return pd.DataFrame(), None
+            
+            # Process candles with both intraday and daily indicators
+            processed_df = self.process_candles(intraday_df, daily_df)
+            return processed_df
+            
+        except Exception as e:
+            logger.error(f"Error loading and processing candles: {str(e)}")
+            raise
+
+# ======================================================================
+    # Method to make Information with Intraday and Daily candles together
+    # ======================================================================
+    def process_candles(self, candles: Union[pd.DataFrame, Dict[str, Any]], daily_candles: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+        """
+        Process candle data and calculate indicators.
+        
+        Args:
+            candles: DataFrame or dict with candle data
+            daily_candles: Optional DataFrame with daily data
+            
+        Returns:
+            Processed DataFrame with indicators
+        """
+        try:
+            # Convert to DataFrame if needed
+            if isinstance(candles, dict):
+                df = self.parse_candles(candles)
+            else:
+                df = candles.copy()
+            
+            # Ensure timestamp is datetime
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            
+            # Sort by timestamp
+            df = df.sort_values('timestamp')
+            
+            # Process intraday data
+            df = IntradayDataProcessor(self.config).process(df)
+            
+            # Process daily data if available
+            if daily_candles is not None:
+                # Process daily data
+                processed_daily_df = DailyDataProcessor(self.config).process(daily_candles)
+                
+                # Merge daily data with intraday data
+                processed_daily_df['date'] = processed_daily_df['timestamp'].dt.date
+                df['date'] = df['timestamp'].dt.date
+                
+                # Get all columns from daily data except timestamp and date
+                daily_columns = [col for col in processed_daily_df.columns 
+                               if col not in ['timestamp', 'date']]
+                # remove open, high, low, close, volume, openInterest from daily_columns
+                daily_columns.remove('id')
+                daily_columns.remove('instrumentKey')
+                daily_columns.remove('open')
+                daily_columns.remove('high')
+                daily_columns.remove('low')
+                daily_columns.remove('close')
+                daily_columns.remove('volume')
+                daily_columns.remove('openInterest')
+                daily_columns.remove('timeInterval')
+                daily_columns.remove('createdAt')
+                
+                # Merge the data
+                df = df.merge(
+                    processed_daily_df[['date'] + daily_columns],
+                    on='date',
+                    how='left'
+                )
+                
+                # Drop the temporary date column
+                df = df.drop('date', axis=1)
+            
+            # Forward fill NaN values
+            df = df.fillna(method='ffill')
+            
+            return df
+            
+        except Exception as e:
+            logger.error(f"Error processing candles: {str(e)}")
+            raise

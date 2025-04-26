@@ -89,16 +89,17 @@ class BacktestRunner:
         # Load data for each instrument
         all_data = {}
         for instrument in self.config.instruments:
-            data = await self.data_processor.load_intraday_data(
+            data_feed = await self.data_processor.load_and_process_candles(
                 instrument_key=instrument.get('key'),
+                name=instrument.get('name'),
                 start_date=self.config.start_date,
                 end_date=self.config.end_date
             )
-            all_data[instrument.get('key')] = data
+            all_data[instrument.get('key')] = data_feed
         
         # Run backtest with loaded data
         logger.info(f"Running backtest for {len(all_data)} instruments")
-        results = await engine.run_backtest(data=all_data)
+        results = await engine.run_backtest(all_data_feed=all_data)
         
         # Generate and save reports
         self.results["single"] = results

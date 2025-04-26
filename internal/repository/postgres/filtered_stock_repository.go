@@ -259,7 +259,7 @@ func (r *FilteredStockRepository) GetTop10FilteredStocks(ctx context.Context) ([
 	result := r.db.WithContext(ctx).
 		Table("filtered_stocks").
 		Order("mamba_count DESC").
-		Limit(10).
+		Limit(50).
 		Find(&records)
 
 	if result.Error != nil {

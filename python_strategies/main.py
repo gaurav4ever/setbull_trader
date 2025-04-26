@@ -39,11 +39,24 @@ class BacktestRequest(BaseModel):
     end_date: str
     initial_capital: float
     entry_types: List[str]
+    instrument_configs: List[dict]
 
 class BacktestResponse(BaseModel):
     success: bool
     results: dict
     error: Optional[str] = None
+
+@app.post("/backtest/run/single", response_model=BacktestResponse)
+async def run_single_backtest(request: BacktestRequest):
+    """
+    Run a single backtest with the provided parameters.
+    """
+    results = await run_entry_type_comparison(instrument_configs=request.instrument_configs)
+    # Format the results
+    response = BacktestResponse(success=True, results=results['metrics'], error=None)
+        
+    logger.info("Backtest completed successfully")
+    return response
 
 @app.post("/backtest/run", response_model=BacktestResponse)
 async def run_backtest(request: BacktestRequest):
@@ -69,7 +82,12 @@ async def run_backtest(request: BacktestRequest):
                 instrument_configs.append({
                     "key": stock["instrument_key"],
                     "name": stock["symbol"],
-                    "direction": stock["trend"]
+                    "direction": "BEARISH"
+                })
+                instrument_configs.append({
+                    "key": stock["instrument_key"],
+                    "name": stock["symbol"],
+                    "direction": "BULLISH"
                 })
             
             # Run the backtest with the filtered stocks
