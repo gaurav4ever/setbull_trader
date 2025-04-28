@@ -205,6 +205,30 @@ class TradeManager:
         logger.info(f"{candle_info}Trade setup valid for entry price {entry_price}")
         return True, "Trade setup valid"
 
+    def _get_prev_day_buying_indication(self, candle_data: Dict) -> bool:
+        """Get previous day buying indication."""
+        # check if the previous day is a green candle
+        # find candle range from high-low, if closing is above 50% and close is above open then return True
+        prev_day_high = candle_data["prev_day_high"]
+        prev_day_low = candle_data["prev_day_low"]
+        prev_day_close = candle_data["prev_day_close"]
+        prev_day_open = candle_data["prev_day_open"]
+        if prev_day_close > prev_day_open and prev_day_close > (prev_day_high + prev_day_low) / 2:
+            return True
+        return False
+    
+    def _get_prev_day_selling_indication(self, candle_data: Dict) -> bool:  
+        """Get previous day selling indication."""
+        # check if the previous day is a green candle
+        # find candle range from high-low, if closing is below 50% and close is below open then return True
+        prev_day_high = candle_data["prev_day_high"]
+        prev_day_low = candle_data["prev_day_low"]
+        prev_day_close = candle_data["prev_day_close"]
+        prev_day_open = candle_data["prev_day_open"]
+        if prev_day_close < prev_day_open and prev_day_close < (prev_day_high + prev_day_low) / 2:
+            return True
+        return False
+    
     def create_trade(self,
                    instrument_key: str,
                    entry_price: float,
@@ -250,7 +274,12 @@ class TradeManager:
             "partial_exits": [],
             "entry_candle": candle_data,
             "max_r_multiple": 0.0,
-            "initial_r_multiple": abs(entry_price - levels["stop_loss"])
+            "initial_r_multiple": abs(entry_price - levels["stop_loss"]),
+            "trend": "BULLISH" if candle_data["close"] > candle_data["DAILY_EMA_50"] else "BEARISH",
+            "gap_up": candle_data["open"] > candle_data["prev_day_high"],
+            "gap_down": candle_data["open"] < candle_data["prev_day_low"],
+            "prev_day_buying_indication": self._get_prev_day_buying_indication(candle_data),
+            "prev_day_selling_indication": self._get_prev_day_selling_indication(candle_data),
         }
         
         self.active_trades[instrument_key] = trade

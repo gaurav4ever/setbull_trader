@@ -167,8 +167,8 @@ INSTRUMENT_CONFIGS = [
     "direction": "BULLISH"
   }
 ]
-START_DATE = "2025-03-01T09:15:00+05:30"
-END_DATE = "2025-04-26T15:25:00+05:30"
+START_DATE = "2025-04-15T09:15:00+05:30"
+END_DATE = "2025-04-16T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
@@ -203,12 +203,6 @@ async def run_entry_type_comparison(instrument_configs):
     
     # Display results
     print_and_visualize_results(results, runner.reports, instrument_configs)
-    # create series of PNL values for each instrument
-    # Stock A: [1.2, 0.5, -0.7, -1.5, 0.8]
-    # Stock B: [0.8, 0.3, -0.9, -1.2, 1.0]
-    # Stock C: [-0.5, -0.2, 1.1, 0.8, -0.6]
-    # Stock D: [-1.0, -0.8, 0.7, 1.5, -1.2]
-    # create a dataframe with the above values
     trades = results.get('trades')
     # create a dataframe with the above values
     df = pd.DataFrame(trades)
@@ -249,7 +243,12 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
             trade_type = trade.get('trade_type', 'UNKNOWN')
             max_r_multiple = trade.get('max_r_multiple', 0)
             opening_type = trade.get('opening_type', 'UNKNOWN')
-
+            trend = trade.get('trend', "UNKNOWN")
+            gap_up = trade.get('gap_up', False)
+            gap_down = trade.get('gap_down', False)
+            prev_day_buying_indication = trade.get('prev_day_buying_indication', False)
+            prev_day_selling_indication = trade.get('prev_day_selling_indication', False)
+          
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
 
@@ -259,7 +258,12 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
                     "direction": direction,
                     "trade_type": trade_type,
                     "max_r_multiple": max_r_multiple,
-                    "opening_type": opening_type
+                    "opening_type": opening_type,
+                    "trend": trend,
+                    "gap_up": gap_up,
+                    "gap_down": gap_down,
+                    "prev_day_buying_indication": prev_day_buying_indication,
+                    "prev_day_selling_indication": prev_day_selling_indication
                 }
 
             trade_days[trade_date][instrument_name]["pnl"] += pnl
@@ -278,16 +282,22 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
             status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
             max_r_multiple = data["max_r_multiple"]
             opening_type = data["opening_type"]
+            trend = data["trend"]
             new_csv_data.append({
                 'Date': date,
                 'Name': instrument_name,
-                'P&L': f"{pnl:.2f}",
+                'PnL': f"{pnl:.2f}",
                 'Status': status,
                 'Direction': direction,
-                'Trade Type': trade_type,
-                'Max R Multiple': f"{max_r_multiple:.2f}",
+                'EntryType': trade_type,
+                'RMultiple': f"{max_r_multiple:.2f}",
                 'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}",
-                'Opening Type': opening_type
+                'OpeningType': opening_type,
+                'Trend': trend,
+                'GapUp': gap_up,
+                'GapDown': gap_down,
+                'PrevDayBuyingIndication': prev_day_buying_indication,
+                'PrevDaySellingIndication': prev_day_selling_indication
             })
 
     new_df = pd.DataFrame(new_csv_data)

@@ -9,6 +9,7 @@ import httpx
 from utils.utils import convert_numpy_types
 # Import the backtest function from test_mr_strategy
 from test_mr_strategy import run_entry_type_comparison, print_and_visualize_results
+from analysis.analyze_trades import analyze_trades
 
 # Allow debugger to attach on port 5678
 debugpy.listen(("0.0.0.0", 5678))
@@ -46,6 +47,10 @@ class BacktestResponse(BaseModel):
     results: dict
     error: Optional[str] = None
 
+@app.get("/backtest/analyze/trades")
+async def analyze_all_trades():
+    analyze_trades()
+
 @app.post("/backtest/run/single", response_model=BacktestResponse)
 async def run_single_backtest(request: BacktestRequest):
     """
@@ -79,11 +84,6 @@ async def run_backtest(request: BacktestRequest):
             # Extract instrument configs from filtered stocks
             instrument_configs = []
             for stock in filtered_stocks.get("data", []):
-                instrument_configs.append({
-                    "key": stock["instrument_key"],
-                    "name": stock["symbol"],
-                    "direction": "BEARISH"
-                })
                 instrument_configs.append({
                     "key": stock["instrument_key"],
                     "name": stock["symbol"],
