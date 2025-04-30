@@ -1,7 +1,7 @@
 """
-Morning Range Strategy Backtest Runner
+Range Strategy Backtest Runner
 
-This script tests the Morning Range strategy with different entry types
+This script tests the Range strategy with different entry types
 and compares their performance.
 """
 
@@ -167,12 +167,12 @@ INSTRUMENT_CONFIGS = [
     "direction": "BULLISH"
   }
 ]
-START_DATE = "2025-04-15T09:15:00+05:30"
-END_DATE = "2025-04-16T15:25:00+05:30"
+START_DATE = "2025-04-01T09:15:00+05:30"
+END_DATE = "2025-04-21T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
-ENTRY_TYPES = ["1ST_ENTRY"]
+ENTRY_TYPES = ["1ST_ENTRY", "2_30_ENTRY"]
 
 async def run_entry_type_comparison(instrument_configs):
     print(">> Running Entry Type Comparison")
@@ -185,7 +185,7 @@ async def run_entry_type_comparison(instrument_configs):
         end_date=END_DATE,
         instruments=instrument_configs,
         strategies=[{
-            "type": "MorningRange",
+            "type": "Range",
             "params": {
                 "range_type": "5MR",
                 "entry_type": entry_type,
@@ -320,7 +320,7 @@ def print_and_visualize_results(results, reports, instrument_configs):
     """Print and visualize backtest results."""
     
     print("\n=============================================")
-    print("MORNING RANGE STRATEGY BACKTEST RESULTS")
+    print("RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
     print(f"Instruments: {[f'{inst['name']} ({inst['direction']})' for inst in instrument_configs]}")
     print(f"Period: {START_DATE} to {END_DATE}")

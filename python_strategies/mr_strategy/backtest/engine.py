@@ -331,7 +331,7 @@ class BacktestEngine:
         logger.info(f"Found {len(unique_dates)} unique trading days")
         
         # Dictionary to store valid dates and their MR values
-        valid_dates_mr: Dict[date, Dict] = {}
+        valid_dates_range: Dict[date, Dict] = {}
         
         # PHASE 1: MR Validation and Date Filtering
         logger.info(f"#########################################")
@@ -344,32 +344,32 @@ class BacktestEngine:
                 continue
                 
             # Calculate morning range values
-            mr_values = await mr_strategy.calculate_morning_range(day_candles)
-            logger.info(f"MR values: {mr_values}")
+            range_values = await mr_strategy.calculate_morning_range(day_candles)
+            logger.info(f"MR values: {range_values}")
             
             # Validate MR values
-            if mr_values.get('is_valid', False):
-                logger.info(f"Valid MR for {date}: High={mr_values['mr_high']}, Low={mr_values['mr_low']}")
-                logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
-                valid_dates_mr[date] = mr_values
+            if range_values.get('is_valid', False):
+                logger.info(f"Valid MR for {date}: High={range_values['mr_high']}, Low={range_values['mr_low']}")
+                logger.debug(f"MR validation details: {range_values.get('validation_details', {})}")
+                valid_dates_range[date] = range_values
             else:
-                logger.warning(f"Invalid MR for {date}: {mr_values.get('validation_reason', 'Unknown reason')}")
-                logger.debug(f"MR validation details: {mr_values.get('validation_details', {})}")
+                logger.warning(f"Invalid MR for {date}: {range_values.get('validation_reason', 'Unknown reason')}")
+                logger.debug(f"MR validation details: {range_values.get('validation_details', {})}")
                 continue
                 
             # Calculate entry levels for valid dates if MR is valid
             entry_levels = mr_strategy.calculate_entry_levels()
             logger.debug(f"Calculated entry levels for {date}: {entry_levels}")
         
-        logger.info(f"MR validation complete. Found {len(valid_dates_mr)} valid trading days")
+        logger.info(f"MR validation complete. Found {len(valid_dates_range)} valid trading days")
         
         # PHASE 2: Signal Generation for Valid Dates
         logger.info(f"#########################################")
-        logger.info(f"Starting signal generation phase for valid dates: {valid_dates_mr}")
-        for date, mr_values in valid_dates_mr.items():
+        logger.info(f"Starting signal generation phase for valid dates: {valid_dates_range}")
+        for date, range_values in valid_dates_range.items():
             # Get candles for this valid date
             day_candles = processed_data[processed_data['timestamp'].dt.date == date]
-            logger.debug(f"Processing {len(day_candles)} candles for valid date {date} with mr_values: {mr_values}")
+            logger.debug(f"Processing {len(day_candles)} candles for valid date {date} with mr_values: {range_values}")
             entry_candle = None
             
             # Generate signals for each candle
@@ -380,16 +380,16 @@ class BacktestEngine:
                 # --------------------------
                 # SIGNAL GENERATION PHASE
                 # --------------------------
-                strategy_signals = await self.signal_generator.process_candle(candle_dict, mr_values)
+                strategy_signals = await self.signal_generator.process_candle(candle_dict, range_values)
                 
                 if strategy_signals:
                     # Filter signals based on instrument direction
                     filtered_signals = []
                     for signal in strategy_signals:
-                        if signal.direction.value == "LONG" and instrument_config['direction'] == 'BULLISH':
+                        if signal.direction.value == "LONG":
                             filtered_signals.append(signal)
                             logger.info(f"{candle_info}Accepted LONG signal for BULLISH instrument")
-                        elif signal.direction.value == "SHORT" and instrument_config['direction'] == 'BEARISH':
+                        elif signal.direction.value == "SHORT":
                             filtered_signals.append(signal)
                             logger.info(f"{candle_info}Accepted SHORT signal for BEARISH instrument")
                         else:

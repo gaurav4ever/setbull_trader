@@ -1,5 +1,5 @@
 """
-Backtest Runner and Reports for Morning Range Strategy.
+Backtest Runner and Reports for Range Strategy.
 
 This module provides batch backtest execution capabilities and comprehensive
 reporting functionality.
@@ -638,7 +638,7 @@ def print_and_visualize_results(results, reports):
     """Print and visualize backtest results."""
     
     print("\n=============================================")
-    print("MORNING RANGE STRATEGY BACKTEST RESULTS")
+    print("RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
     print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in results['instruments'].keys()]}")
     print(f"Period: {results['start_date']} to {results['end_date']}")

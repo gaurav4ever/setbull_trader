@@ -27,7 +27,7 @@ class MorningRangeStrategy(BaseStrategy):
                  position_manager: PositionManager,
                  trade_manager: TradeManager,
                  risk_calculator: RiskCalculator):
-        """Initialize Morning Range strategy."""
+        """Initialize Range strategy."""
         super().__init__(config)
         self.position_manager = position_manager
         self.trade_manager = trade_manager
@@ -36,7 +36,7 @@ class MorningRangeStrategy(BaseStrategy):
             'instrument_key': config.instrument_key
         })
         
-        logger.info(f"Initialized Morning Range Strategy: {config.range_type} - {config.entry_type}")
+        logger.info(f"Initialized Range Strategy: {config.range_type} - {config.entry_type}")
 
     async def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
         """
@@ -59,45 +59,42 @@ class MorningRangeStrategy(BaseStrategy):
             }
             
         try:
-            # Use CandleProcessor with async context manager
-            async with self.candle_processor as processor:
-                # Calculate morning range using the new async method
-                mr_values = await processor.calculate_morning_range(candles)
-                
-                if not mr_values:
-                    logger.warning("Failed to calculate morning range")
-                    self.update_state(StrategyState.ERROR)
-                    return {
-                        'is_valid': False,
-                        'validation_reason': 'Failed to calculate MR',
-                        'mr_high': None,
-                        'mr_low': None,
-                        'validation_details': {}
-                    }
-                    
-                # Store MR values and update state
-                self.morning_range = {
-                    'high': mr_values['mr_high'],
-                    'low': mr_values['mr_low']
+            # Calculate morning range using the new async method
+            range_values = self._calculate_morning_range(candles)
+            
+            if not range_values:
+                logger.warning("Failed to calculate morning range")
+                self.update_state(StrategyState.ERROR)
+                return {
+                    'is_valid': False,
+                    'validation_reason': 'Failed to calculate MR',
+                    'mr_high': None,
+                    'mr_low': None,
+                    'validation_details': {}
                 }
                 
-                # Add validation details
-                mr_values['validation_details'] = {
-                    'range_size': mr_values['mr_high'] - mr_values['mr_low'],
-                    'range_type': self.config.range_type,
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-                # Ensure all required fields are present
-                mr_values.update({
-                    'is_valid': mr_values['is_valid'],
-                    'validation_reason': mr_values['error']
-                })
-                
-                self.update_state(StrategyState.RANGE_CALCULATED)
-                logger.info(f"Calculated morning range: {mr_values} for the day {candles['timestamp'].iloc[0].date()}")
-                return mr_values
-                
+            # Store MR values and update state
+            self.morning_range = {
+                'high': range_values['mr_high'],
+                'low': range_values['mr_low']
+            }
+            
+            # Add validation details
+            range_values['validation_details'] = {
+                'range_size': range_values['mr_high'] - range_values['mr_low'],
+                'range_type': self.config.range_type,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Ensure all required fields are present
+            range_values.update({
+                'is_valid': range_values['is_valid'],
+                'validation_reason': range_values['error']
+            })
+            
+            self.update_state(StrategyState.RANGE_CALCULATED)
+            logger.info(f"Calculated morning range: {range_values} for the day {candles['timestamp'].iloc[0].date()}")
+            return range_values    
         except Exception as e:
             logger.error(f"Error calculating morning range: {str(e)}")
             self.update_state(StrategyState.ERROR)
@@ -320,3 +317,129 @@ class MorningRangeStrategy(BaseStrategy):
         
         logger.info(f"Executed exit: {trade_result}")
         return {'status': 'success', 'result': trade_result} 
+    
+    def _calculate_morning_range(self, candles: pd.DataFrame) -> Dict[str, float]:
+        """
+        Calculate morning range values including MR value.
+        
+        Args:
+            candles: DataFrame with candle data for the day
+            
+        Returns:
+            Dict with:
+            - mr_high: Morning range high
+            - mr_low: Morning range low
+            - mr_size: Morning range size
+            - mr_value: Morning range value (14-day ATR / MR size)
+            - is_valid: Boolean indicating if MR value > 3
+            - error: Error message if any (None if successful)
+        """
+        if candles.empty:
+            logger.warning("Empty DataFrame provided for morning range calculation")
+            return {
+                'mr_high': 0,
+                'mr_low': 0,
+                'mr_size': 0,
+                'mr_value': 0,
+                'is_valid': False,
+                'error': 'Empty DataFrame provided'
+            }
+            
+        try:
+            # Validate required columns
+            required_columns = ['timestamp', 'high', 'low']
+            missing_columns = [col for col in required_columns if col not in candles.columns]
+            if missing_columns:
+                error_msg = f"Missing required columns: {missing_columns}"
+                logger.error(error_msg)
+                return {
+                    'mr_high': 0,
+                    'mr_low': 0,
+                    'mr_size': 0,
+                    'mr_value': 0,
+                    'is_valid': False,
+                    'error': error_msg
+                }
+            
+            # Calculate morning range values
+            morning_candle = candles.iloc[0]
+            mr_high = morning_candle['high']
+            mr_low = morning_candle['low']
+            mr_size = mr_high - mr_low
+            
+            if mr_size <= 0:
+                error_msg = "Invalid morning range size (high <= low)"
+                logger.error(error_msg)
+                return {
+                    'mr_high': mr_high,
+                    'mr_low': mr_low,
+                    'mr_size': mr_size,
+                    'mr_value': 0,
+                    'is_valid': False,
+                    'error': error_msg
+                }
+
+            if mr_size < 1:
+                error_msg = "Invalid morning range size. Size is less than 1"
+                logger.error(error_msg)
+                return {
+                    'mr_high': mr_high,
+                    'mr_low': mr_low,
+                    'mr_size': mr_size,
+                    'mr_value': 0,
+                    'is_valid': False,
+                    'error': error_msg
+                }
+            
+            # Calculate 14-day ATR using daily candles
+            logger.info("DAILY 14-ATR: {morning_candle['DAILY_ATR_14']}")
+            atr_14 = morning_candle['DAILY_ATR_14']
+            
+            if atr_14 <= 0:
+                error_msg = "Invalid ATR value (must be positive)"
+                logger.error(error_msg)
+                return {
+                    'mr_high': mr_high,
+                    'mr_low': mr_low,
+                    'mr_size': mr_size,
+                    'mr_value': 0,
+                    'is_valid': False,
+                    'error': error_msg
+                }
+            
+            # Calculate MR value
+            mr_value = (atr_14 / mr_size) * 1.2
+            
+            # Validate MR value
+            is_valid = mr_value > 3
+            
+            logger.info(
+                f"Morning Range Calculation - "
+                f"High: {mr_high:.2f}, "
+                f"Low: {mr_low:.2f}, "
+                f"Size: {mr_size:.2f}, "
+                f"ATR: {atr_14:.2f}, "
+                f"MR Value: {mr_value:.2f}, "
+                f"Valid: {is_valid}"
+            )
+            
+            return {
+                'mr_high': mr_high,
+                'mr_low': mr_low,
+                'mr_size': mr_size,
+                'mr_value': mr_value,
+                'is_valid': is_valid,
+                'error': None
+            }
+            
+        except Exception as e:
+            error_msg = f"Error calculating morning range: {str(e)}"
+            logger.error(error_msg)
+            return {
+                'mr_high': 0,
+                'mr_low': 0,
+                'mr_size': 0,
+                'mr_value': 0,
+                'is_valid': False,
+                'error': error_msg
+            }
