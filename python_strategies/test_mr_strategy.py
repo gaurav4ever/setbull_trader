@@ -185,14 +185,14 @@ async def run_entry_type_comparison(instrument_configs):
         end_date=END_DATE,
         instruments=instrument_configs,
         strategies=[{
-            "type": "Range",
-            "params": {
+              "type": "Range",
+              "params": {
                 "range_type": "5MR",
-                "entry_type": entry_type,
+                "entry_type": "2_30_ENTRY",
                 "sl_percentage": 0.5,
                 "target_r": 7.0
             }
-        } for entry_type in ENTRY_TYPES],
+        }],
         initial_capital=INITIAL_CAPITAL,
         output_dir="backtest_results"
     )

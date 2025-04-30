@@ -234,11 +234,11 @@ class BacktestRunner:
                     strategy_configs.append(
                         StrategyConfig(
                             instrument_key=instrument,  # Use first instrument as default
-                        range_type=strategy_dict["params"]["range_type"],
-                        entry_type=strategy_dict["params"]["entry_type"],
-                        sl_percentage=strategy_dict["params"]["sl_percentage"],
-                        target_r=strategy_dict["params"]["target_r"],
-                        buffer_ticks=5,  # Default value
+                            range_type=strategy_dict["params"]["range_type"],
+                            entry_type=strategy_dict["params"]["entry_type"],
+                            sl_percentage=strategy_dict["params"]["sl_percentage"],
+                            target_r=strategy_dict["params"]["target_r"],
+                            buffer_ticks=5,  # Default value
                             tick_size=0.05  # Default value
                         )
                     )

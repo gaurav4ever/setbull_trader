@@ -4,6 +4,9 @@ from datetime import datetime, time
 from ..signals.signal_generator import SignalGenerator
 from ..domain.signal import Signal, SignalType, Direction
 import logging
+import numpy as np
+from ..strategy.models import SignalDirection
+from ..strategy.config import MRStrategyConfig
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -47,6 +50,28 @@ def invalid_mr_values():
         'mr_value': 2.0,  # < 3, so invalid
         'is_valid': False,
         'error': None
+    }
+
+@pytest.fixture
+def config():
+    """Create test configuration."""
+    return MRStrategyConfig(
+        buffer_ticks=5,
+        tick_size=0.05,
+        breakout_percentage=0.003,
+        invalidation_percentage=0.005
+    )
+
+@pytest.fixture
+def mr_values():
+    """Create test morning range values."""
+    return {
+        'high': 100.0,
+        'low': 90.0,
+        'size': 10.0,
+        'is_valid': True,
+        'mr_high': 100.0,
+        'mr_low': 90.0
     }
 
 @pytest.mark.asyncio
@@ -128,4 +153,122 @@ async def test_no_signals_in_range(signal_generator, sample_candle, valid_mr_val
     
     signals = await signal_generator.process_candle(in_range_candle, valid_mr_values)
     assert len(signals) == 0
-    logger.info("No signals generated for price within MR range") 
+    logger.info("No signals generated for price within MR range")
+
+@pytest.mark.asyncio
+async def test_first_entry_signal_generation(config, mr_values, sample_candle):
+    """Test signal generation with first entry strategy."""
+    signal_generator = SignalGenerator(config=config, entry_type="1ST_ENTRY")
+    
+    # Test long breakout
+    signals = await signal_generator.process_candle(sample_candle, mr_values)
+    assert len(signals) == 1
+    assert signals[0].type == SignalType.IMMEDIATE_BREAKOUT
+    assert signals[0].direction == SignalDirection.LONG
+    assert signals[0].price == mr_values['high']
+    
+    # Test short breakout
+    short_candle = sample_candle.copy()
+    short_candle['high'] = 95.0
+    short_candle['low'] = 85.0
+    short_candle['close'] = 88.0
+    
+    signals = await signal_generator.process_candle(short_candle, mr_values)
+    assert len(signals) == 1
+    assert signals[0].type == SignalType.IMMEDIATE_BREAKOUT
+    assert signals[0].direction == SignalDirection.SHORT
+    assert signals[0].price == mr_values['low']
+
+@pytest.mark.asyncio
+async def test_two_thirty_entry_signal_generation(config, mr_values):
+    """Test signal generation with 2:30 PM entry strategy."""
+    signal_generator = SignalGenerator(config=config, entry_type="2_30_ENTRY")
+    
+    # Test long entry at 2:30 PM
+    long_candle = {
+        'timestamp': pd.Timestamp('2024-04-15 14:30:00'),
+        'open': 101.0,
+        'high': 102.0,
+        'low': 100.5,
+        'close': 101.5
+    }
+    
+    signals = await signal_generator.process_candle(long_candle, mr_values)
+    assert len(signals) == 1
+    assert signals[0].type == SignalType.TWO_THIRTY_ENTRY
+    assert signals[0].direction == SignalDirection.LONG
+    assert signals[0].price == long_candle['close']
+    
+    # Test short entry at 2:30 PM
+    short_candle = {
+        'timestamp': pd.Timestamp('2024-04-15 14:30:00'),
+        'open': 89.0,
+        'high': 89.5,
+        'low': 88.0,
+        'close': 88.5
+    }
+    
+    signals = await signal_generator.process_candle(short_candle, mr_values)
+    assert len(signals) == 1
+    assert signals[0].type == SignalType.TWO_THIRTY_ENTRY
+    assert signals[0].direction == SignalDirection.SHORT
+    assert signals[0].price == short_candle['close']
+
+@pytest.mark.asyncio
+async def test_no_signal_generation(config, mr_values):
+    """Test cases where no signals should be generated."""
+    signal_generator = SignalGenerator(config=config, entry_type="1ST_ENTRY")
+    
+    # Test with invalid MR values
+    invalid_mr = mr_values.copy()
+    invalid_mr['is_valid'] = False
+    
+    signals = await signal_generator.process_candle(sample_candle(), invalid_mr)
+    assert len(signals) == 0
+    
+    # Test with price within MR range
+    normal_candle = {
+        'timestamp': pd.Timestamp('2024-04-15 10:00:00'),
+        'open': 95.0,
+        'high': 96.0,
+        'low': 94.0,
+        'close': 95.5
+    }
+    
+    signals = await signal_generator.process_candle(normal_candle, mr_values)
+    assert len(signals) == 0
+
+@pytest.mark.asyncio
+async def test_multiple_candles_processing(config, mr_values):
+    """Test processing multiple candles."""
+    signal_generator = SignalGenerator(config=config, entry_type="1ST_ENTRY")
+    
+    # Create a DataFrame with multiple candles
+    candles = pd.DataFrame([
+        {
+            'timestamp': pd.Timestamp('2024-04-15 09:30:00'),
+            'open': 95.0,
+            'high': 96.0,
+            'low': 94.0,
+            'close': 95.5
+        },
+        {
+            'timestamp': pd.Timestamp('2024-04-15 09:35:00'),
+            'open': 95.5,
+            'high': 101.0,  # Breakout
+            'low': 95.0,
+            'close': 100.5
+        },
+        {
+            'timestamp': pd.Timestamp('2024-04-15 09:40:00'),
+            'open': 100.5,
+            'high': 102.0,
+            'low': 100.0,
+            'close': 101.0
+        }
+    ])
+    
+    signals = signal_generator.process_candles(candles, mr_values)
+    assert len(signals) == 1
+    assert signals[0].type == SignalType.IMMEDIATE_BREAKOUT
+    assert signals[0].direction == SignalDirection.LONG 

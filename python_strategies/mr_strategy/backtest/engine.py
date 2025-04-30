@@ -68,18 +68,35 @@ class BacktestConfig:
 class BacktestEngine:
     """Core backtesting engine for Morning Range strategy."""
     
-    def __init__(self, config: BacktestConfig):
+    def __init__(self, 
+                config: Dict[str, Any],
+                data_processor: Optional[CandleProcessor] = None,
+                position_manager: Optional[PositionManager] = None,
+                trade_manager: Optional[TradeManager] = None,
+                risk_calculator: Optional[RiskCalculator] = None):
         """
-        Initialize the Backtest Engine.
+        Initialize the backtest engine.
         
         Args:
-            config: Backtest configuration
+            config: Strategy configuration
+            data_processor: Optional data processor instance
+            position_manager: Optional position manager instance
+            trade_manager: Optional trade manager instance
+            risk_calculator: Optional risk calculator instance
         """
         self.config = config
-        self.signal_generator = SignalGenerator(config.strategies[0])  # Use first strategy config
-        self.data_processor = CandleProcessor(config={
-            'instrument_key': config.strategies[0].instrument_key
-        })
+        self.data_processor = data_processor or CandleProcessor()
+        
+        # Create signal generator with specified entry type
+        self.signal_generator = SignalGenerator(
+            entry_type=config.strategies[0].entry_type
+        )
+        
+        # # Create morning range calculator
+        # self.mr_calculator = MorningRangeCalculator(
+        #     range_type=config.get('range_type', '5MR'),
+        #     respect_trend=config.get('respect_trend', True)
+        # )
         
         # Create account info
         account_info = AccountInfo(
@@ -194,8 +211,7 @@ class BacktestEngine:
         self.trades: List[Dict[str, Any]] = []
         self.metrics: Dict[str, Any] = {}
         
-        logger.info("Initialized BacktestEngine")
-        logger.debug(f"Backtest config: {config}")
+        logger.info(f"Initialized BacktestEngine with config: {config}")
 
     async def run_backtest(self, all_data_feed: Dict[str, pd.DataFrame]) -> Dict[str, Any]:
         """
@@ -245,7 +261,7 @@ class BacktestEngine:
             # Run backtest for each strategy
             for strategy_config in self.config.strategies:
                 if strategy_config.instrument_key.get('key') == instrument_key:
-                    self.signal_generator = SignalGenerator(strategy_config)
+                    self.signal_generator = SignalGenerator(strategy_config, entry_type=strategy_config.entry_type)
                     # ---------------------------------------------
                     # Finally run the backtest for the strategy
                     # BACKTEST IMPLEMENTATION STARTS HERE

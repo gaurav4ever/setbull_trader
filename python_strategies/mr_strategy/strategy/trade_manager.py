@@ -8,11 +8,13 @@ multiple take profit levels, dynamic stop loss, breakeven, and trailing stops.
 from dataclasses import dataclass
 from enum import Enum
 import math
-from typing import Dict, Optional, Union, List, Tuple
+from typing import Dict, Optional, Union, List, Tuple, Any
 import logging
 from datetime import datetime, time
 import numpy as np
 import pandas as pd
+
+from .models import SignalType, SignalDirection
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +33,9 @@ class TradeStatus(Enum):
 
 class TradeType(Enum):
     """Type of trade entry."""
-    IMMEDIATE_BREAKOUT = "1ST_ENTRY"
+    IMMEDIATE_BREAKOUT = "IMMEDIATE_BREAKOUT"
     RETEST_ENTRY = "RETEST_ENTRY"
+    TWO_THIRTY_ENTRY = "TWO_THIRTY_ENTRY"
 
 @dataclass
 class TakeProfitLevel:
@@ -282,6 +285,7 @@ class TradeManager:
             "prev_day_selling_indication": self._get_prev_day_selling_indication(candle_data),
         }
         
+        # Add trade to active trades
         self.active_trades[instrument_key] = trade
         logger.info(f"{candle_info}Created new trade: {trade}")
         return trade
