@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 class FirstEntryStrategy(EntryStrategy):
     """Implementation of the first entry (1ST_ENTRY) strategy."""
     
+    def __init__(self, config):
+        super().__init__(config)
+        self.in_long_trade = False
+        self.in_short_trade = False
+        self.mr_high_with_buffer = None
+        self.mr_low_with_buffer = None
+    
     async def check_entry_conditions(self, 
                                candle: Dict[str, Any], 
                                mr_values: Dict[str, Any]) -> Optional[Signal]:
@@ -49,8 +56,9 @@ class FirstEntryStrategy(EntryStrategy):
         # Check long breakout
         # take 0.07% buffer from mr_high
         mr_high_with_buffer, mr_low_with_buffer = self._add_buffer_to_mr_values(mr_values, 0.0007)
-        if candle['high'] >= mr_high_with_buffer:
+        if candle['high'] >= mr_high_with_buffer and not self.in_long_trade:
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG"):
+                self.in_long_trade = True
                 logger.info("Immediate long breakout detected")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
@@ -58,14 +66,16 @@ class FirstEntryStrategy(EntryStrategy):
                     timestamp=timestamp,
                     price=mr_values['mr_high'],
                     mr_values=mr_values,
-                    metadata={'breakout_type': 'immediate'}
+                    range_values={},
+                    metadata={'breakout_type': 'immediate', 'entry_type': '1st_entry', 'entry_time': timestamp.strftime('%H:%M')}
                 )
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "LONG")
                 return signal
             
         # Check short breakout
-        if candle['low'] <= mr_low_with_buffer:
+        if candle['low'] <= mr_low_with_buffer and not self.in_short_trade:
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT"):
+                self.in_short_trade = True
                 logger.info("Immediate short breakout detected")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
@@ -73,7 +83,8 @@ class FirstEntryStrategy(EntryStrategy):
                     timestamp=timestamp,
                     price=mr_values['mr_low'],
                     mr_values=mr_values,
-                    metadata={'breakout_type': 'immediate'}
+                    range_values={},
+                    metadata={'breakout_type': 'immediate', 'entry_type': '1st_entry', 'entry_time': timestamp.strftime('%H:%M')}
                 )
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT")
                 return signal
@@ -87,3 +98,14 @@ class FirstEntryStrategy(EntryStrategy):
         mr_high_with_buffer = round(mr_high_with_buffer, 2)
         mr_low_with_buffer = round(mr_low_with_buffer, 2)
         return mr_high_with_buffer, mr_low_with_buffer
+    
+    def reset_state(self) -> None:
+        """Reset the entry strategy state."""
+        self.in_long_trade = False
+        self.in_short_trade = False
+        self.mr_high_with_buffer = None
+        self.mr_low_with_buffer = None
+        self.can_generate_long = True
+        self.can_generate_short = True
+        self.state['can_generate_long'] = True
+        self.state['can_generate_short'] = True

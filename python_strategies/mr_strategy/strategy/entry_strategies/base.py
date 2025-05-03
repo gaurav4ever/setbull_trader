@@ -36,6 +36,7 @@ class EntryStrategy(ABC):
         """
         pass
     
+    @abstractmethod
     def reset_state(self) -> None:
         """Reset the entry strategy state."""
         self.state = {
@@ -44,6 +45,7 @@ class EntryStrategy(ABC):
             'can_generate_long': True,
             'can_generate_short': True
         }
+        pass
     
     def can_generate_signal(self, signal_type: str, direction: str) -> bool:
         """

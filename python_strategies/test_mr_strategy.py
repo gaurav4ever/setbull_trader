@@ -167,37 +167,19 @@ INSTRUMENT_CONFIGS = [
     "direction": "BULLISH"
   }
 ]
-START_DATE = "2025-04-01T09:15:00+05:30"
-END_DATE = "2025-04-21T15:25:00+05:30"
+START_DATE = "2025-03-01T09:15:00+05:30"
+END_DATE = "2025-05-02T15:25:00+05:30"
 INITIAL_CAPITAL = 100000.0
 
 # Entry types to test
 ENTRY_TYPES = ["1ST_ENTRY", "2_30_ENTRY"]
 
-async def run_entry_type_comparison(instrument_configs):
+async def run_entry_type_comparison(instrument_configs, runner_config):
     print(">> Running Entry Type Comparison")
     """Run backtest to compare different entry types."""    
     
-    # Create runner configuration
-    runner_config = BacktestRunConfig(
-        mode=BacktestMode.SINGLE,
-        start_date=START_DATE,
-        end_date=END_DATE,
-        instruments=instrument_configs,
-        strategies=[{
-              "type": "Range",
-              "params": {
-                "range_type": "5MR",
-                "entry_type": "2_30_ENTRY",
-                "sl_percentage": 0.5,
-                "target_r": 7.0
-            }
-        }],
-        initial_capital=INITIAL_CAPITAL,
-        output_dir="backtest_results"
-    )
-    
     # Create and run backtest runner
+    # convert runner_config to BacktestRunConfig object
     runner = BacktestRunner(runner_config)
     results = await runner.run_backtests()
     
@@ -231,6 +213,7 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
     instrument_name_map = {inst['key']: inst['name'] for inst in instrument_configs}
     trade_days = {}
     cumulative_pnl = {}
+    new_csv_data = []
 
     for trade in trade_list:
         entry_time = trade.get('current_time')
@@ -248,7 +231,9 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
             gap_down = trade.get('gap_down', False)
             prev_day_buying_indication = trade.get('prev_day_buying_indication', False)
             prev_day_selling_indication = trade.get('prev_day_selling_indication', False)
-          
+            entry_type = trade.get('entry_type', 'UNKNOWN')
+            entry_time_string = trade.get('entry_time_string', 'UNKNOWN')
+
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
 
@@ -256,40 +241,21 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
                 trade_days[trade_date][instrument_name] = {
                     "pnl": 0,
                     "direction": direction,
-                    "trade_type": trade_type,
-                    "max_r_multiple": max_r_multiple,
-                    "opening_type": opening_type,
-                    "trend": trend,
-                    "gap_up": gap_up,
-                    "gap_down": gap_down,
-                    "prev_day_buying_indication": prev_day_buying_indication,
-                    "prev_day_selling_indication": prev_day_selling_indication
+                    "trade_type": trade_type
                 }
-
             trade_days[trade_date][instrument_name]["pnl"] += pnl
 
             if instrument_name not in cumulative_pnl:
                 cumulative_pnl[instrument_name] = 0
             cumulative_pnl[instrument_name] += pnl
 
-    # Prepare new CSV data
-    new_csv_data = []
-    for date in sorted(trade_days.keys()):
-        for instrument_name, data in trade_days[date].items():
-            pnl = data["pnl"]
-            direction = data["direction"]
-            trade_type = data["trade_type"]
-            status = "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT"
-            max_r_multiple = data["max_r_multiple"]
-            opening_type = data["opening_type"]
-            trend = data["trend"]
             new_csv_data.append({
-                'Date': date,
+                'Date': trade_date,
                 'Name': instrument_name,
                 'PnL': f"{pnl:.2f}",
-                'Status': status,
+                'Status': "PROFIT" if pnl > 0 else "LOSS" if pnl < 0 else "FLAT",
                 'Direction': direction,
-                'EntryType': trade_type,
+                'TradeType': trade_type,
                 'RMultiple': f"{max_r_multiple:.2f}",
                 'Cumulative': f"{cumulative_pnl[instrument_name]:.2f}",
                 'OpeningType': opening_type,
@@ -297,7 +263,9 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
                 'GapUp': gap_up,
                 'GapDown': gap_down,
                 'PrevDayBuyingIndication': prev_day_buying_indication,
-                'PrevDaySellingIndication': prev_day_selling_indication
+                'PrevDaySellingIndication': prev_day_selling_indication,
+                'EntryType': entry_type,
+                'EntryTimeString': entry_time_string
             })
 
     new_df = pd.DataFrame(new_csv_data)
@@ -308,7 +276,7 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
         existing_df = pd.read_csv(output_file)
         # Drop duplicates based on Date, Name, Direction, and keep new version
         combined_df = pd.concat([existing_df, new_df])
-        combined_df.drop_duplicates(subset=['Date', 'Name', 'Direction'], keep='last', inplace=True)
+        combined_df.drop_duplicates(subset=['Date', 'Name', 'Direction', 'EntryType'], keep='last', inplace=True)
     else:
         combined_df = new_df
 
@@ -444,4 +412,22 @@ def print_and_visualize_results(results, reports, instrument_configs):
         print("-" * 100)
 
 if __name__ == "__main__":
-    asyncio.run(run_entry_type_comparison(INSTRUMENT_CONFIGSS))
+    # Create runner configuration
+    runner_config = BacktestRunConfig(
+        mode=BacktestMode.SINGLE,
+        start_date=START_DATE,
+        end_date=END_DATE,
+        instruments=INSTRUMENT_CONFIGSS,
+        strategies=[{
+              "type": "Range",
+              "params": {
+                "range_type": "5MR",
+                "entry_type": "1ST_ENTRY",
+                "sl_percentage": 0.5,
+                "target_r": 7.0
+            }
+        }],
+        initial_capital=INITIAL_CAPITAL,
+        output_dir="backtest_results"
+    )
+    asyncio.run(run_entry_type_comparison(INSTRUMENT_CONFIGSS, runner_config))

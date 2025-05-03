@@ -87,11 +87,6 @@ class BacktestEngine:
         self.config = config
         self.data_processor = data_processor or CandleProcessor()
         
-        # Create signal generator with specified entry type
-        self.signal_generator = SignalGenerator(
-            entry_type=config.strategies[0].entry_type
-        )
-        
         # # Create morning range calculator
         # self.mr_calculator = MorningRangeCalculator(
         #     range_type=config.get('range_type', '5MR'),
@@ -231,10 +226,11 @@ class BacktestEngine:
         logger.info("Starting backtest run")
         
         all_results = {
+            'instruments': {},
             'signals': [],
             'trades': [],
             'metrics': {},
-            'instruments': {},
+            'equity_curve': pd.Series(),
             'portfolio': {
                 'equity_curve': pd.Series(),
                 'metrics': {}
@@ -259,6 +255,7 @@ class BacktestEngine:
             # Process candles using CandleProcessor
             logger.info(f"Processed {len(instrument_data_feed)} candles for {instrument_key}")
             # Run backtest for each strategy
+            
             for strategy_config in self.config.strategies:
                 if strategy_config.instrument_key.get('key') == instrument_key:
                     self.signal_generator = SignalGenerator(strategy_config, entry_type=strategy_config.entry_type)
@@ -277,7 +274,7 @@ class BacktestEngine:
                         'equity_curve': self._build_equity_curve(strategy_results['trades'])
                     }
                     
-                    # Combine results
+                    # don't combine results, just store them
                     all_results['signals'].extend(strategy_results['signals'])
                     all_results['trades'].extend(strategy_results['trades'])
                     
@@ -364,7 +361,9 @@ class BacktestEngine:
             logger.info(f"MR values: {range_values}")
             
             # Validate MR values
-            if range_values.get('is_valid', False):
+            if strategy_config.entry_type != '1ST_ENTRY':
+                valid_dates_range[date] = range_values
+            elif range_values.get('is_valid', False):
                 logger.info(f"Valid MR for {date}: High={range_values['mr_high']}, Low={range_values['mr_low']}")
                 logger.debug(f"MR validation details: {range_values.get('validation_details', {})}")
                 valid_dates_range[date] = range_values
@@ -435,6 +434,8 @@ class BacktestEngine:
                                 entry_price=signal.price,
                                 position_size=position_size,
                                 position_type=signal.direction.value,
+                                entry_type=signal.metadata.get('entry_type'),
+                                entry_time_string=signal.metadata.get('entry_time'),
                                 trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
                                 sl_percentage=self.config.strategies[0].sl_percentage,
                                 candle_data=candle_dict
@@ -477,6 +478,9 @@ class BacktestEngine:
                     except Exception as e:
                         logger.error(f"{candle_info}Error updating trade {instrument_key}: {str(e)}")
                         continue
+
+            # Day is over, reset the signal generator state
+            self.signal_generator.reset_signal_and_state()
         
         # Calculate metrics for this strategy
         metrics = self._calculate_metrics(trades)

@@ -423,6 +423,7 @@ class MorningRangeStrategy(BaseStrategy):
                 f"Valid: {is_valid}"
             )
             
+            # Marking True for now. Later will remove the logic to specific entry type.
             return {
                 'mr_high': mr_high,
                 'mr_low': mr_low,

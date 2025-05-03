@@ -52,6 +52,7 @@ class Signal:
     timestamp: datetime
     price: float
     mr_values: Dict[str, Any]
+    range_values: Dict[str, Any]
     metadata: Optional[Dict[str, Any]] = None
     
     def to_dict(self) -> Dict[str, Any]:
@@ -62,6 +63,7 @@ class Signal:
             'timestamp': self.timestamp.isoformat(),
             'price': self.price,
             'mr_values': self.mr_values,
+            'range_values': self.range_values,
             'metadata': self.metadata or {}
         }
     

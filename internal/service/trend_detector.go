@@ -31,7 +31,7 @@ func (td *TrendDetector) GetCandleEMAs(
 	for i, currentCandle := range candles {
 		// Get start date (50 trading days back) for this candle
 		endDate := currentCandle.Timestamp
-		startDate := td.tradingCalendar.SubtractTradingDays(endDate, td.emaPeriod+5)
+		startDate := td.tradingCalendar.SubtractTradingDays(endDate, td.emaPeriod+10)
 
 		// Calculate EMA for this specific candle using its historical data
 		emaValues, err := td.technicalIndicators.CalculateEMA(

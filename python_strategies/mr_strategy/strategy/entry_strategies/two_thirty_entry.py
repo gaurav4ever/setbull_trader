@@ -26,13 +26,18 @@ class TwoThirtyEntryStrategy(EntryStrategy):
             config: Strategy configuration
         """
         super().__init__(config)
-        # Default entry time is 14:30 (2:30 PM)
-        self.entry_time = time(14, 30)
+        self.entry_time = time(13, 00)
         # Minimum price movement required from MR levels (in %)
         self.min_price_movement = 0.1  # 0.1% minimum movement
         # Trading hours
         self.market_open = time(9, 15)
         self.market_close = time(15, 30)
+        self.range_high = None
+        self.range_low = None
+        self.range_high_entry_price = None
+        self.range_low_entry_price = None
+        self.in_long_trade = False
+        self.in_short_trade = False
     
     async def check_entry_conditions(self, 
                                candle: Dict[str, Any], 
@@ -42,18 +47,11 @@ class TwoThirtyEntryStrategy(EntryStrategy):
         
         Args:
             candle: The current candle data
-            mr_values: Morning range values
             
         Returns:
             Signal if entry conditions are met, None otherwise
         """
-        candle_info = self._format_candle_info(candle)
-        
-        # Skip if MR values are invalid
-        if not mr_values or 'mr_high' not in mr_values or 'mr_low' not in mr_values:
-            logger.warning(f"{candle_info}Missing morning range high/low values")
-            return None
-            
+        candle_info = self._format_candle_info(candle)    
         # Convert timestamp if needed
         timestamp = candle.get('timestamp')
         if isinstance(timestamp, str):
@@ -66,40 +64,43 @@ class TwoThirtyEntryStrategy(EntryStrategy):
             return None
             
         # Only check at entry time (2:30 PM by default)
-        if candle_time != self.entry_time:
+        if candle_time < self.entry_time:
             return None
-            
-        # Get current price and MR values
-        current_price = candle['close']
-        mr_high = mr_values['mr_high']
-        mr_low = mr_values['mr_low']
-        mr_mid = (mr_high + mr_low) / 2
-        mr_range = mr_high - mr_low
         
-        logger.debug(f"{candle_info}Checking entry conditions - Price: {current_price}, MR High: {mr_high}, MR Low: {mr_low}")
+        if candle_time == self.entry_time:            
+            # Get current price and MR values
+            logger.debug(f"{candle_info} Got 2:30 PM entry time")
+            self.range_high = candle['high']
+            self.range_low = candle['low']
+            self.range_high_entry_price = self.range_high + (self.range_high * 0.0003)
+            self.range_low_entry_price = self.range_low - (self.range_low * 0.0003)
+            return None
+        
+        if self.range_high is None or self.range_low is None:
+            logger.debug(f"{candle_info} Range high or low is not set, skipping entry")
+            return None
+        
+        logger.debug(f"{candle_info}Checking entry conditions - Price: {candle['close']}, Range High: {self.range_high}, Range Low: {self.range_low}")
         
         # Check if price is above MR high for long entry
-        if current_price > mr_high:
-            # Calculate price movement
-            price_movement_pct = ((current_price - mr_high) / mr_high) * 100
-            
-            if price_movement_pct < self.min_price_movement:
-                logger.debug(f"{candle_info}Price movement ({price_movement_pct:.2f}%) below minimum required ({self.min_price_movement}%)")
-                return None
-                
-            if self.can_generate_signal(SignalType.TWO_THIRTY_ENTRY.value, "LONG"):
-                logger.info(f"{candle_info}2:30 PM long entry detected - Movement: {price_movement_pct:.2f}%")
+        if candle['high'] > self.range_high_entry_price and not self.in_long_trade:
+            if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG"):
+                self.in_long_trade = True
+                logger.info(f"{candle_info}2:30 PM long entry detected - Movement")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.LONG,
                     timestamp=timestamp,
-                    price=current_price,
-                    mr_values=mr_values,
+                    price=self.range_high_entry_price,
+                    range_values={
+                        'range_high': self.range_high,
+                        'range_low': self.range_low,
+                        'range_high_entry_price': self.range_high_entry_price,
+                        'range_low_entry_price': self.range_low_entry_price
+                    },
+                    mr_values={},
                     metadata={
                         'entry_type': '2_30_entry',
-                        'mr_mid': mr_mid,
-                        'price_to_mr_ratio': (current_price - mr_high) / mr_range,
-                        'price_movement_pct': price_movement_pct,
                         'entry_time': candle_time.strftime('%H:%M')
                     }
                 )
@@ -107,27 +108,24 @@ class TwoThirtyEntryStrategy(EntryStrategy):
                 return signal
                 
         # Check if price is below MR low for short entry
-        if current_price < mr_low:
-            # Calculate price movement
-            price_movement_pct = ((mr_low - current_price) / mr_low) * 100
-            
-            if price_movement_pct < self.min_price_movement:
-                logger.debug(f"{candle_info}Price movement ({price_movement_pct:.2f}%) below minimum required ({self.min_price_movement}%)")
-                return None
-                
+        if candle['low'] < self.range_low_entry_price and not self.in_short_trade:
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT"):
-                logger.info(f"{candle_info}2:30 PM short entry detected - Movement: {price_movement_pct:.2f}%")
+                self.in_short_trade = True
+                logger.info(f"{candle_info}2:30 PM short entry detected")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.SHORT,
                     timestamp=timestamp,
-                    price=current_price,
-                    mr_values=mr_values,
+                    price=self.range_low_entry_price,
+                    range_values={
+                        'range_high': self.range_high,
+                        'range_low': self.range_low,
+                        'range_high_entry_price': self.range_high_entry_price,
+                        'range_low_entry_price': self.range_low_entry_price
+                    },
+                    mr_values={},
                     metadata={
                         'entry_type': '2_30_entry',
-                        'mr_mid': mr_mid,
-                        'price_to_mr_ratio': (mr_low - current_price) / mr_range,
-                        'price_movement_pct': price_movement_pct,
                         'entry_time': candle_time.strftime('%H:%M')
                     }
                 )
@@ -152,3 +150,16 @@ class TwoThirtyEntryStrategy(EntryStrategy):
         close_price = candle.get('close', 0)
         
         return f"[{time_str}] [O:{open_price:.2f} H:{high_price:.2f} L:{low_price:.2f} C:{close_price:.2f}] - " 
+
+    def reset_state(self) -> None:
+        """Reset the entry strategy state."""
+        self.in_long_trade = False
+        self.in_short_trade = False
+        self.range_high = None
+        self.range_low = None
+        self.range_high_entry_price = None
+        self.range_low_entry_price = None
+        self.can_generate_long = True
+        self.can_generate_short = True
+        self.state['can_generate_long'] = True
+        self.state['can_generate_short'] = True

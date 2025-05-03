@@ -64,10 +64,18 @@ class BacktestRunner:
         self.reports: Dict = {}
         
         # Create output directory
-        self.output_dir = Path(config.output_dir)
+        # check data type of config and fetch required value
+        # mode is BacktestMode enum
+        mode = BacktestMode.SINGLE
+        if isinstance(config, dict):
+            self.output_dir = Path(config['output_dir'])
+            self.config.mode = BacktestMode(config['mode'].lower())
+        else:
+            self.output_dir = Path(config.output_dir)
+            self.config.mode = config.mode
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
-        logger.info(f"Initialized BacktestRunner in {config.mode.value} mode")
+        logger.info(f"Initialized BacktestRunner in {self.config.mode} mode")
 
     async def run_backtests(self) -> Dict:
         """Execute backtests based on configured mode."""

@@ -6,6 +6,7 @@ import asyncio
 import logging
 from datetime import datetime
 import httpx
+from mr_strategy.backtest.runner import BacktestMode, BacktestRunConfig
 from utils.utils import convert_numpy_types
 # Import the backtest function from test_mr_strategy
 from test_mr_strategy import run_entry_type_comparison, print_and_visualize_results
@@ -34,14 +35,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-class BacktestRequest(BaseModel):
-    instrument_key: str
-    start_date: str
-    end_date: str
-    initial_capital: float
-    entry_types: List[str]
+class SingleBacktestRequest(BaseModel):
     instrument_configs: List[dict]
-
+    runner_config: dict
+class BacktestRequest(BaseModel):
+    runner_config: dict
 class BacktestResponse(BaseModel):
     success: bool
     results: dict
@@ -52,11 +50,26 @@ async def analyze_all_trades():
     analyze_trades()
 
 @app.post("/backtest/run/single", response_model=BacktestResponse)
-async def run_single_backtest(request: BacktestRequest):
+async def run_single_backtest(request: SingleBacktestRequest):
     """
     Run a single backtest with the provided parameters.
     """
-    results = await run_entry_type_comparison(instrument_configs=request.instrument_configs)
+    json_data = request.runner_config
+    strategies = json_data["strategies"]
+    instruments = request.instrument_configs
+    # convert strategies to dictionary
+    strategies = [dict(strategy) for strategy in strategies]
+    instruments = [dict(instrument) for instrument in instruments]
+    config = BacktestRunConfig(
+        mode=BacktestMode[json_data["mode"]],
+        start_date=json_data["start_date"],
+        end_date=json_data["end_date"],
+        instruments=instruments,
+        strategies=strategies,
+        initial_capital=json_data["initial_capital"],
+        output_dir=json_data.get("output_dir", "backtest_results")
+    )
+    results = await run_entry_type_comparison(instrument_configs=request.instrument_configs, runner_config=config)
     # Format the results
     response = BacktestResponse(success=True, results=results['metrics'], error=None)
         
@@ -87,11 +100,26 @@ async def run_backtest(request: BacktestRequest):
                 instrument_configs.append({
                     "key": stock["instrument_key"],
                     "name": stock["symbol"],
-                    "direction": "BULLISH"
+                    "direction": "BEARISH"
                 })
             
+            json_data = request.runner_config
+            strategies = json_data["strategies"]
+            # convert strategies to dictionary
+            strategies = [dict(strategy) for strategy in strategies]
+            instruments = [dict(instrument) for instrument in instrument_configs]
+            config = BacktestRunConfig(
+                mode=BacktestMode[json_data["mode"]],
+                start_date=json_data["start_date"],
+                end_date=json_data["end_date"],
+                instruments=instruments,
+                strategies=strategies,
+                initial_capital=json_data["initial_capital"],
+                output_dir=json_data.get("output_dir", "backtest_results")
+            )
+            
             # Run the backtest with the filtered stocks
-            results = await run_entry_type_comparison(instrument_configs=instrument_configs)
+            results = await run_entry_type_comparison(instrument_configs=instrument_configs, runner_config=config)
         
         # Format the results
         response = BacktestResponse(success=True, results=results['metrics'], error=None)

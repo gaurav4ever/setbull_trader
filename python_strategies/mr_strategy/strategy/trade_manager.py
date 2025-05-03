@@ -237,6 +237,8 @@ class TradeManager:
                    entry_price: float,
                    position_size: float,
                    position_type: str,
+                   entry_type: str,
+                   entry_time_string: str,
                    trade_type: TradeType,
                    sl_percentage: Optional[float] = None,
                    candle_data: Optional[Dict] = None) -> Dict:
@@ -262,6 +264,8 @@ class TradeManager:
             "trade_type": trade_type.value,
             "status": TradeStatus.ACTIVE.value,
             "entry_time": datetime.now(),
+            "entry_time_string": entry_time_string,
+            "entry_type": entry_type,
             "stop_loss": levels["stop_loss"],
             "breakeven_level": levels["breakeven_level"],
             "risk_amount": levels["risk_amount"],
