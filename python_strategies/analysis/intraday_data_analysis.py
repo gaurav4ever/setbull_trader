@@ -370,6 +370,118 @@ class IntradayDataAnalysis:
         """
         return pd.read_sql(query, self.conn)
 
+    def get_1st_entry_trend_analysis(self) -> pd.DataFrame:
+        """Analyze 1st_entry trades with/against trend, split by direction."""
+        query = """
+        SELECT 
+            direction,
+            CASE WHEN direction = trend THEN 'WITH_TREND' ELSE 'AGAINST_TREND' END as trend_relation,
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+            ROUND(AVG(pnl), 2) as avg_pnl,
+            ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+            ROUND(AVG(max_r_multiple), 2) as avg_r_multiple
+        FROM trades
+        WHERE trade_type = '1st_entry'
+        GROUP BY direction, trend_relation
+        ORDER BY direction, trend_relation;
+        """
+        return pd.read_sql(query, self.conn)
+
+    def get_2_30_entry_top_stocks(self, min_trades: int = 5) -> pd.DataFrame:
+        """Get top performing stocks for 2_30_entry by win rate (min_trades filter)."""
+        query = f"""
+        SELECT 
+            name,
+            direction,
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+            ROUND(AVG(pnl), 2) as avg_pnl,
+            ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+            SUM(pnl) as total_pnl
+        FROM trades
+        WHERE trade_type = '2_30_entry'
+        GROUP BY name, direction
+        HAVING total_trades >= {min_trades}
+        ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC;
+        """
+        return pd.read_sql(query, self.conn)
+    
+    def get_1st_entry_top_stocks(self, min_trades: int = 5) -> pd.DataFrame:
+        """Get top performing stocks for 1st_entry by win rate (min_trades filter)."""
+        query = f"""
+        SELECT 
+            name,
+            direction,
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+            ROUND(AVG(pnl), 2) as avg_pnl,
+            ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+            SUM(pnl) as total_pnl
+        FROM trades
+        WHERE trade_type = '1st_entry'
+        GROUP BY name, direction
+        HAVING total_trades >= {min_trades}
+        ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC;
+        """
+        return pd.read_sql(query, self.conn)
+    
+    def get_monthly_1st_entry_top_stocks(self, min_trades: int = 5, top_n: int = 10) -> pd.DataFrame:
+        """Get top N performing stocks for 1st_entry by month, using win rate and avg_pnl (min_trades filter)."""
+        query = f'''
+        WITH monthly_stats AS (
+            SELECT 
+                YEAR(date) AS year,
+                MONTH(date) AS month,
+                name,
+                direction,
+                COUNT(*) as total_trades,
+                SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+                ROUND(AVG(pnl), 2) as avg_pnl,
+                ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+                SUM(pnl) as total_pnl
+            FROM trades
+            WHERE trade_type = '1st_entry'
+            GROUP BY year, month, name, direction
+            HAVING total_trades >= {min_trades}
+        ), ranked AS (
+            SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as rank
+            FROM monthly_stats
+        )
+        SELECT * FROM ranked WHERE rank <= {top_n}
+        ORDER BY year DESC, month DESC, rank ASC;
+        '''
+        return pd.read_sql(query, self.conn)
+
+    def get_monthly_2_30_entry_top_stocks(self, min_trades: int = 5, top_n: int = 10) -> pd.DataFrame:
+        """Get top N performing stocks for 2_30_entry by month, using win rate and avg_pnl (min_trades filter)."""
+        query = f'''
+        WITH monthly_stats AS (
+            SELECT 
+                YEAR(date) AS year,
+                MONTH(date) AS month,
+                name,
+                direction,
+                COUNT(*) as total_trades,
+                SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+                ROUND(AVG(pnl), 2) as avg_pnl,
+                ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+                SUM(pnl) as total_pnl
+            FROM trades
+            WHERE trade_type = '2_30_entry'
+            GROUP BY year, month, name, direction
+            HAVING total_trades >= {min_trades}
+        ), ranked AS (
+            SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as rank
+            FROM monthly_stats
+        )
+        SELECT * FROM ranked WHERE rank <= {top_n}
+        ORDER BY year DESC, month DESC, rank ASC;
+        '''
+        return pd.read_sql(query, self.conn)
+
     def close(self):
         """Close database connections"""
         if self.cursor:

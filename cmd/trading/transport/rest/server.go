@@ -146,6 +146,9 @@ func (s *Server) setupRoutes() {
 	// Filter pipeline routes
 	api.HandleFunc("/filter-pipeline/run", s.RunFilterPipeline).Methods(http.MethodPost)
 	api.HandleFunc("/filter-pipeline/fetch/top-10", s.GetTop10FilteredStocks).Methods(http.MethodGet)
+
+	// Get latest Market quotes
+	api.HandleFunc("/market/quotes", s.GetLatestMarketQuotes).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface
