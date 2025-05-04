@@ -446,11 +446,11 @@ class IntradayDataAnalysis:
             HAVING total_trades >= {min_trades}
         ), ranked AS (
             SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as rank
+                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as `rank`
             FROM monthly_stats
         )
-        SELECT * FROM ranked WHERE rank <= {top_n}
-        ORDER BY year DESC, month DESC, rank ASC;
+        SELECT * FROM ranked WHERE `rank` <= {top_n}
+        ORDER BY year DESC, month DESC, `rank` ASC;
         '''
         return pd.read_sql(query, self.conn)
 
@@ -474,11 +474,11 @@ class IntradayDataAnalysis:
             HAVING total_trades >= {min_trades}
         ), ranked AS (
             SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as rank
+                ROW_NUMBER() OVER (PARTITION BY year, month ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC) as `rank`
             FROM monthly_stats
         )
-        SELECT * FROM ranked WHERE rank <= {top_n}
-        ORDER BY year DESC, month DESC, rank ASC;
+        SELECT * FROM ranked WHERE `rank` <= {top_n}
+        ORDER BY year DESC, month DESC, `rank` ASC;
         '''
         return pd.read_sql(query, self.conn)
 

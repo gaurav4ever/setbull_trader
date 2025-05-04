@@ -22,6 +22,7 @@ import (
 	"setbull_trader/pkg/log"
 	swagger "setbull_trader/upstox/go_api_client"
 
+	"github.com/antihax/optional"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -431,4 +432,74 @@ func (s *AuthService) waitForRateLimit(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// GetMarketQuote fetches OHLC market quotes for the given instrumentKeys from Upstox.
+// Returns a map of instrumentKey to Ohlc, a map of instrumentKey to error string (for failures), and an error for fatal issues.
+func (s *AuthService) GetMarketQuote(ctx context.Context, userID string, instrumentKeys []string, interval string) (map[string]Ohlc, map[string]string, error) {
+	if interval == "" {
+		interval = "1min"
+	}
+
+	// Step 1: Authenticate user
+	authCtx, err := s.GetAuthenticatedContext(ctx, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Step 2: Create Upstox API client
+	config := s.config.CreateSwaggerConfig()
+	client := swagger.NewAPIClient(config)
+
+	// Step 3: Prepare request to Upstox GetFullMarketQuote
+	joinedKeys := strings.Join(instrumentKeys, ",")
+	opts := &swagger.MarketQuoteApiGetFullMarketQuoteOpts{
+		InstrumentKey: optional.NewString(joinedKeys),
+	}
+	resp, httpResp, err := client.MarketQuoteApi.GetFullMarketQuote(authCtx, opts)
+	if err != nil {
+		// If the error is a 200 with partial data, Upstox may still return some data. Try to parse resp.Data if possible.
+		if httpResp != nil && resp.Data != nil && len(resp.Data) > 0 {
+			// Continue to process partial data
+			log.Warn("Partial data received from Upstox: %v", err)
+		} else {
+			return nil, nil, errors.Wrap(err, "failed to fetch market quotes from Upstox")
+		}
+	}
+
+	// Step 4: Map results
+	data := make(map[string]Ohlc)
+	errorsMap := make(map[string]string)
+	for _, key := range instrumentKeys {
+		symbol, ok := resp.Data[key]
+		if !ok || symbol.Ohlc == nil {
+			errorsMap[key] = "No OHLC data returned"
+			continue
+		}
+		data[key] = Ohlc{
+			Open:  symbol.Ohlc.Open,
+			High:  symbol.Ohlc.High,
+			Low:   symbol.Ohlc.Low,
+			Close: symbol.Ohlc.Close,
+		}
+	}
+
+	// Step 5: For any keys not present in resp.Data, add to errors
+	for _, key := range instrumentKeys {
+		if _, ok := data[key]; !ok {
+			if _, already := errorsMap[key]; !already {
+				errorsMap[key] = "Instrument not found in Upstox response"
+			}
+		}
+	}
+
+	return data, errorsMap, nil
+}
+
+// Ohlc struct for adapter layer mapping (matches response DTO)
+type Ohlc struct {
+	Open  float64 `json:"open,omitempty"`
+	High  float64 `json:"high,omitempty"`
+	Low   float64 `json:"low,omitempty"`
+	Close float64 `json:"close,omitempty"`
 }

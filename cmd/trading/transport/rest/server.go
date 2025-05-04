@@ -34,6 +34,7 @@ type Server struct {
 	stockUniverseService    *service.StockUniverseService
 	candleProcessingService *service.CandleProcessingService
 	stockFilterPipeline     *service.StockFilterPipeline
+	marketQuoteService      *service.MarketQuoteService
 }
 
 // NewServer creates a new REST API server
@@ -50,6 +51,7 @@ func NewServer(
 	stockUniverseService *service.StockUniverseService,
 	candleProcessingService *service.CandleProcessingService,
 	stockFilterPipeline *service.StockFilterPipeline,
+	marketQuoteService *service.MarketQuoteService,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -66,6 +68,7 @@ func NewServer(
 		candleProcessingService: candleProcessingService,
 		validator:               validator.New(),
 		stockFilterPipeline:     stockFilterPipeline,
+		marketQuoteService:      marketQuoteService,
 	}
 
 	s.setupRoutes()
@@ -147,8 +150,8 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/filter-pipeline/run", s.RunFilterPipeline).Methods(http.MethodPost)
 	api.HandleFunc("/filter-pipeline/fetch/top-10", s.GetTop10FilteredStocks).Methods(http.MethodGet)
 
-	// Get latest Market quotes
-	api.HandleFunc("/market/quotes", s.GetLatestMarketQuotes).Methods(http.MethodGet)
+	// Post market quotes
+	api.HandleFunc("/market/quotes", s.PostMarketQuotes).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -654,4 +657,25 @@ func (s *Server) GetTop10FilteredStocks(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondSuccess(w, top10Stocks)
+}
+
+// PostMarketQuotes handles POST /market/quotes
+func (s *Server) PostMarketQuotes(w http.ResponseWriter, r *http.Request) {
+	var req request.MarketQuotesRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+	if err := s.validator.Struct(req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	// Extract userID from header or context (assume header for now)
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		respondWithError(w, http.StatusBadRequest, "User ID is required in X-User-Id header")
+		return
+	}
+	resp := s.marketQuoteService.GetQuotes(r.Context(), userID, req.InstrumentKeys, req.Interval)
+	respondSuccess(w, resp)
 }
