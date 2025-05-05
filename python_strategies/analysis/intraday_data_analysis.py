@@ -3,7 +3,7 @@ import mysql.connector
 from datetime import datetime
 from typing import Dict, List, Optional
 import logging
-
+import numpy as np
 class IntradayDataAnalysis:
     def __init__(self):
         self.db_config = {
@@ -394,6 +394,7 @@ class IntradayDataAnalysis:
         SELECT 
             name,
             direction,
+            trend,
             COUNT(*) as total_trades,
             SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
             ROUND(AVG(pnl), 2) as avg_pnl,
@@ -401,9 +402,9 @@ class IntradayDataAnalysis:
             SUM(pnl) as total_pnl
         FROM trades
         WHERE trade_type = '2_30_entry'
-        GROUP BY name, direction
-        HAVING total_trades >= {min_trades}
-        ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC;
+        GROUP BY name, direction, trend
+        HAVING total_trades >= {min_trades} AND win_rate > 50
+        ORDER BY total_pnl DESC, avg_pnl DESC, win_rate DESC, winning_trades DESC;
         """
         return pd.read_sql(query, self.conn)
     
@@ -413,6 +414,7 @@ class IntradayDataAnalysis:
         SELECT 
             name,
             direction,
+            trend,
             COUNT(*) as total_trades,
             SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
             ROUND(AVG(pnl), 2) as avg_pnl,
@@ -420,9 +422,9 @@ class IntradayDataAnalysis:
             SUM(pnl) as total_pnl
         FROM trades
         WHERE trade_type = '1st_entry'
-        GROUP BY name, direction
-        HAVING total_trades >= {min_trades}
-        ORDER BY avg_pnl DESC, win_rate DESC, winning_trades DESC, total_pnl DESC;
+        GROUP BY name, direction, trend
+        HAVING total_trades >= {min_trades} AND win_rate > 50
+        ORDER BY total_pnl DESC, avg_pnl DESC, win_rate DESC, winning_trades DESC;
         """
         return pd.read_sql(query, self.conn)
     
@@ -481,6 +483,46 @@ class IntradayDataAnalysis:
         ORDER BY year DESC, month DESC, `rank` ASC;
         '''
         return pd.read_sql(query, self.conn)
+
+    def export_backtest_analysis_csv(self, output_path: str):
+        """
+        Export top 3 1st_entry stocks and all 2_30_entry stocks with total_pnl > 500 to a CSV with required columns and static values.
+        Columns: SYMBOL, TREND, DIRECTION, STRATEGY, ENTRY_TYPE, ENTRY_TIME, SL%, PS_TYPE
+        """
+        # Get data
+        df_1st = self.get_1st_entry_top_stocks()
+        df_2_30 = self.get_2_30_entry_top_stocks()
+
+        # 1st_entry: Top 3 only
+        df_1st = df_1st.head(3).copy()
+        df_1st['STRATEGY'] = 'MR'
+        df_1st['ENTRY_TYPE'] = '1ST_ENTRY'
+        df_1st['ENTRY_TIME'] = '9:20AM'
+        df_1st['SL%'] = 0.5
+        df_1st['PS_TYPE'] = np.where(df_1st['win_rate'] > 70, 'FIXED', 'DISTRIBUTED')
+        df_1st['TREND'] = df_1st['trend']  # No trend info in this query, so leave blank
+        df_1st.rename(columns={'name': 'SYMBOL', 'direction': 'DIRECTION'}, inplace=True)
+
+        # 2_30_entry: All with total_pnl > 500
+        df_2_30 = df_2_30[df_2_30['total_pnl'] > 500].copy()
+        df_2_30['STRATEGY'] = '2_30'
+        df_2_30['ENTRY_TYPE'] = 'EVENING'
+        df_2_30['ENTRY_TIME'] = '1PM'
+        df_2_30['SL%'] = 0.3
+        df_2_30['PS_TYPE'] = np.where(df_2_30['win_rate'] > 70, 'FIXED', 'DISTRIBUTED')
+        df_2_30['TREND'] = df_2_30['trend']  # No trend info in this query, so leave blank
+        df_2_30.rename(columns={'name': 'SYMBOL', 'direction': 'DIRECTION'}, inplace=True)
+
+        # Select and order columns
+        columns = ['SYMBOL', 'TREND', 'DIRECTION', 'STRATEGY', 'ENTRY_TYPE', 'ENTRY_TIME', 'SL%', 'PS_TYPE']
+        df_final = pd.concat([
+            df_1st[columns],
+            df_2_30[columns]
+        ], ignore_index=True)
+
+        # Save to CSV
+        df_final.to_csv(output_path, index=False)
+        self.logger.info(f"Backtest analysis exported to {output_path}")
 
     def close(self):
         """Close database connections"""
