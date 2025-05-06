@@ -49,3 +49,6 @@ func (r *LevelEntryRepository) GetByExecutionPlanID(ctx context.Context, planID 
 func (r *LevelEntryRepository) DeleteByExecutionPlanID(ctx context.Context, planID string) error {
 	return r.db.WithContext(ctx).Where("execution_plan_id = ? AND active = 1", planID).Update("active", false).Error
 }
+
+// NOTE: The repository now supports the new fields 'ps_type' and 'entry_desc' in LevelEntry via GORM struct tags.
+// No additional code changes required for CRUD operations as GORM will map these fields automatically.

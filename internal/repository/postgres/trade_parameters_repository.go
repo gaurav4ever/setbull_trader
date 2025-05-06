@@ -76,3 +76,6 @@ func (r *TradeParametersRepository) Update(ctx context.Context, params *domain.T
 func (r *TradeParametersRepository) Delete(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Model(&domain.TradeParameters{}).Where("id = ?", id).Update("active", false).Error
 }
+
+// NOTE: The repository now supports the new fields 'ps_type' and 'entry_type' in TradeParameters via GORM struct tags.
+// No additional code changes required for CRUD operations as GORM will map these fields automatically.
