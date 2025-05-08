@@ -17,17 +17,34 @@
 	let isSaving = false;
 	let error = '';
 	let successMessage = '';
+
+	// Type definitions
+	/** @typedef {Object} TradingParametersFormData
+	 *  @property {string} stockId
+	 *  @property {string} stockSymbol
+	 *  @property {string} stockSecurityId
+	 *  @property {string|number} startingPrice
+	 *  @property {string|number} stopLossPercentage
+	 *  @property {string|number} riskAmount
+	 *  @property {string} tradeSide
+	 *  @property {string} psType
+	 *  @property {string} entryType
+	 */
+
+	/** @type {Record<string, any>} */
 	let formErrors = {};
 
-	// Form data with defaults
+	/** @type {Record<string, string | number>} */
 	let formData = {
 		stockId: stockId,
 		stockSymbol: stockSymbol,
 		stockSecurityId: stockSecurityId,
 		startingPrice: '',
 		stopLossPercentage: '',
-		riskAmount: 30, // Default risk amount
-		tradeSide: 'BUY' // Default to BUY
+		riskAmount: '30',
+		tradeSide: 'BUY',
+		psType: 'FIXED',
+		entryType: '1ST_ENTRY'
 	};
 
 	// Event dispatcher
@@ -35,16 +52,14 @@
 
 	// Handle form initialization and loading of existing parameters
 	onMount(async () => {
-		if (initialParameters) {
-			// Initialize with provided parameters
+		if (initialParameters && typeof initialParameters === 'object' && initialParameters !== null) {
 			formData = {
 				...formData,
 				...initialParameters,
-				stockSymbol: stockSymbol, // Ensure these are set
+				stockSymbol: stockSymbol,
 				stockSecurityId: stockSecurityId
 			};
 		} else if (stockId) {
-			// Try to load parameters from API
 			await loadParameters();
 		}
 
@@ -76,22 +91,30 @@
 			}
 
 			if (result.data) {
-				// Update form with loaded data
 				formData = {
 					stockId: stockId,
 					stockSymbol: stockSymbol,
-					stockSecurityId: stockSecurityId, // Preserve security ID
-					startingPrice: result.data.startingPrice || '',
-					stopLossPercentage: result.data.stopLossPercentage || '',
-					riskAmount: result.data.riskAmount || 30,
-					tradeSide: result.data.tradeSide || 'BUY'
+					stockSecurityId: stockSecurityId,
+					startingPrice:
+						result.data.startingPrice !== undefined ? String(result.data.startingPrice) : '',
+					stopLossPercentage:
+						result.data.stopLossPercentage !== undefined
+							? String(result.data.stopLossPercentage)
+							: '',
+					riskAmount: result.data.riskAmount !== undefined ? String(result.data.riskAmount) : '30',
+					tradeSide: result.data.tradeSide ?? 'BUY',
+					psType: result.data.psType ?? 'FIXED',
+					entryType: result.data.entryType ?? '1ST_ENTRY'
 				};
 			}
 		} catch (err) {
 			console.error('Error loading parameters:', err);
-			// Only show error if it's not a "not found" situation
-			if (!(err.message && err.message.includes('not found'))) {
-				error = err.message || 'Failed to load parameters';
+			const message =
+				typeof err === 'object' && err && 'message' in err && typeof err.message === 'string'
+					? err.message
+					: String(err);
+			if (!(typeof message === 'string' && message.includes('not found'))) {
+				error = message || 'Failed to load parameters';
 			}
 		} finally {
 			isLoading = false;
@@ -100,7 +123,6 @@
 
 	// Save parameters to API
 	async function saveParameters() {
-		// Validate form data
 		formErrors = validateTradingParameters(formData);
 		if (hasErrors(formErrors)) {
 			return false;
@@ -111,10 +133,8 @@
 		successMessage = '';
 
 		try {
-			// Prepare the payload - include security ID if available
 			const payload = {
 				...formData,
-				// Ensure stockSecurityId is included if available
 				stockSecurityId: stockSecurityId || formData.stockSecurityId || ''
 			};
 
@@ -134,7 +154,6 @@
 
 			successMessage = 'Parameters saved successfully!';
 
-			// Include both symbol and securityId in the response for downstream components
 			const responseData = {
 				...result.data,
 				stockSymbol: stockSymbol || formData.stockSymbol,
@@ -145,7 +164,11 @@
 			return true;
 		} catch (err) {
 			console.error('Error saving parameters:', err);
-			error = err.message || 'Failed to save parameters';
+			const message =
+				typeof err === 'object' && err && 'message' in err && typeof err.message === 'string'
+					? err.message
+					: String(err);
+			error = message || 'Failed to save parameters';
 			return false;
 		} finally {
 			isSaving = false;
@@ -161,26 +184,30 @@
 		}
 	}
 
-	// Handle input changes
+	/**
+	 * @param {string} field
+	 * @param {CustomEvent<any>} event
+	 */
 	function handleInputChange(field, event) {
 		formData[field] = event.detail;
-		// Clear error for this field
 		if (formErrors[field]) {
 			formErrors[field] = null;
 		}
-		// Clear success/error messages when form is changed
 		successMessage = '';
 		error = '';
 	}
 
-	// Handle trade side change
+	/**
+	 * @param {Event} event
+	 */
 	function handleTradeSideChange(event) {
-		formData.tradeSide = event.target.value;
-		// Clear error for this field
+		const target = event.target;
+		if (target && typeof target.value === 'string') {
+			formData.tradeSide = target.value;
+		}
 		if (formErrors.tradeSide) {
 			formErrors.tradeSide = null;
 		}
-		// Clear success/error messages
 		successMessage = '';
 		error = '';
 	}
@@ -316,6 +343,56 @@
 				</div>
 				{#if formErrors.tradeSide}
 					<p class="mt-1 text-sm text-red-600">{formErrors.tradeSide}</p>
+				{/if}
+			</div>
+
+			<!-- Position Sizing Type -->
+			<div>
+				<label for="psType" class="block text-sm font-medium text-gray-700 mb-1">
+					Position Sizing Type
+					<span class="text-red-500">*</span>
+				</label>
+				<div class="mt-1">
+					<select
+						id="psType"
+						name="psType"
+						bind:value={formData.psType}
+						class="block w-full px-3 py-2 border {formErrors.psType
+							? 'border-red-300'
+							: 'border-gray-300'} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						disabled={readOnly}
+					>
+						<option value="FIXED">FIXED</option>
+						<option value="DYNAMIC">DYNAMIC</option>
+					</select>
+				</div>
+				{#if formErrors.psType}
+					<p class="mt-1 text-sm text-red-600">{formErrors.psType}</p>
+				{/if}
+			</div>
+
+			<!-- Entry Type -->
+			<div>
+				<label for="entryType" class="block text-sm font-medium text-gray-700 mb-1">
+					Entry Type
+					<span class="text-red-500">*</span>
+				</label>
+				<div class="mt-1">
+					<select
+						id="entryType"
+						name="entryType"
+						bind:value={formData.entryType}
+						class="block w-full px-3 py-2 border {formErrors.entryType
+							? 'border-red-300'
+							: 'border-gray-300'} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						disabled={readOnly}
+					>
+						<option value="1ST_ENTRY">1ST_ENTRY</option>
+						<option value="2_30_ENTRY">2_30_ENTRY</option>
+					</select>
+				</div>
+				{#if formErrors.entryType}
+					<p class="mt-1 text-sm text-red-600">{formErrors.entryType}</p>
 				{/if}
 			</div>
 

@@ -11,14 +11,18 @@
 	// State
 	let isLoading = false;
 	let error = '';
+	/** @type {Record<string, any>} */
 	let formErrors = {};
 
 	// Form data with defaults
+	/** @type {Record<string, string>} */
 	let formData = {
 		startingPrice: '',
 		stopLossPercentage: '',
-		riskAmount: 30, // Default risk amount
-		tradeSide: 'BUY' // Default to BUY
+		riskAmount: '30',
+		tradeSide: 'BUY',
+		psType: 'FIXED',
+		entryType: '1ST_ENTRY'
 	};
 
 	// Event dispatcher
@@ -43,7 +47,11 @@
 			});
 		} catch (err) {
 			console.error('Error in form submission:', err);
-			error = err.message || 'An error occurred during submission';
+			const message =
+				typeof err === 'object' && err && 'message' in err && typeof err.message === 'string'
+					? err.message
+					: String(err);
+			error = message || 'An error occurred during submission';
 		} finally {
 			isLoading = false;
 		}
@@ -58,27 +66,31 @@
 	}
 
 	// Handle input changes
+	/**
+	 * @param {string} field
+	 * @param {CustomEvent<any>} event
+	 */
 	function handleInputChange(field, event) {
-		console.log(`Input change for ${field}:`, event.detail);
 		formData[field] = event.detail;
-		console.log('Form data updated:', formData);
-		// Clear error for this field
 		if (formErrors[field]) {
 			formErrors[field] = null;
 		}
-
 		// Clear general error when form is changed
 		error = '';
 	}
 
 	// Handle trade side change
+	/**
+	 * @param {Event} event
+	 */
 	function handleTradeSideChange(event) {
-		formData.tradeSide = event.target.value;
-		// Clear error for this field
+		const target = event.target;
+		if (target && typeof target.value === 'string') {
+			formData.tradeSide = target.value;
+		}
 		if (formErrors.tradeSide) {
 			formErrors.tradeSide = null;
 		}
-
 		// Clear general error
 		error = '';
 	}
@@ -103,13 +115,12 @@
 				id="startingPrice"
 				name="startingPrice"
 				label="Starting Price"
-				value={formData.startingPrice}
+				value={String(formData.startingPrice ?? '')}
 				on:input={(e) => {
-					console.log('Input event:', e);
 					formData.startingPrice = e.detail;
 					formErrors.startingPrice = null;
 				}}
-				error={formErrors.startingPrice || ''}
+				error={String(formErrors.startingPrice ?? '')}
 				required={true}
 				min={0.01}
 				precision={2}
@@ -124,13 +135,12 @@
 				id="stopLossPercentage"
 				name="stopLossPercentage"
 				label="Stop Loss Percentage"
-				value={formData.stopLossPercentage}
+				value={String(formData.stopLossPercentage ?? '')}
 				on:input={(e) => {
-					console.log('Input event:', e);
 					formData.stopLossPercentage = e.detail;
 					formErrors.stopLossPercentage = null;
 				}}
-				error={formErrors.stopLossPercentage || ''}
+				error={String(formErrors.stopLossPercentage ?? '')}
 				required={true}
 				min={0.1}
 				max={5}
@@ -146,9 +156,9 @@
 				id="riskAmount"
 				name="riskAmount"
 				label="Risk Amount (₹)"
-				bind:value={formData.riskAmount}
+				value={String(formData.riskAmount ?? '')}
 				on:change={(e) => handleInputChange('riskAmount', e)}
-				error={formErrors.riskAmount || ''}
+				error={String(formErrors.riskAmount ?? '')}
 				required={true}
 				min={1}
 				precision={2}
@@ -169,9 +179,7 @@
 					name="tradeSide"
 					bind:value={formData.tradeSide}
 					on:change={handleTradeSideChange}
-					class={`block w-full px-3 py-2 border ${
-						formErrors.tradeSide ? 'border-red-300' : 'border-gray-300'
-					} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+					class={`block w-full px-3 py-2 border ${formErrors.tradeSide ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
 				>
 					<option value="BUY">BUY</option>
 					<option value="SELL">SELL</option>
@@ -179,6 +187,50 @@
 			</div>
 			{#if formErrors.tradeSide}
 				<p class="mt-1 text-sm text-red-600">{formErrors.tradeSide}</p>
+			{/if}
+		</div>
+
+		<!-- Position Sizing Type -->
+		<div>
+			<label for="psType" class="block text-sm font-medium text-gray-700 mb-1">
+				Position Sizing Type
+				<span class="text-red-500">*</span>
+			</label>
+			<div class="mt-1">
+				<select
+					id="psType"
+					name="psType"
+					bind:value={formData.psType}
+					class="block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+				>
+					<option value="FIXED">FIXED</option>
+					<option value="DYNAMIC">DYNAMIC</option>
+				</select>
+			</div>
+			{#if formErrors.psType}
+				<p class="mt-1 text-sm text-red-600">{formErrors.psType}</p>
+			{/if}
+		</div>
+
+		<!-- Entry Type -->
+		<div>
+			<label for="entryType" class="block text-sm font-medium text-gray-700 mb-1">
+				Entry Type
+				<span class="text-red-500">*</span>
+			</label>
+			<div class="mt-1">
+				<select
+					id="entryType"
+					name="entryType"
+					bind:value={formData.entryType}
+					class="block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+				>
+					<option value="1ST_ENTRY">1ST_ENTRY</option>
+					<option value="2_30_ENTRY">2_30_ENTRY</option>
+				</select>
+			</div>
+			{#if formErrors.entryType}
+				<p class="mt-1 text-sm text-red-600">{formErrors.entryType}</p>
 			{/if}
 		</div>
 

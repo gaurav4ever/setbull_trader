@@ -34,6 +34,8 @@ type Server struct {
 	stockUniverseService    *service.StockUniverseService
 	candleProcessingService *service.CandleProcessingService
 	stockFilterPipeline     *service.StockFilterPipeline
+	marketQuoteService      *service.MarketQuoteService
+	stockGroupHandler       *StockGroupHandler
 }
 
 // NewServer creates a new REST API server
@@ -50,6 +52,8 @@ func NewServer(
 	stockUniverseService *service.StockUniverseService,
 	candleProcessingService *service.CandleProcessingService,
 	stockFilterPipeline *service.StockFilterPipeline,
+	marketQuoteService *service.MarketQuoteService,
+	stockGroupHandler *StockGroupHandler,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -66,6 +70,8 @@ func NewServer(
 		candleProcessingService: candleProcessingService,
 		validator:               validator.New(),
 		stockFilterPipeline:     stockFilterPipeline,
+		marketQuoteService:      marketQuoteService,
+		stockGroupHandler:       stockGroupHandler,
 	}
 
 	s.setupRoutes()
@@ -147,8 +153,16 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/filter-pipeline/run", s.RunFilterPipeline).Methods(http.MethodPost)
 	api.HandleFunc("/filter-pipeline/fetch/top-10", s.GetTop10FilteredStocks).Methods(http.MethodGet)
 
-	// Get latest Market quotes
-	api.HandleFunc("/market/quotes", s.GetLatestMarketQuotes).Methods(http.MethodGet)
+	// Post market quotes
+	api.HandleFunc("/market/quotes", s.PostMarketQuotes).Methods(http.MethodPost)
+
+	// Stock group routes
+	api.HandleFunc("/groups", s.stockGroupHandler.CreateGroup).Methods(http.MethodPost)
+	api.HandleFunc("/groups", s.stockGroupHandler.ListGroups).Methods(http.MethodGet)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.GetGroup).Methods(http.MethodGet)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.EditGroup).Methods(http.MethodPut)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.DeleteGroup).Methods(http.MethodDelete)
+	api.HandleFunc("/groups/{id}/execute", s.stockGroupHandler.ExecuteGroup).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface
@@ -654,4 +668,53 @@ func (s *Server) GetTop10FilteredStocks(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondSuccess(w, top10Stocks)
+}
+
+// PostMarketQuotes handles POST /market/quotes
+//
+// Request body can include either instrumentKeys (for instrument_key lookup) or symbols (for symbol lookup).
+// keyType can be 'instrument_key' or 'symbol'. If not provided, defaults to 'instrument_key'.
+// Example:
+//
+//	{
+//	  "instrumentKeys": ["NSE_EQ:RELIANCE"],
+//	  "interval": "1min",
+//	  "keyType": "instrument_key"
+//	}
+//
+// or
+//
+//	{
+//	  "symbols": ["RELIANCE"],
+//	  "interval": "1min",
+//	  "keyType": "symbol"
+//	}
+func (s *Server) PostMarketQuotes(w http.ResponseWriter, r *http.Request) {
+	var req request.MarketQuotesRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+	if err := s.validator.Struct(req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+	// Extract userID from header or context (assume header for now)
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		respondWithError(w, http.StatusBadRequest, "User ID is required in X-User-Id header")
+		return
+	}
+
+	var keys []string
+	keyType := req.KeyType
+	if keyType == "symbol" {
+		keys = req.Symbols
+	} else {
+		keyType = "instrument_key" // default
+		keys = req.InstrumentKeys
+	}
+
+	resp := s.marketQuoteService.GetQuotes(r.Context(), userID, keys, req.Interval, keyType, s.stockUniverseService)
+	respondSuccess(w, resp)
 }
