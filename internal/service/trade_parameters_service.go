@@ -105,5 +105,13 @@ func (s *TradeParametersService) validateParameters(params *domain.TradeParamete
 		return errors.New("trade side must be either BUY or SELL")
 	}
 
+	if params.PSType != "FIXED" && params.PSType != "DYNAMIC" {
+		return errors.New("psType must be either FIXED or DYNAMIC")
+	}
+
+	if params.EntryType != "1ST_ENTRY" && params.EntryType != "2_30_ENTRY" {
+		return errors.New("entryType must be either 1ST_ENTRY or 2_30_ENTRY")
+	}
+
 	return nil
 }

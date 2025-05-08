@@ -1,7 +1,9 @@
 package request
 
 type MarketQuotesRequest struct {
-	InstrumentKeys []string `json:"instrumentKeys" validate:"required,min=1,dive,required"`
+	InstrumentKeys []string `json:"instrumentKeys,omitempty" validate:"omitempty,min=1,dive,required"`
+	Symbols        []string `json:"symbols,omitempty" validate:"omitempty,min=1,dive,required"`
+	KeyType        string   `json:"keyType,omitempty" validate:"omitempty,oneof=symbol instrument_key"`
 	Interval       string   `json:"interval,omitempty"`
 }
 

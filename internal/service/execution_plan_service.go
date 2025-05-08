@@ -97,63 +97,112 @@ func (s *ExecutionPlanService) CreateExecutionPlan(ctx context.Context, stockID 
 		return nil, fmt.Errorf("failed to create execution plan: %w", err)
 	}
 
-	// Create level entries
-	levelEntries := s.calculateLevelEntries(fibLevels, plan.ID, totalQuantity)
+	// Create level entries with new logic for PSType
+	levelEntries := s.calculateLevelEntriesWithPSType(fibLevels, plan.ID, totalQuantity, params)
 	err = s.levelEntryRepo.CreateMany(ctx, levelEntries)
 	if err != nil {
 		// Rollback execution plan creation
 		_ = s.executionPlanRepo.Delete(ctx, plan.ID)
 		return nil, fmt.Errorf("failed to create level entries: %w", err)
 	}
-
-	// Set level entries on the plan for return
 	plan.LevelEntries = levelEntries
 
 	return plan, nil
 }
 
-// calculateLevelEntries converts execution levels to level entries with quantities
-func (s *ExecutionPlanService) calculateLevelEntries(
+// calculateLevelEntriesWithPSType creates level entries based on PSType (FIXED/DYNAMIC)
+func (s *ExecutionPlanService) calculateLevelEntriesWithPSType(
 	fibLevels []domain.ExecutionLevel,
 	planID string,
 	totalQuantity int,
+	params *domain.TradeParameters,
 ) []domain.LevelEntry {
-	// Calculate quantity per leg (distribute across 5 entry legs)
-	legCount := 5
-	baseQtyPerLeg := totalQuantity / legCount
-
-	// Distribute remainders
-	remainder := totalQuantity % legCount
-
-	// Create level entries with quantities
-	levelEntries := make([]domain.LevelEntry, 0, len(fibLevels))
-
-	for i, level := range fibLevels {
-		entry := domain.LevelEntry{
+	entries := []domain.LevelEntry{}
+	if params.PSType == "FIXED" {
+		// 1 main ENTRY at starting price (fibLevels[1]), 5 SCALE (10% each), 1 SL (fibLevels[0])
+		mainQty := totalQuantity
+		scaleQty := int(math.Round(float64(mainQty) * 0.10))
+		// ENTRY (main)
+		entries = append(entries, domain.LevelEntry{
 			ID:              uuid.New().String(),
 			ExecutionPlanID: planID,
-			FibLevel:        level.Level,
-			Price:           level.Price,
-			Description:     level.Description,
+			FibLevel:        fibLevels[1].Level,
+			Price:           fibLevels[1].Price,
+			Quantity:        mainQty,
+			Description:     "Main Entry",
+			PSType:          "FIXED",
+			EntryDesc:       "ENTRY",
+			Active:          true,
+		})
+		// SCALE entries (fibLevels[2:6])
+		for i := 2; i < len(fibLevels); i++ {
+			entries = append(entries, domain.LevelEntry{
+				ID:              uuid.New().String(),
+				ExecutionPlanID: planID,
+				FibLevel:        fibLevels[i].Level,
+				Price:           fibLevels[i].Price,
+				Quantity:        scaleQty,
+				Description:     fibLevels[i].Description,
+				PSType:          "FIXED",
+				EntryDesc:       "SCALE",
+				Active:          true,
+			})
 		}
-
-		if i == 0 {
-			// Stop loss level has no quantity
-			entry.Quantity = 0
-		} else {
-			// Calculate quantity for this leg
-			entry.Quantity = baseQtyPerLeg
-
-			// Distribute remainder (if any) to early legs
-			if i-1 < remainder {
-				entry.Quantity++
+		// SL entry (fibLevels[0])
+		entries = append(entries, domain.LevelEntry{
+			ID:              uuid.New().String(),
+			ExecutionPlanID: planID,
+			FibLevel:        fibLevels[0].Level,
+			Price:           fibLevels[0].Price,
+			Quantity:        mainQty,
+			Description:     fibLevels[0].Description,
+			PSType:          "FIXED",
+			EntryDesc:       "SL",
+			Active:          true,
+		})
+	} else {
+		// DYNAMIC: use current logic, but set PSType and EntryDesc
+		legCount := 5
+		baseQtyPerLeg := totalQuantity / legCount
+		remainder := totalQuantity % legCount
+		for i, level := range fibLevels {
+			entry := domain.LevelEntry{
+				ID:              uuid.New().String(),
+				ExecutionPlanID: planID,
+				FibLevel:        level.Level,
+				Price:           level.Price,
+				Description:     level.Description,
+				PSType:          "DYNAMIC",
+				Active:          true,
 			}
+			if i == 0 {
+				// Make SL quantity same as 1st entry quantity, from i==1
+				entry.Quantity = baseQtyPerLeg + remainder
+				entry.EntryDesc = "SL"
+			} else {
+				entry.Quantity = baseQtyPerLeg
+				if i-1 < remainder {
+					entry.Quantity++
+				}
+				entry.EntryDesc = "ENTRY"
+			}
+			entries = append(entries, entry)
 		}
 
-		levelEntries = append(levelEntries, entry)
+		// Stop loss entry
+		entries = append(entries, domain.LevelEntry{
+			ID:              uuid.New().String(),
+			ExecutionPlanID: planID,
+			FibLevel:        fibLevels[0].Level,
+			Price:           fibLevels[0].Price,
+			Quantity:        baseQtyPerLeg,
+			Description:     fibLevels[0].Description,
+			PSType:          "DYNAMIC",
+			EntryDesc:       "SL",
+			Active:          true,
+		})
 	}
-
-	return levelEntries
+	return entries
 }
 
 // GetExecutionPlanByID retrieves an execution plan by ID with all related data

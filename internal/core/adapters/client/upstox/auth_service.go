@@ -436,7 +436,12 @@ func (s *AuthService) waitForRateLimit(ctx context.Context) error {
 
 // GetMarketQuote fetches OHLC market quotes for the given instrumentKeys from Upstox.
 // Returns a map of instrumentKey to Ohlc, a map of instrumentKey to error string (for failures), and an error for fatal issues.
-func (s *AuthService) GetMarketQuote(ctx context.Context, userID string, instrumentKeys []string, interval string) (map[string]Ohlc, map[string]string, error) {
+func (s *AuthService) GetMarketQuote(
+	ctx context.Context,
+	userID string,
+	instrumentKeys []string,
+	newKeys []string,
+	interval string) (map[string]Ohlc, map[string]string, error) {
 	if interval == "" {
 		interval = "1min"
 	}
@@ -470,7 +475,7 @@ func (s *AuthService) GetMarketQuote(ctx context.Context, userID string, instrum
 	// Step 4: Map results
 	data := make(map[string]Ohlc)
 	errorsMap := make(map[string]string)
-	for _, key := range instrumentKeys {
+	for _, key := range newKeys {
 		symbol, ok := resp.Data[key]
 		if !ok || symbol.Ohlc == nil {
 			errorsMap[key] = "No OHLC data returned"

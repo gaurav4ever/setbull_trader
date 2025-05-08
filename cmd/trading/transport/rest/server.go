@@ -660,6 +660,24 @@ func (s *Server) GetTop10FilteredStocks(w http.ResponseWriter, r *http.Request) 
 }
 
 // PostMarketQuotes handles POST /market/quotes
+//
+// Request body can include either instrumentKeys (for instrument_key lookup) or symbols (for symbol lookup).
+// keyType can be 'instrument_key' or 'symbol'. If not provided, defaults to 'instrument_key'.
+// Example:
+//
+//	{
+//	  "instrumentKeys": ["NSE_EQ:RELIANCE"],
+//	  "interval": "1min",
+//	  "keyType": "instrument_key"
+//	}
+//
+// or
+//
+//	{
+//	  "symbols": ["RELIANCE"],
+//	  "interval": "1min",
+//	  "keyType": "symbol"
+//	}
 func (s *Server) PostMarketQuotes(w http.ResponseWriter, r *http.Request) {
 	var req request.MarketQuotesRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -676,6 +694,16 @@ func (s *Server) PostMarketQuotes(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "User ID is required in X-User-Id header")
 		return
 	}
-	resp := s.marketQuoteService.GetQuotes(r.Context(), userID, req.InstrumentKeys, req.Interval)
+
+	var keys []string
+	keyType := req.KeyType
+	if keyType == "symbol" {
+		keys = req.Symbols
+	} else {
+		keyType = "instrument_key" // default
+		keys = req.InstrumentKeys
+	}
+
+	resp := s.marketQuoteService.GetQuotes(r.Context(), userID, keys, req.Interval, keyType, s.stockUniverseService)
 	respondSuccess(w, resp)
 }
