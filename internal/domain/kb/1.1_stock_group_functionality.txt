@@ -1,0 +1,190 @@
+You want a "stock group" feature where each group is defined by an entry_type, can contain up to three stocks, and only one group can be traded at a time (triggering orders for all stocks in that group). You want a product requirement and use case analysis for this feature.
+Restated Query:
+You are asking for a product requirement document and use case analysis for a "stock group" feature, where groups are based on entry_type, each group can have up to three stocks, and trading a group means placing orders for all its stocks at once. You want to understand the requirements, edge cases, and possible execution flows for group creation and trading.
+Product Requirement: Stock Group Creation & Execution
+1. Feature Overview
+ - Users can create "stock groups" for trading.
+ - Each group is associated with a single entry_type (e.g., "1ST_ENTRY", "2_30_ENTRY").
+ - Each group can contain up to 5 stocks.
+
+Executing a group places orders for all stocks in that group simultaneously.
+2. Core Functionalities
+Group Creation:
+User selects an entry_type and up to 5 stocks to form a group.
+System validates that no stock is in more than one active group for the same entry_type.
+Group is saved and can be viewed/edited/deleted.
+
+
+Group Management:
+List all groups, filter by entry_type, status (active/inactive), or stocks.
+Edit group (change stocks, change entry_type).
+Delete group.
+
+Group Execution:
+User can "execute" a group (only one group can be executed at a time).
+System places orders for all stocks in the group, using the parameters associated with each stock and the group's entry_type.
+Another group can be executed after that, as I want to trade different entry types in different times for a group of stocks.
+
+Group Status:
+Group can be "pending", "executing", "completed", or "failed".
+Show execution results for each stock in the group.
+
+3. Business Rules & Constraints
+Maximum 5 stocks per group.
+Each group is uniquely identified by its entry_type and stocks.
+A stock cannot be in more than one active group for the same entry_type.
+Only one group can be executed at a time (circuit breaker).
+Orders must be placed atomically for all stocks in the group (all-or-nothing, or rollback on partial failure).
+Group execution must be logged and auditable.
+
+4. Edge Cases & Failure Modes
+Attempt to add a 6th stock to a group: show error.
+Attempt to execute a group while another is executing: block and notify.
+One or more stocks in a group become ineligible (e.g., delisted, insufficient funds): prevent execution, show reason.
+Partial order failures: rollback or mark group as "failed", show which stocks failed.
+Duplicate group creation (same stocks, same entry_type): prevent or merge.
+5. User Stories / Use Cases
+Create Group:
+As a user, I want to create a group for "1ST_ENTRY" entry type with three stocks, so I can trade them together.
+Edit Group:
+As a user, I want to change the stocks in a group before execution.
+Delete Group:
+As a user, I want to remove a group I no longer need.
+Execute Group:
+As a user, I want to execute a group and place orders for all its stocks at once.
+View Execution Status:
+As a user, I want to see which stocks in the group were successfully ordered and which failed.
+Prevent Overlap:
+As a user, I want to be prevented from adding the same stock to multiple groups for the same entry type.
+Single Active Execution:
+As a user, I want to be prevented from executing multiple groups at the same time.
+6. Possible Extensions
+Allow scheduling group execution for a future time.
+Allow group templates for recurring strategies.
+Support for group-level risk management (e.g., max total risk per group).
+Next Steps:
+Would you like a high-level design (HLD) and low-level design (LLD) for this feature, or do you want to discuss the API/data model first?
+Let me know if you want to proceed with "DESIGN FIRST" or implementation planning.
+Sources:
+Analysis based on your domain models and requirements provided above.
+Industry best practices for group trading and order management systems.
+
+
+==========================================================
+
+
+
+Direct Answer:
+I will analyze the three files for the latest requirements/context, then provide a high-level design (HLD), low-level design (LLD), and a phase-wise implementation plan for the "stock group" feature, following your DESIGN FIRST protocol.
+1. Context Analysis
+a. @1.1_stock_group_functionality.txt
+Stock groups are defined by entry_type.
+Each group can have up to 5 stocks (latest requirement, not 3).
+Only one group can be executed at a time (circuit breaker).
+Orders for all stocks in a group are placed atomically.
+Groups can be created, edited, deleted, listed, and executed.
+Group status: pending, executing, completed, failed.
+Edge cases: max stocks, duplicate groups, ineligible stocks, partial failures, etc.
+Possible extensions: scheduling, templates, group-level risk.
+b. @models.go
+Domain models for Stock, TradeParameters, LevelEntry, ExecutionPlan, OrderExecution, etc.
+No current model for "StockGroup".
+Each stock has an entryType via TradeParameters.
+Execution logic and status tracking are present for individual stocks/orders.
+c. @current_directory_structure.txt
+Clean separation of domain, repository, service, and transport layers.
+REST handlers for stocks, execution plans, order executions, etc.
+Repositories for each entity.
+Follows layered architecture and project rules.
+2. High-Level Design (HLD)
+A. New Concepts
+StockGroup: A new entity representing a group of up to 5 stocks, all sharing the same entry_type.
+Group Execution: A process that places orders for all stocks in a group atomically, with status tracking.
+B. Main Components
+Domain Model:
+StockGroup struct with fields: ID, EntryType, StockIDs, Status, CreatedAt, UpdatedAt.
+Status enum: pending, executing, completed, failed.
+Repository Layer:
+CRUD operations for StockGroup.
+Query for active/executing groups.
+Service Layer:
+Business logic for group creation, validation, execution, and status management.
+Circuit breaker to prevent multiple concurrent executions.
+Transport Layer (REST API):
+Endpoints for group CRUD, list, and execute.
+Execution endpoint triggers atomic order placement for all stocks in the group.
+Execution Logic:
+Place orders for all stocks in a group using their TradeParameters.
+Rollback or mark as failed on partial failure.
+Log and audit all group executions.
+C. Key Flows
+Create Group: Validate entry_type, max 5 stocks, uniqueness, and save.
+Edit/Delete Group: Update or remove group, with validation.
+List Groups: Filter by entry_type, status, stocks.
+Execute Group: Check circuit breaker, place all orders, update status, handle failures atomically.
+3. Low-Level Design (LLD)
+A. Domain Model Example
+Use a join table if you want to support more metadata per stock in group.
+B. Repository
+CreateStockGroup(group *StockGroup) error
+GetStockGroupByID(id string) (*StockGroup, error)
+ListStockGroups(filter ...) ([]StockGroup, error)
+UpdateStockGroup(group *StockGroup) error
+DeleteStockGroup(id string) error
+GetActiveOrExecutingGroup() (*StockGroup, error)
+C. Service
+CreateGroup(entryType string, stockIDs []string) error
+EditGroup(id string, ...) error
+DeleteGroup(id string) error
+ExecuteGroup(id string) error
+Validate only one group executing.
+Fetch TradeParameters for each stock.
+Place orders atomically.
+Update group and order statuses.
+D. REST API
+POST /groups (create)
+GET /groups (list)
+GET /groups/{id} (details)
+PUT /groups/{id} (edit)
+DELETE /groups/{id} (delete)
+POST /groups/{id}/execute (execute group)
+E. Execution Logic
+Use transaction or distributed lock for atomicity.
+On failure, rollback or mark group as failed.
+Log all actions for audit.
+F. Edge Case Handling
+Prevent >5 stocks per group.
+Prevent duplicate groups (same stocks, entry_type).
+Prevent execution if another group is executing.
+Handle ineligible stocks gracefully.
+4. Phase-wise Implementation Plan
+Phase 1: Domain Model & Repository
+Files: internal/domain/stock_group.go, internal/repository/postgres/stock_group_repository.go
+Deliverables: StockGroup struct, DB schema, repository CRUD.
+Phase 2: Service Layer
+Files: internal/service/stock_group_service.go
+Deliverables: Business logic for group creation, validation, execution, status management.
+Phase 3: REST API
+Files: cmd/trading/transport/rest/stock_group_handlers.go, update server.go
+Deliverables: Endpoints for group CRUD, list, execute.
+Phase 4: Execution Logic & Integration
+Files: Update order_execution_service.go, integrate with group execution.
+Deliverables: Atomic order placement, rollback/failure handling, logging.
+Phase 5: Tests & Documentation
+Files: internal/service/stock_group_service_test.go, API docs, migration scripts.
+Deliverables: Unit/integration tests, API documentation, DB migration for new table.
+5. Request for Confirmation
+Is this phase-wise plan and design approach acceptable?
+Would you like to adjust the max stocks per group (3 vs 5)?
+Any additional business rules or fields for StockGroup?
+Once you confirm, I will present the detailed plan for Phase 1 (Domain Model & Repository) and request permission to implement.
+Reasoning & Methodology:
+The design follows your layered architecture, domain-driven approach, and project rules.
+Each phase is limited to 1-2 files for clarity and review.
+All edge cases and business rules from your requirements are addressed.
+The design is extensible for future features (scheduling, templates, group risk).
+Sources:
+1.1_stock_group_functionality.txt (latest requirements)
+models.go (current domain models)
+current_directory_structure.txt (project structure and layering)
+

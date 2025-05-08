@@ -35,6 +35,7 @@ type Server struct {
 	candleProcessingService *service.CandleProcessingService
 	stockFilterPipeline     *service.StockFilterPipeline
 	marketQuoteService      *service.MarketQuoteService
+	stockGroupHandler       *StockGroupHandler
 }
 
 // NewServer creates a new REST API server
@@ -52,6 +53,7 @@ func NewServer(
 	candleProcessingService *service.CandleProcessingService,
 	stockFilterPipeline *service.StockFilterPipeline,
 	marketQuoteService *service.MarketQuoteService,
+	stockGroupHandler *StockGroupHandler,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -69,6 +71,7 @@ func NewServer(
 		validator:               validator.New(),
 		stockFilterPipeline:     stockFilterPipeline,
 		marketQuoteService:      marketQuoteService,
+		stockGroupHandler:       stockGroupHandler,
 	}
 
 	s.setupRoutes()
@@ -152,6 +155,14 @@ func (s *Server) setupRoutes() {
 
 	// Post market quotes
 	api.HandleFunc("/market/quotes", s.PostMarketQuotes).Methods(http.MethodPost)
+
+	// Stock group routes
+	api.HandleFunc("/groups", s.stockGroupHandler.CreateGroup).Methods(http.MethodPost)
+	api.HandleFunc("/groups", s.stockGroupHandler.ListGroups).Methods(http.MethodGet)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.GetGroup).Methods(http.MethodGet)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.EditGroup).Methods(http.MethodPut)
+	api.HandleFunc("/groups/{id}", s.stockGroupHandler.DeleteGroup).Methods(http.MethodDelete)
+	api.HandleFunc("/groups/{id}/execute", s.stockGroupHandler.ExecuteGroup).Methods(http.MethodPost)
 }
 
 // ServeHTTP implements the http.Handler interface

@@ -16,6 +16,7 @@
 │   └── 5_next_week.txt
 ├── Makefile
 ├── README.md
+├── __debug_bin466905119
 ├── application.dev.yaml
 ├── application.yaml
 ├── cmd/
@@ -65,6 +66,7 @@
 │   │   │       │   └── models.go
 │   │   │       └── upstox/
 │   │   │           ├── auth_service.go
+│   │   │           ├── auth_service_test.go
 │   │   │           ├── config.go
 │   │   │           ├── kb/
 │   │   │           │   └── 1.authentication.txt
@@ -72,9 +74,11 @@
 │   │   ├── constant/
 │   │   ├── dto/
 │   │   │   ├── request/
+│   │   │   │   ├── market_quotes.go
 │   │   │   │   └── orders.go
 │   │   │   └── response/
 │   │   │       ├── filter_pipeline.go
+│   │   │       ├── market_quotes.go
 │   │   │       └── orders.go
 │   │   └── service/
 │   │       └── orders/
@@ -83,10 +87,13 @@
 │   │   ├── candle.go
 │   │   ├── filtered_stock.go
 │   │   ├── indicator.go
+│   │   ├── kb/
+│   │   │   └── 1.1_stock_group_functionality.txt
 │   │   ├── mamba_types.go
 │   │   ├── models.go
 │   │   ├── sequence_metrics.go
 │   │   ├── stock_filter.go
+│   │   ├── stock_group.go
 │   │   ├── stock_universe.go
 │   │   └── utility.go
 │   ├── repository/
@@ -97,6 +104,7 @@
 │   │       ├── filtered_stock_repository.go
 │   │       ├── level_entry_repository.go
 │   │       ├── order_execution_repository.go
+│   │       ├── stock_group_repository.go
 │   │       ├── stock_repository.go
 │   │       ├── stock_universe_repository.go
 │   │       └── trade_parameters_repository.go
@@ -108,7 +116,10 @@
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
+│   │   ├── kb/
+│   │   │   └── 1.1
 │   │   ├── mamba_filter.go
+│   │   ├── market_quote_service.go
 │   │   ├── move_analyzer.go
 │   │   ├── normalizer/
 │   │   │   └── stock_normalizer.go
@@ -149,6 +160,7 @@
 │   │   ├── gocache.go
 │   │   └── redis.go
 │   ├── database/
+│   │   ├── context.txt
 │   │   ├── database.go
 │   │   ├── migration.go
 │   │   ├── migrations/
@@ -165,7 +177,11 @@
 │   │   │   ├── 20250406123051_create_filtered_stock_table.down.sql
 │   │   │   ├── 20250406123051_create_filtered_stock_table.up.sql
 │   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.down.sql
-│   │   │   └── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
+│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.down.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.up.sql
+│   │   │   ├── 20250711120000_create_stock_group_tables.down.sql
+│   │   │   └── 20250711120000_create_stock_group_tables.up.sql
 │   │   └── queries/
 │   │       ├── stock_candle_data_1day_aggregation.sql
 │   │       └── stock_candle_data_5min_aggregation.sql
