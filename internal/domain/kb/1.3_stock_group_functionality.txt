@@ -1,0 +1,35 @@
+You want the following enhancements for the group list page (groups/+page.svelte):
+Edit Group:
+Implement an edit modal in the page (not a separate route).
+On "Edit", open the modal pre-filled with group data, allow editing stocks/entry type, and call the PUT /groups/{id} API.
+On success, update the group in the UI without a full refresh.
+Delete Group:
+On "Delete", call the DELETE /groups/{id} API.
+On success, gracefully remove the group from the UI (no refresh).
+On error, show an error message.
+Add Group Enhancement:
+After creating a group (POST), add it to the UI immediately (no refresh), using the response from the API.
+
+Restated Query:
+You want full CRUD (create, edit, delete) for stock groups, with all UI updates happening live (no page reloads), using the REST API endpoints as defined in server.go.
+Implementation Plan
+Files to Update:
+frontend/src/routes/groups/+page.svelte
+frontend/src/lib/components/StockGroupForm.svelte (for edit mode, if needed)
+frontend/src/lib/services/stockGroupService.js (ensure edit/delete methods exist)
+Steps:
+Edit Modal:
+Add state for editingGroup and showEditModal.
+On "Edit", open modal with group data.
+On submit, call editGroup(id, stockIds) API.
+On success, update the group in the local list.
+Delete Group:
+On "Delete", call deleteGroup(id) API.
+On success, remove the group from the local list.
+On error, show error message.
+Add Group Enhancement:
+After successful creation, add the new group to the local list (using the API response).
+UI/UX:
+Show loading and error states for edit/delete.
+Disable buttons during API calls.
+Animate add/remove for smoothness.

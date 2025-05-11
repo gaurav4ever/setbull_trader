@@ -1,0 +1,74 @@
+.
+├── README.md
+├── current_directory_structure.txt
+├── e2e
+│   └── demo.test.ts
+├── eslint.config.js
+├── package-lock.json
+├── package.json
+├── playwright.config.ts
+├── postcss.config.js
+├── src
+│   ├── app.css
+│   ├── app.d.ts
+│   ├── app.html
+│   ├── demo.spec.ts
+│   ├── lib
+│   │   ├── actions
+│   │   │   └── clickOutside.js
+│   │   ├── components
+│   │   │   ├── Autocomplete.svelte
+│   │   │   ├── EnhancedStockSelector.svelte
+│   │   │   ├── ExecutionControl.svelte
+│   │   │   ├── ExecutionLevelDisplay.svelte
+│   │   │   ├── ExecutionResults.svelte
+│   │   │   ├── Modal.svelte
+│   │   │   ├── StockCard.svelte
+│   │   │   ├── StockGroupForm.svelte
+│   │   │   ├── StockParameterForm.svelte
+│   │   │   ├── StockSelector.svelte
+│   │   │   ├── TradingParameters.svelte
+│   │   │   └── ui
+│   │   │       └── NumericInput.svelte
+│   │   ├── config
+│   │   │   └── api.js
+│   │   ├── index.ts
+│   │   ├── services
+│   │   │   ├── apiService.js
+│   │   │   ├── calculationService.js
+│   │   │   ├── executionService.js
+│   │   │   ├── stockGroupService.js
+│   │   │   └── stocksService.js
+│   │   ├── stores
+│   │   │   ├── executionStatus.js
+│   │   │   ├── selectedStocks.js
+│   │   │   └── stockGroupsStore.js
+│   │   └── utils
+│   │       ├── formatting.js
+│   │       ├── stockFormatting.js
+│   │       └── validation.js
+│   └── routes
+│       ├── +layout.svelte
+│       ├── +page.svelte
+│       ├── groups
+│       │   ├── +page.svelte
+│       │   └── [id]
+│       │       └── +page.svelte
+│       ├── order
+│       │   ├── +page.svelte
+│       │   ├── cancel
+│       │   │   └── +page.svelte
+│       │   └── modify
+│       │       └── +page.svelte
+│       ├── page.svelte.test.ts
+│       └── trades
+│           ├── +page.svelte
+│           └── history
+│               └── +page.svelte
+├── static
+│   ├── favicon.png
+│   └── nse_stocks.txt
+├── svelte.config.js
+├── tailwind.config.js
+├── tsconfig.json
+├── vite.config.ts
