@@ -11,11 +11,18 @@ import (
 )
 
 type StockGroupHandler struct {
-	Service *service.StockGroupService
+	Service              *service.StockGroupService
+	StockUniverseService *service.StockUniverseService
 }
 
-func NewStockGroupHandler(svc *service.StockGroupService) *StockGroupHandler {
-	return &StockGroupHandler{Service: svc}
+func NewStockGroupHandler(
+	svc *service.StockGroupService,
+	stockUniverseService *service.StockUniverseService,
+) *StockGroupHandler {
+	return &StockGroupHandler{
+		Service:              svc,
+		StockUniverseService: stockUniverseService,
+	}
 }
 
 type createGroupRequest struct {
@@ -67,7 +74,12 @@ func (h *StockGroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) 
 func (h *StockGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
 	entryType := r.URL.Query().Get("entryType")
 	status := domain.StockGroupStatus(strings.ToUpper(r.URL.Query().Get("status")))
-	groups, err := h.Service.ListGroups(r.Context(), entryType, status)
+	groups, err := h.Service.ListGroupsEnriched(
+		r.Context(),
+		entryType,
+		status,
+		h.StockUniverseService,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -77,7 +89,12 @@ func (h *StockGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
 
 func (h *StockGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	group, err := h.Service.ListGroups(r.Context(), "", "")
+	group, err := h.Service.ListGroupsEnriched(
+		r.Context(),
+		"",
+		domain.GroupPending,
+		h.StockUniverseService,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -93,9 +110,19 @@ func (h *StockGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 func (h *StockGroupHandler) ExecuteGroup(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	if err := h.Service.ExecuteGroup(r.Context(), id); err != nil {
+	group, err := h.Service.ListGroupsEnriched(
+		r.Context(),
+		"",
+		domain.GroupPending,
+		h.StockUniverseService,
+	)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	for _, stock := range group.Stocks {
+		// here stock id, symbol, instryment_key and exchange token are present.
+		//
+	}
+	w.WriteHeader(http.StatusNotFound)
 }

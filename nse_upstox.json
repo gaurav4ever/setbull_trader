@@ -73749,6 +73749,21 @@
     "security_type": "NORMAL"
   },
   {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY 50",
+    "exchange": "NSE",
+    "isin": "",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY 50",
+    "lot_size": 1,
+    "freeze_quantity": 0,
+    "exchange_token": "",
+    "tick_size": 0.05,
+    "trading_symbol": "NIFTY 50",
+    "short_name": "NIFTY",
+    "security_type": "INDEX"
+  },
+  {
     "segment": "NSE_EQ",
     "name": "2.50%GOLDBONDS2027SR-V",
     "exchange": "NSE",

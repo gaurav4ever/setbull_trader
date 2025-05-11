@@ -164,7 +164,7 @@ func NewApp() *App {
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)
 	stockGroupService := service.NewStockGroupService(stockGroupRepo, orderExecutionService, stockService)
-	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService)
+	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService)
 
 	restServer := rest.NewServer(
 		orderService,

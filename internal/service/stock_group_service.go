@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	dto "setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository/postgres"
 
@@ -148,4 +149,49 @@ func sameStocks(existing []domain.StockGroupStock, ids []string) bool {
 		}
 	}
 	return true
+}
+
+func (s *StockGroupService) ListGroupsEnriched(
+	ctx context.Context,
+	entryType string,
+	status domain.StockGroupStatus,
+	universeService *StockUniverseService,
+) ([]dto.StockGroupResponse, error) {
+	groups, err := s.ListGroups(ctx, entryType, status)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.StockGroupResponse
+	for _, group := range groups {
+		var stocks []dto.StockGroupStockDTO
+		for _, stockRef := range group.Stocks {
+			stockDTO := dto.StockGroupStockDTO{
+				StockID: stockRef.StockID,
+			}
+			// Get symbol
+			stock, err := s.stockService.GetStockByID(ctx, stockRef.StockID)
+			if err == nil && stock != nil {
+				stockDTO.Symbol = stock.Symbol
+				// Get instrument key and exchange token from universe
+				if universeService != nil {
+					univ, err := universeService.GetStockBySymbol(ctx, stock.Symbol)
+					if err == nil && univ != nil {
+						stockDTO.InstrumentKey = univ.InstrumentKey
+						stockDTO.ExchangeToken = univ.ExchangeToken
+					}
+				}
+			}
+			stocks = append(stocks, stockDTO)
+		}
+		result = append(result, dto.StockGroupResponse{
+			ID:        group.ID,
+			EntryType: group.EntryType,
+			Status:    string(group.Status),
+			CreatedAt: group.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: group.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			Stocks:    stocks,
+		})
+	}
+	return result, nil
 }
