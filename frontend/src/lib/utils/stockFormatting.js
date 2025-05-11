@@ -18,6 +18,28 @@ export const formatStockForDisplay = (stock) => {
 };
 
 /**
+ * Formats a stock for display in stock group form
+ * @param {Object} stock - Stock object with symbol and securityId
+ * @returns {string} - Formatted display string
+ */
+export const formatStockForStockGroupDisplay = (stock) => {
+    if (!stock) return '';
+
+    // If security ID is the same as symbol (old format), just show symbol
+    if (stock.instrument_key === stock.symbol) {
+        return stock.symbol;
+    }
+
+    // if instrument_key is undefined, show symbol
+    if (!stock.instrument_key) {
+        return `${stock.symbol} - ${stock.securityId}`;
+    }
+
+    // Otherwise show "SYMBOL - INSTRUMENT_KEY"
+    return `${stock.symbol} - ${stock.instrument_key}`;
+};
+
+/**
  * Extracts symbol from a formatted stock display string
  * @param {string} displayString - Formatted stock display string
  * @returns {string} - Stock symbol

@@ -1,0 +1,25 @@
+You want the ListGroups API to return, for each group, not just the stock IDs but also the stock details:
+stockId, symbol, and instrument_key (and optionally exchange_token).
+You want to:
+Use GetStockByID from StockService to get the stock's symbol.
+Use StockUniverseService to get the instrument_key and exchange_token for each stock.
+Restated Query:
+You want to enhance the stock group listing so that each stock in a group includes its symbol and instrument key (and optionally exchange token), not just its ID.
+Implementation Plan
+Where to change:
+In StockGroupService.ListGroups (or the handler/DTO layer that builds the API response).
+Steps:
+For each group, for each stock in group.Stocks:
+Use StockService.GetStockByID to get the stock's symbol.
+Use StockUniverseService.GetStockBySymbol (or by ID, if available) to get instrument_key and exchange_token.
+Build a new response struct for each stock:
+    type StockGroupStockDTO struct {
+        StockID        string `json:"stockId"`
+        Symbol         string `json:"symbol"`
+        InstrumentKey  string `json:"instrument_key"`
+        ExchangeToken  string `json:"exchange_token,omitempty"`
+    }
+In the group response, return stocks: []StockGroupStockDTO instead of just the raw DB objects.
+Performance Note:
+For many groups/stocks, batch fetching or caching may be needed for efficiency, but for now, loop and fetch per stock.
+

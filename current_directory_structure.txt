@@ -1,20 +1,4 @@
 /Users/gaurav/setbull_projects/setbull_trader/
-├── .DS_Store
-├── .cursor/
-│   └── rules/
-│       └── setbull-trader-software-rules.mdc
-├── .vscode/
-│   ├── launch.json
-│   ├── settings.json
-│   └── tasks.json
-├── Dockerfile
-├── GOALS/
-│   ├── 1_next_2_weeks.txt
-│   ├── 2_next_2_week.txt
-│   ├── 3_next_2_weekts.txt
-│   └── 4_2025_GOAL.md
-├── Makefile
-├── README.md
 ├── application.dev.yaml
 ├── application.yaml
 ├── cmd/
@@ -33,14 +17,8 @@
 │               ├── stock_handlers.go
 │               ├── stock_universe_handler.go
 │               ├── trade_parameters_handlers.go
+│               ├── upstox_auth_handlers.go
 │               └── utility_handlers.go
-├── consolidated_code/
-│   ├── config.txt
-│   ├── main.txt
-│   ├── models.txt
-│   ├── services.txt
-│   ├── transport.txt
-│   └── utils.txt
 ├── consolidated_code.sh
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
@@ -52,79 +30,6 @@
 │   ├── post_order_api_doc.txt
 │   └── put_order_api_doc.txt
 ├── directory_tree.py
-├── frontend/
-│   ├── .DS_Store
-│   ├── .npmrc
-│   ├── .prettierignore
-│   ├── .prettierrc
-│   ├── README.md
-│   ├── e2e/
-│   │   └── demo.test.ts
-│   ├── eslint.config.js
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── playwright.config.ts
-│   ├── postcss.config.js
-│   ├── src/
-│   │   ├── .DS_Store
-│   │   ├── app.css
-│   │   ├── app.d.ts
-│   │   ├── app.html
-│   │   ├── demo.spec.ts
-│   │   ├── lib/
-│   │   │   ├── .DS_Store
-│   │   │   ├── actions/
-│   │   │   │   └── clickOutside.js
-│   │   │   ├── components/
-│   │   │   │   ├── Autocomplete.svelte
-│   │   │   │   ├── EnhancedStockSelector.svelte
-│   │   │   │   ├── ExecutionControl.svelte
-│   │   │   │   ├── ExecutionLevelDisplay.svelte
-│   │   │   │   ├── ExecutionResults.svelte
-│   │   │   │   ├── Modal.svelte
-│   │   │   │   ├── StockCard.svelte
-│   │   │   │   ├── StockParameterForm.svelte
-│   │   │   │   ├── StockSelector.svelte
-│   │   │   │   ├── TradingParameters.svelte
-│   │   │   │   └── ui/
-│   │   │   │       └── NumericInput.svelte
-│   │   │   ├── config/
-│   │   │   │   └── api.js
-│   │   │   ├── index.ts
-│   │   │   ├── services/
-│   │   │   │   ├── apiService.js
-│   │   │   │   ├── calculationService.js
-│   │   │   │   ├── executionService.js
-│   │   │   │   └── stocksService.js
-│   │   │   ├── stores/
-│   │   │   │   ├── executionStatus.js
-│   │   │   │   └── selectedStocks.js
-│   │   │   └── utils/
-│   │   │       ├── formatting.js
-│   │   │       ├── stockFormatting.js
-│   │   │       └── validation.js
-│   │   └── routes/
-│   │       ├── +layout.svelte
-│   │       ├── +page.svelte
-│   │       ├── order/
-│   │       │   ├── +page.svelte
-│   │       │   ├── cancel/
-│   │       │   │   └── +page.svelte
-│   │       │   └── modify/
-│   │       │       └── +page.svelte
-│   │       ├── page.svelte.test.ts
-│   │       └── trades/
-│   │           ├── +page.svelte
-│   │           └── history/
-│   │               └── +page.svelte
-│   ├── static/
-│   │   ├── favicon.png
-│   │   └── nse_stocks.txt
-│   ├── svelte.config.js
-│   ├── tailwind.config.js
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   └── vitest-setup-client.ts
 ├── go.mod
 ├── go.sum
 ├── internal/
@@ -134,12 +39,21 @@
 │   │   │       ├── dhan/
 │   │   │       │   ├── dhan_client.go
 │   │   │       │   └── models.go
+│   │   │       └── upstox/
+│   │   │           ├── auth_service.go
+│   │   │           ├── auth_service_test.go
+│   │   │           ├── config.go
+│   │   │           ├── kb/
+│   │   │           │   └── 1.authentication.txt
+│   │   │           └── token_repository.go
 │   │   ├── constant/
 │   │   ├── dto/
 │   │   │   ├── request/
+│   │   │   │   ├── market_quotes.go
 │   │   │   │   └── orders.go
 │   │   │   └── response/
 │   │   │       ├── filter_pipeline.go
+│   │   │       ├── market_quotes.go
 │   │   │       └── orders.go
 │   │   └── service/
 │   │       └── orders/
@@ -148,10 +62,13 @@
 │   │   ├── candle.go
 │   │   ├── filtered_stock.go
 │   │   ├── indicator.go
+│   │   ├── kb/
+│   │   │   └── 1.1_stock_group_functionality.txt
 │   │   ├── mamba_types.go
 │   │   ├── models.go
 │   │   ├── sequence_metrics.go
 │   │   ├── stock_filter.go
+│   │   ├── stock_group.go
 │   │   ├── stock_universe.go
 │   │   └── utility.go
 │   ├── repository/
@@ -162,6 +79,7 @@
 │   │       ├── filtered_stock_repository.go
 │   │       ├── level_entry_repository.go
 │   │       ├── order_execution_repository.go
+│   │       ├── stock_group_repository.go
 │   │       ├── stock_repository.go
 │   │       ├── stock_universe_repository.go
 │   │       └── trade_parameters_repository.go
@@ -173,12 +91,16 @@
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
+│   │   ├── kb/
+│   │   │   └── 1.1
 │   │   ├── mamba_filter.go
+│   │   ├── market_quote_service.go
 │   │   ├── move_analyzer.go
 │   │   ├── normalizer/
 │   │   │   └── stock_normalizer.go
 │   │   ├── order_execution_service.go
 │   │   ├── parser/
+│   │   │   └── upstox_parser.go
 │   │   ├── pipline_monitor.go
 │   │   ├── report_generator.go
 │   │   ├── rsi_filter.go
@@ -202,6 +124,9 @@
 │           └── query/
 ├── main.go
 ├── nse_stocks.txt
+├── nse_upstox.json
+├── nse_upstox_testing.json
+├── performance_analyzer.py
 ├── pkg/
 │   ├── apperrors/
 │   │   └── errors.go
@@ -210,6 +135,7 @@
 │   │   ├── gocache.go
 │   │   └── redis.go
 │   ├── database/
+│   │   ├── context.txt
 │   │   ├── database.go
 │   │   ├── migration.go
 │   │   ├── migrations/
@@ -226,7 +152,11 @@
 │   │   │   ├── 20250406123051_create_filtered_stock_table.down.sql
 │   │   │   ├── 20250406123051_create_filtered_stock_table.up.sql
 │   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.down.sql
-│   │   │   └── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
+│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.down.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.up.sql
+│   │   │   ├── 20250711120000_create_stock_group_tables.down.sql
+│   │   │   └── 20250711120000_create_stock_group_tables.up.sql
 │   │   └── queries/
 │   │       ├── stock_candle_data_1day_aggregation.sql
 │   │       └── stock_candle_data_5min_aggregation.sql
@@ -235,19 +165,4 @@
 │   └── util/
 │       └── stockparser/
 │           └── nse_parser.go
-├── reports/
-├── strategies/
-│   ├── 1st_entry_strategy.pine
-│   └── kb/
-│       ├── 1.1_design.md
-│       └── 1_init.md
-├── training/
-│   ├── 1_execution_requirement.txt
-│   ├── 2_thoughts-timeline-1.txt
-│   ├── 3_design.txt
-│   ├── 4_required_apis.txt
-│   ├── 5_new_stock_file_format_knowledge.txt
-│   ├── 6_pine_script_impl.txt
-│   ├── 7_stock_universe_ingestion.txt
-│   ├── 8_stock_universe_daily_candle.txt
-│   └── 9_filter_pipeline.txt
+├── trading_data.csv

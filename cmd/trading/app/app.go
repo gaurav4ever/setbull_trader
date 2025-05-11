@@ -56,6 +56,7 @@ type App struct {
 	stockNormalizer         *normalizer.StockNormalizer
 	tradingCalendarService  *service.TradingCalendarService
 	stockFilterPipeline     *service.StockFilterPipeline
+	marketQuoteService      *service.MarketQuoteService
 }
 
 // NewApp creates a new application
@@ -141,6 +142,7 @@ func NewApp() *App {
 	candleRepo := postgres.NewCandleRepository(db)
 	stockUniverseRepo := postgres.NewStockUniverseRepository(db)
 	filteredStockRepo := postgres.NewFilteredStockRepository(db)
+	stockGroupRepo := postgres.NewStockGroupRepository(db)
 
 	upstoxParser := parser.NewUpstoxParser(cfg.StockUniverse.FilePath)
 	stockNormalizer := normalizer.NewStockNormalizer()
@@ -160,6 +162,9 @@ func NewApp() *App {
 	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
 	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
+	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)
+	stockGroupService := service.NewStockGroupService(stockGroupRepo, orderExecutionService, stockService)
+	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService)
 
 	restServer := rest.NewServer(
 		orderService,
@@ -174,6 +179,8 @@ func NewApp() *App {
 		stockUniverseService,
 		candleProcessingService,
 		stockFilterPipeline,
+		marketQuoteService,
+		stockGroupHandler,
 	)
 
 	return &App{
@@ -203,6 +210,7 @@ func NewApp() *App {
 		stockNormalizer:         stockNormalizer,
 		tradingCalendarService:  tradingCalendarService,
 		stockFilterPipeline:     stockFilterPipeline,
+		marketQuoteService:      marketQuoteService,
 	}
 }
 

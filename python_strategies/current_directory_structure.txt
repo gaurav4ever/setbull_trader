@@ -1,0 +1,119 @@
+.
+├── analysis
+│   ├── analyze_trades.py
+│   └── intraday_data_analysis.py
+├── backtest_results
+│   ├── correlation_analysis
+│   │   ├── binary_heatmap.png
+│   │   ├── binary_network.png
+│   │   ├── r_multiple_heatmap.png
+│   │   ├── r_multiple_network.png
+│   │   ├── spearman_heatmap.png
+│   │   └── spearman_network.png
+│   ├── daily_trades.csv
+│   ├── daily_trades_16th_april_2025.csv
+│   ├── instruments
+│   │   └── NSE_EQ|INE777F01014_20250413_075345.json
+│   ├── plots
+│   │   └── single
+│   │       ├── 20250410_234347
+│   │       ├── 20250410_235952
+│   │       ├── 20250411_000205
+│   │       ├── 20250411_000346
+│   │       ├── 20250411_002512
+│   │       └── 20250412_231247
+│   ├── results_single_20250413_075345.json
+│   └── strategy_results
+│       ├── 2_30_1PM_entry old.txt
+│       ├── 2_30_1PM_entry.txt
+│       └── backtest_analysis.csv
+├── backtest_run.log
+├── backtest_server.log
+├── config
+│   └── db_config.py
+├── correlation_analysis
+│   └── tests
+├── current_directory_structure.txt
+├── debug_test.py
+├── logs
+│   ├── mr_strategy_2025-04-19.log
+│   ├── mr_strategy_2025-04-20.log
+│   ├── mr_strategy_2025-04-21.log
+│   ├── mr_strategy_2025-04-22.log
+│   ├── mr_strategy_2025-04-23.log
+│   ├── mr_strategy_log.txt
+│   ├── mr_strategy_v2_2025-04-24.log
+│   └── mr_strategy_v2_2025-04-25.log
+├── main.py
+├── mr_strategy
+│   ├── README.md
+│   ├── __init__.py
+│   ├── backtest
+│   │   ├── __init__.py
+│   │   ├── engine.py
+│   │   ├── example_usage.py
+│   │   ├── metrics.py
+│   │   ├── runner.py
+│   │   ├── simulator.py
+│   │   └── test_engine.py
+│   ├── config
+│   │   ├── __init__.py
+│   │   └── settings.py
+│   ├── dashboard
+│   │   └── __init__.py
+│   ├── data
+│   │   ├── __init__.py
+│   │   ├── api_client.py
+│   │   ├── daily_data_processor.py
+│   │   ├── data_processor.py
+│   │   ├── distance_matrix_raw.txt
+│   │   └── intraday_data_processor.py
+│   ├── signals
+│   ├── strategy
+│   │   ├── __init__.py
+│   │   ├── base_strategy.py
+│   │   ├── config.py
+│   │   ├── entry_strategies
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── factory.py
+│   │   │   ├── first_entry.py
+│   │   │   ├── placeholder.py
+│   │   │   └── two_thirty_entry.py
+│   │   ├── entry_types
+│   │   │   ├── base_entry.py
+│   │   │   ├── entry_factory.py
+│   │   │   ├── immediate_breakout.py
+│   │   │   └── retest_entry.py
+│   │   ├── models.py
+│   │   ├── morning_range.py
+│   │   ├── mr_strategy_base.py
+│   │   ├── position_manager.py
+│   │   ├── risk_calculator.py
+│   │   ├── signal_generator.py
+│   │   └── trade_manager.py
+│   ├── test
+│   ├── tests
+│   │   ├── test_backtest_engine.py
+│   │   ├── test_data_processor.py
+│   │   ├── test_entry_strategies.py
+│   │   └── test_signal_generator.py
+│   └── utils
+│       ├── __init__.py
+│       └── time_utils.py
+├── requirements.txt
+├── results
+│   ├── datafeed
+│   │   └── datafeed.csv
+│   ├── mr_strategy_agg
+│   │   ├── stock_performance_report_2025-04-22_23-12-10.txt
+│   │   ├── stock_performance_report_2025-04-22_23-13-54.txt
+│   │   ├── stock_success_report_2025-04-22_22-57-21.txt
+│   │   └── stock_success_report_2025-04-22_23-08-50.txt
+│   └── trade_summary_20april25.csv
+├── setup.py
+├── test_mr_strategy.py
+├── test_mr_strategy_agg.py
+├── test_phase1.py
+└── utils
+    └── utils.py

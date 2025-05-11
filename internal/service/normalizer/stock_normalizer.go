@@ -19,8 +19,7 @@ type StockNormalizer struct {
 func NewStockNormalizer() *StockNormalizer {
 	// Create default patterns for excluding certain stocks
 	// For example, we might want to exclude indices, bonds, or certain types of derivatives
-	defaultPatterns := []*regexp.Regexp{
-		regexp.MustCompile(`^NIFTY`),     // Exclude NIFTY indices
+	defaultPatterns := []*regexp.Regexp{ // Exclude NIFTY indices
 		regexp.MustCompile(`^BANKNIFTY`), // Exclude BANKNIFTY indices
 		regexp.MustCompile(`^FINNIFTY`),  // Exclude FINNIFTY indices
 		regexp.MustCompile(`-BE`),        // Exclude book entry instruments
@@ -112,9 +111,9 @@ func (n *StockNormalizer) shouldExcludeWithReason(stock domain.StockUniverse) (b
 	}
 
 	// Only include equity instruments from NSE
-	if stock.InstrumentType != "EQ" || stock.Exchange != "NSE" {
-		return true, "not_eq_or_nse"
-	}
+	// if stock.InstrumentType != "EQ" || stock.Exchange != "NSE" {
+	// 	return true, "not_eq_or_nse"
+	// }
 
 	return false, ""
 }

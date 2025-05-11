@@ -12,7 +12,10 @@
 	import { selectedStocksStore } from '../stores/selectedStocks';
 
 	// Props
-	export let stock = null; // Stock object with id, symbol, name, securityId, etc.
+	/**
+	 * @type {Record<string, any>}
+	 */
+	export let stock = {};
 	export let expanded = false; // Whether the card is expanded to show full details
 	export let active = false; // Whether the card is the active/focused card
 	export let isNewlyAdded = false; // Whether this stock was just added

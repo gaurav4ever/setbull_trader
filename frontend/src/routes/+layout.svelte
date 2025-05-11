@@ -18,6 +18,11 @@
 							>Dashboard</a
 						>
 						<a
+							href="/groups"
+							class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+							>Stock Groups</a
+						>
+						<a
 							href="/order"
 							class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
 							>Place Order</a

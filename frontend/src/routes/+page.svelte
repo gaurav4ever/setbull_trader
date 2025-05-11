@@ -10,6 +10,7 @@
 	import { executeOrdersForAllSelectedStocks } from '../lib/services/executionService';
 	import { createStock } from '../lib/services/stocksService';
 	import { tradeApi } from '$lib/services/apiService';
+	import StockGroupSummary from '../lib/components/StockGroupSummary.svelte';
 
 	interface BacktestData {
 		long: {
@@ -105,20 +106,26 @@
 	}
 
 	// Stock selection state
-	let selectedStocks = [];
+	let selectedStocks: any[] = [];
 	let loading = true;
-	let error = '';
-	let activeStockId = null;
+	let error: string | null = null;
+	let activeStockId: any = null;
 	let addingStock = false;
-	let newlyAddedStockId = null;
+	let newlyAddedStockId: any = null;
 
 	// Trade statistics state
-	let trades = [];
+	let trades: any[] = [];
 	let isLoadingTrades = true;
-	let tradeError = null;
+	let tradeError: string | null = null;
 
 	// Statistics
-	let stats = {
+	type Stats = {
+		totalTrades: number;
+		totalBuyValue: number;
+		totalSellValue: number;
+		netPosition: number;
+	};
+	let stats: Stats = {
 		totalTrades: 0,
 		totalBuyValue: 0,
 		totalSellValue: 0,
@@ -134,8 +141,8 @@
 
 	// Execution status
 	let executing = false;
-	let executionResults = [];
-	let executionError = null;
+	let executionResults: any[] = [];
+	let executionError: any = null;
 
 	// Subscribe to execution status store
 	const unsubscribeExecutionStatus = executionStatusStore.subscribe((state) => {
@@ -144,27 +151,29 @@
 		executionError = state.error;
 	});
 
-	onMount(async () => {
+	onMount(() => {
 		// Load selected stocks
-		await selectedStocksStore.loadSelectedStocks();
+		selectedStocksStore.loadSelectedStocks();
 
 		// Load trade data
-		try {
-			// Fetch real trade data from the backend
-			const response = await tradeApi.getAllTrades();
-			trades = response.trades || [];
+		(async () => {
+			try {
+				// Fetch real trade data from the backend
+				const response = await tradeApi.getAllTrades();
+				trades = response.trades || [];
 
-			// Calculate statistics
-			calculateStats();
-			isLoadingTrades = false;
-		} catch (err) {
-			console.error('Error fetching trades:', err);
-			tradeError = err.message || 'Failed to load trades';
-			isLoadingTrades = false;
+				// Calculate statistics
+				calculateStats();
+				isLoadingTrades = false;
+			} catch (err) {
+				console.error('Error fetching trades:', err);
+				tradeError = (err as Error).message || 'Failed to load trades';
+				isLoadingTrades = false;
 
-			// If API fails, use mock data for demonstration
-			useMockData();
-		}
+				// If API fails, use mock data for demonstration
+				useMockData();
+			}
+		})();
 
 		// Clean up subscriptions when component is destroyed
 		return () => {
@@ -293,19 +302,23 @@
 	}
 
 	// Handle direct stock selection (new flow)
-	async function handleStockSelected(event) {
-		const selectedStock = event.detail;
+	async function handleStockSelected(event: any) {
+		const stockId = event.detail;
+		if (!stockId) return;
+		if (selectedStocks.includes(stockId)) return;
+		if (selectedStocks.length >= 5) return;
+		selectedStocks = [...selectedStocks, stockId];
 
 		// Show loading state
-		let addingStock = true;
+		addingStock = true;
 		error = '';
 
 		try {
 			// Create the stock (without parameters for now)
 			const stockData = {
-				symbol: selectedStock.symbol,
-				name: selectedStock.name || selectedStock.symbol,
-				securityId: selectedStock.securityId,
+				symbol: stockId,
+				name: stockId,
+				securityId: stockId,
 				isSelected: true
 			};
 
@@ -320,7 +333,7 @@
 			await selectedStocksStore.loadSelectedStocks();
 		} catch (err) {
 			console.error('Error adding stock:', err);
-			error = err.message || 'Failed to add stock';
+			error = (err as Error).message || 'Failed to add stock';
 		} finally {
 			addingStock = false;
 		}
@@ -704,6 +717,9 @@
 		</dl>
 	</div>
 
+	<!-- Add Stock Groups summary below stats cards -->
+	<StockGroupSummary />
+
 	<!-- API Connection Status -->
 	{#if tradeError}
 		<div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
@@ -741,7 +757,7 @@
 	{/if}
 
 	<!-- Quick Actions -->
-	<div class="bg-white shadow rounded-lg mb-8">
+	<!-- <div class="bg-white shadow rounded-lg mb-8">
 		<div class="px-4 py-5 sm:p-6">
 			<h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -771,12 +787,12 @@
 				</a>
 			</div>
 		</div>
-	</div>
+	</div> -->
 
 	<!-- Stock Selection Section (Updated) -->
 	<div class="mb-8">
 		<div class="bg-white shadow rounded-lg p-6">
-			<h2 class="text-lg font-medium text-gray-900 mb-4">Select Stocks</h2>
+			<!-- <h2 class="text-lg font-medium text-gray-900 mb-4">Select Stocks</h2> -->
 
 			{#if selectedStocks.length < 3}
 				<!-- Enhanced Stock Selector Component -->

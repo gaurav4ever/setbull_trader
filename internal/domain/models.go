@@ -34,6 +34,8 @@ type TradeParameters struct {
 	StopLossPercentage float64   `gorm:"column:sl_percentage" json:"stopLossPercentage"`
 	RiskAmount         float64   `gorm:"column:risk_amount" json:"riskAmount"`
 	TradeSide          TradeSide `gorm:"column:trade_side" json:"tradeSide"`
+	PSType             string    `gorm:"column:ps_type" json:"psType"`
+	EntryType          string    `gorm:"column:entry_type" json:"entryType"`
 	Active             bool      `gorm:"column:active;default:1;index:idx_active"`
 	CreatedAt          time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 	UpdatedAt          time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
@@ -54,6 +56,8 @@ type LevelEntry struct {
 	Price           float64   `gorm:"column:price" json:"price"`
 	Quantity        int       `gorm:"column:quantity" json:"quantity"`
 	Description     string    `gorm:"column:description" json:"description"`
+	PSType          string    `gorm:"column:ps_type" json:"psType"`
+	EntryDesc       string    `gorm:"column:entry_desc" json:"entryDesc"`
 	Active          bool      `gorm:"column:active;default:1;index:idx_active"`
 	CreatedAt       time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 	UpdatedAt       time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updatedAt"`
