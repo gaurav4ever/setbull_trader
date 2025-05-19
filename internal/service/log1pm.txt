@@ -1,0 +1,691 @@
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE391J01032 Timestamp:2025-05-14 13:05:00 +0530 IST Open:66.83 High:66.85 Low:66.78 Close:66.85 Volume:1536 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:06:47+05:30"}
+
+2025/05/14 13:06:47 /Users/gaurav/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.116ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '7ba7b2ae-fb6e-483c-99ec-c874306de42c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/05/14 13:06:47 /Users/gaurav/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.117ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '7ba7b2ae-fb6e-483c-99ec-c874306de42c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=ed4280e9-5d47-40fa-97c2-9c0e5fe5c3d0, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Total candles: 231 for NSE_EQ|INE438K01021","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Aggregating 5-min candle for NSE_EQ|INE438K01021","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-14T13:01:00+05:30 to 2025-05-14T13:06:00+05:30","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE438K01021 Timestamp:2025-05-14 13:05:00 +0530 IST Open:123.41 High:123.44 Low:123.4 Close:123.43 Volume:13 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:06:47+05:30"}
+
+2025/05/14 13:06:47 /Users/gaurav/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.128ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '7ba7b2ae-fb6e-483c-99ec-c874306de42c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/05/14 13:06:47 /Users/gaurav/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.133ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '7ba7b2ae-fb6e-483c-99ec-c874306de42c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=528a0133-b94c-48a5-bc88-acb22728b4de, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=10125051431849, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=6125051432319, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=3125051432199, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=124.23, string=quantity, int=27)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=124.23, string=triggerPrice, float64=124.28, string=quantity, int=27)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=3125051432209, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=6125051432329, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=4125051432189, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=2125051435329, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=124.15, string=quantity, int=27)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=124.15, string=triggerPrice, float64=124.2, string=quantity, int=27)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=10125051431859, string=status, string=TRANSIT)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=2125051435339, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=9125051432799, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=124.05, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=124.05, string=triggerPrice, float64=124.1, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=2125051435349, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=5125051433089, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=5125051433099, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=10125051431869, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.95, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.95, string=triggerPrice, float64=124, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=9125051432809, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=6125051432339, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=1125051434289, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=4125051432199, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=3125051432219, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123.85, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123.85, string=triggerPrice, float64=123.9, string=quantity, int=27)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=4125051432209, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=5125051433119, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=24c2486d-f082-4012-9829-dc45ada8dd03, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=1125051434299, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=ed4280e9-5d47-40fa-97c2-9c0e5fe5c3d0, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=6125051432349, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=9a7f2b93-255b-4037-8e12-86131788815d, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:06:48+05:30"}
+
+2025/05/14 13:06:48 /Users/gaurav/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.243ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '7ba7b2ae-fb6e-483c-99ec-c874306de42c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=8d0e5794-f76a-4156-a793-dbd86ff5522b, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=1517bae4-6071-45e0-ab93-20e034e2f775, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=4ef693e5-ca90-46e9-bc01-5cc41984ef97, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=2125051435359, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=528a0133-b94c-48a5-bc88-acb22728b4de, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=0d7f00fe-db37-43d8-91e5-0e8008ac4d6b, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=Stop Loss, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=Stop Loss, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=1125051434309, string=status, string=TRANSIT)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=Stop Loss, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=4ef693e5-ca90-46e9-bc01-5cc41984ef97, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=1517bae4-6071-45e0-ab93-20e034e2f775, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=8d0e5794-f76a-4156-a793-dbd86ff5522b, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:06:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=0d7f00fe-db37-43d8-91e5-0e8008ac4d6b, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:06:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:06:48+05:30"}
+
+
+
+
+
+
+
+
+
+=======================
+
+
+
+{"level":"info","msg":"Fetching 2 groups","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Fetched 4 stocks","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Total candles: 233 for NSE_EQ|INE395N01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Aggregating 5-min candle for NSE_EQ|INE395N01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-14T13:03:00+05:30 to 2025-05-14T13:08:00+05:30","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE395N01027 Timestamp:2025-05-14 13:05:00 +0530 IST Open:124.24 High:124.39 Low:124.23 Close:124.27 Volume:403 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=e8e3077d-6954-4521-b83d-49303a628ed2, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=124.6, string=triggerPrice, float64=124.65, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=1125051434459, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=124.23, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=124.23, string=triggerPrice, float64=124.28, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Total candles: 233 for NSE_EQ|INE070D01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Aggregating 5-min candle for NSE_EQ|INE070D01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-14T13:03:00+05:30 to 2025-05-14T13:08:00+05:30","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE070D01027 Timestamp:2025-05-14 13:05:00 +0530 IST Open:96.08 High:96.08 Low:96.08 Close:96.08 Volume:50 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=3125051432399, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=124.15, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=124.15, string=triggerPrice, float64=124.2, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=6c12dd63-7595-4eb3-9b91-1624e2f3084d, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=124.6, string=triggerPrice, float64=124.65, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=10125051432049, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=124.05, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=124.05, string=triggerPrice, float64=124.1, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Total candles: 233 for NSE_EQ|INE391J01032","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=4125051432389, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=124.23, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=124.23, string=triggerPrice, float64=124.28, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Aggregating 5-min candle for NSE_EQ|INE391J01032","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-14T13:03:00+05:30 to 2025-05-14T13:08:00+05:30","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE391J01032 Timestamp:2025-05-14 13:05:00 +0530 IST Open:66.83 High:66.85 Low:66.66 Close:66.84 Volume:3864 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=6125051432549, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.95, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.95, string=triggerPrice, float64=124, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=05b716ca-cdc5-4327-8049-dd0ca0d7909e, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=124.6, string=triggerPrice, float64=124.65, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=6125051432559, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=124.15, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=124.15, string=triggerPrice, float64=124.2, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=4125051432399, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123.85, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123.85, string=triggerPrice, float64=123.9, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Total candles: 233 for NSE_EQ|INE438K01021","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=9125051432979, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=124.23, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=124.23, string=triggerPrice, float64=124.28, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Aggregating 5-min candle for NSE_EQ|INE438K01021","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-14T13:03:00+05:30 to 2025-05-14T13:08:00+05:30","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=2125051435519, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=124.05, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=124.05, string=triggerPrice, float64=124.1, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:00 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 09:20","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Checking if 13:05 matches 13:05","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 2_30_ENTRY at 13:05 (candle: {InstrumentKey:NSE_EQ|INE438K01021 Timestamp:2025-05-14 13:05:00 +0530 IST Open:123.41 High:123.55 Low:123.38 Close:123.53 Volume:151 OpenInterest:0 TimeInterval:5minute})","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group f22e3f75-7452-4b52-82a0-7b215d414676 for entryType=2_30_ENTRY at candle 2025-05-14 13:05:00 +0530 IST","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 15818ca5-cb72-43f7-b030-8865798d39b0","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=48178963-be6b-4b28-af19-10834d37869b, string=stockSymbol, string=JTLIND, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=123.75, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=123.75, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=123.75, string=triggerPrice, float64=123.8, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=3125051432409, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=e8e3077d-6954-4521-b83d-49303a628ed2, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=1125051434469, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=124.15, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=124.15, string=triggerPrice, float64=124.2, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=c34d587e-8951-42f2-8aad-fe45d3b06425, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=124.6, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=124.6, string=triggerPrice, float64=124.65, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=5125051433409, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.95, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.95, string=triggerPrice, float64=124, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=4125051432409, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=123.38, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=123.38, string=triggerPrice, float64=123.43, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=2125051435529, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=124.05, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=124.05, string=triggerPrice, float64=124.1, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=10125051432059, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=124.23, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=124.23, string=triggerPrice, float64=124.28, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=10125051432069, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123.85, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123.85, string=triggerPrice, float64=123.9, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=5125051433419, string=status, string=TRANSIT)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=123.3, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=123.3, string=triggerPrice, float64=123.35, string=quantity, int=27)","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:47+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=10125051432079, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.95, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.95, string=triggerPrice, float64=124, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=1st Entry, string=orderID, string=9125051432989, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=124.15, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=124.15, string=triggerPrice, float64=124.2, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=5th Entry, string=orderID, string=1125051434479, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=6c12dd63-7595-4eb3-9b91-1624e2f3084d, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=true)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=3125051432419, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=123.2, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=123.2, string=triggerPrice, float64=123.25, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=9e631396-3f65-45e3-9afa-0b207b024085, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=96.35, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=96.35, string=triggerPrice, float64=96.4, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=4th Entry, string=orderID, string=4125051432419, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123.85, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123.85, string=triggerPrice, float64=123.9, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=2nd Entry, string=orderID, string=9125051432999, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=124.05, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=124.05, string=triggerPrice, float64=124.1, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=3rd Entry, string=orderID, string=6125051432569, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.1, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.1, string=triggerPrice, float64=123.15, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=05b716ca-cdc5-4327-8049-dd0ca0d7909e, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order placed successfully%!(EXTRA string=level, string=Stop Loss, string=orderID, string=10125051432089, string=status, string=TRANSIT)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=96.08, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=123.95, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=123.95, string=triggerPrice, float64=124, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=96.08, string=triggerPrice, float64=96.13, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=e8523b59-2337-4822-bef8-df86e0d36864, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=66.85, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=66.85, string=quantity, int=55)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=66.85, string=triggerPrice, float64=66.9, string=quantity, int=55)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123, string=triggerPrice, float64=123.05, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 7287","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=123.85, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=96, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=96, string=triggerPrice, float64=96.05, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=123.85, string=triggerPrice, float64=123.9, string=quantity, int=27)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=Stop Loss, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=66.66, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=66.66, string=triggerPrice, float64=66.71, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=48178963-be6b-4b28-af19-10834d37869b, string=stockSymbol, string=JTLIND, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=c34d587e-8951-42f2-8aad-fe45d3b06425, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=95.95, string=triggerPrice, float64=96, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Starting order execution for stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing level entries%!(EXTRA string=executionID, string=1c808c1d-048d-4bc2-8610-b34116c4fc0c, string=stockSymbol, string=KALAMANDIR, string=entryCount, int=7, string=tradeSide, domain.TradeSide=SELL)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=0, string=description, string=Stop Loss, string=price, float64=66.85, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=1, string=description, string=Stop Loss, string=price, float64=66.85, string=quantity, int=55)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=Stop Loss, string=price, float64=66.85, string=triggerPrice, float64=66.9, string=quantity, int=55)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=66.6, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=66.6, string=triggerPrice, float64=66.65, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=95.9, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=95.9, string=triggerPrice, float64=95.95, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=Stop Loss, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=2, string=description, string=1st Entry, string=price, float64=66.66, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=1st Entry, string=price, float64=66.66, string=triggerPrice, float64=66.71, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=66.55, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=66.55, string=triggerPrice, float64=66.6, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=95.8, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=95.8, string=triggerPrice, float64=95.85, string=quantity, int=37)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=1st Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=3, string=description, string=2nd Entry, string=price, float64=66.6, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=2nd Entry, string=price, float64=66.6, string=triggerPrice, float64=66.65, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=66.5, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=66.5, string=triggerPrice, float64=66.55, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=9e631396-3f65-45e3-9afa-0b207b024085, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=2nd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=4, string=description, string=3rd Entry, string=price, float64=66.55, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=3rd Entry, string=price, float64=66.55, string=triggerPrice, float64=66.6, string=quantity, int=53)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=66.45, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=66.45, string=triggerPrice, float64=66.5, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=3rd Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=5, string=description, string=4th Entry, string=price, float64=66.5, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=4th Entry, string=price, float64=66.5, string=triggerPrice, float64=66.55, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=e8523b59-2337-4822-bef8-df86e0d36864, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=4th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Processing entry%!(EXTRA string=index, int=6, string=description, string=5th Entry, string=price, float64=66.45, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order%!(EXTRA string=level, string=5th Entry, string=price, float64=66.45, string=triggerPrice, float64=66.5, string=quantity, int=52)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Placing order with Dhan API using SecurityID: 18755","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"}","time":"2025-05-14T13:08:48+05:30"}
+{"level":"error","msg":"Failed to place order%!(EXTRA string=level, string=5th Entry, string=error, *apperrors.AppError=Failed to place order: API error: status=429, body={\"errorType\":\"Rate_Limit\",\"errorCode\":\"DH-904\",\"errorMessage\":\"Too many requests on server from single user breaching rate limits. Try throttling API calls.\"})","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"Order execution completed%!(EXTRA string=executionID, string=1c808c1d-048d-4bc2-8610-b34116c4fc0c, string=stockSymbol, string=KALAMANDIR, string=orderCount, int=6, string=success, bool=false)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 15818ca5-cb72-43f7-b030-8865798d39b0: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"GroupExec] Stock 7ba7b2ae-fb6e-483c-99ec-c874306de42c: SUCCESS (candle 2025-05-14 13:05:00 +0530 IST)","time":"2025-05-14T13:08:48+05:30"}
+{"level":"info","msg":"[Scheduler] Group execution succeeded for group f22e3f75-7452-4b52-82a0-7b215d414676","time":"2025-05-14T13:08:48+05:30"}

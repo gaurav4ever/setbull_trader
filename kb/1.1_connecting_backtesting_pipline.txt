@@ -1,0 +1,12 @@
+FOR UPDATING CURRENT STOCKS 
+
+1. Get stocks from Filtered Stocks and Trades table. Create unique stock 
+    - by symbol, InstrumentKey
+2. Hit ingest daily candle API. 
+3. Hit ingest 1min candle API. 
+4. Perform backtest pipeline to update filtered_stocks
+5. Run Backtest run single strategy to perform backtest for latest data.
+6. Update backtest_analysis.csv
+
+
+FOR CREATING NEW STOCKS

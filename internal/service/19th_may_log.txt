@@ -1,0 +1,1030 @@
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 1 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:11:00+05:30 to 2025-05-19T09:16:00+05:30",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 0 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:11:00+05:30 to 2025-05-19T09:16:00+05:30",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 0 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 1 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:11:00+05:30 to 2025-05-19T09:16:00+05:30",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 1 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:11:00+05:30 to 2025-05-19T09:16:00+05:30",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:16:08.276224+05:30 | Intended: 2025-05-19T09:16:08+05:30 | Drift: 276ms",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:16:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 2 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:12:00+05:30 to 2025-05-19T09:17:00+05:30",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 2 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:12:00+05:30 to 2025-05-19T09:17:00+05:30",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 2 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:12:00+05:30 to 2025-05-19T09:17:00+05:30",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 2 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:12:00+05:30 to 2025-05-19T09:17:00+05:30",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:17:08.304042+05:30 | Intended: 2025-05-19T09:17:08+05:30 | Drift: 304ms",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:17:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 3 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:13:00+05:30 to 2025-05-19T09:18:00+05:30",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 2 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:13:00+05:30 to 2025-05-19T09:18:00+05:30",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 3 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:13:00+05:30 to 2025-05-19T09:18:00+05:30",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 3 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:13:00+05:30 to 2025-05-19T09:18:00+05:30",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:18:08.269457+05:30 | Intended: 2025-05-19T09:18:08+05:30 | Drift: 269ms",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:18:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+
+
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 4 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:14:00+05:30 to 2025-05-19T09:19:00+05:30",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 4 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:14:00+05:30 to 2025-05-19T09:19:00+05:30",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 4 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:14:00+05:30 to 2025-05-19T09:19:00+05:30",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 4 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:14:00+05:30 to 2025-05-19T09:19:00+05:30",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:19:08.309433+05:30 | Intended: 2025-05-19T09:19:08+05:30 | Drift: 309ms",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:19:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+
+9: 20
+
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 5 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:15:00+05:30 to 2025-05-19T09:20:00+05:30",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 5 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:15:00+05:30 to 2025-05-19T09:20:00+05:30",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 5 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:15:00+05:30 to 2025-05-19T09:20:00+05:30",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 5 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:15:00+05:30 to 2025-05-19T09:20:00+05:30",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 1 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:20:08.318678+05:30 | Intended: 2025-05-19T09:20:08+05:30 | Drift: 318ms",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:20:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetching 2 groups",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Fetched 4 stocks",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+
+9: 21
+Issue: First candle time is still 9: 15 not 9:20. Need to take the close of 1st candle
+
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 6 for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE395N01027 from 2025-05-19T09:16:00+05:30 to 2025-05-19T09:21:00+05:30",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE395N01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:20 (candle: {InstrumentKey:NSE_EQ|INE395N01027 Timestamp:2025-05-19 09:20:00 +0530 IST Open:130.94 High:131.09 Low:130.72 Close:130.95 Volume:2993 OpenInterest:0 TimeInterval:5minute})",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY at candle 2025-05-19 09:20:00 +0530 IST",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Group execution succeeded for group 89e05511-65dc-4a6a-b29d-2245c65959d1",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 6 for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE070D01027 from 2025-05-19T09:16:00+05:30 to 2025-05-19T09:21:00+05:30",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE070D01027",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:20 (candle: {InstrumentKey:NSE_EQ|INE070D01027 Timestamp:2025-05-19 09:20:00 +0530 IST Open:111.21 High:111.21 Low:111.21 Close:111.21 Volume:1821 OpenInterest:0 TimeInterval:5minute})",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY at candle 2025-05-19 09:20:00 +0530 IST",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Group execution succeeded for group 89e05511-65dc-4a6a-b29d-2245c65959d1",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 6 for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE391J01032 from 2025-05-19T09:16:00+05:30 to 2025-05-19T09:21:00+05:30",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE391J01032",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Ingesting 1-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:20 (candle: {InstrumentKey:NSE_EQ|INE391J01032 Timestamp:2025-05-19 09:20:00 +0530 IST Open:72.86 High:72.97 Low:72.8 Close:72.97 Volume:3517 OpenInterest:0 TimeInterval:5minute})",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY at candle 2025-05-19 09:20:00 +0530 IST",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Group execution succeeded for group 89e05511-65dc-4a6a-b29d-2245c65959d1",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Total candles: 6 for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Aggregating 5-min candle for NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieving 5-minute candles for NSE_EQ|INE438K01021 from 2025-05-19T09:16:00+05:30 to 2025-05-19T09:21:00+05:30",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "Retrieved 2 aggregated 5-minute candles for instrument NSE_EQ|INE438K01021",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[1min Ingestion Timing] Actual: 2025-05-19T09:21:08.343906+05:30 | Intended: 2025-05-19T09:21:08+05:30 | Drift: 343ms",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:15 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 09:20",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:20 (candle: {InstrumentKey:NSE_EQ|INE438K01021 Timestamp:2025-05-19 09:20:00 +0530 IST Open:121.63 High:121.86 Low:121.39 Close:121.39 Volume:12388 OpenInterest:0 TimeInterval:5minute})",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY at candle 2025-05-19 09:20:00 +0530 IST",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Group execution succeeded for group 89e05511-65dc-4a6a-b29d-2245c65959d1",
+    "time": "2025-05-19T09:21:08+05:30"
+}
+{
+    "level": "info",
+    "msg": "[Scheduler] Checking if 09:20 matches 13:05",
+    "time": "2025-05-19T09:21:08+05:30"
+}

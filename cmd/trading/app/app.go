@@ -57,6 +57,8 @@ type App struct {
 	tradingCalendarService  *service.TradingCalendarService
 	stockFilterPipeline     *service.StockFilterPipeline
 	marketQuoteService      *service.MarketQuoteService
+	stockGroupService       *service.StockGroupService
+	groupExecutionService   *service.GroupExecutionService
 }
 
 // NewApp creates a new application
@@ -164,7 +166,8 @@ func NewApp() *App {
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)
 	stockGroupService := service.NewStockGroupService(stockGroupRepo, orderExecutionService, stockService)
-	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService)
+	groupExecutionService := service.NewGroupExecutionService(stockGroupService, marketQuoteService, tradeParamsService, executionPlanService, orderExecutionService, cfg, stockUniverseService, technicalIndicatorService)
+	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService, groupExecutionService)
 
 	restServer := rest.NewServer(
 		orderService,
@@ -180,8 +183,13 @@ func NewApp() *App {
 		candleProcessingService,
 		stockFilterPipeline,
 		marketQuoteService,
+		groupExecutionService,
+		stockGroupService,
 		stockGroupHandler,
 	)
+
+	// Wire up the group execution scheduler
+	_ = service.NewGroupExecutionScheduler(candleAggService, groupExecutionService, stockGroupService, stockUniverseService)
 
 	return &App{
 		config:                  cfg,
@@ -211,6 +219,8 @@ func NewApp() *App {
 		tradingCalendarService:  tradingCalendarService,
 		stockFilterPipeline:     stockFilterPipeline,
 		marketQuoteService:      marketQuoteService,
+		stockGroupService:       stockGroupService,
+		groupExecutionService:   groupExecutionService,
 	}
 }
 
@@ -236,6 +246,73 @@ func (a *App) Run() error {
 	// Channel to listen for an interrupt or terminate signal
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	// Set up context for background goroutines
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var enable1MinCandleIngestion = true
+
+	if enable1MinCandleIngestion {
+		// Start precise 1-min ingestion and aggregation loop
+		go func() {
+			offsetSeconds := a.config.OneMinCandleIngestionOffsetSeconds
+			if offsetSeconds < 0 || offsetSeconds > 59 {
+				offsetSeconds = 2 // fallback default
+			}
+			log.Info("Starting precise 1-min candle ingestion and aggregation loop with offset %ds", offsetSeconds)
+			for {
+				now := time.Now()
+				nextMinute := now.Truncate(time.Minute).Add(time.Minute)
+				nextTrigger := nextMinute.Add(time.Duration(offsetSeconds) * time.Second)
+				sleepDuration := nextTrigger.Sub(now)
+				if sleepDuration < 0 {
+					sleepDuration = time.Second // fallback minimal sleep
+				}
+				select {
+				case <-ctx.Done():
+					log.Info("Stopping precise 1-min ingestion loop")
+					return
+				case <-time.After(sleepDuration):
+				}
+
+				// Fetch all selected stocks
+				stocks, err := a.stockGroupService.FetchAllStocksFromAllGroups(ctx, a.stockUniverseService)
+				log.Info("Fetched %d stocks", len(stocks))
+				if err != nil {
+					log.Error("Failed to fetch selected stocks: %v", err)
+					continue
+				}
+				for _, stock := range stocks {
+					if stock.InstrumentKey == "" {
+						continue
+					}
+					log.Info("Ingesting 1-min candle for %s", stock.InstrumentKey)
+					_, err := a.candleProcessingService.ProcessIntraDayCandles(ctx, stock.InstrumentKey, "1minute")
+					if err != nil {
+						log.Error("Failed to ingest 1-min candle for %s: %v", stock.InstrumentKey, err)
+					}
+					// After ingestion, aggregate and fire event for 5-min candle
+					end := nextMinute
+					start := end.Add(-5 * time.Minute)
+					log.Info("Aggregating 5-min candle for %s for time range %s to %s", stock.InstrumentKey, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+					err = a.candleAggService.NotifyOnNew5MinCandles(ctx, stock.InstrumentKey, start, end)
+					if err != nil {
+						log.Error("Failed to aggregate/fire 5-min candle for %s: %v", stock.InstrumentKey, err)
+					}
+				}
+
+				// Log timing accuracy
+				actualTrigger := time.Now()
+				intendedTrigger := nextTrigger
+				drift := actualTrigger.Sub(intendedTrigger)
+				log.Info("[1min Ingestion Timing] Actual: %s | Intended: %s | Drift: %dms", actualTrigger.Format(time.RFC3339Nano), intendedTrigger.Format(time.RFC3339Nano), drift.Milliseconds())
+				if drift > 500*time.Millisecond || drift < -500*time.Millisecond {
+					log.Warn("[1min Ingestion Timing] Drift exceeds 500ms: %dms", drift.Milliseconds())
+				}
+			}
+		}()
+	}
 
 	// Blocking main and waiting for shutdown or server errors
 	select {

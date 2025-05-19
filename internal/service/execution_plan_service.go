@@ -149,17 +149,17 @@ func (s *ExecutionPlanService) calculateLevelEntriesWithPSType(
 			})
 		}
 		// SL entry (fibLevels[0])
-		entries = append(entries, domain.LevelEntry{
-			ID:              uuid.New().String(),
-			ExecutionPlanID: planID,
-			FibLevel:        fibLevels[0].Level,
-			Price:           fibLevels[0].Price,
-			Quantity:        mainQty,
-			Description:     fibLevels[0].Description,
-			PSType:          "FIXED",
-			EntryDesc:       "SL",
-			Active:          true,
-		})
+		// entries = append(entries, domain.LevelEntry{
+		// 	ID:              uuid.New().String(),
+		// 	ExecutionPlanID: planID,
+		// 	FibLevel:        fibLevels[0].Level,
+		// 	Price:           fibLevels[0].Price,
+		// 	Quantity:        mainQty,
+		// 	Description:     fibLevels[0].Description,
+		// 	PSType:          "FIXED",
+		// 	EntryDesc:       "SL",
+		// 	Active:          true,
+		// })
 	} else {
 		// DYNAMIC: use current logic, but set PSType and EntryDesc
 		legCount := 5
@@ -190,17 +190,17 @@ func (s *ExecutionPlanService) calculateLevelEntriesWithPSType(
 		}
 
 		// Stop loss entry
-		entries = append(entries, domain.LevelEntry{
-			ID:              uuid.New().String(),
-			ExecutionPlanID: planID,
-			FibLevel:        fibLevels[0].Level,
-			Price:           fibLevels[0].Price,
-			Quantity:        baseQtyPerLeg,
-			Description:     fibLevels[0].Description,
-			PSType:          "DYNAMIC",
-			EntryDesc:       "SL",
-			Active:          true,
-		})
+		// entries = append(entries, domain.LevelEntry{
+		// 	ID:              uuid.New().String(),
+		// 	ExecutionPlanID: planID,
+		// 	FibLevel:        fibLevels[0].Level,
+		// 	Price:           fibLevels[0].Price,
+		// 	Quantity:        baseQtyPerLeg,
+		// 	Description:     fibLevels[0].Description,
+		// 	PSType:          "DYNAMIC",
+		// 	EntryDesc:       "SL",
+		// 	Active:          true,
+		// })
 	}
 	return entries
 }

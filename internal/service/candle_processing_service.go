@@ -217,6 +217,7 @@ func (s *CandleProcessingService) convertIntraDayCandles(
 		return []domain.Candle{}, nil
 	}
 
+	log.Info("Total candles: %d for %s", len(response.Data.Candles), instrumentKey)
 	candles := make([]domain.Candle, 0, len(response.Data.Candles))
 
 	for _, rawCandle := range response.Data.Candles {

@@ -36,6 +36,8 @@ type Server struct {
 	stockFilterPipeline     *service.StockFilterPipeline
 	marketQuoteService      *service.MarketQuoteService
 	stockGroupHandler       *StockGroupHandler
+	groupExecutionService   *service.GroupExecutionService
+	stockGroupService       *service.StockGroupService
 }
 
 // NewServer creates a new REST API server
@@ -53,6 +55,8 @@ func NewServer(
 	candleProcessingService *service.CandleProcessingService,
 	stockFilterPipeline *service.StockFilterPipeline,
 	marketQuoteService *service.MarketQuoteService,
+	groupExecutionService *service.GroupExecutionService,
+	stockGroupService *service.StockGroupService,
 	stockGroupHandler *StockGroupHandler,
 ) *Server {
 	s := &Server{
@@ -71,6 +75,7 @@ func NewServer(
 		validator:               validator.New(),
 		stockFilterPipeline:     stockFilterPipeline,
 		marketQuoteService:      marketQuoteService,
+		groupExecutionService:   groupExecutionService,
 		stockGroupHandler:       stockGroupHandler,
 	}
 
@@ -155,7 +160,7 @@ func (s *Server) setupRoutes() {
 
 	// Post market quotes
 	api.HandleFunc("/market/quotes", s.PostMarketQuotes).Methods(http.MethodPost)
-
+	api.HandleFunc("/market/intraday-quotes", s.PostMarketIntradayQuotes).Methods(http.MethodPost)
 	// Stock group routes
 	api.HandleFunc("/groups", s.stockGroupHandler.CreateGroup).Methods(http.MethodPost)
 	api.HandleFunc("/groups", s.stockGroupHandler.ListGroups).Methods(http.MethodGet)
@@ -716,5 +721,28 @@ func (s *Server) PostMarketQuotes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := s.marketQuoteService.GetQuotes(r.Context(), userID, keys, req.Interval, keyType, s.stockUniverseService)
+	respondSuccess(w, resp)
+}
+
+func (s *Server) PostMarketIntradayQuotes(w http.ResponseWriter, r *http.Request) {
+	var req request.MarketQuotesRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
+		return
+	}
+
+	if err := s.validator.Struct(req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Validation error: "+err.Error())
+		return
+	}
+
+	// Extract userID from header or context (assume header for now)
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		respondWithError(w, http.StatusBadRequest, "User ID is required in X-User-Id header")
+		return
+	}
+
+	resp := s.marketQuoteService.GetIntradayQuotes(r.Context(), userID, req.InstrumentKeys, req.Interval)
 	respondSuccess(w, resp)
 }

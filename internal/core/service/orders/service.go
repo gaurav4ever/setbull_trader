@@ -58,9 +58,6 @@ func (s *Service) PlaceOrder(req *request.PlaceOrderRequest) (*response.OrderRes
 		dhanReq.AMOTime = dhan.AMOTimeOpen
 	}
 
-	// Log the order request
-	log.Info("Placing order with SecurityID: %s", req.SecurityID)
-
 	// Make the API call
 	dhanResp, err := s.dhanClient.PlaceOrder(dhanReq)
 	if err != nil {

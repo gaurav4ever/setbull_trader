@@ -15,6 +15,8 @@ type CandleAggregationService struct {
 	candleRepo        repository.CandleRepository
 	batchFetchService *BatchFetchService
 	tradingCalendar   *TradingCalendarService
+
+	candleCloseListeners []CandleCloseListener // listeners for candle close events
 }
 
 // DateRangeSegment represents a segment of time that needs to be fetched
@@ -536,4 +538,42 @@ type SegmentDetail struct {
 	Type      string `json:"type"`
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
+}
+
+// CandleCloseListener is a callback function type for candle close events
+// It receives a slice of newly closed aggregated candles (e.g., 5-min)
+type CandleCloseListener func(candles []domain.AggregatedCandle)
+
+// RegisterCandleCloseListener registers a listener for candle close events
+func (s *CandleAggregationService) RegisterCandleCloseListener(listener CandleCloseListener) {
+	s.candleCloseListeners = append(s.candleCloseListeners, listener)
+}
+
+// FireCandleCloseEvent notifies all registered listeners of new closed candles
+func (s *CandleAggregationService) FireCandleCloseEvent(candles []domain.AggregatedCandle) {
+	for _, listener := range s.candleCloseListeners {
+		go listener(candles) // fire in goroutine to avoid blocking
+	}
+}
+
+// Example: Call this after fetching/aggregating new 5-min candles
+func (s *CandleAggregationService) NotifyOnNew5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) error {
+	candles, err := s.Get5MinCandles(ctx, instrumentKey, start, end)
+	if err != nil {
+		return err
+	}
+	if len(candles) > 0 {
+		s.FireCandleCloseEvent(candles)
+	}
+	return nil
+}
+
+// Example stub: How a scheduler or other service would register a listener
+func ExampleRegisterCandleCloseListener(s *CandleAggregationService) {
+	s.RegisterCandleCloseListener(func(candles []domain.AggregatedCandle) {
+		for _, candle := range candles {
+			log.Info("[Listener] 5-min candle closed: %+v", candle)
+			// Here you would trigger group execution logic, etc.
+		}
+	})
 }

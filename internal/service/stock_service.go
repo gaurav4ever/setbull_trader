@@ -57,6 +57,14 @@ func (s *StockService) CreateStock(ctx context.Context, stock *domain.Stock) err
 	return s.stockRepo.Create(ctx, stock)
 }
 
+func (s *StockService) GetOnlyStockByID(ctx context.Context, id string) (*domain.Stock, error) {
+	stock, err := s.stockRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get selected stocks: %w", err)
+	}
+	return stock, nil
+}
+
 // GetStockByID retrieves a stock by its ID
 func (s *StockService) GetStockByID(ctx context.Context, id string) (*domain.Stock, error) {
 	stock, err := s.stockRepo.GetByID(ctx, id)

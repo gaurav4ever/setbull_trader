@@ -7,6 +7,7 @@ import (
 	dto "setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository/postgres"
+	"setbull_trader/pkg/log"
 
 	"github.com/google/uuid"
 )
@@ -23,7 +24,11 @@ type StockGroupService struct {
 	stockService     *StockService
 }
 
-func NewStockGroupService(repo *postgres.StockGroupRepository, orderExecService *OrderExecutionService, stockService *StockService) *StockGroupService {
+func NewStockGroupService(
+	repo *postgres.StockGroupRepository,
+	orderExecService *OrderExecutionService,
+	stockService *StockService,
+) *StockGroupService {
 	return &StockGroupService{repo: repo, orderExecService: orderExecService, stockService: stockService}
 }
 
@@ -190,6 +195,117 @@ func (s *StockGroupService) ListGroupsEnriched(
 			Status:    string(group.Status),
 			CreatedAt: group.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			UpdatedAt: group.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			Stocks:    stocks,
+		})
+	}
+	return result, nil
+}
+
+func (s *StockGroupService) FetchAllStocksFromAllGroups(
+	ctx context.Context,
+	universeService *StockUniverseService,
+) ([]dto.StockGroupStockDTO, error) {
+	groups, err := s.ListGroups(ctx, "", "")
+	if err != nil {
+		return nil, err
+	}
+	var stocks []dto.StockGroupStockDTO
+	log.Info("Fetching %d groups", len(groups))
+	for _, group := range groups {
+		for _, stockRef := range group.Stocks {
+			stockDTO := dto.StockGroupStockDTO{
+				StockID: stockRef.StockID,
+			}
+			stock, err := s.stockService.GetOnlyStockByID(ctx, stockRef.StockID)
+			if err == nil && stock != nil {
+				stockDTO.Symbol = stock.Symbol
+				if universeService != nil {
+					univ, err := universeService.GetStockBySymbol(ctx, stock.Symbol)
+					if err == nil && univ != nil {
+						stockDTO.InstrumentKey = univ.InstrumentKey
+						stockDTO.ExchangeToken = univ.ExchangeToken
+					}
+				}
+			}
+			stocks = append(stocks, stockDTO)
+		}
+
+	}
+	return stocks, nil
+}
+
+func (s *StockGroupService) GetGroupByID(
+	ctx context.Context,
+	groupID string,
+	universeService *StockUniverseService,
+) (dto.StockGroupResponse, error) {
+	group, err := s.repo.GetByID(ctx, groupID)
+	if err != nil {
+		return dto.StockGroupResponse{}, err
+	}
+	var stocks []dto.StockGroupStockDTO
+	for _, stockRef := range group.Stocks {
+		stockDTO := dto.StockGroupStockDTO{
+			StockID: stockRef.StockID,
+		}
+		stock, err := s.stockService.GetStockByID(ctx, stockRef.StockID)
+		if err == nil && stock != nil {
+			stockDTO.Symbol = stock.Symbol
+			if universeService != nil {
+				univ, err := universeService.GetStockBySymbol(ctx, stock.Symbol)
+				if err == nil && univ != nil {
+					stockDTO.InstrumentKey = univ.InstrumentKey
+					stockDTO.ExchangeToken = univ.ExchangeToken
+				}
+			}
+			stocks = append(stocks, stockDTO)
+		}
+	}
+	return dto.StockGroupResponse{
+		ID:        group.ID,
+		EntryType: group.EntryType,
+		Status:    string(group.Status),
+		CreatedAt: group.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: group.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		Stocks:    stocks,
+	}, nil
+}
+
+// GetGroupsByEntryType fetches all groups with the given entry type
+func (s *StockGroupService) GetGroupsByEntryType(
+	ctx context.Context,
+	entryType string,
+	universeService *StockUniverseService,
+) ([]dto.StockGroupResponse, error) {
+	groups, err := s.repo.List(ctx, entryType, "")
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.StockGroupResponse
+	for _, group := range groups {
+		var stocks []dto.StockGroupStockDTO
+		for _, stockRef := range group.Stocks {
+			stockDTO := dto.StockGroupStockDTO{
+				StockID: stockRef.StockID,
+			}
+			stock, err := s.stockService.GetStockByID(ctx, stockRef.StockID)
+			if err == nil && stock != nil {
+				stockDTO.Symbol = stock.Symbol
+				if universeService != nil {
+					univ, err := universeService.GetStockBySymbol(ctx, stock.Symbol)
+					if err == nil && univ != nil {
+						stockDTO.InstrumentKey = univ.InstrumentKey
+						stockDTO.ExchangeToken = univ.ExchangeToken
+					}
+				}
+			}
+			stocks = append(stocks, stockDTO)
+		}
+		result = append(result, dto.StockGroupResponse{
+			ID:        group.ID,
+			EntryType: group.EntryType,
+			Status:    string(group.Status),
 			Stocks:    stocks,
 		})
 	}

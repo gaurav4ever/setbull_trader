@@ -11,17 +11,20 @@ import (
 )
 
 type StockGroupHandler struct {
-	Service              *service.StockGroupService
-	StockUniverseService *service.StockUniverseService
+	Service               *service.StockGroupService
+	StockUniverseService  *service.StockUniverseService
+	GroupExecutionService *service.GroupExecutionService
 }
 
 func NewStockGroupHandler(
 	svc *service.StockGroupService,
 	stockUniverseService *service.StockUniverseService,
+	groupExecService *service.GroupExecutionService,
 ) *StockGroupHandler {
 	return &StockGroupHandler{
-		Service:              svc,
-		StockUniverseService: stockUniverseService,
+		Service:               svc,
+		StockUniverseService:  stockUniverseService,
+		GroupExecutionService: groupExecService,
 	}
 }
 
@@ -110,19 +113,15 @@ func (h *StockGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 
 func (h *StockGroupHandler) ExecuteGroup(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	group, err := h.Service.ListGroupsEnriched(
-		r.Context(),
-		"",
-		domain.GroupPending,
-		h.StockUniverseService,
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if id == "" {
+		http.Error(w, "group id required", http.StatusBadRequest)
 		return
 	}
-	for _, stock := range group.Stocks {
-		// here stock id, symbol, instryment_key and exchange token are present.
-		//
+	err := h.GroupExecutionService.ExecuteGroup(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Group execution started successfully"))
 }

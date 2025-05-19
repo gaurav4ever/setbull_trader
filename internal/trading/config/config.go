@@ -12,14 +12,15 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Server         ServerConfig         `mapstructure:"server"`
-	Trading        TradingConfig        `yaml:"trading"`
-	Dhan           DhanConfig           `mapstructure:"dhan"`
-	Upstox         UpstoxConfig         `mapstructure:"upstox"`
-	StockUniverse  StockUniverseConfig  `mapstructure:"stock_universe"`
-	HistoricalData HistoricalDataConfig `mapstructure:"historical_data"`
-	MambaFilter    MambaFilterConfig    `mapstructure:"mamba_filter" yaml:"mamba_filter"`
-	Database       struct {
+	Server                             ServerConfig         `mapstructure:"server"`
+	Trading                            TradingConfig        `mapstructure:"trading" yaml:"trading"`
+	Dhan                               DhanConfig           `mapstructure:"dhan"`
+	Upstox                             UpstoxConfig         `mapstructure:"upstox"`
+	StockUniverse                      StockUniverseConfig  `mapstructure:"stock_universe"`
+	HistoricalData                     HistoricalDataConfig `mapstructure:"historical_data"`
+	MambaFilter                        MambaFilterConfig    `mapstructure:"mamba_filter" yaml:"mamba_filter"`
+	OneMinCandleIngestionOffsetSeconds int                  `mapstructure:"one_min_candle_ingestion_offset_seconds" yaml:"one_min_candle_ingestion_offset_seconds"`
+	Database                           struct {
 		MasterDatasource struct {
 			User     string `yaml:"user"`
 			Password string `yaml:"password"`
@@ -67,7 +68,11 @@ type MarketConfig struct {
 }
 
 type TradingConfig struct {
-	Market MarketConfig `yaml:"market"`
+	Market                  MarketConfig `yaml:"market"`
+	FirstEntrySLPercent     float64      `yaml:"first_entry_sl_percentage"`
+	FirstEntryRiskPerTrade  int          `yaml:"first_entry_risk_per_trade"`
+	SecondEntrySLPercent    float64      `yaml:"second_entry_sl_percentage"`
+	SecondEntryRiskPerTrade int          `yaml:"second_entry_risk_per_trade"`
 }
 
 // ServerConfig represents the HTTP server configuration
@@ -243,4 +248,21 @@ func (c *Config) LoadStockUniverseConfig(cfg Config) (*StockUniverseConfig, erro
 	}
 
 	return stockUniverseConfig, nil
+}
+
+// Optionally, add getters for these fields if needed
+func (c *Config) GetFirstEntrySLPercent() float64 {
+	return c.Trading.FirstEntrySLPercent
+}
+
+func (c *Config) GetFirstEntryRiskPerTrade() int {
+	return c.Trading.FirstEntryRiskPerTrade
+}
+
+func (c *Config) GetSecondEntrySLPercent() float64 {
+	return c.Trading.SecondEntrySLPercent
+}
+
+func (c *Config) GetSecondEntryRiskPerTrade() int {
+	return c.Trading.SecondEntryRiskPerTrade
 }

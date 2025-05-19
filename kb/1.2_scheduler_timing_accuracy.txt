@@ -1,0 +1,52 @@
+To achieve precise 1-minute candle ingestion immediately after the close of each minute (e.g., fetch the 9:15–9:16 candle at 9:16:02), you need a scheduler that triggers at a precise offset after each minute boundary, not just every 60 seconds from server start. This requires synchronizing your ingestion loop to the system clock, so it always runs at (minute boundary + 2 seconds), regardless of when the server started.
+Restated Query:
+You want the 1-minute candle ingestion to occur as soon as possible after each minute closes (e.g., at 9:16:02 for the 9:15–9:16 candle), rather than at a fixed interval from when the server started. The current implementation can drift, causing up to 59 seconds of delay. You want a design that ensures ingestion happens at a precise, predictable time after each minute boundary.
+
+High-Level Design (HLD)
+Goal:
+Trigger the 1-minute candle ingestion at a precise time after each minute boundary (e.g., at HH:MM:02 for each minute), regardless of when the server started.
+Approach:
+Use a scheduler that calculates the time until the next minute boundary plus a small offset (e.g., 2 seconds).
+After each ingestion, recalculate the duration until the next scheduled time.
+This ensures the ingestion always happens at the desired offset after each minute.
+Key Points:
+Avoids drift: Each trigger is based on the system clock, not a fixed interval.
+Handles server restarts: The next trigger is always aligned to the next minute boundary.
+Offset is configurable (e.g., 2 seconds after the minute).
+
+Low-Level Design (LLD)
+Components:
+Precise Scheduler Loop:
+On startup, calculate the time until the next minute boundary + offset (e.g., 2 seconds).
+Sleep until that time, then trigger ingestion.
+After ingestion, repeat: recalculate the next trigger time, sleep, and ingest.
+Configurable Offset:
+Allow the offset (e.g., 2 seconds) to be configurable for flexibility.
+Graceful Shutdown:
+Ensure the loop can be stopped cleanly on server shutdown.
+Pseudocode:
+for {
+    now := time.Now()
+    nextMinute := now.Truncate(time.Minute).Add(time.Minute)
+    nextTrigger := nextMinute.Add(2 * time.Second) // 2s offset
+    sleepDuration := nextTrigger.Sub(now)
+    time.Sleep(sleepDuration)
+
+    // Ingest 1-min candle for previous minute
+    ingestCandle(nextMinute.Add(-time.Minute), nextMinute)
+
+    // (loop continues)
+}
+
+
+Edge Cases:
+If the ingestion takes longer than the interval, log a warning and skip or catch up as needed.
+If the system clock changes, the next trigger will realign automatically.
+
+Phase-wise Implementation Plan
+Phase 1:
+Implement a precise scheduler loop in app.go that triggers ingestion at (minute boundary + offset).
+Make the offset configurable.
+Phase 2:
+Add logging to verify timing accuracy.
+Add tests/mocks for the scheduler logic.

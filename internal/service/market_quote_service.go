@@ -22,7 +22,14 @@ func NewMarketQuoteService(upstoxAuth *upstox.AuthService) *MarketQuoteService {
 // GetQuotes fetches OHLC data for the given keys and interval, using the provided userID for authentication.
 // keyType specifies the type of keys provided: "symbol" or "instrument_key".
 // Returns a MarketQuotesResponse DTO.
-func (s *MarketQuoteService) GetQuotes(ctx context.Context, userID string, keys []string, interval string, keyType string, stockUniverseSvc *StockUniverseService) *response.MarketQuotesResponse {
+func (s *MarketQuoteService) GetQuotes(
+	ctx context.Context,
+	userID string,
+	keys []string,
+	interval string,
+	keyType string,
+	stockUniverseSvc *StockUniverseService,
+) *response.MarketQuotesResponse {
 	oldKeys := make([]string, 0, len(keys))
 	resolvedKeys := make([]string, 0, len(keys))
 	keyMap := make(map[string]string) // input key -> instrument_key
@@ -103,4 +110,56 @@ func (s *MarketQuoteService) GetQuotes(ctx context.Context, userID string, keys 
 	}
 
 	return resp
+}
+
+// GetIntradayQuotes fetches the latest intraday OHLC data for each instrument key using Upstox intraday candle API.
+func (s *MarketQuoteService) GetIntradayQuotes(
+	ctx context.Context,
+	userID string,
+	instrumentKeys []string,
+	interval string, // "1minute" or "30minute"
+) *response.MarketQuotesResponse {
+	result := &response.MarketQuotesResponse{
+		Status:    "success",
+		Timestamp: time.Now().In(time.FixedZone("IST", 5*3600+1800)).Format(time.RFC3339),
+		Data:      make(map[string]response.Ohlc),
+		Errors:    make(map[string]string),
+	}
+
+	for _, instrumentKey := range instrumentKeys {
+		resp, err := s.upstoxAuth.GetIntraDayCandleData(ctx, userID, instrumentKey, interval)
+		if err != nil || resp == nil || resp.Status != "success" || resp.Data == nil || len(resp.Data.Candles) == 0 {
+			result.Errors[instrumentKey] = "Failed to fetch intraday candle"
+			continue
+		}
+		candle := resp.Data.Candles[0]
+		if len(candle) < 5 {
+			result.Errors[instrumentKey] = "Malformed candle data"
+			continue
+		}
+		// Defensive type assertion
+		open, ok1 := candle[1].(float64)
+		high, ok2 := candle[2].(float64)
+		low, ok3 := candle[3].(float64)
+		close, ok4 := candle[4].(float64)
+		if !ok1 || !ok2 || !ok3 || !ok4 {
+			result.Errors[instrumentKey] = "Candle data type error"
+			continue
+		}
+		result.Data[instrumentKey] = response.Ohlc{
+			Open:  open,
+			High:  high,
+			Low:   low,
+			Close: close,
+		}
+	}
+
+	if len(result.Errors) > 0 {
+		if len(result.Data) == 0 {
+			result.Status = "error"
+		} else {
+			result.Status = "partial"
+		}
+	}
+	return result
 }

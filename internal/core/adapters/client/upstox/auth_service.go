@@ -278,8 +278,6 @@ func (s *AuthService) GetIntraDayCandleData(ctx context.Context, userID string, 
 	if err != nil {
 		// Parse the error response if available
 		if httpResp != nil && httpResp.Body != nil {
-			defer httpResp.Body.Close()
-
 			// Try to read the response body
 			body, readErr := ioutil.ReadAll(httpResp.Body)
 			if readErr == nil {
@@ -304,6 +302,7 @@ func (s *AuthService) GetIntraDayCandleData(ctx context.Context, userID string, 
 					httpResp.StatusCode, err, readErr)
 			}
 		} else {
+			defer httpResp.Body.Close()
 			log.Error("Error with no HTTP response: %v", err)
 		}
 
