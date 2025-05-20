@@ -321,7 +321,7 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			continue
 		}
 		shouldExecute := false
-		if candleTime == "9:35" {
+		if candleTime == "9:15" {
 			shouldExecute = s.validateForMorningEntry(ctx, &stockRef, candle)
 		} else if candleTime == "13:00" {
 			shouldExecute = s.validateForAfternoonEntry(ctx, &stockRef, candle)
@@ -564,6 +564,7 @@ func (s *GroupExecutionService) validateForMorningEntry(ctx context.Context, sto
 	atr := atrValue[len(atrValue)-1].Value
 	candleRange := candleHigh - candleLow
 	mr := atr / candleRange
+	logger.Info("ATR: %f, candleRange: %f, mr: %f", atr, candleRange, mr)
 	if mr < 3 {
 		logger.Info("Invalid morning range for stock %s: %f", stock.InstrumentKey, mr)
 		return false

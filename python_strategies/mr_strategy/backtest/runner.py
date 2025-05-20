@@ -296,10 +296,14 @@ class BacktestRunner:
             total_profit += value["total_profit"]
             total_loss += value["total_loss"]
 
+        if net_pnl == 0:
+            profit_factor = 0
+        else:
+            profit_factor = net_pnl / abs(net_pnl)
         summary = {
                 "total_trades": total_trades,
                 "win_rate": winning_trades / total_trades,
-                "profit_factor": net_pnl / abs(net_pnl),
+                "profit_factor": profit_factor,
                 "total_return": net_pnl,
                 "avg_trade": avg_win + avg_loss,
                 "avg_win": avg_win,

@@ -9,7 +9,7 @@ import (
 
 // EntryTypeTriggerTimes maps entry types to their trigger times (in HH:MM, 24h format)
 var EntryTypeTriggerTimes = map[string]string{
-	"1ST_ENTRY":  "09:35",
+	"1ST_ENTRY":  "09:15",
 	"2_30_ENTRY": "13:00",
 	// Add more entry types and times as needed
 }

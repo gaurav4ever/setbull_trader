@@ -120140,5 +120140,689 @@
     "short_name": "Agarwal Inds Corp",
     "qty_multiplier": 1.0,
     "security_type": "NORMAL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY200 QUALTY30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY200 QUALTY30",
+    "exchange_token": "26064",
+    "trading_symbol": "NIFTY200 QUALTY30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY LARGEMID250",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY LARGEMID250",
+    "exchange_token": "26073",
+    "trading_symbol": "NIFTY LARGEMID250"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY100 Qualty30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY100 Qualty30",
+    "exchange_token": "26048",
+    "trading_symbol": "NIFTY100 QUALTY30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Media",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Media",
+    "exchange_token": "26031",
+    "trading_symbol": "NIFTY MEDIA"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "HangSeng BeES-NAV",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|HangSeng BeES-NAV",
+    "exchange_token": "26016",
+    "trading_symbol": "HANGSENG BEES-NAV"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Consumption",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Consumption",
+    "exchange_token": "26036",
+    "trading_symbol": "NIFTY CONSUMPTION"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Housing",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Housing",
+    "exchange_token": "26119",
+    "trading_symbol": "NIFTY HOUSING"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty50 Shariah",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty50 Shariah",
+    "exchange_token": "26128",
+    "trading_symbol": "NIFTY50 SHARIAH"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Rural",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Rural",
+    "exchange_token": "26125",
+    "trading_symbol": "NIFTY RURAL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty CPSE",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty CPSE",
+    "exchange_token": "26041",
+    "trading_symbol": "NIFTY CPSE"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Midcap 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Midcap 50",
+    "exchange_token": "26014",
+    "trading_symbol": "NIFTY MIDCAP 50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500 Shariah",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500 Shariah",
+    "exchange_token": "26130",
+    "trading_symbol": "NIFTY500 SHARIAH"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Auto",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Auto",
+    "exchange_token": "26029",
+    "trading_symbol": "NIFTY AUTO"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Shariah 25",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Shariah 25",
+    "exchange_token": "26126",
+    "trading_symbol": "NIFTY SHARIAH 25"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty CoreHousing",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty CoreHousing",
+    "exchange_token": "26117",
+    "trading_symbol": "NIFTY COREHOUSING"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Realty",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Realty",
+    "exchange_token": "26018",
+    "trading_symbol": "NIFTY REALTY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Multi Mfg",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Multi Mfg",
+    "exchange_token": "26085",
+    "trading_symbol": "NIFTY MULTI MFG"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Infra",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Infra",
+    "exchange_token": "26019",
+    "trading_symbol": "NIFTY INFRA"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty MidSml Hlth",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty MidSml Hlth",
+    "exchange_token": "26084",
+    "trading_symbol": "NIFTY MIDSML HLTH"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty MS Ind Cons",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty MS Ind Cons",
+    "exchange_token": "26122",
+    "trading_symbol": "NIFTY MS IND CONS"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY100 ESG",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY100 ESG",
+    "exchange_token": "26078",
+    "trading_symbol": "NIFTY100 ESG"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Bank",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Bank",
+    "exchange_token": "26009",
+    "trading_symbol": "BANKNIFTY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty GS Compsite",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty GS Compsite",
+    "exchange_token": "26055",
+    "trading_symbol": "NIFTY GS COMPSITE"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Mobility",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Mobility",
+    "exchange_token": "26106",
+    "trading_symbol": "NIFTY MOBILITY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Div Opps 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Div Opps 50",
+    "exchange_token": "26034",
+    "trading_symbol": "NIFTY DIV OPPS 50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty EV",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty EV",
+    "exchange_token": "26101",
+    "trading_symbol": "NIFTY EV"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty IT",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty IT",
+    "exchange_token": "26008",
+    "trading_symbol": "NIFTY IT"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty PSE",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty PSE",
+    "exchange_token": "26024",
+    "trading_symbol": "NIFTY PSE"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty 50",
+    "exchange_token": "26000",
+    "trading_symbol": "NIFTY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty200 Value 30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty200 Value 30",
+    "exchange_token": "26112",
+    "trading_symbol": "NIFTY200 VALUE 30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Energy",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Energy",
+    "exchange_token": "26020",
+    "trading_symbol": "NIFTY ENERGY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Next 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Next 50",
+    "exchange_token": "26013",
+    "trading_symbol": "NIFTYNXT50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty IPO",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty IPO",
+    "exchange_token": "26120",
+    "trading_symbol": "NIFTY IPO"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty NonCyc Cons",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty NonCyc Cons",
+    "exchange_token": "26124",
+    "trading_symbol": "NIFTY NONCYC CONS"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "India VIX",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|India VIX",
+    "exchange_token": "26017",
+    "trading_symbol": "INDIA VIX"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY MID SELECT",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY MID SELECT",
+    "exchange_token": "26074",
+    "trading_symbol": "MIDCPNIFTY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NiftyMS400 MQ 100",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NiftyMS400 MQ 100",
+    "exchange_token": "26096",
+    "trading_symbol": "NIFTYMS400 MQ 100"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty MNC",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty MNC",
+    "exchange_token": "26022",
+    "trading_symbol": "NIFTY MNC"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY IND DIGITAL",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY IND DIGITAL",
+    "exchange_token": "26077",
+    "trading_symbol": "NIFTY IND DIGITAL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Ind Tourism",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Ind Tourism",
+    "exchange_token": "26093",
+    "trading_symbol": "NIFTY IND TOURISM"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY MICROCAP250",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY MICROCAP250",
+    "exchange_token": "26076",
+    "trading_symbol": "NIFTY MICROCAP250"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Sml250 Q50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Sml250 Q50",
+    "exchange_token": "26108",
+    "trading_symbol": "NIFTY SML250 Q50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500Momentm50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500Momentm50",
+    "exchange_token": "26095",
+    "trading_symbol": "NIFTY500MOMENTM50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty50 Value 20",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty50 Value 20",
+    "exchange_token": "26045",
+    "trading_symbol": "NIFTY50 VALUE 20"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NiftyM150Momntm50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NiftyM150Momntm50",
+    "exchange_token": "26082",
+    "trading_symbol": "NIFTYM150MOMNTM50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "BHARATBOND-APR31",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|BHARATBOND-APR31",
+    "exchange_token": "26089",
+    "trading_symbol": "BHARATBOND-APR31"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "BHARATBOND-APR32",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|BHARATBOND-APR32",
+    "exchange_token": "26090",
+    "trading_symbol": "BHARATBOND-APR32"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "BHARATBOND-APR30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|BHARATBOND-APR30",
+    "exchange_token": "26088",
+    "trading_symbol": "BHARATBOND-APR30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "BHARATBOND-APR33",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|BHARATBOND-APR33",
+    "exchange_token": "26091",
+    "trading_symbol": "BHARATBOND-APR33"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500 LMS Eql",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500 LMS Eql",
+    "exchange_token": "26129",
+    "trading_symbol": "NIFTY500 LMS EQL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Fin Service",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Fin Service",
+    "exchange_token": "26037",
+    "trading_symbol": "FINNIFTY"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500 Qlty50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500 Qlty50",
+    "exchange_token": "26131",
+    "trading_symbol": "NIFTY500 QLTY50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY INDIA MFG",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY INDIA MFG",
+    "exchange_token": "26080",
+    "trading_symbol": "NIFTY INDIA MFG"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Metal",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Metal",
+    "exchange_token": "26030",
+    "trading_symbol": "NIFTY METAL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500 EW",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500 EW",
+    "exchange_token": "26113",
+    "trading_symbol": "NIFTY500 EW"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty50 PR 2x Lev",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty50 PR 2x Lev",
+    "exchange_token": "26002",
+    "trading_symbol": "NIFTY50 PR 2X LEV"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty50 TR 2x Lev",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty50 TR 2x Lev",
+    "exchange_token": "26043",
+    "trading_symbol": "NIFTY50 TR 2X LEV"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty100ESGSecLdr",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty100ESGSecLdr",
+    "exchange_token": "26068",
+    "trading_symbol": "NIFTY100ESGSECLDR"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY MIDCAP 100",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY MIDCAP 100",
+    "exchange_token": "26011",
+    "trading_symbol": "NIFTY MIDCAP 100"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY MIDCAP 150",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY MIDCAP 150",
+    "exchange_token": "26060",
+    "trading_symbol": "NIFTY MIDCAP 150"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Multi MQ 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Multi MQ 50",
+    "exchange_token": "26114",
+    "trading_symbol": "NIFTY MULTI MQ 50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty 100",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty 100",
+    "exchange_token": "26012",
+    "trading_symbol": "NIFTY 100"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY100 LowVol30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY100 LowVol30",
+    "exchange_token": "26058",
+    "trading_symbol": "NIFTY100 LOWVOL30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty AQL 30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty AQL 30",
+    "exchange_token": "26099",
+    "trading_symbol": "NIFTY AQL 30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty 200",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty 200",
+    "exchange_token": "26033",
+    "trading_symbol": "NIFTY 200"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Mid Liq 15",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Mid Liq 15",
+    "exchange_token": "26046",
+    "trading_symbol": "NIFTY MID LIQ 15"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty500 LowVol50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty500 LowVol50",
+    "exchange_token": "26132",
+    "trading_symbol": "NIFTY500 LOWVOL50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty HighBeta 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty HighBeta 50",
+    "exchange_token": "26102",
+    "trading_symbol": "NIFTY HIGHBETA 50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty 500",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty 500",
+    "exchange_token": "26004",
+    "trading_symbol": "NIFTY 500"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty200 Alpha 30",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty200 Alpha 30",
+    "exchange_token": "26081",
+    "trading_symbol": "NIFTY200 ALPHA 30"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty FinSrv25 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty FinSrv25 50",
+    "exchange_token": "26065",
+    "trading_symbol": "NIFTY FINSRV25 50"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Pvt Bank",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Pvt Bank",
+    "exchange_token": "26047",
+    "trading_symbol": "NIFTY PVT BANK"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty Multi Infra",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty Multi Infra",
+    "exchange_token": "26086",
+    "trading_symbol": "NIFTY MULTI INFRA"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty GS 15YrPlus",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty GS 15YrPlus",
+    "exchange_token": "26054",
+    "trading_symbol": "NIFTY GS 15YRPLUS"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "NIFTY CONSR DURBL",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|NIFTY CONSR DURBL",
+    "exchange_token": "26070",
+    "trading_symbol": "NIFTY CONSR DURBL"
+  },
+  {
+    "segment": "NSE_INDEX",
+    "name": "Nifty FinSerExBnk",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "instrument_key": "NSE_INDEX|Nifty FinSerExBnk",
+    "exchange_token": "26118",
+    "trading_symbol": "NIFTY FINSEREXBNK"
   }
 ]
