@@ -321,12 +321,13 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			continue
 		}
 		shouldExecute := false
-		if candleTime == "9:15" {
+		if candleTime == "9:35" {
 			shouldExecute = s.validateForMorningEntry(ctx, &stockRef, candle)
 		} else if candleTime == "13:00" {
 			shouldExecute = s.validateForAfternoonEntry(ctx, &stockRef, candle)
 		}
 
+		log.Info("GroupExec] Stock %s: shouldExecute: %t", stockRef.InstrumentKey, shouldExecute)
 		if !shouldExecute {
 			continue
 		}
@@ -374,6 +375,7 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			Active:             true,
 		}
 		// Create trade parameters
+		log.Info("GroupExec] Stock %s: creating trade parameters", stockRef.InstrumentKey)
 		err = s.createTradeParameters(ctx, params)
 		if err != nil {
 			results = append(results, stockExecutionResult{
@@ -386,6 +388,7 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			continue
 		}
 		// Create execution plan
+		log.Info("GroupExec] Stock %s: creating execution plan", stockRef.InstrumentKey)
 		err = s.createExecutionPlan(ctx, meta.StockID, stockRef)
 		if err != nil {
 			results = append(results, stockExecutionResult{
@@ -398,6 +401,7 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			continue
 		}
 		// Execute orders
+		log.Info("GroupExec] Stock %s: executing orders", stockRef.InstrumentKey)
 		err = s.executeOrders(ctx, meta.StockID, stockRef)
 		if err != nil {
 			results = append(results, stockExecutionResult{
@@ -409,6 +413,7 @@ func (s *GroupExecutionService) ExecuteGroupWithCandle(
 			anyFailed = true
 			continue
 		}
+		log.Info("GroupExec] Stock %s: orders executed", stockRef.InstrumentKey)
 		results = append(results, stockExecutionResult{
 			StockID: stockRef.StockID,
 			Symbol:  stock.Symbol,
