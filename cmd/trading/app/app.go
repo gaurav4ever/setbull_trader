@@ -292,13 +292,21 @@ func (a *App) Run() error {
 					if err != nil {
 						log.Error("Failed to ingest 1-min candle for %s: %v", stock.InstrumentKey, err)
 					}
-					// After ingestion, aggregate and fire event for 5-min candle
-					end := nextMinute
-					start := end.Add(-5 * time.Minute)
-					log.Info("Aggregating 5-min candle for %s for time range %s to %s", stock.InstrumentKey, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
-					err = a.candleAggService.NotifyOnNew5MinCandles(ctx, stock.InstrumentKey, start, end)
-					if err != nil {
-						log.Error("Failed to aggregate/fire 5-min candle for %s: %v", stock.InstrumentKey, err)
+				}
+
+				// Only aggregate and fire 5-min candle at correct 5-min boundaries since market open
+				if isFiveMinBoundarySinceMarketOpen(nextMinute) {
+					for _, stock := range stocks {
+						if stock.InstrumentKey == "" {
+							continue
+						}
+						end := nextMinute
+						start := end.Add(-5 * time.Minute)
+						log.Info("[5min AGG] Aggregating 5-min candle for %s for time range %s to %s", stock.InstrumentKey, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+						err := a.candleAggService.NotifyOnNew5MinCandles(ctx, stock.InstrumentKey, start, end)
+						if err != nil {
+							log.Error("[5min AGG] Failed to aggregate/fire 5-min candle for %s: %v", stock.InstrumentKey, err)
+						}
 					}
 				}
 
@@ -357,4 +365,15 @@ func requestLoggerMiddleware() gin.HandlerFunc {
 			latency,
 		)
 	}
+}
+
+// Helper function to check if a given time is a 5-min boundary since market open (9:15)
+func isFiveMinBoundarySinceMarketOpen(t time.Time) bool {
+	marketOpenHour := 9
+	marketOpenMinute := 15
+	if t.Hour() < marketOpenHour || (t.Hour() == marketOpenHour && t.Minute() < marketOpenMinute) {
+		return false
+	}
+	minutesSinceOpen := (t.Hour()-marketOpenHour)*60 + (t.Minute() - marketOpenMinute)
+	return minutesSinceOpen >= 0 && minutesSinceOpen%5 == 0
 }

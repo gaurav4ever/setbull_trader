@@ -44,9 +44,14 @@ func NewGroupExecutionScheduler(
 // OnCandleClose listener is called when a new 5-min candle closes
 func (s *GroupExecutionScheduler) OnCandleClose(candles []domain.AggregatedCandle) {
 	for _, candle := range candles {
+		// Use the candle's close time in IST for trigger matching
 		candleTime := candle.Timestamp.In(time.FixedZone("IST", 5*3600+1800))
 		candleHHMM := candleTime.Format("15:04")
-		// This is still 1min candle close. Not the 5min candle close.
+		// Only trigger if this is a true 5-min boundary since market open
+		if !isFiveMinBoundarySinceMarketOpen(candleTime) {
+			log.Info("[Scheduler] Skipping candle at %s (not a 5-min boundary)", candleHHMM)
+			continue
+		}
 		for entryType, triggerTime := range EntryTypeTriggerTimes {
 			log.Info("[Scheduler] Checking if %s matches %s for candle %+v", candleHHMM, triggerTime, candle)
 			if candleHHMM == triggerTime {
@@ -55,6 +60,17 @@ func (s *GroupExecutionScheduler) OnCandleClose(candles []domain.AggregatedCandl
 			}
 		}
 	}
+}
+
+// Helper function to check if a given time is a 5-min boundary since market open (9:15)
+func isFiveMinBoundarySinceMarketOpen(t time.Time) bool {
+	marketOpenHour := 9
+	marketOpenMinute := 15
+	if t.Hour() < marketOpenHour || (t.Hour() == marketOpenHour && t.Minute() < marketOpenMinute) {
+		return false
+	}
+	minutesSinceOpen := (t.Hour()-marketOpenHour)*60 + (t.Minute() - marketOpenMinute)
+	return minutesSinceOpen >= 0 && minutesSinceOpen%5 == 0
 }
 
 // TriggerGroupExecution triggers group execution for all groups with the given entry type and candle
