@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
 	"setbull_trader/pkg/log"
@@ -542,7 +543,7 @@ type SegmentDetail struct {
 
 // CandleCloseListener is a callback function type for candle close events
 // It receives a slice of newly closed aggregated candles (e.g., 5-min)
-type CandleCloseListener func(candles []domain.AggregatedCandle)
+type CandleCloseListener func(candles []domain.AggregatedCandle, stock response.StockGroupStockDTO)
 
 // RegisterCandleCloseListener registers a listener for candle close events
 func (s *CandleAggregationService) RegisterCandleCloseListener(listener CandleCloseListener) {
@@ -550,27 +551,28 @@ func (s *CandleAggregationService) RegisterCandleCloseListener(listener CandleCl
 }
 
 // FireCandleCloseEvent notifies all registered listeners of new closed candles
-func (s *CandleAggregationService) FireCandleCloseEvent(candles []domain.AggregatedCandle) {
+func (s *CandleAggregationService) FireCandleCloseEvent(candles []domain.AggregatedCandle, stock response.StockGroupStockDTO) {
 	for _, listener := range s.candleCloseListeners {
-		go listener(candles) // fire in goroutine to avoid blocking
+		go listener(candles, stock) // fire in goroutine to avoid blocking
 	}
 }
 
 // Example: Call this after fetching/aggregating new 5-min candles
-func (s *CandleAggregationService) NotifyOnNew5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) error {
-	candles, err := s.Get5MinCandles(ctx, instrumentKey, start, end)
+func (s *CandleAggregationService) NotifyOnNew5MinCandles(ctx context.Context, stock response.StockGroupStockDTO, start, end time.Time) error {
+	log.Info("Notifying listeners of new 5-min candles for %s from %s to %s", stock.InstrumentKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
+	candles, err := s.Get5MinCandles(ctx, stock.InstrumentKey, start, end)
 	if err != nil {
 		return err
 	}
 	if len(candles) > 0 {
-		s.FireCandleCloseEvent(candles)
+		s.FireCandleCloseEvent(candles, stock)
 	}
 	return nil
 }
 
 // Example stub: How a scheduler or other service would register a listener
 func ExampleRegisterCandleCloseListener(s *CandleAggregationService) {
-	s.RegisterCandleCloseListener(func(candles []domain.AggregatedCandle) {
+	s.RegisterCandleCloseListener(func(candles []domain.AggregatedCandle, stock response.StockGroupStockDTO) {
 		for _, candle := range candles {
 			log.Info("[Listener] 5-min candle closed: %+v", candle)
 			// Here you would trigger group execution logic, etc.

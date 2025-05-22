@@ -58,3 +58,12 @@ func (r *StockGroupRepository) GetActiveOrExecutingGroup(ctx context.Context) (*
 	}
 	return &group, err
 }
+
+func (r *StockGroupRepository) GetByInstrumentKeyAndEntryType(ctx context.Context, instrumentKey string, entryType string) (*domain.StockGroup, error) {
+	var group domain.StockGroup
+	err := r.db.WithContext(ctx).Preload("Stocks").Where("instrument_key = ? AND entry_type = ?", instrumentKey, entryType).First(&group).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &group, err
+}

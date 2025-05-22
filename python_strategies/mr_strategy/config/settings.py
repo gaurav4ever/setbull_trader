@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080/api/v1")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8083/api/v1")
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "30"))
 
 # Strategy Parameters

@@ -45,7 +45,7 @@ from mr_strategy.utils.time_utils import is_market_open, get_trading_days_betwee
 
 # Test configuration
 TEST_CONFIG = {
-    'api_base_url': 'http://localhost:8080/api/v1',  # Update with your actual API URL
+    'api_base_url': 'http://localhost:8083/api/v1',  # Update with your actual API URL
     'instrument_key': 'NSE_EQ|INE777F01014',  # Example: EXICOM
     'start_date': datetime.now(IST) - timedelta(days=1),  # Set to IST
     'end_date': datetime.now(IST),  # Set to IST

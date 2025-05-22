@@ -8,6 +8,7 @@ import (
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository/postgres"
 	"setbull_trader/pkg/log"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,10 +19,14 @@ var (
 	ErrGroupExecutionConflict = errors.New("another group is already executing or pending")
 )
 
+type FiveMinCloseListener func(start, end time.Time)
+
 type StockGroupService struct {
 	repo             *postgres.StockGroupRepository
 	orderExecService *OrderExecutionService
 	stockService     *StockService
+
+	FiveMinCloseListeners []FiveMinCloseListener
 }
 
 func NewStockGroupService(
@@ -310,4 +315,42 @@ func (s *StockGroupService) GetGroupsByEntryType(
 		})
 	}
 	return result, nil
+}
+
+func (s *StockGroupService) GetGroupByInstrumentKeyAndEntryType(
+	ctx context.Context,
+	instrumentKey string,
+	entryType string,
+) (dto.StockGroupResponse, error) {
+	group, err := s.repo.GetByInstrumentKeyAndEntryType(ctx, instrumentKey, entryType)
+	if err != nil {
+		return dto.StockGroupResponse{}, err
+	}
+	stocks := make([]dto.StockGroupStockDTO, len(group.Stocks))
+	for i, stockRef := range group.Stocks {
+		stocks[i] = dto.StockGroupStockDTO{
+			StockID: stockRef.StockID,
+		}
+	}
+	return dto.StockGroupResponse{
+		ID:        group.ID,
+		EntryType: group.EntryType,
+		Stocks:    stocks,
+	}, nil
+}
+
+func (s *StockGroupService) RegisterFiveMinCloseListener(listener FiveMinCloseListener) {
+	s.FiveMinCloseListeners = append(s.FiveMinCloseListeners, listener)
+}
+
+func (s *StockGroupService) NotifyOnNew5Min(ctx context.Context, start, end time.Time) error {
+	log.Info("Notifying listeners of new 5-min candles from %s to %s", start.Format(time.RFC3339), end.Format(time.RFC3339))
+	s.Fire5mCloseEvent(start, end)
+	return nil
+}
+
+func (s *StockGroupService) Fire5mCloseEvent(start, end time.Time) {
+	for _, listener := range s.FiveMinCloseListeners {
+		go listener(start, end) // fire in goroutine to avoid blocking
+	}
 }

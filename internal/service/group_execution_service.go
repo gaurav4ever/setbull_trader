@@ -11,9 +11,17 @@ import (
 	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/log"
 	"strconv"
+	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
+
+type stockExecutionResult struct {
+	StockID string
+	Symbol  string
+	Success bool
+	Error   string
+}
 
 type StockBackTestAnalysis struct {
 	StockID   string `json:"STOCK_ID"`
@@ -36,6 +44,7 @@ type GroupExecutionService struct {
 	Config                    *config.Config
 	StockUniverseService      *StockUniverseService
 	TechnicalIndicatorService *TechnicalIndicatorService
+	CandleAggregationService  *CandleAggregationService
 }
 
 func NewGroupExecutionService(
@@ -47,6 +56,7 @@ func NewGroupExecutionService(
 	cfg *config.Config,
 	stockUnivSvc *StockUniverseService,
 	technicalIndicatorSvc *TechnicalIndicatorService,
+	candleAggSvc *CandleAggregationService,
 ) *GroupExecutionService {
 	return &GroupExecutionService{
 		StockGroupService:         stockGroupSvc,
@@ -57,7 +67,161 @@ func NewGroupExecutionService(
 		Config:                    cfg,
 		StockUniverseService:      stockUnivSvc,
 		TechnicalIndicatorService: technicalIndicatorSvc,
+		CandleAggregationService:  candleAggSvc,
 	}
+}
+
+func (s *GroupExecutionService) ExecuteDetailedGroup(
+	ctx context.Context,
+	group dto.StockGroupResponse,
+	start, end time.Time,
+) error {
+	if len(group.Stocks) == 0 {
+		log.Error("group is empty or has no stocks")
+		return fmt.Errorf("group is empty or has no stocks")
+	}
+
+	results := make([]stockExecutionResult, 0, len(group.Stocks))
+	var anyFailed bool
+
+	tradingMetadata, err := parseBackTestAnalysisFile(group.Stocks)
+	if err != nil {
+		log.Error("failed to parse backtest analysis file: %w", err)
+		return fmt.Errorf("failed to parse backtest analysis file: %w", err)
+	}
+
+	for _, stockRef := range group.Stocks {
+		stock, err := s.getAndSelectStock(ctx, stockRef)
+		if err != nil {
+			log.Error("failed to get and select stock: %w", err)
+			continue
+		}
+
+		candles, err := s.CandleAggregationService.Get5MinCandles(ctx, stockRef.InstrumentKey, start, end)
+		if err != nil {
+			log.Error("failed to get 5 min candles: %w", err)
+			continue
+		}
+		if len(candles) == 0 {
+			log.Error("no candles found for stock: %s", stockRef.InstrumentKey)
+			continue
+		}
+		candle := candles[0]
+
+		shouldExecute := true
+		// if candleTime == "9:15" {
+		// 	shouldExecute = s.validateForMorningEntry(ctx, &stockRef, candle)
+		// } else if candleTime == "13:00" {
+		// 	shouldExecute = s.validateForAfternoonEntry(ctx, &stockRef, candle)
+		// }
+
+		log.Info("GroupExec] Stock %s: shouldExecute: %t", stockRef.InstrumentKey, shouldExecute)
+		if !shouldExecute {
+			continue
+		}
+
+		_, meta, err := s.getInstrumentKeyAndMetadata(ctx, stock, tradingMetadata)
+		if err != nil {
+			log.Error("failed to get instrument key and metadata: %w", err)
+			continue
+		}
+
+		entryPrice, err := s.calculateEntryPrice(ctx, meta, candle)
+		if err != nil {
+			log.Error("failed to calculate entry price: %w", err)
+			continue
+		}
+
+		slPrice, _, positionSize, tradeSide, riskPerTrade, err := s.calculateSLAndPositionSize(ctx, meta, entryPrice, group.EntryType)
+		if err != nil {
+			log.Error("failed to calculate SL and position size: %w", err)
+			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: err.Error()})
+			anyFailed = true
+			continue
+		}
+
+		if slPrice <= 0 {
+			log.Error("invalid SL: %f", slPrice)
+			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: "invalid SL"})
+			anyFailed = true
+			continue
+		}
+
+		if positionSize <= 0 {
+			log.Error("invalid position size: %d", positionSize)
+			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: "invalid position size"})
+			anyFailed = true
+			continue
+		}
+
+		slPercent, _ := strconv.ParseFloat(meta.SLPercent, 64)
+		params := &domain.TradeParameters{
+			StockID:            meta.StockID,
+			StartingPrice:      entryPrice,
+			StopLossPercentage: slPercent,
+			RiskAmount:         float64(riskPerTrade),
+			TradeSide:          tradeSide,
+			PSType:             meta.PSType,
+			EntryType:          group.EntryType,
+			Active:             true,
+		}
+		// Create trade parameters
+		log.Info("[EXECUTION] Stock %s: creating trade parameters", stockRef.Symbol)
+		err = s.createTradeParameters(ctx, params)
+		if err != nil {
+			results = append(results, stockExecutionResult{
+				StockID: stockRef.StockID,
+				Symbol:  stock.Symbol,
+				Success: false,
+				Error:   "trade param error: " + err.Error(),
+			})
+			anyFailed = true
+			continue
+		}
+
+		// Create execution plan
+		log.Info("[EXECUTION] Stock %s: creating execution plan", stockRef.Symbol)
+		err = s.createExecutionPlan(ctx, meta.StockID, stockRef)
+		if err != nil {
+			results = append(results, stockExecutionResult{
+				StockID: stockRef.StockID,
+				Symbol:  stock.Symbol,
+				Success: false,
+				Error:   "exec plan error: " + err.Error(),
+			})
+			anyFailed = true
+			continue
+		}
+		// Execute orders
+		log.Info("[EXECUTION] Stock %s: executing orders", stockRef.Symbol)
+		err = s.executeOrders(ctx, meta.StockID, stockRef)
+		if err != nil {
+			results = append(results, stockExecutionResult{
+				StockID: stockRef.StockID,
+				Symbol:  stock.Symbol,
+				Success: false,
+				Error:   "order exec error: " + err.Error(),
+			})
+			anyFailed = true
+			continue
+		}
+		log.Info("[EXECUTION] Stock %s: orders executed", stockRef.Symbol)
+		results = append(results, stockExecutionResult{
+			StockID: stockRef.StockID,
+			Symbol:  stock.Symbol,
+			Success: true,
+			Error:   "",
+		})
+	}
+
+	// Log summary
+	for _, res := range results {
+		s.logExecutionResult(res)
+	}
+	if anyFailed {
+		return fmt.Errorf("one or more stocks failed in group execution; see logs for details")
+	}
+	return nil
 }
 
 // ExecuteGroup is a stub for the group execution orchestration logic
@@ -286,151 +450,6 @@ func parseBackTestAnalysisFile(stocks []response.StockGroupStockDTO) (map[string
 	return finalResult, nil
 }
 
-// ExecuteGroupWithCandle executes a group using the provided candle context (for scheduled execution)
-func (s *GroupExecutionService) ExecuteGroupWithCandle(
-	ctx context.Context,
-	group dto.StockGroupResponse,
-	candle domain.AggregatedCandle,
-	candleTime string,
-) error {
-	if len(group.Stocks) == 0 {
-		log.Error("group is empty or has no stocks")
-		return fmt.Errorf("group is empty or has no stocks")
-	}
-
-	type stockExecutionResult struct {
-		StockID string
-		Symbol  string
-		Success bool
-		Error   string
-	}
-	results := make([]stockExecutionResult, 0, len(group.Stocks))
-	var anyFailed bool
-
-	tradingMetadata, err := parseBackTestAnalysisFile(group.Stocks) // You may need to adapt this to get correct metadata
-	if err != nil {
-		log.Error("failed to parse backtest analysis file: %w", err)
-		return fmt.Errorf("failed to parse backtest analysis file: %w", err)
-	}
-
-	for _, stockRef := range group.Stocks {
-		stock, err := s.getAndSelectStock(ctx, stockRef)
-		if err != nil {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Success: false, Error: err.Error()})
-			anyFailed = true
-			continue
-		}
-		shouldExecute := false
-		if candleTime == "9:15" {
-			shouldExecute = s.validateForMorningEntry(ctx, &stockRef, candle)
-		} else if candleTime == "13:00" {
-			shouldExecute = s.validateForAfternoonEntry(ctx, &stockRef, candle)
-		}
-
-		log.Info("GroupExec] Stock %s: shouldExecute: %t", stockRef.InstrumentKey, shouldExecute)
-		if !shouldExecute {
-			continue
-		}
-
-		_, meta, err := s.getInstrumentKeyAndMetadata(ctx, stock, tradingMetadata)
-		if err != nil {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: err.Error()})
-			anyFailed = true
-			continue
-		}
-
-		entryPrice, err := s.calculateEntryPrice(ctx, meta, candle)
-		if err != nil {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: err.Error()})
-			anyFailed = true
-			continue
-		}
-
-		slPrice, _, positionSize, tradeSide, riskPerTrade, err := s.calculateSLAndPositionSize(ctx, meta, entryPrice, group.EntryType)
-		if err != nil {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: err.Error()})
-			anyFailed = true
-			continue
-		}
-
-		if slPrice <= 0 {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: "invalid SL"})
-			anyFailed = true
-			continue
-		}
-		if positionSize <= 0 {
-			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: "invalid position size"})
-			anyFailed = true
-			continue
-		}
-		slPercent, _ := strconv.ParseFloat(meta.SLPercent, 64)
-		params := &domain.TradeParameters{
-			StockID:            meta.StockID,
-			StartingPrice:      entryPrice,
-			StopLossPercentage: slPercent,
-			RiskAmount:         float64(riskPerTrade),
-			TradeSide:          tradeSide,
-			PSType:             meta.PSType,
-			EntryType:          group.EntryType,
-			Active:             true,
-		}
-		// Create trade parameters
-		log.Info("GroupExec] Stock %s: creating trade parameters", stockRef.InstrumentKey)
-		err = s.createTradeParameters(ctx, params)
-		if err != nil {
-			results = append(results, stockExecutionResult{
-				StockID: stockRef.StockID,
-				Symbol:  stock.Symbol,
-				Success: false,
-				Error:   "trade param error: " + err.Error(),
-			})
-			anyFailed = true
-			continue
-		}
-		// Create execution plan
-		log.Info("GroupExec] Stock %s: creating execution plan", stockRef.InstrumentKey)
-		err = s.createExecutionPlan(ctx, meta.StockID, stockRef)
-		if err != nil {
-			results = append(results, stockExecutionResult{
-				StockID: stockRef.StockID,
-				Symbol:  stock.Symbol,
-				Success: false,
-				Error:   "exec plan error: " + err.Error(),
-			})
-			anyFailed = true
-			continue
-		}
-		// Execute orders
-		log.Info("GroupExec] Stock %s: executing orders", stockRef.InstrumentKey)
-		err = s.executeOrders(ctx, meta.StockID, stockRef)
-		if err != nil {
-			results = append(results, stockExecutionResult{
-				StockID: stockRef.StockID,
-				Symbol:  stock.Symbol,
-				Success: false,
-				Error:   "order exec error: " + err.Error(),
-			})
-			anyFailed = true
-			continue
-		}
-		log.Info("GroupExec] Stock %s: orders executed", stockRef.InstrumentKey)
-		results = append(results, stockExecutionResult{
-			StockID: stockRef.StockID,
-			Symbol:  stock.Symbol,
-			Success: true,
-			Error:   "",
-		})
-	}
-	// Log summary
-	for _, res := range results {
-		s.logStockExecutionResult(res, candle)
-	}
-	if anyFailed {
-		return fmt.Errorf("one or more stocks failed in group execution; see logs for details")
-	}
-	return nil
-}
-
 // getAndSelectStock fetches a stock by ID, marks it as selected, and updates it
 func (s *GroupExecutionService) getAndSelectStock(ctx context.Context, stockRef dto.StockGroupStockDTO) (*domain.Stock, error) {
 	stock, err := s.StockGroupService.stockService.GetOnlyStockByID(ctx, stockRef.StockID)
@@ -528,17 +547,11 @@ func (s *GroupExecutionService) executeOrders(ctx context.Context, stockID strin
 	return err
 }
 
-// logStockExecutionResult logs the result of stock execution
-func (s *GroupExecutionService) logStockExecutionResult(res struct {
-	StockID string
-	Symbol  string
-	Success bool
-	Error   string
-}, candle domain.AggregatedCandle) {
+func (s *GroupExecutionService) logExecutionResult(res stockExecutionResult) {
 	if res.Success {
-		log.Info("GroupExec] Stock %s: SUCCESS (candle %v)", res.StockID, candle.Timestamp)
+		log.Info("GroupExec] Stock %s: SUCCESS", res.StockID)
 	} else {
-		log.Error("GroupExec] Stock %s: FAIL (%s) (candle %v)", res.StockID, res.Error, candle.Timestamp)
+		log.Error("GroupExec] Stock %s: FAIL (%s)", res.StockID, res.Error)
 	}
 }
 

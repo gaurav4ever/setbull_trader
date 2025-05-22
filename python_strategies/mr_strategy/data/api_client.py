@@ -24,7 +24,7 @@ class ApiClient:
         Initialize the API client.
         
         Args:
-            base_url: Base URL of the API (e.g., 'http://localhost:8080/api/v1')
+            base_url: Base URL of the API (e.g., 'http://localhost:8083/api/v1')
             timeout: Request timeout in seconds
         """
         self.base_url = base_url.rstrip('/')

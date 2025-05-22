@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"setbull_trader/internal/domain"
 	"setbull_trader/pkg/log"
 	"time"
 )
@@ -17,7 +16,6 @@ var EntryTypeTriggerTimes = map[string]string{
 // GroupExecutionScheduler listens for candle close events and triggers group execution
 // at the correct times for each entry type.
 type GroupExecutionScheduler struct {
-	candleAggService      *CandleAggregationService
 	groupExecutionService *GroupExecutionService
 	stockGroupService     *StockGroupService
 	universeService       *StockUniverseService
@@ -25,39 +23,28 @@ type GroupExecutionScheduler struct {
 
 // NewGroupExecutionScheduler creates and registers the scheduler
 func NewGroupExecutionScheduler(
-	candleAggService *CandleAggregationService,
 	groupExecutionService *GroupExecutionService,
 	stockGroupService *StockGroupService,
 	universeService *StockUniverseService,
 ) *GroupExecutionScheduler {
 	s := &GroupExecutionScheduler{
-		candleAggService:      candleAggService,
 		groupExecutionService: groupExecutionService,
 		stockGroupService:     stockGroupService,
 		universeService:       universeService,
 	}
 	// Register as a listener for 5-min candle close events
-	candleAggService.RegisterCandleCloseListener(s.OnCandleClose)
+	stockGroupService.RegisterFiveMinCloseListener(s.OnFiveMinClose)
 	return s
 }
 
-// OnCandleClose listener is called when a new 5-min candle closes
-func (s *GroupExecutionScheduler) OnCandleClose(candles []domain.AggregatedCandle) {
-	for _, candle := range candles {
-		// Use the candle's close time in IST for trigger matching
-		candleTime := candle.Timestamp.In(time.FixedZone("IST", 5*3600+1800))
-		candleHHMM := candleTime.Format("15:04")
-		// Only trigger if this is a true 5-min boundary since market open
-		if !isFiveMinBoundarySinceMarketOpen(candleTime) {
-			log.Info("[Scheduler] Skipping candle at %s (not a 5-min boundary)", candleHHMM)
-			continue
-		}
-		for entryType, triggerTime := range EntryTypeTriggerTimes {
-			log.Info("[Scheduler] Checking if %s matches %s for candle %+v", candleHHMM, triggerTime, candle)
-			if candleHHMM == triggerTime {
-				log.Info("[Scheduler] Triggering group execution for entry type %s at %s (candle: %+v)", entryType, triggerTime, candle)
-				s.TriggerGroupExecution(context.Background(), entryType, candle, candleHHMM)
-			}
+// OnFiveMinClose listener is called when a new 5-min candle closes
+func (s *GroupExecutionScheduler) OnFiveMinClose(start, end time.Time) {
+	log.Info("[Scheduler] Received 5-min candle close event from %s to %s", start.Format(time.RFC3339), end.Format(time.RFC3339))
+	candleHHMM := start.Format("15:04")
+	for entryType, triggerTime := range EntryTypeTriggerTimes {
+		if candleHHMM == triggerTime {
+			log.Info("[Scheduler] Triggering group execution for entry type %s at %s (candle: %+v)", entryType, triggerTime, start)
+			s.TriggerGroupExecution(context.Background(), entryType, start, end)
 		}
 	}
 }
@@ -77,25 +64,22 @@ func isFiveMinBoundarySinceMarketOpen(t time.Time) bool {
 func (s *GroupExecutionScheduler) TriggerGroupExecution(
 	ctx context.Context,
 	entryType string,
-	candle domain.AggregatedCandle,
-	candleTime string,
+	start, end time.Time,
 ) {
 	groups, err := s.stockGroupService.GetGroupsByEntryType(ctx, entryType, s.universeService)
 	if err != nil {
-		log.Error("[Scheduler] Failed to fetch groups for entryType=%s: %v", entryType, err)
+		log.Error("[Scheduler] Failed to fetch group for entryType=%s: %v", entryType, err)
 		return
 	}
 	if len(groups) == 0 {
-		log.Info("[Scheduler] No groups found for entryType=%s at candle %v", entryType, candle.Timestamp)
+		log.Info("[Scheduler] No groups found for entryType=%s", entryType)
 		return
 	}
 	for _, group := range groups {
-		log.Info("[Scheduler] Executing group %s for entryType=%s at candle %v", group.ID, entryType, candle.Timestamp)
-		err := s.groupExecutionService.ExecuteGroupWithCandle(ctx, group, candle, candleTime)
+		log.Info("[Scheduler] Executing group %s for entryType=%s", group.ID, entryType)
+		err = s.groupExecutionService.ExecuteDetailedGroup(ctx, group, start, end)
 		if err != nil {
 			log.Error("[Scheduler] Group execution failed for group %s: %v", group.ID, err)
-		} else {
-			log.Info("[Scheduler] Group execution succeeded for group %s", group.ID)
 		}
 	}
 }

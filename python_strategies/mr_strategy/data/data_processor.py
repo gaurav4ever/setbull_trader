@@ -32,7 +32,7 @@ class ApiError(Exception):
 class ApiClient:
     """API client for fetching candle data from the server."""
     
-    def __init__(self, base_url: str = "http://localhost:8080/api/v1", max_retries: int = 3):
+    def __init__(self, base_url: str = "http://localhost:8083/api/v1", max_retries: int = 3):
         """Initialize the API client.
         
         Args:

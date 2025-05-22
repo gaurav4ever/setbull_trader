@@ -1,0 +1,59 @@
+Here is a timeline of the automated group execution flow, focusing on timing and how group execution is triggered and processed in the codebase:
+1. Precise 1-Minute Ingestion Loop (app.go)
+File: cmd/trading/app/app.go
+Where: In App.Run(), a goroutine is started if enable1MinCandleIngestion is true.
+What it does:
+Every minute (with a configurable offset), it:
+Fetches all stocks from all groups (stockGroupService.FetchAllStocksFromAllGroups)
+Ingests 1-min candles for each stock.
+On every 5-min boundary (checked by isFiveMinBoundarySinceMarketOpen), it:
+Calls stockGroupService.NotifyOnNew5Min(ctx, start, end) to notify listeners of a new 5-min candle.
+2. 5-Minute Candle Close Event (stock_group_service.go)
+File: internal/service/stock_group_service.go
+What it does:
+NotifyOnNew5Min calls Fire5mCloseEvent, which notifies all registered listeners (in goroutines) about the new 5-min candle close, passing the start and end time.
+3. Group Execution Scheduler (group_execution_scheduler.go)
+File: internal/service/group_execution_scheduler.go
+What it does:
+GroupExecutionScheduler is registered as a listener for 5-min close events in NewGroupExecutionScheduler.
+On each 5-min close (OnFiveMinClose):
+Checks if the current candle time matches any configured entry trigger times (e.g., "09:15" for "1ST_ENTRY", "13:00" for "2_30_ENTRY").
+If matched, calls TriggerGroupExecution for that entry type and candle window.
+4. Triggering Group Execution (group_execution_scheduler.go)
+What it does:
+TriggerGroupExecution:
+Fetches all groups for the entry type (stockGroupService.GetGroupsByEntryType).
+For each group, calls groupExecutionService.ExecuteDetailedGroup with the group and candle window.
+5. Detailed Group Execution (group_execution_service.go)
+File: internal/service/group_execution_service.go
+What it does:
+For each stock in the group:
+Fetches and selects the stock.
+Gets the relevant 5-min candle for the time window.
+(Optionally) Validates if the stock should be executed (e.g., morning/afternoon entry logic).
+Retrieves trading metadata (from backtest analysis).
+Calculates entry price, stop loss, and position size.
+Creates trade parameters and execution plan.
+Executes orders for the stock.
+Logs the result.
+Summary Timeline
+Every minute:
+Ingest 1-min candles for all group stocks.
+Every 5-min boundary:
+Notify listeners of new 5-min candle.
+On 5-min close at trigger times (e.g., 09:15, 13:00):
+Scheduler triggers group execution for matching entry types.
+For each group:
+Execute all stocks in the group using detailed logic (entry, SL, position size, order execution).
+Elaboration & Reasoning:
+The system is designed for automated, time-based group execution, tightly coupled to market candle closes.
+The 1-min loop ensures timely ingestion and aggregation of market data.
+The 5-min event system decouples data ingestion from trading logic, allowing for flexible scheduling and extension.
+The scheduler is extensible: new entry types and trigger times can be added easily.
+All business logic for group execution (risk, SL, order placement) is encapsulated in the GroupExecutionService.
+Sources:
+cmd/trading/app/app.go (main loop, ingestion, event firing)
+internal/service/stock_group_service.go (event notification)
+internal/service/group_execution_scheduler.go (scheduling, trigger logic)
+internal/service/group_execution_service.go (execution logic)
+If you want a sequence diagram or more granular breakdown (e.g., function call stack), let me know!

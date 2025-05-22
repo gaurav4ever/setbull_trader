@@ -86,7 +86,7 @@ async def run_backtest(request: BacktestRequest):
         
         # Fetch top 10 filtered stocks from the filter pipeline API
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://localhost:8080/api/v1/filter-pipeline/fetch/top-10")
+            response = await client.get("http://localhost:8083/api/v1/filter-pipeline/fetch/top-10")
             if response.status_code != 200:
                 raise HTTPException(status_code=500, detail="Failed to fetch filtered stocks")
             

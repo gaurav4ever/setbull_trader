@@ -32,7 +32,7 @@ def read_instrument_keys(file_path: str) -> List[str]:
 
 def process_in_batches(instrument_keys: List[str], batch_size: int = 5, delay: int = 2):
     """Process instrument keys in batches and make API calls."""
-    api_url = "http://localhost:8080/api/v1/stocks/universe/daily-candles"
+    api_url = "http://localhost:8083/api/v1/stocks/universe/daily-candles"
     headers = {'Content-Type': 'application/json'}
     
     total_batches = (len(instrument_keys) + batch_size - 1) // batch_size
