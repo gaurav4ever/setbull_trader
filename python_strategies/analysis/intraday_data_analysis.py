@@ -499,7 +499,7 @@ class IntradayDataAnalysis:
         df_1st['ENTRY_TYPE'] = '1ST_ENTRY'
         df_1st['ENTRY_TIME'] = '9:20AM'
         df_1st['SL%'] = 0.5
-        df_1st['PS_TYPE'] = np.where(df_1st['win_rate'] > 70, 'FIXED', 'DISTRIBUTED')
+        df_1st['PS_TYPE'] = np.where(df_1st['win_rate'] > 70, 'FIXED', 'DYNAMIC')
         df_1st['TREND'] = df_1st['trend']  # No trend info in this query, so leave blank
         df_1st.rename(columns={'name': 'SYMBOL', 'direction': 'DIRECTION'}, inplace=True)
 
@@ -509,7 +509,7 @@ class IntradayDataAnalysis:
         df_2_30['ENTRY_TYPE'] = 'EVENING'
         df_2_30['ENTRY_TIME'] = '1PM'
         df_2_30['SL%'] = 0.3
-        df_2_30['PS_TYPE'] = np.where(df_2_30['win_rate'] > 70, 'FIXED', 'DISTRIBUTED')
+        df_2_30['PS_TYPE'] = np.where(df_2_30['win_rate'] > 70, 'FIXED', 'DYNAMIC')
         df_2_30['TREND'] = df_2_30['trend']  # No trend info in this query, so leave blank
         df_2_30.rename(columns={'name': 'SYMBOL', 'direction': 'DIRECTION'}, inplace=True)
 
