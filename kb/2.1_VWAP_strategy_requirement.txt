@@ -1,0 +1,244 @@
+Business Requirement Document (BRD)
+
+Title: VWAP-Enhanced Intraday Trading System for 5-Minute Chart Strategy
+Owner: [Your Name]
+Date: [Insert Date]
+Version: 1.0
+🔍 1. Executive Summary
+
+We aim to enhance our 5-minute intraday trading strategy by integrating VWAP-based trading logic. This initiative will enable us to capture more accurate directional entries, improve execution efficiency, and increase the overall win rate across the top-trending stocks.
+
+This requirement is informed by proven institutional trading practices where VWAP serves as a core execution and signal tool. We want to adopt a similar structure tailored to our shorter timeframes and dynamic stock filtering process.
+🎯 2. Business Objective
+
+    Integrate VWAP logic into our 5-minute chart-based intraday strategy.
+
+    Improve trade quality by executing only around statistically favorable VWAP patterns.
+
+    Achieve a 50%+ success rate across selected top 3–5 trending stocks.
+
+    Ensure a fully automated system with trade journaling and backtest support.
+
+📌 3. Problem Statement
+
+    The current system operates on breakout and trend-following setups over 5-minute charts using a curated set of trending stocks. However, lack of context from volume-weighted price levels (VWAP) sometimes leads to premature or low-probability entries.
+
+    Professional-grade trading algorithms often rely on VWAP not just for execution efficiency but as a signal for continuation, reversal, or confirmation. Incorporating this dimension can significantly enhance our system’s accuracy and fill quality.
+
+🧭 4. Key Business Requirements
+ID	Requirement
+BR-1	System must calculate real-time VWAP using 1-min or tick data feed.
+BR-2	System must process VWAP signals at 5-minute intervals.
+BR-3	VWAP strategy must trigger only for top 3–5 trending stocks (long/short).
+BR-4	Must support VWAP breakout, VWAP rejection, and VWAP reversion signal types.
+BR-5	Execution module must place, monitor, and exit trades via broker API.
+BR-6	Include configurable SL/TP, position sizing rules, and risk constraints.
+BR-7	Maintain journaling, logging, and session timeline for all trades.
+BR-8	Include support for backtest and real-time simulation for validation.
+BR-9	Enable integration with existing 5-minute breakout strategy engine.
+🧪 5. Success Metrics
+
+    50% or higher win rate on VWAP-based trades among top trending stocks.
+
+    Seamless integration with the current live trade engine.
+
+    Execution latency < 1 second from signal to order placement.
+
+    System resilience with zero missed 5-min intervals.
+
+    Trackable improvement in RR, fill quality, and slippage.
+
+🧱 6. Dependencies
+
+    Real-time market data feed (tick or 1-min bars).
+
+    Broker API integration (e.g., Upstox, Zerodha).
+
+    Access to trending stock filters (based on momentum, volume, or price action).
+
+    Existing journaling and backtesting infrastructure.
+
+🚧 7. Constraints
+
+    Latency of broker or data provider may impact VWAP freshness.
+
+    Tick-level VWAP may require rate-limited APIs or separate data infra.
+
+    Only intraday positions; all trades must be closed by 3:15 PM.
+
+🛣️ 8. Next Steps
+Step	Owner	Timeline
+Finalize BRD	You	Day 0
+Create Product Spec	Product Manager	Day 1–2
+Review with Tech Team	CTO / Dev Lead	Day 3
+Dev Sprint Planning	Engineering	Day 4+
+
+==============================================================================
+
+
+Product Requirement Document (PRD)
+
+Product Name: VWAP Breakout Execution Engine
+Version: 1.0
+Prepared For: Product & Engineering Team
+Prepared By: [Your Name]
+Date: [Insert Date]
+🧭 1. Product Overview
+
+We are building an MVP system to automatically identify and execute VWAP breakout trades on 5-minute intraday charts using a pre-ranked set of top trending stocks (3–5 symbols). The product will integrate into an existing real-time technical indicator framework that supports VWAP computation.
+
+This MVP focuses only on execution of VWAP breakout signals, and excludes logging, journaling, and backtesting.
+🎯 2. Goals & Scope
+✅ Included in Scope:
+
+    Real-time signal evaluation every 5 minutes
+
+    VWAP breakout signal logic
+
+    Broker order placement (market order + optional SL/TP)
+
+    Configurable risk and SL %
+
+    Stock filter: Use only predefined list of top trending stocks (long or short)
+
+    Runs from market open to 3:15 PM
+
+❌ Out of Scope (MVP):
+
+    VWAP rejection/reversion
+
+    Trade journaling and timeline
+
+    Performance tracking or analytics
+
+    Backtest support
+
+    UI/dashboard
+
+🔍 3. Functional Requirements
+FR-1: VWAP Signal Computation
+
+    Reuse the existing technical indicator engine to compute real-time VWAP using tick or 1-minute feed
+
+    Refresh VWAP at 1-minute granularity
+
+    At every 5-minute candle close, compare current price with VWAP
+
+FR-2: Signal Logic – VWAP Breakout
+LONG Signal:
+
+    If close of 5-min candle > VWAP + breakout_buffer → generate BUY signal
+
+SHORT Signal:
+
+    If close of 5-min candle < VWAP - breakout_buffer → generate SELL signal
+
+Params:
+Parameter	Type	Default	Description
+breakout_buffer	float	0.1%	How much price should exceed VWAP
+min_volume	number	100,000	Min volume in the last 5-min candle
+max_spread	float	0.2%	Max allowed bid-ask spread
+
+    Signal must only be evaluated for top N stocks (e.g., 3-5), filtered separately via external service.
+
+FR-3: Trade Execution
+
+    Place market order via broker API (Zerodha, Upstox, etc.)
+
+    Must support:
+
+        Quantity based on risk config
+
+        SL as absolute or % below VWAP
+
+        Target is optional for MVP
+
+    Must prevent duplicate entries on repeated signals
+
+Execution Plan Example:
+
+{
+  "symbol": "RELIANCE",
+  "direction": "BUY",
+  "entry_price": 2482.0,
+  "vwap": 2478.5,
+  "sl": 2474.5,
+  "quantity": 100
+}
+
+FR-4: Risk Management
+
+    Fixed per-trade risk (risk_per_trade = ₹50)
+
+    SL is based on:
+
+        0.5% from VWAP by default OR
+
+        user-configurable
+
+    Quantity is calculated as:
+
+qty = floor(risk_per_trade / (entry_price - stop_loss))
+
+    No pyramiding or averaging in MVP
+
+FR-5: Scheduler & Timing Logic
+
+    Engine starts at 9:14 AM IST
+
+    Runs until 3:15 PM IST
+
+    Evaluates signal every 5 minutes (based on 5-min OHLC)
+
+    No trade allowed after 3:00 PM
+
+🧱 4. Technical Constraints
+Constraint	Description
+VWAP Service	Already exists – do not rebuild
+Broker API	Must support live trading + paper mode
+Max trades per session	5 (configurable)
+Candle Aggregation	From tick or 1-min feed to 5-min bar
+🧪 5. Testing & Validation
+Test Case	Success Criteria
+Signal triggers on breakout	Signal generated only when price crosses VWAP
+Order placed for valid signal	Market order placed with correct SL
+No double entries per symbol	Only one position allowed per symbol
+Quantity respects risk settings	Correct quantity calculated
+Scheduler limits respected	No orders after 3:00 PM
+🧑‍💻 6. API/Integration Notes
+
+    VWAP Input: Pull from internal indicator service
+
+    Price/Volume Feed: From tick/1-min real-time source
+
+    Order Placement: Through broker execution API
+
+    Top Stocks Input: From external selector engine (e.g., /top-trending?limit=5&type=long)
+
+📌 7. Configuration Parameters
+Config Name	Type	Default	Description
+breakout_buffer	float	0.001	VWAP breakout threshold
+sl_percent	float	0.005	SL distance from VWAP
+risk_per_trade	int	50	Fixed risk capital per trade
+max_trades	int	5	Max trades per day
+top_n_stocks	int	5	Number of trending stocks to scan
+🚀 8. Deliverables
+Item	Description
+vwap_breakout_engine.py	Main signal and execution logic
+risk_manager.py	Quantity calculation and risk checks
+config.yaml	Strategy parameters
+runner.py	Schedules and orchestrates execution
+Integration with vwap_service	Pulls live VWAP per symbol
+✅ 9. Acceptance Criteria
+
+    System runs independently with no manual intervention
+
+    At least one trade is placed under valid conditions
+
+    No crashes or duplicate entries
+
+    Risk logic respects user config
+
+    Broker API integration successful
+
+Let me know if you'd like this in Markdown, PDF, or a GitHub README template, or if you’re ready for the Python starter repo scaffold next.
