@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import logging
 import numpy as np
+import os
+
 class IntradayDataAnalysis:
     def __init__(self):
         self.db_config = {
@@ -530,4 +532,66 @@ class IntradayDataAnalysis:
             self.cursor.close()
         if self.conn:
             self.conn.close()
-            self.logger.info("Database connections closed") 
+            self.logger.info("Database connections closed")
+
+    def get_entry_time_top_stocks(self, min_trades: int = 5) -> dict:
+        """
+        For each EntryTimeString, return a DataFrame of top-performing stocks (by avg_pnl, win_rate, total_trades, etc.), filtered by min_trades.
+        Returns a dict: {EntryTimeString: DataFrame}
+        """
+        # Try to get EntryTimeString from DB; if not present, fallback to CSV
+        try:
+            # Check if EntryTimeString column exists in trades table
+            self.cursor.execute("SHOW COLUMNS FROM trades LIKE 'trade_type'")
+            result = self.cursor.fetchone()
+            if result:
+                # EntryTimeString is in DB
+                query = f"""
+                SELECT 
+                    name,
+                    trade_type,
+                    direction,
+                    trend,
+                    COUNT(*) as total_trades,
+                    SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as winning_trades,
+                    ROUND(AVG(pnl), 2) as avg_pnl,
+                    ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) as win_rate,
+                    SUM(pnl) as total_pnl
+                FROM trades
+                GROUP BY name, trade_type, direction, trend
+                HAVING total_trades >= {min_trades}
+                ORDER BY trade_type, avg_pnl DESC, win_rate DESC, total_trades DESC;
+                """
+                df = pd.read_sql(query, self.conn)
+            else:
+                # Fallback: load from CSV
+                raise Exception('trade_type not in DB')
+        except Exception:
+            # Fallback: load from CSV (assume last loaded CSV is available)
+            # This is a fallback for dev/test, not prod
+            csv_path = os.path.join('/Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results', 'daily_trades.csv')
+            df = pd.read_csv(csv_path)
+
+        # If loaded from CSV, ensure EntryTimeString exists
+        if 'trade_type' not in df.columns:
+            raise ValueError('trade_type column not found in data')
+
+        # Group by EntryTimeString and Name, aggregate metrics
+        grouped = df.groupby(['trade_type', 'name', 'direction', 'trend'])
+        summary = grouped.agg(
+            total_trades=('pnl', 'count'),
+            winning_trades=('status', lambda x: (x == 'PROFIT').sum()),
+            avg_pnl=('pnl', 'mean'),
+            win_rate=('status', lambda x: 100 * (x == 'PROFIT').sum() / len(x)),
+            total_pnl=('pnl', 'sum')
+        ).reset_index()
+
+        # Filter by min_trades
+        summary = summary[summary['total_trades'] >= min_trades]
+
+        # For each EntryTimeString, get top stocks by avg_pnl, win_rate, total_trades
+        result = {}
+        for entry_time in sorted(summary['trade_type'].unique()):
+            df_time = summary[summary['trade_type'] == entry_time].copy()
+            df_time = df_time.sort_values(['avg_pnl', 'win_rate', 'total_trades', 'total_pnl'], ascending=[False, False, False, False])
+            result[entry_time] = df_time 

@@ -233,6 +233,17 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
             prev_day_selling_indication = trade.get('prev_day_selling_indication', False)
             entry_type = trade.get('entry_type', 'UNKNOWN')
             entry_time_string = trade.get('entry_time_string', 'UNKNOWN')
+            entry_price = trade.get('entry_price', 0)
+            exit_price = trade.get('exit_price', 0)
+            initial_position_size = trade.get('initial_position_size', 0)
+            stop_loss = trade.get('stop_loss', 0)
+            breakeven_level = trade.get('breakeven_level', 0)
+            breakout_event_to_cost = trade.get('breakout_event_to_cost', 0)
+            risk_amount = trade.get('risk_amount', 0)
+            duration = trade.get('duration', 0)
+            max_r_multiple = trade.get('max_r_multiple', 0)
+            mr_value = trade.get('mr_value', 0)
+            exit_reason = trade.get('exit_reason', 'UNKNOWN')
 
             if trade_date not in trade_days:
                 trade_days[trade_date] = {}
@@ -265,7 +276,18 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
                 'PrevDayBuyingIndication': prev_day_buying_indication,
                 'PrevDaySellingIndication': prev_day_selling_indication,
                 'EntryType': entry_type,
-                'EntryTimeString': entry_time_string
+                'EntryTimeString': entry_time_string,
+                'EntryPrice': entry_price,
+                'ExitPrice': exit_price,
+                'InitialPositionSize': initial_position_size,
+                'StopLoss': stop_loss,
+                'BreakevenLevel': breakeven_level,
+                'BreakoutEventToCost': breakout_event_to_cost,
+                'RiskAmount': risk_amount,
+                'Duration': duration,
+                'MaxRMultiple': max_r_multiple,
+                'MRValue': mr_value,
+                'ExitReason': exit_reason
             })
 
     new_df = pd.DataFrame(new_csv_data)
@@ -345,9 +367,12 @@ def print_and_visualize_results(results, reports, instrument_configs):
         trade_days = {}
         cumulative_pnl = {}
         for trade in trade_list:
-            entry_time = trade.get('current_time')
+            entry_time = trade.get('entry_time_string')
+            current_time = trade.get('current_time')
             if entry_time:
-                trade_date = pd.to_datetime(entry_time).strftime('%Y-%m-%d')
+                trade_date_v1 = pd.to_datetime(entry_time).strftime('%Y-%m-%d %H:%M')
+                trade_date_v2 = pd.to_datetime(current_time).strftime('%Y-%m-%d')
+                trade_date = trade_date_v1 + " " + trade_date_v2
                 instrument_key = trade.get('instrument_key', 'UNKNOWN')
                 pnl = trade.get('realized_pnl', 0)
                 direction = trade.get('position_type', 'UNKNOWN')

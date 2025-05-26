@@ -241,7 +241,8 @@ class TradeManager:
                    entry_time_string: str,
                    trade_type: TradeType,
                    sl_percentage: Optional[float] = None,
-                   candle_data: Optional[Dict] = None) -> Dict:
+                   candle_data: Optional[Dict] = None,
+                   mr_values: Optional[Dict] = None) -> Dict:
         """Create a new trade with features."""
         candle_info = self._format_candle_info(candle_data) if candle_data else ""
 
@@ -251,24 +252,33 @@ class TradeManager:
         # Calculate trade levels
         levels = self.calculate_trade_levels(entry_price, position_type, sl_percentage, candle_data)
         levels["initial_position_size"] = position_size
+
+        float_breakeven_level = float(levels["breakeven_level"])
+        #  take care of commission cost 0.03%
+        float_breakeven_level = float_breakeven_level * 0.0003
+
+        # add mr_values to trade
+        if mr_values:
+            levels["mr_values"] = mr_values
         
         # Create trade object with features
         trade = {
             "instrument_key": instrument_key,
             "opening_type": "OAH" if candle_data["OAH"] == True else "OAL" if candle_data["OAL"] == True else "OAM",
-            "entry_price": entry_price,
+            "entry_price": entry_price, # include in backtest trade sheet
             "current_price": entry_price,
-            "initial_position_size": position_size,
+            "initial_position_size": position_size, # include in backtest trade sheet
             "current_position_size": position_size,
             "position_type": position_type,
             "trade_type": trade_type.value,
             "status": TradeStatus.ACTIVE.value,
-            "entry_time": datetime.now(),
+            "entry_time": datetime.now(), # TODO: no significance of this field
             "entry_time_string": entry_time_string,
             "entry_type": entry_type,
-            "stop_loss": levels["stop_loss"],
-            "breakeven_level": levels["breakeven_level"],
-            "risk_amount": levels["risk_amount"],
+            "stop_loss": levels["stop_loss"], # include in backtest trade sheet
+            "breakeven_level": levels["breakeven_level"], # include in backtest trade sheet
+            "breakout_event_to_cost": float_breakeven_level, # include in backtest trade sheet
+            "risk_amount": levels["risk_amount"], # include in backtest trade sheet
             "take_profit_levels": levels["take_profit_levels"],
             "executed_take_profits": [],
             "unrealized_pnl": 0.0,
@@ -287,6 +297,7 @@ class TradeManager:
             "gap_down": candle_data["open"] < candle_data["prev_day_low"],
             "prev_day_buying_indication": self._get_prev_day_buying_indication(candle_data),
             "prev_day_selling_indication": self._get_prev_day_selling_indication(candle_data),
+            "mr_value": mr_values # include in backtest trade sheet
         }
         
         # Add trade to active trades
@@ -526,17 +537,18 @@ class TradeManager:
                 self.losing_trades += 1
         
         # Update trade metrics
-        trade["exit_price"] = exit_price
-        trade["exit_time"] = datetime.now()
+        trade["exit_price"] = exit_price # include in backtest trade sheet
+        trade["exit_time"] = candle_data.get("timestamp", "unknown") # include in backtest trade sheet
         trade["exit_candle"] = candle_data
         trade["status"] = status.value
-        trade["duration"] = (trade["exit_time"] - trade["entry_time"]).total_seconds() / 60
-        trade["max_r_multiple"] = (trade["entry_price"] - exit_price) / trade["initial_r_multiple"]
+        trade["duration"] = (trade["exit_time"] - trade["entry_time"]).total_seconds() / 60 # include in backtest trade sheet
+        trade["max_r_multiple"] = abs(trade["entry_price"] - exit_price) / trade["initial_r_multiple"] 
         # Calculate overall R-multiple
         if trade["risk_amount"] > 0:
-            trade["r_multiple"] = trade["realized_pnl"] / (trade["risk_amount"] * trade["initial_position_size"])
+            trade["r_multiple"] = trade["realized_pnl"] / (trade["risk_amount"] * trade["initial_position_size"]) # include in backtest trade sheet
         
-        # Add exit reason
+        # Add exit reason 
+        # include in backtest trade sheet VERY IMPORTANT
         if status == TradeStatus.CLOSED:
             trade["exit_reason"] = "market_close"
         elif status == TradeStatus.STOPPED_OUT:

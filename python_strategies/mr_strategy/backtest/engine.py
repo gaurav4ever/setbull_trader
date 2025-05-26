@@ -438,12 +438,13 @@ class BacktestEngine:
                                 entry_time_string=signal.metadata.get('entry_time'),
                                 trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
                                 sl_percentage=self.config.strategies[0].sl_percentage,
-                                candle_data=candle_dict
+                                candle_data=candle_dict,
+                                mr_values=range_values["range_values"]
                             )
                             
                             
                             if trade:
-                                logger.info(f"{candle_info}Created new trade for signal: {signal.type} at price {signal.price}")
+                                logger.info(f"{candle_info} Created new trade for signal: {signal.type} at price {signal.price}")
                 
                 # --------------------------
                 # TRADE MANAGEMENT PHASE

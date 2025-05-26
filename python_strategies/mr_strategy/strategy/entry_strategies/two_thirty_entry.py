@@ -26,7 +26,7 @@ class TwoThirtyEntryStrategy(EntryStrategy):
             config: Strategy configuration
         """
         super().__init__(config)
-        self.entry_time = time(13, 00)
+        self.entry_time = time(int(config.entry_candle.split(':')[0]), int(config.entry_candle.split(':')[1]))
         # Minimum price movement required from MR levels (in %)
         self.min_price_movement = 0.1  # 0.1% minimum movement
         # Trading hours
@@ -69,7 +69,9 @@ class TwoThirtyEntryStrategy(EntryStrategy):
         
         if candle_time == self.entry_time:            
             # Get current price and MR values
-            logger.debug(f"{candle_info} Got 2:30 PM entry time")
+            # convert to string self.entry_time
+            self.entry_time_str = self.entry_time.strftime('%H:%M')
+            logger.debug(f"{candle_info} Got {self.entry_time_str} entry time")
             self.range_high = candle['high']
             self.range_low = candle['low']
             self.range_high_entry_price = self.range_high + (self.range_high * 0.0003)
@@ -81,12 +83,14 @@ class TwoThirtyEntryStrategy(EntryStrategy):
             return None
         
         logger.debug(f"{candle_info}Checking entry conditions - Price: {candle['close']}, Range High: {self.range_high}, Range Low: {self.range_low}")
+
+        direction = self.config.instrument_key.get("direction")
         
         # Check if price is above MR high for long entry
-        if candle['high'] > self.range_high_entry_price and not self.in_long_trade:
+        if candle['high'] > self.range_high_entry_price and not self.in_long_trade and not self.in_short_trade and direction == "BULLISH":
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG"):
                 self.in_long_trade = True
-                logger.info(f"{candle_info}2:30 PM long entry detected - Movement")
+                logger.info(f"{candle_info} {self.entry_time_str} long entry detected - Movement")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.LONG,
@@ -100,18 +104,18 @@ class TwoThirtyEntryStrategy(EntryStrategy):
                     },
                     mr_values={},
                     metadata={
-                        'entry_type': '2_30_entry',
-                        'entry_time': candle_time.strftime('%H:%M')
+                        'entry_type': self.entry_time_str,
+                        'entry_time': self.entry_time_str
                     }
                 )
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "LONG")
                 return signal
                 
         # Check if price is below MR low for short entry
-        if candle['low'] < self.range_low_entry_price and not self.in_short_trade:
+        if candle['low'] < self.range_low_entry_price and not self.in_short_trade and not self.in_long_trade and direction == "BEARISH":
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT"):
                 self.in_short_trade = True
-                logger.info(f"{candle_info}2:30 PM short entry detected")
+                logger.info(f"{candle_info} {self.entry_time_str} short entry detected")
                 signal = Signal(
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.SHORT,
@@ -125,8 +129,8 @@ class TwoThirtyEntryStrategy(EntryStrategy):
                     },
                     mr_values={},
                     metadata={
-                        'entry_type': '2_30_entry',
-                        'entry_time': candle_time.strftime('%H:%M')
+                        'entry_type': self.entry_time_str,
+                        'entry_time': self.entry_time_str
                     }
                 )
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT")

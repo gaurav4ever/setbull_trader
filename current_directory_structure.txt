@@ -1,4 +1,21 @@
 /Users/gaurav/setbull_projects/setbull_trader/
+├── .DS_Store
+├── .cursor/
+│   └── rules/
+│       └── setbull-trader-software-rules.mdc
+├── .vscode/
+│   ├── launch.json
+│   ├── settings.json
+│   └── tasks.json
+├── Dockerfile
+├── GOALS/
+│   ├── 1_next_2_weeks.txt
+│   ├── 2_next_2_week.txt
+│   ├── 3_next_2_weekts.txt
+│   ├── 4_2025_GOAL.md
+│   └── 5_next_week.txt
+├── Makefile
+├── README.md
 ├── application.dev.yaml
 ├── application.yaml
 ├── cmd/
@@ -14,11 +31,19 @@
 │               ├── order_execution_handlers.go
 │               ├── responses.go
 │               ├── server.go
+│               ├── stock_group_handlers.go
 │               ├── stock_handlers.go
 │               ├── stock_universe_handler.go
 │               ├── trade_parameters_handlers.go
 │               ├── upstox_auth_handlers.go
 │               └── utility_handlers.go
+├── consolidated_code/
+│   ├── config.txt
+│   ├── main.txt
+│   ├── models.txt
+│   ├── services.txt
+│   ├── transport.txt
+│   └── utils.txt
 ├── consolidated_code.sh
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
@@ -54,7 +79,8 @@
 │   │   │   └── response/
 │   │   │       ├── filter_pipeline.go
 │   │   │       ├── market_quotes.go
-│   │   │       └── orders.go
+│   │   │       ├── orders.go
+│   │   │       └── stock_group_response.go
 │   │   └── service/
 │   │       └── orders/
 │   │           └── service.go
@@ -63,7 +89,9 @@
 │   │   ├── filtered_stock.go
 │   │   ├── indicator.go
 │   │   ├── kb/
-│   │   │   └── 1.1_stock_group_functionality.txt
+│   │   │   ├── 1.1_stock_group_functionality.txt
+│   │   │   ├── 1.2_stock_group_functionality_v2.txt
+│   │   │   └── 1.3_stock_group_functionality.txt
 │   │   ├── mamba_types.go
 │   │   ├── models.go
 │   │   ├── sequence_metrics.go
@@ -84,6 +112,11 @@
 │   │       ├── stock_universe_repository.go
 │   │       └── trade_parameters_repository.go
 │   ├── service/
+│   │   ├── 19th_may_log.txt
+│   │   ├── 20th_may_log.txt
+│   │   ├── 21st_may_log.txt
+│   │   ├── 22nd_may_log.txt
+│   │   ├── 22nd_may_log_consolidated.txt
 │   │   ├── basic_filter.go
 │   │   ├── batch_fetch_service.go
 │   │   ├── candle_aggregation_service.go
@@ -91,8 +124,15 @@
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
+│   │   ├── group_execution_scheduler.go
+│   │   ├── group_execution_scheduler_test.go
+│   │   ├── group_execution_service.go
 │   │   ├── kb/
-│   │   │   └── 1.1
+│   │   │   ├── 1.1_sotck_agent_service.md
+│   │   │   └── 1.2_stock_agent_service.md
+│   │   ├── log1pm.txt
+│   │   ├── log_915.txt
+│   │   ├── log_9_15.txt
 │   │   ├── mamba_filter.go
 │   │   ├── market_quote_service.go
 │   │   ├── move_analyzer.go
@@ -108,6 +148,7 @@
 │   │   ├── sequence_detector.go
 │   │   ├── sequence_pattern_analyzer.go
 │   │   ├── stock_filter_pipeline.go
+│   │   ├── stock_group_service.go
 │   │   ├── stock_service.go
 │   │   ├── stock_universe_service.go
 │   │   ├── technical_indicator_service.go
@@ -122,10 +163,14 @@
 │       │   └── config.go
 │       └── service/
 │           └── query/
+├── kb/
+│   ├── 1.1_connecting_backtesting_pipline.txt
+│   ├── 1.2_scheduler_timing_accuracy.txt
+│   ├── 1.3_multiple_trades_per_stock_issue.txt
+│   └── 1.4_VWAP_strategy_requirement.tx
 ├── main.go
 ├── nse_stocks.txt
 ├── nse_upstox.json
-├── nse_upstox_testing.json
 ├── performance_analyzer.py
 ├── pkg/
 │   ├── apperrors/

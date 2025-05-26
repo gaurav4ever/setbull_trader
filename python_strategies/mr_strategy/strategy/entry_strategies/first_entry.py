@@ -64,7 +64,7 @@ class FirstEntryStrategy(EntryStrategy):
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.LONG,
                     timestamp=timestamp,
-                    price=mr_values['mr_high'],
+                    price=mr_high_with_buffer,
                     mr_values=mr_values,
                     range_values={},
                     metadata={'breakout_type': 'immediate', 'entry_type': '1st_entry', 'entry_time': timestamp.strftime('%H:%M')}
@@ -81,10 +81,13 @@ class FirstEntryStrategy(EntryStrategy):
                     type=SignalType.IMMEDIATE_BREAKOUT,
                     direction=SignalDirection.SHORT,
                     timestamp=timestamp,
-                    price=mr_values['mr_low'],
+                    price=mr_low_with_buffer,
                     mr_values=mr_values,
                     range_values={},
-                    metadata={'breakout_type': 'immediate', 'entry_type': '1st_entry', 'entry_time': timestamp.strftime('%H:%M')}
+                    metadata={
+                        'breakout_type': 'immediate',
+                        'entry_type': '1st_entry',
+                        'entry_time': timestamp.strftime('%H:%M')}
                 )
                 self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT")
                 return signal

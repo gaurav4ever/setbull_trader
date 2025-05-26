@@ -98,7 +98,7 @@ class SignalGenerator:
             List of signals (empty if conditions not met)
         """
         # Skip if MR is not valid
-        if not mr_values.get('is_valid', False):
+        if self.entry_strategy.config.entry_type == "1ST_ENTRY" and not mr_values.get('is_valid', False):
             logger.debug("Skipping signal generation - Invalid MR values")
             return []
             

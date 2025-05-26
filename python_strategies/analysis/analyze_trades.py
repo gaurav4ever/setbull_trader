@@ -32,6 +32,16 @@ def analyze_trades():
         output_path = "/Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv"
         analyzer.export_backtest_analysis_csv(output_path)
 
+        # New: Top performing stocks per EntryTimeString
+        print("\n=== Top Performing Stocks by EntryTimeString (min 5 trades) ===")
+        entry_time_top = analyzer.get_entry_time_top_stocks(min_trades=5)
+        for entry_time, df in entry_time_top.items():
+            print(f"\n--- EntryTimeString: {entry_time} ---")
+            if not df.empty:
+                print(df.to_string(index=False))
+            else:
+                print("No data for this entry time.")
+
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
     finally:

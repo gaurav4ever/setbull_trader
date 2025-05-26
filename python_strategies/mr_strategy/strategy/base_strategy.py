@@ -32,6 +32,7 @@ class StrategyConfig:
     instrument_key: str
     range_type: str  # '5MR' or '15MR'
     entry_type: str  # '1ST_ENTRY' or 'RETEST_ENTRY'
+    entry_candle: str
     sl_percentage: float
     target_r: float
     buffer_ticks: int

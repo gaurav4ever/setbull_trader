@@ -244,6 +244,7 @@ class BacktestRunner:
                             instrument_key=instrument,  # Use first instrument as default
                             range_type=strategy_dict["params"]["range_type"],
                             entry_type=strategy_dict["params"]["entry_type"],
+                            entry_candle=strategy_dict["params"]["entry_candle"],
                             sl_percentage=strategy_dict["params"]["sl_percentage"],
                             target_r=strategy_dict["params"]["target_r"],
                             buffer_ticks=5,  # Default value
