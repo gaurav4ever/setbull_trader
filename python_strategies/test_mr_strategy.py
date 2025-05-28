@@ -238,7 +238,7 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
             initial_position_size = trade.get('initial_position_size', 0)
             stop_loss = trade.get('stop_loss', 0)
             breakeven_level = trade.get('breakeven_level', 0)
-            breakout_event_to_cost = trade.get('breakout_event_to_cost', 0)
+            breakout_even_to_cost = trade.get('breakout_even_to_cost', 0)
             risk_amount = trade.get('risk_amount', 0)
             duration = trade.get('duration', 0)
             max_r_multiple = trade.get('max_r_multiple', 0)
@@ -282,7 +282,7 @@ def save_trade_data_to_csv(trade_list, instrument_configs, output_dir="backtest_
                 'InitialPositionSize': initial_position_size,
                 'StopLoss': stop_loss,
                 'BreakevenLevel': breakeven_level,
-                'BreakoutEventToCost': breakout_event_to_cost,
+                'BreakoutEvenToCost': breakout_even_to_cost,
                 'RiskAmount': risk_amount,
                 'Duration': duration,
                 'MaxRMultiple': max_r_multiple,

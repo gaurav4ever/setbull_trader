@@ -13,6 +13,9 @@ import logging
 from datetime import datetime, time
 import numpy as np
 import pandas as pd
+from datetime import timezone, timedelta
+
+from utils.utils import round_string
 
 from .models import SignalType, SignalDirection
 
@@ -211,11 +214,16 @@ class TradeManager:
     def _get_prev_day_buying_indication(self, candle_data: Dict) -> bool:
         """Get previous day buying indication."""
         # check if the previous day is a green candle
-        # find candle range from high-low, if closing is above 50% and close is above open then return True
+        # find candle range from high-low, if closing is above 70% and close is above open then return True
         prev_day_high = candle_data["prev_day_high"]
         prev_day_low = candle_data["prev_day_low"]
         prev_day_close = candle_data["prev_day_close"]
         prev_day_open = candle_data["prev_day_open"]
+        candle_range = prev_day_high - prev_day_low
+        # calculate 70% of candle range
+        seventy_percent_of_candle_range = candle_range * 0.7
+        # calculate 50% of candle range
+        fifty_percent_of_candle_range = candle_range * 0.5
         if prev_day_close > prev_day_open and prev_day_close > (prev_day_high + prev_day_low) / 2:
             return True
         return False
@@ -272,12 +280,12 @@ class TradeManager:
             "position_type": position_type,
             "trade_type": trade_type.value,
             "status": TradeStatus.ACTIVE.value,
-            "entry_time": datetime.now(), # TODO: no significance of this field
+            "entry_time": candle_data["timestamp"], # TODO: no significance of this field
             "entry_time_string": entry_time_string,
             "entry_type": entry_type,
             "stop_loss": levels["stop_loss"], # include in backtest trade sheet
             "breakeven_level": levels["breakeven_level"], # include in backtest trade sheet
-            "breakout_event_to_cost": float_breakeven_level, # include in backtest trade sheet
+            "breakout_even_to_cost": round_string(float_breakeven_level, 2), # include in backtest trade sheet
             "risk_amount": levels["risk_amount"], # include in backtest trade sheet
             "take_profit_levels": levels["take_profit_levels"],
             "executed_take_profits": [],
@@ -297,7 +305,7 @@ class TradeManager:
             "gap_down": candle_data["open"] < candle_data["prev_day_low"],
             "prev_day_buying_indication": self._get_prev_day_buying_indication(candle_data),
             "prev_day_selling_indication": self._get_prev_day_selling_indication(candle_data),
-            "mr_value": mr_values # include in backtest trade sheet
+            "mr_value": round_string(mr_values, 2) # include in backtest trade sheet
         }
         
         # Add trade to active trades
@@ -496,8 +504,12 @@ class TradeManager:
                     candle_data
                 )
         
+        IST = timezone(timedelta(hours=5, minutes=30))
+        if trade["entry_time"].tzinfo is None:
+            trade["entry_time"] = trade["entry_time"].replace(tzinfo=IST)
+
         # Check trade duration
-        trade_duration = (datetime.now() - trade["entry_time"]).total_seconds() / 60
+        trade_duration = (candle_data.get("timestamp", "unknown") - trade["entry_time"]).total_seconds() / 60
         if trade_duration > self.config.max_trade_duration:
             logger.info(f"{candle_info}Trade duration exceeded maximum {self.config.max_trade_duration} minutes")
             return self.close_trade(
@@ -535,17 +547,22 @@ class TradeManager:
                 self.winning_trades += 1
             else:
                 self.losing_trades += 1
+
+        # Define IST timezone
+        IST = timezone(timedelta(hours=5, minutes=30))
+        if trade["entry_time"].tzinfo is None:
+            trade["entry_time"] = trade["entry_time"].replace(tzinfo=IST)
         
         # Update trade metrics
         trade["exit_price"] = exit_price # include in backtest trade sheet
         trade["exit_time"] = candle_data.get("timestamp", "unknown") # include in backtest trade sheet
         trade["exit_candle"] = candle_data
         trade["status"] = status.value
-        trade["duration"] = (trade["exit_time"] - trade["entry_time"]).total_seconds() / 60 # include in backtest trade sheet
-        trade["max_r_multiple"] = abs(trade["entry_price"] - exit_price) / trade["initial_r_multiple"] 
+        trade["duration"] = round(((trade["exit_time"] - trade["entry_time"]).total_seconds() / 60) / 60, 2) # include in backtest trade sheet
+        trade["max_r_multiple"] = round(abs(trade["entry_price"] - exit_price) / trade["initial_r_multiple"], 2) # include in backtest trade sheet
         # Calculate overall R-multiple
         if trade["risk_amount"] > 0:
-            trade["r_multiple"] = trade["realized_pnl"] / (trade["risk_amount"] * trade["initial_position_size"]) # include in backtest trade sheet
+            trade["r_multiple"] = round(trade["realized_pnl"] / (trade["risk_amount"] * trade["initial_position_size"]), 2) # include in backtest trade sheet
         
         # Add exit reason 
         # include in backtest trade sheet VERY IMPORTANT

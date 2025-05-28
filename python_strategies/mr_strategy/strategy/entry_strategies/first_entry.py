@@ -56,7 +56,7 @@ class FirstEntryStrategy(EntryStrategy):
         # Check long breakout
         # take 0.07% buffer from mr_high
         mr_high_with_buffer, mr_low_with_buffer = self._add_buffer_to_mr_values(mr_values, 0.0007)
-        if candle['high'] >= mr_high_with_buffer and not self.in_long_trade:
+        if candle['high'] >= mr_high_with_buffer and not self.in_long_trade and not self.in_short_trade:
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG"):
                 self.in_long_trade = True
                 logger.info("Immediate long breakout detected")
@@ -73,7 +73,7 @@ class FirstEntryStrategy(EntryStrategy):
                 return signal
             
         # Check short breakout
-        if candle['low'] <= mr_low_with_buffer and not self.in_short_trade:
+        if candle['low'] <= mr_low_with_buffer and not self.in_short_trade and not self.in_long_trade:
             if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT"):
                 self.in_short_trade = True
                 logger.info("Immediate short breakout detected")

@@ -439,7 +439,7 @@ class BacktestEngine:
                                 trade_type=TradeType.IMMEDIATE_BREAKOUT if signal.type == SignalType.IMMEDIATE_BREAKOUT else TradeType.RETEST_ENTRY,
                                 sl_percentage=self.config.strategies[0].sl_percentage,
                                 candle_data=candle_dict,
-                                mr_values=range_values["range_values"]
+                                mr_values=range_values["mr_value"]
                             )
                             
                             

@@ -9,3 +9,9 @@ def convert_numpy_types(obj):
         return obj.item()
     else:
         return obj
+    
+def round_string(string_value, precision=2):
+    if isinstance(string_value, float):
+        return round(string_value, precision)
+    else:
+        return round(float(string_value), precision)
