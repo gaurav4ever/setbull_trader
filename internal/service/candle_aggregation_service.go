@@ -73,7 +73,105 @@ func (s *CandleAggregationService) Get5MinCandles(
 		return nil, fmt.Errorf("failed to get aggregated 5-minute candles: %w", err)
 	}
 
-	return candles, nil
+	// --- Phase 4: Aggregation Logic ---
+	// Calculate indicators for the aggregated candles
+	indicatorService := NewTechnicalIndicatorService(s.candleRepo)
+	aggCandles := candles
+	candleSlice := AggregatedCandlesToCandles(aggCandles)
+
+	// Calculate 9-period MA
+	ma9 := indicatorService.CalculateSMA(candleSlice, 9)
+	// Calculate Bollinger Bands (20, 2.0)
+	bbUpper, bbMiddle, bbLower := indicatorService.CalculateBollingerBands(candleSlice, 20, 2.0)
+	// Calculate VWAP
+	vwap := indicatorService.CalculateVWAP(candleSlice)
+	// Calculate EMAs
+	ema5 := indicatorService.CalculateEMAV2(candleSlice, 5)
+	ema9ema := indicatorService.CalculateEMAV2(candleSlice, 9)
+	ema50 := indicatorService.CalculateEMAV2(candleSlice, 50)
+	// Calculate ATR (14)
+	atr := indicatorService.CalculateATRV2(candleSlice, 14)
+	// Calculate RSI (14)
+	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
+
+	// Map indicator values by timestamp for fast lookup
+	ma9Map := make(map[time.Time]float64)
+	for _, v := range ma9 {
+		ma9Map[v.Timestamp] = v.Value
+	}
+	bbUpperMap := make(map[time.Time]float64)
+	bbMiddleMap := make(map[time.Time]float64)
+	bbLowerMap := make(map[time.Time]float64)
+	for _, v := range bbUpper {
+		bbUpperMap[v.Timestamp] = v.Value
+	}
+	for _, v := range bbMiddle {
+		bbMiddleMap[v.Timestamp] = v.Value
+	}
+	for _, v := range bbLower {
+		bbLowerMap[v.Timestamp] = v.Value
+	}
+	vwapMap := make(map[time.Time]float64)
+	for _, v := range vwap {
+		vwapMap[v.Timestamp] = v.Value
+	}
+	ema5Map := make(map[time.Time]float64)
+	for _, v := range ema5 {
+		ema5Map[v.Timestamp] = v.Value
+	}
+	ema9emaMap := make(map[time.Time]float64)
+	for _, v := range ema9ema {
+		ema9emaMap[v.Timestamp] = v.Value
+	}
+	ema50Map := make(map[time.Time]float64)
+	for _, v := range ema50 {
+		ema50Map[v.Timestamp] = v.Value
+	}
+	atrMap := make(map[time.Time]float64)
+	for _, v := range atr {
+		atrMap[v.Timestamp] = v.Value
+	}
+	rsiMap := make(map[time.Time]float64)
+	for _, v := range rsi {
+		rsiMap[v.Timestamp] = v.Value
+	}
+
+	// Populate indicator fields in AggregatedCandle
+	for i := range aggCandles {
+		ts := aggCandles[i].Timestamp
+		if val, ok := ma9Map[ts]; ok {
+			aggCandles[i].MA9 = val
+		}
+		if val, ok := bbUpperMap[ts]; ok {
+			aggCandles[i].BBUpper = val
+		}
+		if val, ok := bbMiddleMap[ts]; ok {
+			aggCandles[i].BBMiddle = val
+		}
+		if val, ok := bbLowerMap[ts]; ok {
+			aggCandles[i].BBLower = val
+		}
+		if val, ok := vwapMap[ts]; ok {
+			aggCandles[i].VWAP = val
+		}
+		if val, ok := ema5Map[ts]; ok {
+			aggCandles[i].EMA5 = val
+		}
+		if val, ok := ema9emaMap[ts]; ok {
+			aggCandles[i].EMA9 = val
+		}
+		if val, ok := ema50Map[ts]; ok {
+			aggCandles[i].EMA50 = val
+		}
+		if val, ok := atrMap[ts]; ok {
+			aggCandles[i].ATR = val
+		}
+		if val, ok := rsiMap[ts]; ok {
+			aggCandles[i].RSI = val
+		}
+	}
+
+	return aggCandles, nil
 }
 
 // GetDailyCandles retrieves daily candles for the given instrument and time range

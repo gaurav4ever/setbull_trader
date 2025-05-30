@@ -48,3 +48,168 @@ Summary Table (P0 → P1+)
 Recommendation:
 Start with a detailed design for the data model and schema changes (P0). Once confirmed, proceed to calculation logic and integration.
 Would you like to discuss the schema design and migration plan in detail next? Or do you want to review the full P0 implementation design before moving to P1?
+
+
+
+Now that your stock_candle_data table is partitioned and the new indicator columns (ma_9, bb_upper, bb_middle, bb_lower, vwap) are added, the next steps according to your P0/P1 plan in @3.4_EVB_Priority_items.txt are:
+Next Steps After DB/Schema Foundation
+P1: Indicator Calculation Logic
+Implement Calculation Functions in Go
+Write Go functions for:
+9-period Moving Average (MA)
+Bollinger Bands (with finalized period and stddev, e.g., 20, 2.0)
+VWAP (with correct daily reset logic for intraday)
+Place these in a dedicated service, e.g., internal/service/technical_indicator_service.go.
+Integrate with Candle Processing
+Update your candle ingestion/processing pipeline (likely in candle_processing_service.go or similar) to:
+Calculate these indicators for each new candle as data is ingested.
+Store the computed values in the new columns of stock_candle_data.
+P1: Data Aggregation & Backfill
+Backfill Historical Data
+Write a script/service to:
+Iterate over historical candles.
+Compute and populate the new indicator columns for all existing rows.
+This ensures all past data is enriched and ready for analysis/backtesting.
+Aggregation Logic
+Ensure that when you aggregate from 1m → 5m/1H, indicators are recalculated correctly (especially VWAP, which is volume-weighted and resets daily).
+P2: API/DTO Layer
+Update DTOs
+Add the new indicator fields to your candle DTOs (e.g., in internal/core/dto/response/market_quotes.go).
+Update REST Handlers
+Expose the indicator values in your API responses (e.g., in cmd/trading/transport/rest/candle_handlers.go).
+P2: Testing & Validation
+Unit Tests
+Write unit tests for your indicator calculation functions.
+Integration Tests
+Test the end-to-end data flow: ingestion → calculation → storage → API.
+P2: Documentation
+Update API Docs
+Document the new fields in your API responses.
+Migration/Setup Docs
+Document the backfill process and any operational steps for future maintenance.
+Summary Table of Next Steps
+| Priority | Task Area | Description |
+|----------|--------------------------|------------------------------------------------------------------|
+| P1 | Indicator Calculation | Implement MA/BB/VWAP logic, integrate with candle processing |
+| P1 | Backfill & Aggregation | Historical backfill, aggregation logic for higher timeframes |
+| P2 | API/DTO Layer | Expose indicator values via API |
+| P2 | Testing & Validation | Unit/integration tests |
+| P2 | Documentation | Update API/migration docs |
+Would you like to start with the Go implementation design for indicator calculation and integration, or discuss the backfill/aggregation strategy first?
+Let me know which area you want to deep-dive into next!
+
+
+=============================================
+
+
+
+We will begin with the P1 Indicator Calculation Logic for your Go backend.
+Below is the High-Level Design (HLD), Low-Level Design (LLD), and a phase-wise implementation plan, strictly following your project and engineering rules.
+1. High-Level Design (HLD)
+Goal:
+Compute and store 9-period MA, Bollinger Bands, and VWAP for each intraday candle (1m, 5m, 1H) in the stock_candle_data table, both for new incoming data and for historical backfill.
+Key Principles:
+Separation of Concerns: Indicator calculation logic is isolated from data ingestion and storage.
+Extensibility: New indicators can be added with minimal changes.
+Performance: Calculations are efficient for both real-time and batch (backfill) operations.
+Testability: All calculation logic is unit-testable.
+Main Components:
+Indicator Calculation Service:
+Functions to compute MA, Bollinger Bands, VWAP.
+Candle Processing Pipeline:
+Calls indicator functions, updates DB with results.
+Backfill Script/Service:
+Iterates over historical data, computes, and updates indicators.
+2. Low-Level Design (LLD)
+A. Indicator Calculation Service (internal/service/technical_indicator_service.go)
+Functions:
+CalculateMA(candles []Candle, period int) []float64
+CalculateBollingerBands(candles []Candle, period int, stddev float64) (upper, middle, lower []float64)
+CalculateVWAP(candles []Candle) []float64
+Inputs: Slice of candles (ordered by timestamp).
+Outputs: Slices of indicator values, aligned with input candles.
+B. Candle Processing Integration (internal/service/candle_processing_service.go)
+On New Candle:
+Fetch last N candles for the instrument (N = max required for indicators, e.g., 20 for BB).
+Call indicator functions.
+Update the new candle with computed values.
+Store in DB via repository.
+C. Repository Layer (internal/repository/postgres/candle_repository.go)
+Update:
+Support writing/reading new indicator columns.
+D. Backfill Script/Service
+Batch Process:
+For each instrument and interval, fetch all candles in time order.
+Compute indicators in a rolling window.
+Update DB in batches for efficiency.
+E. Testing
+Unit Tests:
+For each indicator function, with known input/output.
+Integration Tests:
+For end-to-end candle ingestion and indicator update.
+3. Phase-wise Implementation Plan
+Phase 1: Core Indicator Calculation Functions
+Implement and test Go functions for MA, Bollinger Bands, VWAP in technical_indicator_service.go.
+Unit tests for each function.
+Phase 2: Integrate with Candle Processing
+Update candle_processing_service.go to call indicator functions on new candle ingestion.
+Update repository to store computed values.
+Phase 3: Historical Backfill
+Script/service to process all historical candles, compute indicators, and update DB.
+Batch updates for performance.
+Phase 4: Aggregation Logic
+Ensure correct recalculation of indicators when aggregating 1m → 5m/1H.
+Phase 5: Testing & Validation
+Integration tests for end-to-end flow.
+Validate with sample data.
+Phase Deliverables Table
+| Phase | Files/Areas Touched | Deliverable/Goal |
+|---------|-----------------------------------------------------|--------------------------------------------------|
+| 1 | technical_indicator_service.go, test files | Indicator calculation functions + unit tests |
+| 2 | candle_processing_service.go, repo, models | Real-time calculation & DB update on new candle |
+| 3 | Backfill script/service, repo | Historical data enriched with indicators |
+| 4 | Aggregation logic in processing/aggregation service | Correct indicator values for aggregated candles |
+| 5 | Test files, integration test setup | End-to-end validation and regression tests |
+Would you like to review the detailed LLD for Phase 1 (indicator functions) and get explicit function signatures and test cases before implementation?
+Or do you want to approve the phase plan and proceed to implementation for Phase 1?
+
+
+To add 5EMA, 9EMA, 50EMA, ATR, and RSI values to each candle in candle_processing_service.go, you will:
+Call the corresponding calculation functions from TechnicalIndicatorService after parsing candles.
+Map the calculated indicator values to each candle by timestamp, just like for MA9, BB, and VWAP.
+Add new fields to the domain.Candle struct if not already present (e.g., EMA5, EMA9, EMA50, ATR, RSI).
+Implementation Plan
+Phase 1: Data Model Update
+Update domain.Candle struct (if not already done) to include:
+EMA5, EMA9, EMA50 (float64)
+ATR (float64)
+RSI (float64)
+Ensure DB schema and repository support these fields (if not already done).
+Phase 2: Indicator Calculation Integration
+In both convertHistoricalCandles and convertIntraDayCandles in candle_processing_service.go:
+After parsing all candles:
+Instantiate TechnicalIndicatorService.
+Call:
+CalculateEMA(ctx, instrumentKey, 5, interval, ...) for 5EMA
+CalculateEMA(ctx, instrumentKey, 9, interval, ...) for 9EMA
+CalculateEMA(ctx, instrumentKey, 50, interval, ...) for 50EMA
+CalculateATR(ctx, instrumentKey, 14, interval, ...) for ATR-14
+CalculateRSI(ctx, instrumentKey, 14, interval, ...) for RSI-14
+Map the results (which are slices of IndicatorValue with timestamp) to the corresponding candle by timestamp.
+Assign the values to the new fields in each candle struct.
+Phase 3: Testing
+Add/extend unit tests for these functions to ensure correct mapping and calculation.
+Validate with sample data that all indicator fields are populated as expected.
+Example Pseudocode for Integration
+Apply to 3.4_EVB_Prio...
+)
+Phase Deliverables
+| Phase | Files/Areas Touched | Deliverable/Goal |
+|---------|--------------------------------------|--------------------------------------------------|
+| 1 | domain/candle.go, DB migration | Candle struct and DB support for new fields |
+| 2 | candle_processing_service.go | Indicator calculation and mapping logic |
+| 3 | *_test.go (unit/integration tests) | Test coverage for new indicators |
+Would you like to:
+Review the exact struct changes and function signatures before implementation?
+Proceed directly to implementation of Phase 1 (data model update) and Phase 2 (integration logic) in candle_processing_service.go?
+Let me know your preference!

@@ -171,6 +171,80 @@ func (s *TechnicalIndicatorService) CalculateRSI(
 	return values, nil
 }
 
+// CalculateRSIV2 calculates the Relative Strength Index for the given period
+func (s *TechnicalIndicatorService) CalculateRSIV2(candles []domain.Candle, period int) []domain.IndicatorValue {
+	if period <= 0 || len(candles) < period {
+		return nil
+	}
+	// Calculate RSI
+	// Step 1: Calculate price changes
+	changes := make([]float64, len(candles)-1)
+	for i := 1; i < len(candles); i++ {
+		changes[i-1] = candles[i].Close - candles[i-1].Close
+	}
+
+	// Step 2: Separate gains and losses
+	gains := make([]float64, len(changes))
+	losses := make([]float64, len(changes))
+	for i, change := range changes {
+		if change > 0 {
+			gains[i] = change
+		} else {
+			losses[i] = math.Abs(change)
+		}
+	}
+
+	// Step 3: Calculate average gains and losses for the first period
+	var avgGain, avgLoss float64
+	for i := 0; i < period; i++ {
+		avgGain += gains[i]
+		avgLoss += losses[i]
+	}
+	avgGain /= float64(period)
+	avgLoss /= float64(period)
+
+	// Step 4: Calculate RSI values
+	values := make([]domain.IndicatorValue, len(candles)-period)
+
+	// First RSI value
+	var rs, rsi float64
+	if avgLoss == 0 {
+		rsi = 100 // Prevent division by zero
+	} else {
+		rs = avgGain / avgLoss
+		rsi = 100 - (100 / (1 + rs))
+	}
+
+	values[0] = domain.IndicatorValue{
+		Timestamp: candles[period].Timestamp,
+		Value:     rsi,
+	}
+
+	// Subsequent RSI values using smoothed method
+	for i := period; i < len(changes); i++ {
+		// Update average gain and loss using smoothing formula
+		avgGain = ((avgGain * float64(period-1)) + gains[i]) / float64(period)
+		avgLoss = ((avgLoss * float64(period-1)) + losses[i]) / float64(period)
+
+		if avgLoss == 0 {
+			rsi = 100 // Prevent division by zero
+		} else {
+			rs = avgGain / avgLoss
+			rsi = 100 - (100 / (1 + rs))
+		}
+
+		values[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i+1].Timestamp,
+			Value:     rsi,
+		}
+	}
+
+	// log.Info("Calculated RSI-%d for %s, found %d values",
+	// 	period, instrumentKey, len(values))
+
+	return values
+}
+
 // CalculateATR calculates the Average True Range for the given period
 func (s *TechnicalIndicatorService) CalculateATR(
 	ctx context.Context,
@@ -240,6 +314,57 @@ func (s *TechnicalIndicatorService) CalculateATR(
 	// 	period, instrumentKey, len(values))
 
 	return values, nil
+}
+
+// CalculateATRV2 calculates the Average True Range for the given period
+func (s *TechnicalIndicatorService) CalculateATRV2(candles []domain.Candle, period int) []domain.IndicatorValue {
+	if period <= 0 || len(candles) < period {
+		return nil
+	}
+
+	// Calculate ATR
+	// Step 1: Calculate True Range for each candle
+	trueRanges := make([]float64, len(candles)-1)
+	for i := 1; i < len(candles); i++ {
+		high := candles[i].High
+		low := candles[i].Low
+		prevClose := candles[i-1].Close
+
+		// True Range is the greatest of:
+		// 1. Current High - Current Low
+		// 2. |Current High - Previous Close|
+		// 3. |Current Low - Previous Close|
+		tr1 := high - low
+		tr2 := math.Abs(high - prevClose)
+		tr3 := math.Abs(low - prevClose)
+
+		trueRanges[i-1] = math.Max(tr1, math.Max(tr2, tr3))
+	}
+
+	// Step 2: Calculate initial ATR (simple average for first period)
+	var sum float64
+	for i := 0; i < period; i++ {
+		sum += trueRanges[i]
+	}
+	atr := sum / float64(period)
+
+	// Step 3: Calculate subsequent ATR values using smoothing
+	values := make([]domain.IndicatorValue, len(candles)-period)
+	values[0] = domain.IndicatorValue{
+		Timestamp: candles[period].Timestamp,
+		Value:     atr,
+	}
+
+	// Use smoothed method: ATR = ((Period-1) * Previous ATR + Current TR) / Period
+	for i := period; i < len(trueRanges); i++ {
+		atr = ((atr * float64(period-1)) + trueRanges[i]) / float64(period)
+		values[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i+1].Timestamp,
+			Value:     atr,
+		}
+	}
+
+	return values
 }
 
 // CalculateVolumeMA calculates the Volume Moving Average for the given period
@@ -419,4 +544,139 @@ func (s *TechnicalIndicatorService) CalculateAllIndicators(
 
 	log.Info("Calculated all indicators for %s (%s)", instrumentKey, interval)
 	return indicators, nil
+}
+
+// CalculateSMA calculates the Simple Moving Average for the given period
+func (s *TechnicalIndicatorService) CalculateSMA(candles []domain.Candle, period int) []domain.IndicatorValue {
+	if period <= 0 || len(candles) < period {
+		return nil
+	}
+	values := make([]domain.IndicatorValue, len(candles)-period+1)
+	for i := period - 1; i < len(candles); i++ {
+		sum := 0.0
+		for j := i - period + 1; j <= i; j++ {
+			sum += candles[j].Close
+		}
+		values[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i].Timestamp,
+			Value:     sum / float64(period),
+		}
+	}
+	return values
+}
+
+// CalculateEMAV2 calculates the Exponential Moving Average for the given period
+func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, period int) []domain.IndicatorValue {
+	if period <= 0 || len(candles) < period {
+		return nil
+	}
+
+	k := 2.0 / float64(period+1)
+	values := make([]domain.IndicatorValue, len(candles)-period+1)
+
+	// Start with SMA for the first EMA point
+	sum := 0.0
+	for i := 0; i < period; i++ {
+		sum += candles[i].Close
+	}
+	ema := sum / float64(period)
+	values[0] = domain.IndicatorValue{
+		Timestamp: candles[period-1].Timestamp,
+		Value:     ema,
+	}
+
+	// EMA calculation
+	for i := period; i < len(candles); i++ {
+		ema = (candles[i].Close * k) + (ema * (1 - k))
+		values[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i].Timestamp,
+			Value:     ema,
+		}
+	}
+
+	return values
+}
+
+// CalculateBollingerBands calculates Bollinger Bands for the given period and stddev
+func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
+	if period <= 0 || len(candles) < period {
+		return nil, nil, nil
+	}
+	upper = make([]domain.IndicatorValue, len(candles)-period+1)
+	middle = make([]domain.IndicatorValue, len(candles)-period+1)
+	lower = make([]domain.IndicatorValue, len(candles)-period+1)
+	for i := period - 1; i < len(candles); i++ {
+		sum := 0.0
+		for j := i - period + 1; j <= i; j++ {
+			sum += candles[j].Close
+		}
+		ma := sum / float64(period)
+		var variance float64
+		for j := i - period + 1; j <= i; j++ {
+			variance += (candles[j].Close - ma) * (candles[j].Close - ma)
+		}
+		std := math.Sqrt(variance / float64(period))
+		upper[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i].Timestamp,
+			Value:     ma + stddev*std,
+		}
+		middle[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i].Timestamp,
+			Value:     ma,
+		}
+		lower[i-period+1] = domain.IndicatorValue{
+			Timestamp: candles[i].Timestamp,
+			Value:     ma - stddev*std,
+		}
+	}
+	return upper, middle, lower
+}
+
+// CalculateVWAP calculates the Volume Weighted Average Price for the given candles (reset daily if needed)
+func (s *TechnicalIndicatorService) CalculateVWAP(candles []domain.Candle) []domain.IndicatorValue {
+	if len(candles) == 0 {
+		return nil
+	}
+	values := make([]domain.IndicatorValue, len(candles))
+	var cumPV, cumVol float64
+	var currentDay int
+	for i, c := range candles {
+		// Reset VWAP at the start of a new day
+		day := c.Timestamp.YearDay()
+		if i == 0 || day != currentDay {
+			cumPV = 0
+			cumVol = 0
+			currentDay = day
+		}
+		cumPV += c.Close * float64(c.Volume)
+		cumVol += float64(c.Volume)
+		vwap := 0.0
+		if cumVol > 0 {
+			vwap = cumPV / cumVol
+		}
+		values[i] = domain.IndicatorValue{
+			Timestamp: c.Timestamp,
+			Value:     vwap,
+		}
+	}
+	return values
+}
+
+// AggregatedCandlesToCandles converts a slice of AggregatedCandle to a slice of Candle for indicator calculation reuse
+func AggregatedCandlesToCandles(aggs []domain.AggregatedCandle) []domain.Candle {
+	candles := make([]domain.Candle, len(aggs))
+	for i, a := range aggs {
+		candles[i] = domain.Candle{
+			InstrumentKey: a.InstrumentKey,
+			Timestamp:     a.Timestamp,
+			Open:          a.Open,
+			High:          a.High,
+			Low:           a.Low,
+			Close:         a.Close,
+			Volume:        a.Volume,
+			OpenInterest:  a.OpenInterest,
+			TimeInterval:  a.TimeInterval,
+		}
+	}
+	return candles
 }

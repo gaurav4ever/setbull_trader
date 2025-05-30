@@ -204,6 +204,78 @@ func (s *CandleProcessingService) convertHistoricalCandles(
 		candles = append(candles, candle)
 	}
 
+	// --- Indicator Calculation Integration ---
+	tis := NewTechnicalIndicatorService(s.candleRepo)
+	// 9-period SMA
+	ma9 := tis.CalculateSMA(candles, 9)
+	// Bollinger Bands (20, 2.0)
+	bbUpper, bbMiddle, bbLower := tis.CalculateBollingerBands(candles, 20, 2.0)
+	// VWAP
+	vwap := tis.CalculateVWAP(candles)
+	// EMA
+	ema5 := tis.CalculateEMAV2(candles, 5)
+	ema9 := tis.CalculateEMAV2(candles, 9)
+	ema50 := tis.CalculateEMAV2(candles, 50)
+	// ATR (14)
+	atr := tis.CalculateATRV2(candles, 14)
+	// RSI (14)
+	rsi := tis.CalculateRSIV2(candles, 14)
+
+	// Map indicator values to candles by timestamp
+	ma9Idx := 0
+	bbIdx := 0
+	vwapIdx := 0
+	ema5Idx := 0
+	ema9Idx := 0
+	ema50Idx := 0
+	atrIdx := 0
+	rsiIdx := 0
+	for i := range candles {
+		// MA9
+		if ma9Idx < len(ma9) && candles[i].Timestamp.Equal(ma9[ma9Idx].Timestamp) {
+			candles[i].MA9 = ma9[ma9Idx].Value
+			ma9Idx++
+		}
+		// BB
+		if bbIdx < len(bbMiddle) && candles[i].Timestamp.Equal(bbMiddle[bbIdx].Timestamp) {
+			candles[i].BBUpper = bbUpper[bbIdx].Value
+			candles[i].BBMiddle = bbMiddle[bbIdx].Value
+			candles[i].BBLower = bbLower[bbIdx].Value
+			bbIdx++
+		}
+		// VWAP
+		if vwapIdx < len(vwap) && candles[i].Timestamp.Equal(vwap[vwapIdx].Timestamp) {
+			candles[i].VWAP = vwap[vwapIdx].Value
+			vwapIdx++
+		}
+		// EMA5
+		if ema5Idx < len(ema5) && candles[i].Timestamp.Equal(ema5[ema5Idx].Timestamp) {
+			candles[i].EMA5 = ema5[ema5Idx].Value
+			ema5Idx++
+		}
+		// EMA9
+		if ema9Idx < len(ema9) && candles[i].Timestamp.Equal(ema9[ema9Idx].Timestamp) {
+			candles[i].EMA9 = ema9[ema9Idx].Value
+			ema9Idx++
+		}
+		// EMA50
+		if ema50Idx < len(ema50) && candles[i].Timestamp.Equal(ema50[ema50Idx].Timestamp) {
+			candles[i].EMA50 = ema50[ema50Idx].Value
+			ema50Idx++
+		}
+		// ATR
+		if atrIdx < len(atr) && candles[i].Timestamp.Equal(atr[atrIdx].Timestamp) {
+			candles[i].ATR = atr[atrIdx].Value
+			atrIdx++
+		}
+		// RSI
+		if rsiIdx < len(rsi) && candles[i].Timestamp.Equal(rsi[rsiIdx].Timestamp) {
+			candles[i].RSI = rsi[rsiIdx].Value
+			rsiIdx++
+		}
+	}
+	// --- End Indicator Integration ---
+
 	return candles, nil
 }
 
@@ -290,6 +362,63 @@ func (s *CandleProcessingService) convertIntraDayCandles(
 
 		candles = append(candles, candle)
 	}
+
+	// --- Indicator Calculation Integration ---
+	tis := NewTechnicalIndicatorService(s.candleRepo)
+	ma9 := tis.CalculateSMA(candles, 9)
+	bbUpper, bbMiddle, bbLower := tis.CalculateBollingerBands(candles, 20, 2.0)
+	vwap := tis.CalculateVWAP(candles)
+	ema5 := tis.CalculateEMAV2(candles, 5)
+	ema9 := tis.CalculateEMAV2(candles, 9)
+	ema50 := tis.CalculateEMAV2(candles, 50)
+	atr := tis.CalculateATRV2(candles, 14)
+	rsi := tis.CalculateRSIV2(candles, 14)
+
+	ma9Idx := 0
+	bbIdx := 0
+	vwapIdx := 0
+	ema5Idx := 0
+	ema9Idx := 0
+	ema50Idx := 0
+	atrIdx := 0
+	rsiIdx := 0
+	for i := range candles {
+		if ma9Idx < len(ma9) && candles[i].Timestamp.Equal(ma9[ma9Idx].Timestamp) {
+			candles[i].MA9 = ma9[ma9Idx].Value
+			ma9Idx++
+		}
+		if bbIdx < len(bbMiddle) && candles[i].Timestamp.Equal(bbMiddle[bbIdx].Timestamp) {
+			candles[i].BBUpper = bbUpper[bbIdx].Value
+			candles[i].BBMiddle = bbMiddle[bbIdx].Value
+			candles[i].BBLower = bbLower[bbIdx].Value
+			bbIdx++
+		}
+		if vwapIdx < len(vwap) && candles[i].Timestamp.Equal(vwap[vwapIdx].Timestamp) {
+			candles[i].VWAP = vwap[vwapIdx].Value
+			vwapIdx++
+		}
+		if ema5Idx < len(ema5) && candles[i].Timestamp.Equal(ema5[ema5Idx].Timestamp) {
+			candles[i].EMA5 = ema5[ema5Idx].Value
+			ema5Idx++
+		}
+		if ema9Idx < len(ema9) && candles[i].Timestamp.Equal(ema9[ema9Idx].Timestamp) {
+			candles[i].EMA9 = ema9[ema9Idx].Value
+			ema9Idx++
+		}
+		if ema50Idx < len(ema50) && candles[i].Timestamp.Equal(ema50[ema50Idx].Timestamp) {
+			candles[i].EMA50 = ema50[ema50Idx].Value
+			ema50Idx++
+		}
+		if atrIdx < len(atr) && candles[i].Timestamp.Equal(atr[atrIdx].Timestamp) {
+			candles[i].ATR = atr[atrIdx].Value
+			atrIdx++
+		}
+		if rsiIdx < len(rsi) && candles[i].Timestamp.Equal(rsi[rsiIdx].Timestamp) {
+			candles[i].RSI = rsi[rsiIdx].Value
+			rsiIdx++
+		}
+	}
+	// --- End Indicator Integration ---
 
 	return candles, nil
 }

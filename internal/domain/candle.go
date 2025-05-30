@@ -17,6 +17,18 @@ type Candle struct {
 	OpenInterest  int64     `json:"openInterest" gorm:"column:open_interest"`
 	TimeInterval  string    `json:"timeInterval" gorm:"column:time_interval;index"`
 	CreatedAt     time.Time `json:"createdAt" gorm:"column:created_at;autoCreateTime"`
+
+	// Indicator fields for integration
+	MA9      float64 `json:"ma_9" gorm:"column:ma_9"`
+	BBUpper  float64 `json:"bb_upper" gorm:"column:bb_upper"`
+	BBMiddle float64 `json:"bb_middle" gorm:"column:bb_middle"`
+	BBLower  float64 `json:"bb_lower" gorm:"column:bb_lower"`
+	VWAP     float64 `json:"vwap" gorm:"column:vwap"`
+	EMA5     float64 `json:"ema_5" gorm:"column:ema_5"`
+	EMA9     float64 `json:"ema_9" gorm:"column:ema_9"`
+	EMA50    float64 `json:"ema_50" gorm:"column:ema_50"`
+	ATR      float64 `json:"atr" gorm:"column:atr"`
+	RSI      float64 `json:"rsi" gorm:"column:rsi"`
 }
 
 // TableName specifies the database table name for the Candle model
@@ -81,6 +93,18 @@ type AggregatedCandle struct {
 	Volume        int64     `json:"volume"`
 	OpenInterest  int64     `json:"open_interest"`
 	TimeInterval  string    `json:"time_interval"`
+
+	// Indicator fields for integration
+	MA9      float64 `json:"ma_9"`
+	BBUpper  float64 `json:"bb_upper"`
+	BBMiddle float64 `json:"bb_middle"`
+	BBLower  float64 `json:"bb_lower"`
+	VWAP     float64 `json:"vwap"`
+	EMA5     float64 `json:"ema_5"`
+	EMA9     float64 `json:"ema_9"`
+	EMA50    float64 `json:"ema_50"`
+	ATR      float64 `json:"atr"`
+	RSI      float64 `json:"rsi"`
 }
 
 // DailyCandelFetchResult represents the result of a batch operation to fetch daily candles

@@ -30,8 +30,8 @@ func (r *CandleRepository) Store(ctx context.Context, candle *domain.Candle) err
 	result := r.db.WithContext(ctx).
 		Omit("id").
 		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "instrument_key"}, {Name: "timestamp"}, {Name: "interval"}},
-			DoUpdates: clause.AssignmentColumns([]string{"open", "high", "low", "close", "volume", "open_interest"}),
+			Columns:   []clause.Column{{Name: "instrument_key"}, {Name: "timestamp"}, {Name: "time_interval"}},
+			DoUpdates: clause.AssignmentColumns([]string{"open", "high", "low", "close", "volume", "open_interest", "ma_9", "bb_upper", "bb_middle", "bb_lower", "vwap", "ema_5", "ema_9", "ema_50", "atr", "rsi"}),
 		}).
 		Create(candle)
 
@@ -65,7 +65,7 @@ func (r *CandleRepository) StoreBatch(ctx context.Context, candles []domain.Cand
 	result := tx.WithContext(ctx).
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "instrument_key"}, {Name: "timestamp"}, {Name: "time_interval"}},
-			DoUpdates: clause.AssignmentColumns([]string{"open", "high", "low", "close", "volume", "open_interest"}),
+			DoUpdates: clause.AssignmentColumns([]string{"open", "high", "low", "close", "volume", "open_interest", "ma_9", "bb_upper", "bb_middle", "bb_lower", "vwap", "ema_5", "ema_9", "ema_50", "atr", "rsi"}),
 		}).
 		CreateInBatches(candles, 1000)
 
