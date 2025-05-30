@@ -1,0 +1,825 @@
+CREATE TABLE `stock_candle_data` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `instrument_key` varchar(50) NOT NULL,
+  `timestamp` timestamp NOT NULL,
+  `open` decimal(18,2) NOT NULL,
+  `high` decimal(18,2) NOT NULL,
+  `low` decimal(18,2) NOT NULL,
+  `close` decimal(18,2) NOT NULL,
+  `volume` bigint NOT NULL,
+  `open_interest` bigint NOT NULL,
+  `time_interval` varchar(20) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `ma_9` decimal(18,4) DEFAULT NULL,
+  `bb_upper` decimal(18,4) DEFAULT NULL,
+  `bb_middle` decimal(18,4) DEFAULT NULL,
+  `bb_lower` decimal(18,4) DEFAULT NULL,
+  `vwap` decimal(18,4) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_stock_candle_unique` (`instrument_key`,`timestamp`,`time_interval`),
+  KEY `idx_stock_candle_instrument_key` (`instrument_key`),
+  KEY `idx_stock_candle_timestamp` (`timestamp`),
+  KEY `idx_stock_candle_instrument_timestamp` (`instrument_key`,`timestamp`),
+  KEY `idx_stock_candle_interval` (`time_interval`)
+) ENGINE=InnoDB AUTO_INCREMENT=11319295 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+o address performance issues with your large stock_candle_data table (3.98M+ rows) and minimize further slowdowns as you add indicator columns, the fastest and least disruptive solution is to:
+Add the new indicator columns directly to the existing table (as planned).
+Create targeted composite indexes for your most common query patterns (especially those used for intraday retrieval).
+Partition the table by time (e.g., by day or month) if your database supports it (MySQL, PostgreSQL, etc.), but only if indexing alone does not solve the problem and you can afford a short migration window.
+Archive or move old data (if you rarely query it) to a separate table or database.
+Step-by-Step Recommendations
+1. Add Indicator Columns (Minimal Change)
+Add columns: ma_9, bb_upper, bb_middle, bb_lower, vwap (all DECIMAL(18,4) or FLOAT).
+This is a fast schema migration and does not require data movement.
+2. Optimize Indexing (Immediate Performance Boost)
+Composite Index:
+If your most common queries are of the form:
+WHERE instrument_key = ? AND time_interval = ? AND timestamp BETWEEN ? AND ?
+then add:
+Apply to 1.1_stock_ca...
+;
+Drop unused indexes if you have any that are not helping your main queries.
+3. Table Partitioning (Optional, If Needed)
+If you still see slow queries after indexing, consider partitioning by date (e.g., monthly or daily) if your DB supports it.
+This can be done with minimal code changes, but may require a short migration window.
+Example (MySQL):
+Apply to 1.1_stock_ca...
+;
+Partitioning is especially useful for time-series data and can dramatically speed up queries and maintenance.
+4. Archive Old Data (If Feasible)
+If you rarely need data older than X months, move it to an archive table.
+This keeps the main table small and fast.
+Summary Table
+| Solution | Impact | Code Change | Migration Needed | Speed |
+|-------------------------|---------------|-------------|------------------|-------|
+| Add columns + index | Low | Minimal
+.
+
+
+B. Convert to Partitioned Table (by Month)
+> Note: MySQL does not allow direct partitioning of an existing table with data.
+> The standard approach is to:
+> 1. Create a new partitioned table with the same schema (including new columns).
+> 2. Copy data from the old table to the new table.
+> 3. Rename tables.
+
+
+Below is a step-by-step process and the exact SQL code to partition your stock_candle_data table by month in MySQL, without losing any data.
+This approach is safe, standard, and works well for large time-series tables.
+Step-by-Step MySQL Partitioning Process
+1. Prepare:
+Stop all writes to stock_candle_data during the migration window.
+Backup your database (recommended).
+2. Create a New Partitioned Table
+Create a new table with the same schema as your current table, including the new indicator columns, and add monthly partitioning on the timestamp column.
+
+
+CREATE TABLE stock_candle_data_new (
+  id bigint NOT NULL AUTO_INCREMENT,
+  instrument_key varchar(50) NOT NULL,
+  timestamp timestamp NOT NULL,
+  open decimal(18,2) NOT NULL,
+  high decimal(18,2) NOT NULL,
+  low decimal(18,2) NOT NULL,
+  close decimal(18,2) NOT NULL,
+  volume bigint NOT NULL,
+  open_interest bigint NOT NULL,
+  time_interval varchar(20) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  ma_9 decimal(18,4) DEFAULT NULL,
+  bb_upper decimal(18,4) DEFAULT NULL,
+  bb_middle decimal(18,4) DEFAULT NULL,
+  bb_lower decimal(18,4) DEFAULT NULL,
+  vwap decimal(18,4) DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY idx_stock_candle_unique (instrument_key, timestamp, time_interval),
+  KEY idx_stock_candle_instrument_key (instrument_key),
+  KEY idx_stock_candle_timestamp (timestamp),
+  KEY idx_stock_candle_instrument_timestamp (instrument_key, timestamp),
+  KEY idx_stock_candle_interval (time_interval)
+)
+PARTITION BY RANGE (YEAR(timestamp)*100 + MONTH(timestamp)) (
+  PARTITION p202401 VALUES LESS THAN (202402),
+  PARTITION p202402 VALUES LESS THAN (202403),
+  PARTITION p202403 VALUES LESS THAN (202404),
+  PARTITION p202404 VALUES LESS THAN (202405),
+  PARTITION p202405 VALUES LESS THAN (202406),
+  PARTITION p202406 VALUES LESS THAN (202407),
+  PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+Adjust partition ranges as needed for your data history and future months.
+
+3. Copy Data to the New Table
+INSERT INTO stock_candle_data_new
+  (id, instrument_key, timestamp, open, high, low, close, volume, open_interest, time_interval, created_at, ma_9, bb_upper, bb_middle, bb_lower, vwap)
+SELECT
+  id, instrument_key, timestamp, open, high, low, close, volume, open_interest, time_interval, created_at, ma_9, bb_upper, bb_middle, bb_lower, vwap
+FROM stock_candle_data;
+- This may take some time depending on your data size.
+
+4. Verify Data Integrity
+Check row counts:
+
+  SELECT COUNT(*) FROM stock_candle_data;
+  SELECT COUNT(*) FROM stock_candle_data_new;
+
+- Optionally, check min/max IDs and timestamps.
+
+5. Swap Tables
+RENAME TABLE stock_candle_data TO stock_candle_data_old,
+             stock_candle_data_new TO stock_candle_data;
+
+6. Drop Old Table
+After verifying everything works:
+
+DROP TABLE stock_candle_data_old;
+
+Summary Table
+| Step | Action | Command/Description |
+|------|-------------------------------------------|-----------------------------------------------------|
+| 1 | Stop writes, backup DB | - |
+| 2 | Create partitioned table | CREATE TABLE ... PARTITION BY RANGE ... |
+| 3 | Copy data | INSERT INTO ... SELECT ... FROM ... |
+| 4 | Verify data | SELECT COUNT(*) ... |
+| 5 | Swap tables | RENAME TABLE ... |
+| 6 | (Optional) Drop old table | DROP TABLE ... |
+| 7 | Resume writes | - |
+
+
+====================================================
+
+In addition to the CREATE TABLE statement and your usage patterns, here's the additional data, information, and metadata I would need from your database to fine-tune the partition strategy and provide more precise execution guidance:
+
+1. Data Distribution (Essential for Partitioning):
+
+Min and Max timestamp values in stock_candle_data:
+
+SQL
+
+SELECT MIN(timestamp), MAX(timestamp) FROM stock_candle_data;
+Why it's needed: This tells me the absolute oldest and newest data you have. Knowing this helps to define the starting and ending range of your explicit partitions accurately and ensures no data falls outside the initially defined partitions. For example, if your MIN(timestamp) is earlier than "last December," I'd need to include earlier partitions.
+Data volume per month (or per significant time interval):
+
+SQL
+
+SELECT
+    DATE_FORMAT(timestamp, '%Y-%m') AS month,
+    COUNT(*) AS row_count,
+    COUNT(DISTINCT instrument_key) AS distinct_instruments,
+    SUM(volume) AS total_volume
+FROM stock_candle_data
+GROUP BY month
+ORDER BY month;
+Why it's needed: This helps understand the data growth rate and distribution across months. If some months have significantly more data than others, it might influence the choice of partition granularity (e.g., if one month has disproportionately huge data, even a monthly partition might be too large for that specific month). This also helps estimate the size of each partition.
+Average Row Size: This is harder to get directly via SQL, but could be estimated:
+
+SHOW TABLE STATUS LIKE 'stock_candle_data'; (Look at Avg_row_length)
+Why it's needed: To estimate the disk space each partition will consume, which influences decisions about partition limits and overall storage planning.
+2. Query Patterns and Performance (Crucial for Indexing and Partitioning):
+
+Actual EXPLAIN plans for your most common queries:
+
+If you have specific queries you run frequently for intraday retrieval or historical analysis, provide them, and run EXPLAIN on them against your current table.
+SQL
+
+EXPLAIN SELECT * FROM stock_candle_data WHERE instrument_key = 'SOME_KEY' AND time_interval = '1min' AND timestamp BETWEEN 'YYYY-MM-DD HH:MM:SS' AND 'YYYY-MM-DD HH:MM:SS';
+-- Or whatever your common queries are
+Why it's needed: This is the most direct way to understand how your database currently processes queries, what indexes it uses (or doesn't use), and where the bottlenecks are. This can validate or invalidate index recommendations and help confirm if partitioning will indeed help.
+Typical time_interval values used:
+
+SQL
+
+SELECT DISTINCT time_interval, COUNT(*) FROM stock_candle_data GROUP BY time_interval;
+Why it's needed: While time_interval is already part of a unique key, knowing the actual values (e.g., '1min', '5min', '15min', '1day') helps understand the data's granularity and how queries might use this column.
+3. Database Server Configuration & Environment:
+
+MySQL Version:
+
+SQL
+
+SELECT VERSION();
+Why it's needed: Different MySQL versions have different features, performance characteristics, and limitations regarding partitioning (e.g., older versions might have different partition limits or syntax).
+Available Disk Space and I/O Capacity:
+
+Why it's needed: The migration process (copying 3.98M+ rows) will require significant temporary disk space and I/O. Knowing your server's resources helps assess the feasibility and potential duration of the migration.
+Current Load on the Database Server:
+
+Why it's needed: The migration should ideally be performed during a low-traffic period. Knowing the typical load patterns helps schedule the migration with minimal impact.
+Replication Setup (if any):
+
+Why it's needed: Partitioning on a master will replicate to slaves, but there might be considerations for setting up new slaves or managing existing ones during the migration.
+4. Business and Application Context:
+
+Downtime Tolerance for Migration:
+Why it's needed: You mentioned "short migration window." How short is "short"? 10 minutes? 1 hour? 4 hours? This heavily influences the choice of migration method (e.g., online schema change tools vs. a direct RENAME TABLE).
+Future Data Retention Policies:
+Are there any plans to purge data older than, say, 5 years? Knowing this influences whether you need pmax or if you can eventually just define partitions and then drop the oldest ones.
+Data Growth Rate:
+Roughly how many rows are added per day/month? This helps predict how quickly new partitions will be needed and how fast the pmax partition might grow.
+By providing this additional information, I can offer a much more tailored and robust partitioning strategy, predict potential challenges, and suggest precise steps for a smooth execution
+
+
+
+==========================
+
+
+
+In addition to the CREATE TABLE statement and your usage patterns, here's the additional data, information, and metadata I would need from your database to fine-tune the partition strategy and provide more precise execution guidance:
+
+1. Data Distribution (Essential for Partitioning):
+
+Min and Max timestamp values in stock_candle_data:
+
+SQL
+
+SELECT MIN(timestamp), MAX(timestamp) FROM stock_candle_data;
+Why it's needed: This tells me the absolute oldest and newest data you have. Knowing this helps to define the starting and ending range of your explicit partitions accurately and ensures no data falls outside the initially defined partitions. For example, if your MIN(timestamp) is earlier than "last December," I'd need to include earlier partitions.
+Data volume per month (or per significant time interval):
+
+SQL
+
+SELECT
+    DATE_FORMAT(timestamp, '%Y-%m') AS month,
+    COUNT(*) AS row_count,
+    COUNT(DISTINCT instrument_key) AS distinct_instruments,
+    SUM(volume) AS total_volume
+FROM stock_candle_data
+GROUP BY month
+ORDER BY month;
+Why it's needed: This helps understand the data growth rate and distribution across months. If some months have significantly more data than others, it might influence the choice of partition granularity (e.g., if one month has disproportionately huge data, even a monthly partition might be too large for that specific month). This also helps estimate the size of each partition.
+Average Row Size: This is harder to get directly via SQL, but could be estimated:
+
+SHOW TABLE STATUS LIKE 'stock_candle_data'; (Look at Avg_row_length)
+Why it's needed: To estimate the disk space each partition will consume, which influences decisions about partition limits and overall storage planning.
+2. Query Patterns and Performance (Crucial for Indexing and Partitioning):
+
+Actual EXPLAIN plans for your most common queries:
+
+If you have specific queries you run frequently for intraday retrieval or historical analysis, provide them, and run EXPLAIN on them against your current table.
+SQL
+
+EXPLAIN SELECT * FROM stock_candle_data WHERE instrument_key = 'SOME_KEY' AND time_interval = '1min' AND timestamp BETWEEN 'YYYY-MM-DD HH:MM:SS' AND 'YYYY-MM-DD HH:MM:SS';
+-- Or whatever your common queries are
+Why it's needed: This is the most direct way to understand how your database currently processes queries, what indexes it uses (or doesn't use), and where the bottlenecks are. This can validate or invalidate index recommendations and help confirm if partitioning will indeed help.
+Typical time_interval values used:
+
+SQL
+
+SELECT DISTINCT time_interval, COUNT(*) FROM stock_candle_data GROUP BY time_interval;
+Why it's needed: While time_interval is already part of a unique key, knowing the actual values (e.g., '1min', '5min', '15min', '1day') helps understand the data's granularity and how queries might use this column.
+3. Database Server Configuration & Environment:
+
+MySQL Version:
+
+SQL
+
+SELECT VERSION();
+Why it's needed: Different MySQL versions have different features, performance characteristics, and limitations regarding partitioning (e.g., older versions might have different partition limits or syntax).
+
+
+======================================
+
+
+
+Key Observations from the New Data:
+
+Massive Data Influx Starting October 2024: This is the most critical piece of information.
+
+Before October 2024, your table only had a handful of rows per month (tens to hundreds).
+October 2024: Jumps to 3,419 rows.
+November 2024: Jumps to 12,000 rows.
+December 2024: Jumps to 33,803 rows.
+2025 Onwards: Row counts explode into the hundreds of thousands and even over a million rows per month (1.1M in May 2025!).
+This confirms your "last December" data is indeed where the significant volume starts.
+MIN(timestamp): '2021-07-22 00:00:00'
+
+This means your data goes back further than initially implied by "last December."
+MAX(timestamp): '2025-05-30 15:29:00'
+
+Confirms data is up to date for today.
+Average Row Size: 157 bytes.
+
+This is a good metric. A total of 3,961,186 rows * 157 bytes/row = 621,905,282 bytes (approx 0.58 GB) for data, which aligns with Data_length: 622837760.
+Adding DECIMAL(18,4) columns will slightly increase this, but not dramatically.
+time_interval: Primarily '1minute' (3.75M rows) and 'day' (230K rows).
+
+This validates the time_interval in your unique key.
+MySQL Version: 9.0.1 (This is relatively new, which is good, as it supports partitioning robustly).
+
+
+==================================
+
+
+Proposed Partition Strategy: "Archive" + Monthly Granular
+This strategy combines the benefits of fewer partitions for sparse historical data with granular partitions for recent, high-volume data.
+
+1. Create a New Partitioned Table (stock_candle_data_new)
+
+Partition p_archive_2021_202409: This will hold all data from July 2021 up to September 2024 (before the data explosion).
+Monthly Partitions: From p202410 onwards, create dedicated monthly partitions for the high-volume periods.
+Future Partitions: Pre-create partitions for upcoming months (e.g., next 6-12 months) to reduce manual intervention.
+SQL
+
+CREATE TABLE stock_candle_data_new (
+  id bigint NOT NULL AUTO_INCREMENT,
+  instrument_key varchar(50) NOT NULL,
+  timestamp timestamp NOT NULL,
+  open decimal(18,2) NOT NULL,
+  high decimal(18,2) NOT NULL,
+  low decimal(18,2) NOT NULL,
+  close decimal(18,2) NOT NULL,
+  volume bigint NOT NULL,
+  open_interest bigint NOT NULL,
+  time_interval varchar(20) NOT NULL,
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  ma_9 decimal(18,4) DEFAULT NULL,
+  bb_upper decimal(18,4) DEFAULT NULL,
+  bb_middle decimal(18,4) DEFAULT NULL,
+  bb_lower decimal(18,4) DEFAULT NULL,
+  vwap decimal(18,4) DEFAULT NULL,
+  partition_yyyymm INT GENERATED ALWAYS AS (CAST(DATE_FORMAT(`timestamp`, '%Y%m') AS UNSIGNED)) STORED,
+  
+  PRIMARY KEY (id, instrument_key, timestamp, time_interval, partition_yyyymm),
+  UNIQUE KEY idx_stock_candle_unique (instrument_key, timestamp, time_interval, partition_yyyymm),
+  KEY idx_stock_candle_instrument_key (instrument_key),
+  KEY idx_stock_candle_timestamp (timestamp),
+  KEY idx_stock_candle_instrument_timestamp (instrument_key, timestamp),
+  KEY idx_stock_candle_interval (time_interval)
+)
+PARTITION BY RANGE (partition_yyyymm) (
+  PARTITION p_archive_2021_202409 VALUES LESS THAN (202410),
+  PARTITION p202410 VALUES LESS THAN (202411),
+  PARTITION p202411 VALUES LESS THAN (202412),
+  PARTITION p202412 VALUES LESS THAN (202501),
+  PARTITION p202501 VALUES LESS THAN (202502),
+  PARTITION p202502 VALUES LESS THAN (202503),
+  PARTITION p202503 VALUES LESS THAN (202504),
+  PARTITION p202504 VALUES LESS THAN (202505),
+  PARTITION p202505 VALUES LESS THAN (202506),
+  PARTITION p202506 VALUES LESS THAN (202507),
+  PARTITION p202507 VALUES LESS THAN (202508),
+  PARTITION p202508 VALUES LESS THAN (202509),
+  PARTITION p202509 VALUES LESS THAN (202510),
+  PARTITION p202510 VALUES LESS THAN (202511),
+  PARTITION p202511 VALUES LESS THAN (202512),
+  PARTITION p202512 VALUES LESS THAN (202601),
+  PARTITION p202601 VALUES LESS THAN (202602),
+  PARTITION p202602 VALUES LESS THAN (202603),
+  PARTITION p202603 VALUES LESS THAN (202604),
+  PARTITION p202604 VALUES LESS THAN (202605),
+  PARTITION p202605 VALUES LESS THAN (202606),
+  PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+
+
+Why this approach is better for your specific data distribution:
+
+Optimized for Skewed Data: The p_archive_2021_202409 partition will contain a small fraction of your total rows (only a few thousand out of ~4M) but covers a long historical period. This prevents creating dozens of near-empty partitions, which would still incur some overhead.
+Focused Performance: Queries for recent data (post-Oct 2024) will exclusively hit the highly targeted monthly partitions, leveraging partition pruning to its fullest.
+Reduced Management Overhead: Fewer partitions for older data means less management if you ever want to prune or reorganize very old data.
+Scalability: As your data grows, you only need to manage adding new monthly partitions.
+Execution Steps (Revised with Considerations):
+The steps remain fundamentally the same, but with important nuances.
+
+1. Preparation and Downtime Management:
+
+Schedule a Maintenance Window: Given 3.98M rows and the need to copy them, you will experience some downtime or a significant slowdown during the INSERT INTO ... SELECT phase and the RENAME TABLE operation. Aim for a period of lowest application usage.
+Stop Writes: Absolutely critical. Ensure all application processes that write to stock_candle_data are stopped before starting the INSERT INTO process.
+Backup: Create a full logical backup (mysqldump) and/or a physical backup. This is your safety net.
+Monitor Disk Space: Ensure you have enough free disk space for the new table (approx. 0.6 GB extra) plus any temporary space MySQL might need during the copy operation.
+2. Create the New Partitioned Table:
+
+Execute the CREATE TABLE stock_candle_data_new ... statement provided above.
+Important: Double-check the partition ranges against your MIN(timestamp) and MAX(timestamp) to ensure no data will fall into pmax during the copy if it's intended for a specific monthly partition. Given your MAX(timestamp) is 2025-05-30, the partitions up to p202505 will correctly contain this data.
+3. Copy Data to the New Table:
+
+SQL
+
+INSERT INTO stock_candle_data_new
+  (id, instrument_key, timestamp, open, high, low, close, volume, open_interest, time_interval, created_at, ma_9, bb_upper, bb_middle, bb_lower, vwap)
+SELECT
+  id, instrument_key, timestamp, open, high, low, close, volume, open_interest, time_interval, created_at, ma_9, bb_upper, bb_middle, bb_lower, vwap
+FROM stock_candle_data;
+Monitoring: This will be the longest step. Monitor your MySQL error log, general query log (if enabled for debugging), and server resource usage (CPU, I/O, memory).
+Potential Duration: For 4M rows, this could take anywhere from a few minutes to an hour or more depending on your server hardware (CPU, I/O, memory, and disk type like SSD/NVMe vs. HDD) and database configuration.
+4. Verify Data Integrity:
+
+SQL
+
+SELECT COUNT(*) FROM stock_candle_data;
+SELECT COUNT(*) FROM stock_candle_data_new;
+
+SELECT
+    DATE_FORMAT(timestamp, '%Y-%m') AS month,
+    COUNT(*) AS new_table_row_count
+FROM stock_candle_data_new
+GROUP BY month
+ORDER BY month;
+Compare COUNT(*) outputs.
+Compare the monthly counts with your provided Data volume per month to ensure data landed in the correct partitions.
+Perform a few SELECT queries on the stock_candle_data_new table, specifically targeting your most frequent query patterns (e.g., last 3 months).
+5. Swap Tables:
+
+SQL
+
+RENAME TABLE stock_candle_data TO stock_candle_data_old,
+             stock_candle_data_new TO stock_candle_data;
+This operation is very fast (metadata change) but requires careful timing as it is the point of actual cut-over for your application.
+6. Drop Old Table (Post-Verification):
+
+SQL
+
+DROP TABLE stock_candle_data_old;
+Wait until you are absolutely confident that the new partitioned table is working flawlessly in production for at least a few days or even a week.
+7. Resume Writes:
+
+Start your application processes that write to stock_candle_data.
+Ongoing Management:
+Automate Partition Addition: Implement a script (e.g., a cron job) that runs monthly to add new partitions for future months. This script should add partitions for the next 2-3 months in advance to avoid the pmax partition from growing.
+Example for adding p202606 (June 2026):
+SQL
+
+ALTER TABLE stock_candle_data ADD PARTITION (PARTITION p202606 VALUES LESS THAN (202607));
+Monitor pmax: Regularly check the size of the pmax partition. If it starts accumulating significant data, it means your proactive partition creation isn't keeping up.
+Consider Archiving/Purging (Long Term): While you cannot delete older data now, if business requirements change, dropping old partitions like p_archive_2021_202409 or p202410 will be incredibly efficient.
+This strategy accounts for your specific data distribution and will provide significant performance benefits for your recent, high-volume data, which is your primary concern.
+
+
+The error Error Code: 2013. Lost connection to MySQL server during query during the INSERT INTO ... SELECT ... FROM ... step is common when copying millions of rows in a single transaction.
+This is usually due to:
+Query timeout (server or client-side)
+Packet size limits
+Connection drops due to long-running operations
+You can safely and efficiently copy your data in batches.
+How to Fix: Use Batched Inserts
+Step-by-Step Solution
+1. Copy Data in Batches
+Instead of one massive query, copy data in manageable chunks (e.g., 100,000 rows at a time) using the id column as a cursor.
+Example:
+Apply to 1.1_stock_ca...
+max_id
+Adjust the batch size (e.g., 50,000 or 200,000) based on your server's performance and available memory.
+You can script this in a shell or use a MySQL client with a loop.
+2. (Optional) Increase Timeout and Packet Size
+If you want to try a larger batch, you can temporarily increase these MySQL settings:
+Apply to 1.1_stock_ca...
+1GB
+But batching is still safer and more robust.
+3. Resume the Migration Steps
+After all batches are copied, continue with row count verification and table swap as before.
+Summary Table
+| Step | Action/Command Example |
+|---------------------|---------------------------------------------------------------------------------------|
+| 1. Find min/max id | SELECT MIN(id), MAX(id) FROM stock_candle_data; |
+| 2. Copy batch 1 | INSERT INTO ... SELECT ... WHERE id BETWEEN 1 AND 100000; |
+| 3. Copy batch 2 | INSERT INTO ... SELECT ... WHERE id BETWEEN 100001 AND 200000; |
+| ... | Repeat until all data is copied |
+| 4. Verify | SELECT COUNT(*) FROM ... |
+| 5. Swap tables | As before |
+This approach is robust, safe, and will not lose data.
+Let me know if you want a ready-to-run script for batch copying, or if you need help automating this process!
+
+=====================================
+
+
+You've successfully installed pt-online-schema-change version 3.7.0, which is great. Now, let's proceed with the step-by-step process for partitioning your stock_candle_data table using this tool, incorporating the revised strategy that accounts for your data distribution.
+
+The key here is that pt-online-schema-change will perform the schema modifications (adding indicator columns and the generated column for partitioning) online. After it's done, you'll execute a separate ALTER TABLE statement to apply the actual partitioning.
+
+Step-by-Step Partitioning Process using pt-online-schema-change
+Phase 1: Prepare the ALTER Statement for pt-online-schema-change
+pt-online-schema-change cannot directly add PARTITION BY clauses. Instead, you'll use it to add the new indicator columns and, crucially, a generated column that will serve as your partitioning key.
+
+1. Formulate the ALTER TABLE statement for pt-online-schema-change:
+
+This statement will add all the new indicator columns and the partition_yyyymm generated column. This is the syntax pt-online-schema-change expects in its --alter argument.
+
+SQL
+
+ALTER TABLE `stock_candle_data`
+ADD COLUMN `ma_9` decimal(18,4) DEFAULT NULL,
+ADD COLUMN `bb_upper` decimal(18,4) DEFAULT NULL,
+ADD COLUMN `bb_middle` decimal(18,4) DEFAULT NULL,
+ADD COLUMN `bb_lower` decimal(18,4) DEFAULT NULL,
+ADD COLUMN `vwap` decimal(18,4) DEFAULT NULL,
+ADD COLUMN `partition_yyyymm` INT GENERATED ALWAYS AS (YEAR(timestamp) * 100 + MONTH(timestamp)) STORED;
+Phase 2: Execute pt-online-schema-change
+2. Dry Run the pt-online-schema-change Command (CRITICAL FIRST STEP):
+
+Before making any changes, always perform a dry run to ensure the command is correctly formulated and to understand its planned operations.
+
+Replace your_database_name, your_mysql_user, your_mysql_host with your actual database credentials and host.
+
+Bash
+
+pt-online-schema-change \
+    --alter "ADD COLUMN ma_9 DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_upper DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_middle DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_lower DECIMAL(18,4) DEFAULT NULL, ADD COLUMN vwap DECIMAL(18,4) DEFAULT NULL, ADD COLUMN partition_yyyymm INT GENERATED ALWAYS AS (YEAR(timestamp) * 100 + MONTH(timestamp)) STORED" \
+    D=your_database_name,t=stock_candle_data \
+    --user=your_mysql_user --host=your_mysql_host \
+    --ask-pass \
+    --recursion-method=none \
+    --no-check-alter \
+    --dry-run
+Review the Output: Look for any errors or warnings. pt-online-schema-change will detail the steps it plans to take, including creating a new temporary table, adding triggers, copying data, and the final RENAME.
+3. Execute the pt-online-schema-change Command:
+
+Once the dry run is successful and you are satisfied with the output, remove --dry-run and add --execute.
+
+Bash
+
+pt-online-schema-change \
+    --alter "ADD COLUMN ma_9 DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_upper DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_middle DECIMAL(18,4) DEFAULT NULL, ADD COLUMN bb_lower DECIMAL(18,4) DEFAULT NULL, ADD COLUMN vwap DECIMAL(18,4) DEFAULT NULL, ADD COLUMN partition_yyyymm INT GENERATED ALWAYS AS (YEAR(timestamp) * 100 + MONTH(timestamp)) STORED" \
+    D=your_database_name,t=stock_candle_data \
+    --user=your_mysql_user --host=your_mysql_host \
+    --ask-pass \
+    --recursion-method=none \
+    --no-check-alter \
+    --execute
+Monitoring: This process can take a significant amount of time (from minutes to hours, depending on table size and server resources).
+pt-online-schema-change will show progress updates in your terminal.
+Monitor your MySQL server's resource utilization (CPU, I/O, memory) and error logs for any issues.
+During this phase, your application can continue to read from and write to the original stock_candle_data table. pt-online-schema-change works by creating a new table, copying data, and then performing an atomic swap.
+Phase 3: Apply Partitioning to the Altered Table
+After pt-online-schema-change completes successfully, your stock_candle_data table will now include the ma_9, bb_upper, bb_middle, bb_lower, vwap, and partition_yyyymm columns. Now you can add the actual partitioning.
+
+4. Add Partitioning to the stock_candle_data table:
+
+This ALTER TABLE statement will convert your table into a partitioned table using the partition_yyyymm column.
+
+SQL
+
+ALTER TABLE stock_candle_data
+PARTITION BY RANGE (partition_yyyymm) (
+  -- Archive partition for sparse older data (July 2021 - Sep 2024)
+  PARTITION p_archive_2021_202409 VALUES LESS THAN (202410),
+
+  -- Monthly partitions for high-volume data starting Oct 2024
+  PARTITION p202410 VALUES LESS THAN (202411),
+  PARTITION p202411 VALUES LESS THAN (202412),
+  PARTITION p202412 VALUES LESS THAN (202501),
+
+  -- Current and recent high-volume months (Current date is May 30, 2025)
+  PARTITION p202501 VALUES LESS THAN (202502),
+  PARTITION p202502 VALUES LESS THAN (202503),
+  PARTITION p202503 VALUES LESS THAN (202504),
+  PARTITION p202504 VALUES LESS THAN (202505),
+  PARTITION p202505 VALUES LESS THAN (202506),
+
+  -- Proactive partitions for the next 6-12 months from current date
+  PARTITION p202506 VALUES LESS THAN (202507),
+  PARTITION p202507 VALUES LESS THAN (202508),
+  PARTITION p202508 VALUES LESS THAN (202509),
+  PARTITION p202509 VALUES LESS THAN (202510),
+  PARTITION p202510 VALUES LESS THAN (202511),
+  PARTITION p202511 VALUES LESS THAN (202512),
+  PARTITION p202512 VALUES LESS THAN (202601),
+  PARTITION p202601 VALUES LESS THAN (202602),
+  PARTITION p202602 VALUES LESS THAN (202603),
+  PARTITION p202603 VALUES LESS THAN (202604),
+  PARTITION p202604 VALUES LESS THAN (202605),
+  PARTITION p202605 VALUES LESS THAN (202606),
+
+  -- Catch-all for any data beyond the pre-defined range (monitor closely)
+  PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+Execution Time: This ALTER TABLE statement for partitioning will cause MySQL to reorganize the data on disk into the specified partitions. While it's an "online" operation in recent MySQL versions for some partition changes, for a full PARTITION BY RANGE conversion on a large table, it will still take time and can consume significant I/O and CPU resources. It's generally a blocking operation for writes for a short period during the metadata update.
+Phase 4: Verification
+5. Verify the Partitioning and Data Integrity:
+
+After the ALTER TABLE completes, it's crucial to verify everything.
+
+SQL
+
+-- Check if partitioning is applied
+SELECT
+    TABLE_NAME,
+    PARTITION_NAME,
+    TABLE_ROWS,
+    DATA_LENGTH,
+    INDEX_LENGTH
+FROM
+    INFORMATION_SCHEMA.PARTITIONS
+WHERE
+    TABLE_SCHEMA = 'your_database_name' AND TABLE_NAME = 'stock_candle_data'
+ORDER BY
+    PARTITION_ORDINAL_POSITION;
+
+-- Verify total row count
+SELECT COUNT(*) FROM stock_candle_data;
+
+-- Verify monthly row counts to ensure data landed in correct partitions
+SELECT
+    DATE_FORMAT(timestamp, '%Y-%m') AS month,
+    COUNT(*) AS new_table_row_count
+FROM stock_candle_data
+GROUP BY month
+ORDER BY month;
+
+-- Perform some sample queries for recent data
+SELECT * FROM stock_candle_data
+WHERE instrument_key = 'NIFTYBANK' AND timestamp BETWEEN '2025-03-01 00:00:00' AND '2025-05-30 23:59:59'
+AND time_interval = '1minute'
+LIMIT 10;
+Phase 5: Post-Migration and Ongoing Management
+6. Resume Application Writes:
+Once you've thoroughly verified the table and its data, you can instruct your application to resume writing to the stock_candle_data table.
+
+7. Ongoing Partition Management:
+
+Proactive Partition Addition: Set up a scheduled task (e.g., a cron job) that runs monthly to add new partitions for future months. You should always aim to have partitions created for at least the next 2-3 months to prevent new data from going into the pmax partition.
+Example command to add a new partition (e.g., for June 2026):
+SQL
+
+ALTER TABLE stock_candle_data ADD PARTITION (PARTITION p202606 VALUES LESS THAN (202607));
+Monitor pmax: Regularly check the pmax partition. If it starts to grow in size, it's a sign that your proactive partition creation is not keeping pace with data ingestion, and you need to add more partitions.
+This process ensures that your table migration is performed with minimal disruption to your application while achieving the desired partitioning for improved performance.
+
+
+Sources
+
+
+pt-online-schema-change \
+    --alter "ADD COLUMN partition_yyyymm INT GENERATED ALWAYS AS (YEAR(timestamp) * 100 + MONTH(timestamp)) STORED" \
+    D=setbull_trader,t=stock_candle_data \
+    --user=root --host=127.0.0.1 \
+    --ask-pass \
+    --recursion-method=none \
+    --no-check-alter \
+    --execute
+
+
+pt-online-schema-change \
+    --alter "DROP PRIMARY KEY, ADD PRIMARY KEY (id, partition_yyyymm)" \
+    D=setbull_trader,t=stock_candle_data \
+    --user=root --host=127.0.0.1 \
+    --ask-pass \
+    --recursion-method=none \
+    --no-check-unique-key-change \
+    --execute
+
+
+pt-online-schema-change \
+    --alter "DROP INDEX idx_stock_candle_unique, ADD UNIQUE KEY idx_stock_candle_unique (instrument_key, timestamp, time_interval, partition_yyyymm)" \
+    D=setbull_trader,t=stock_candle_data \
+    --user=root --host=127.0.0.1 \
+    --ask-pass \
+    --recursion-method=none \
+    --no-check-unique-key-change \
+    --no-check-alter \
+    --execute
+Enter MySQL password:
+No replicas found.  See --recursion-method if host Macs-MacBook-Pro.local has replicas.
+Not checking replica lag because no replicas were found and --check-replica-lag was not specified.
+Operation, tries, wait:
+  analyze_table, 10, 1
+  copy_rows, 10, 0.25
+  create_triggers, 10, 1
+  drop_triggers, 10, 1
+  swap_tables, 10, 1
+  update_foreign_keys, 10, 1
+Altering `setbull_trader`.`stock_candle_data`...
+Creating new table...
+Created new table setbull_trader._stock_candle_data_new OK.
+Altering new table...
+Altered `setbull_trader`.`_stock_candle_data_new` OK.
+Using original table index PRIMARY for the DELETE trigger instead of new table index PRIMARY because the new table index uses column partition_yyyymm which does not exist in the original table.
+2025-05-31T00:06:01 Creating triggers...
+2025-05-31T00:06:01 Created triggers OK.
+2025-05-31T00:06:01 Copying approximately 3853433 rows...
+Copying `setbull_trader`.`stock_candle_data`:  40% 00:44 remain
+Copying `setbull_trader`.`stock_candle_data`:  73% 00:21 remain
+2025-05-31T00:07:27 Copied rows OK.
+2025-05-31T00:07:27 Analyzing new table...
+2025-05-31T00:07:27 Swapping tables...
+2025-05-31T00:07:27 Swapped original and new tables OK.
+2025-05-31T00:07:27 Dropping old table...
+2025-05-31T00:07:27 Dropped old table `setbull_trader`.`_stock_candle_data_old` OK.
+2025-05-31T00:07:27 Dropping triggers...
+2025-05-31T00:07:27 Dropped triggers OK.
+Successfully altered `setbull_trader`.`stock_candle_data`.
+
+
+ALTER TABLE stock_candle_data
+PARTITION BY RANGE (partition_yyyymm) (
+  -- Archive partition for sparse older data (July 2021 - Sep 2024)
+  PARTITION p_archive_2021_202409 VALUES LESS THAN (202410),
+
+  -- Monthly partitions for high-volume data starting Oct 2024
+  PARTITION p202410 VALUES LESS THAN (202411),
+  PARTITION p202411 VALUES LESS THAN (202412),
+  PARTITION p202412 VALUES LESS THAN (202501),
+
+  -- Current and recent high-volume months (Current date is May 30, 2025)
+  PARTITION p202501 VALUES LESS THAN (202502),
+  PARTITION p202502 VALUES LESS THAN (202503),
+  PARTITION p202503 VALUES LESS THAN (202504),
+  PARTITION p202504 VALUES LESS THAN (202505),
+  PARTITION p202505 VALUES LESS THAN (202506),
+
+  -- Proactive partitions for the next 6-12 months from current date
+  PARTITION p202506 VALUES LESS THAN (202507),
+  PARTITION p202507 VALUES LESS THAN (202508),
+  PARTITION p202508 VALUES LESS THAN (202509),
+  PARTITION p202509 VALUES LESS THAN (202510),
+  PARTITION p202510 VALUES LESS THAN (202511),
+  PARTITION p202511 VALUES LESS THAN (202512),
+  PARTITION p202512 VALUES LESS THAN (202601),
+  PARTITION p202601 VALUES LESS THAN (202602),
+  PARTITION p202602 VALUES LESS THAN (202603),
+  PARTITION p202603 VALUES LESS THAN (202604),
+  PARTITION p202604 VALUES LESS THAN (202605),
+  PARTITION p202605 VALUES LESS THAN (202606),
+
+  -- Catch-all for any data beyond the pre-defined range (monitor closely)
+  PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+
+
+
+Now that the partitioning is complete, here are the crucial next steps for verification and ongoing management:
+
+1. Verify Partitioning and Data Integrity
+It's essential to confirm that the partitioning has been applied correctly and that your data is residing in the intended partitions.
+
+A. Check Partition Status:
+Run this query to see a list of your partitions, their row counts, and data/index lengths. This confirms the table is indeed partitioned.
+
+SQL
+
+SELECT
+    PARTITION_NAME,
+    TABLE_ROWS,
+    DATA_LENGTH,
+    INDEX_LENGTH
+FROM
+    INFORMATION_SCHEMA.PARTITIONS
+WHERE
+    TABLE_SCHEMA = 'setbull_trader' AND TABLE_NAME = 'stock_candle_data'
+ORDER BY
+    PARTITION_ORDINAL_POSITION;
+B. Verify Total Row Count:
+Ensure that the total number of rows in the partitioned table matches the count before the migration (if you have that recorded).
+
+SQL
+
+SELECT COUNT(*) FROM stock_candle_data;
+C. Verify Data Distribution in Partitions:
+This query helps confirm that your data is correctly distributed across the partition_yyyymm values, aligning with your partitioning scheme.
+
+SQL
+
+SELECT
+    DATE_FORMAT(timestamp, '%Y-%m') AS month,
+    COUNT(*) AS row_count
+FROM stock_candle_data
+GROUP BY month
+ORDER BY month;
+D. Test Sample Queries:
+Run a few typical queries that your application would perform, especially those filtering by timestamp or instrument_key to ensure they execute efficiently.
+
+SQL
+
+-- Example for recent data
+SELECT * FROM stock_candle_data
+WHERE instrument_key = 'NIFTYBANK' AND timestamp BETWEEN '2025-05-01 00:00:00' AND '2025-05-31 23:59:59'
+AND time_interval = '1minute'
+LIMIT 10;
+
+-- Example for older data (from an archive partition)
+SELECT * FROM stock_candle_data
+WHERE instrument_key = 'BANKNIFTY' AND timestamp BETWEEN '2022-01-01 00:00:00' AND '2022-01-31 23:59:59'
+AND time_interval = '5minute'
+LIMIT 10;
+2. Resume Application Writes
+Once you have thoroughly verified that the partitioning is applied correctly and your data is accessible and accurate, you can safely resume your application's write operations to the stock_candle_data table. The new data will automatically be directed to the appropriate partitions.
+
+3. Ongoing Partition Management
+Partitioning requires ongoing maintenance to be effective.
+
+A. Automate New Partition Creation:
+You will need a regular process (e.g., a monthly cron job or scheduled task) to add new partitions for upcoming months. This prevents new data from accumulating in the pmax partition, which can degrade performance over time.
+
+Example SQL to add a new partition (e.g., for June 2026, assuming you are in May 2025 and have partitions up to May 2026):
+
+SQL
+
+ALTER TABLE stock_candle_data ADD PARTITION (PARTITION p202606 VALUES LESS THAN (202607));
+Remember to add partitions well in advance (e.g., for the next 6-12 months).
+
+B. Monitor pmax Partition:
+Regularly check the size of your pmax partition using the INFORMATION_SCHEMA.PARTITIONS query provided above. If pmax starts to grow significantly, it's a strong indicator that new data is being inserted into this catch-all partition because a more specific partition for that month doesn't exist yet. This means your partition creation schedule needs to be adjusted or new partitions need to be added manually.
+
+C. Consider Archiving/Dropping Old Partitions:
+For very old data, you might want to implement a strategy to archive or drop entire partitions. For example, if you only need the last 2 years of data for active queries, you can drop partitions older than that to free up space and keep the table smaller and faster.
+
+Example to drop an old partition (e.g., p202201):
+
+SQL
+
+ALTER TABLE stock_candle_data DROP PARTITION p202201;
+By following these steps, you'll ensure your partitioned table remains performant and manageable in the long term.

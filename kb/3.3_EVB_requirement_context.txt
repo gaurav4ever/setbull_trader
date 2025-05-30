@@ -1,0 +1,80 @@
+To track the 9-period Moving Average, Bollinger Bands, and VWAP for intraday data (e.g., 1-minute, 5-minute, 1-hour) in your Go backend, you will need to:
+Enhance Candle Data Storage:
+Ensure intraday OHLCV data is stored at the required granularity (1m, 5m, 1H).
+Implement Indicator Calculations:
+Add logic to compute 9-period MA, Bollinger Bands (with defined period/stddev), and VWAP for each intraday candle.
+Store/Expose Indicator Values:
+Extend data models and DB schema to store computed indicator values per candle.
+Update APIs/services to expose these values for downstream use (signal detection, UI, etc.).
+Backfill and Recompute:
+Provide a mechanism to backfill indicators for historical data.
+Testing & Validation:
+Add unit/integration tests for indicator calculations and data flows.
+Restated Query (for Confirmation):
+You want a technical plan for updating your Go backend so it can track and store the 9-period MA, Bollinger Bands, and VWAP for intraday candles, as required by the "Sangam" strategy, including all necessary code and schema changes.
+Technical Understanding
+1. Strategy Context
+Indicators: 9-period MA, Bollinger Bands, VWAP.
+Timeframes: Intraday (1m, 5m, 1H), with multi-timeframe logic.
+Requirement: Quantitative, not just visual, tracking of indicator values for each candle.
+2. Current Go Backend Structure
+Candle Data:
+Likely stored in internal/repository/postgres/candle_repository.go and related DB tables.
+Indicator Logic:
+Some indicator logic may exist in internal/service/technical_indicator_service.go or similar.
+DTOs/Models:
+Data transfer objects in internal/core/dto/response/market_quotes.go etc.
+Aggregation:
+internal/service/candle_aggregation_service.go for timeframe aggregation.
+APIs:
+REST endpoints in cmd/trading/transport/rest/candle_handlers.go and related files.
+Required Changes (Detailed List)
+A. Data Model & Database
+Candle Table Update:
+Add columns for:
+ma_9 (float)
+bb_upper, bb_middle, bb_lower (float)
+vwap (float)
+Update DB migration scripts in pkg/database/migrations/.
+Repository Layer:
+Update candle_repository.go to handle new columns for read/write.
+B. Indicator Calculation Logic
+Indicator Calculation Service:
+In internal/service/technical_indicator_service.go (or new file if needed):
+Implement 9-period MA calculation.
+Implement Bollinger Bands (period, stddev as per finalized config).
+Implement VWAP (reset daily for intraday).
+Ensure calculations work for all required timeframes (1m, 5m, 1H).
+Candle Processing Pipeline:
+Update candle_processing_service.go to:
+Compute indicators for each new candle.
+Store computed values in DB.
+C. Data Aggregation & Backfill
+Historical Backfill:
+Script/service to backfill indicator values for historical candles.
+Aggregation Logic:
+Ensure aggregation from 1m → 5m/1H preserves/correctly recalculates indicators (especially VWAP, which is volume-weighted and resets daily).
+D. API/DTO Layer
+DTO Updates:
+Update candle DTOs in internal/core/dto/response/market_quotes.go to include new indicator fields.
+API Handlers:
+Update REST handlers (e.g., candle_handlers.go) to expose indicator values in API responses.
+E. Testing & Validation
+Unit Tests:
+Add tests for indicator calculation logic (edge cases, correctness).
+Integration Tests:
+Test end-to-end data flow: ingestion → calculation → storage → API.
+F. Documentation
+Update API Docs:
+Document new fields in API responses.
+Migration/Setup Docs:
+Document DB migration and backfill process.
+Next Steps
+Confirm indicator parameters (especially Bollinger Bands period/stddev, VWAP reset logic).
+Confirm which timeframes (1m, 5m, 1H) are required for initial implementation.
+Phase-wise plan (if needed):
+Phase 1: DB/model/repo changes + indicator calculation for 1m candles.
+Phase 2: Aggregation/backfill + API exposure.
+Phase 3: Multi-timeframe logic, advanced signal detection.
+Would you like a phase-wise implementation plan and file-by-file breakdown for the above?
+Or do you want to proceed with a specific phase/file first?

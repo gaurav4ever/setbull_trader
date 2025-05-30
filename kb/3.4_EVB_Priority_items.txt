@@ -1,0 +1,50 @@
+The most urgent and foundational task (P0 priority) is to define and implement a robust, extensible data model and database schema for storing per-candle indicator values (MA, Bollinger Bands, VWAP) for intraday data.
+This is because:
+All indicator calculations, backfilling, API exposure, and multi-timeframe logic depend on having a place to store and retrieve these values efficiently.
+Schema changes are the hardest to retrofit later and affect all downstream services and APIs.
+Once the schema is in place, you can incrementally build calculation, aggregation, and API layers on top.
+P0 Priority Task List (Foundation First)
+1. Data Model & Database Foundation
+1.1. Finalize Indicator Fields:
+Decide on exact fields: ma_9, bb_upper, bb_middle, bb_lower, vwap (all float64), and any metadata (e.g., calculation status, timestamp).
+1.2. Update Candle Table Schema:
+Create/alter table migration scripts to add these fields for all relevant timeframes (1m, 5m, 1H).
+1.3. Update ORM/Repository Layer:
+Update Go structs and repository code to support new fields for read/write.
+2. Indicator Calculation Logic
+2.1. Implement Calculation Functions:
+Write Go functions for 9-period MA, Bollinger Bands (with finalized period/stddev), and VWAP (with correct reset logic).
+2.2. Integrate with Candle Processing:
+Ensure indicator values are computed and stored for each new candle.
+3. Data Aggregation & Backfill
+3.1. Historical Backfill Service:
+Script/service to compute and populate indicator values for historical data.
+3.2. Aggregation Logic:
+Ensure correct calculation when aggregating from 1m → 5m/1H, especially for VWAP.
+4. API/DTO Layer
+4.1. Update DTOs:
+Add indicator fields to candle DTOs.
+4.2. Update REST Handlers:
+Expose indicator values in API responses.
+5. Testing & Validation
+5.1. Unit Tests:
+For indicator calculations.
+5.2. Integration Tests:
+For end-to-end data flow.
+6. Documentation
+6.1. Update API Docs:
+Document new fields.
+6.2. Migration/Setup Docs:
+Document schema changes and backfill process.
+Summary Table (P0 → P1+)
+| Priority | Task Area | Description |
+|----------|--------------------------|------------------------------------------------------------------|
+| P0 | Data Model & DB Schema | Add indicator fields to candle table, update repo/structs |
+| P1 | Indicator Calculation | Implement MA/BB/VWAP logic, integrate with candle processing |
+| P1 | Backfill & Aggregation | Historical backfill, aggregation logic for higher timeframes |
+| P2 | API/DTO Layer | Expose indicator values via API |
+| P2 | Testing & Validation | Unit/integration tests |
+| P2 | Documentation | Update API/migration docs |
+Recommendation:
+Start with a detailed design for the data model and schema changes (P0). Once confirmed, proceed to calculation logic and integration.
+Would you like to discuss the schema design and migration plan in detail next? Or do you want to review the full P0 implementation design before moving to P1?
