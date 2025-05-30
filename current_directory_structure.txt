@@ -1,213 +1,225 @@
-/Users/gaurav/setbull_projects/setbull_trader/
-├── .DS_Store
-├── .cursor/
-│   └── rules/
-│       └── setbull-trader-software-rules.mdc
-├── .vscode/
-│   ├── launch.json
-│   ├── settings.json
-│   └── tasks.json
+.
 ├── Dockerfile
-├── GOALS/
-│   ├── 1_next_2_weeks.txt
-│   ├── 2_next_2_week.txt
-│   ├── 3_next_2_weekts.txt
-│   ├── 4_2025_GOAL.md
-│   └── 5_next_week.txt
+├── GOALS
+│   ├── 1_next_2_weeks.txt
+│   ├── 2_next_2_week.txt
+│   ├── 3_next_2_weekts.txt
+│   ├── 4_2025_GOAL.md
+│   └── 5_next_week.txt
 ├── Makefile
 ├── README.md
 ├── application.dev.yaml
 ├── application.yaml
-├── cmd/
-│   └── trading/
-│       ├── app/
-│       │   └── app.go
-│       └── transport/
-│           ├── http.go
-│           ├── middleware.go
-│           └── rest/
-│               ├── candle_handlers.go
-│               ├── execution_plan_handlers.go
-│               ├── order_execution_handlers.go
-│               ├── responses.go
-│               ├── server.go
-│               ├── stock_group_handlers.go
-│               ├── stock_handlers.go
-│               ├── stock_universe_handler.go
-│               ├── trade_parameters_handlers.go
-│               ├── upstox_auth_handlers.go
-│               └── utility_handlers.go
-├── consolidated_code/
-│   ├── config.txt
-│   ├── main.txt
-│   ├── models.txt
-│   ├── services.txt
-│   ├── transport.txt
-│   └── utils.txt
+├── cmd
+│   └── trading
+│       ├── app
+│       │   └── app.go
+│       └── transport
+│           ├── http.go
+│           ├── middleware.go
+│           └── rest
+│               ├── candle_handlers.go
+│               ├── execution_plan_handlers.go
+│               ├── order_execution_handlers.go
+│               ├── responses.go
+│               ├── server.go
+│               ├── stock_group_handlers.go
+│               ├── stock_handlers.go
+│               ├── stock_universe_handler.go
+│               ├── trade_parameters_handlers.go
+│               ├── upstox_auth_handlers.go
+│               └── utility_handlers.go
+├── consolidated_code
+│   ├── config.txt
+│   ├── main.txt
+│   ├── models.txt
+│   ├── services.txt
+│   ├── transport.txt
+│   └── utils.txt
 ├── consolidated_code.sh
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
 ├── current_schema.txt
-├── dhan/
-│   ├── all_in_one.txt
-│   ├── get_history_orders.txt
-│   ├── get_orders_intraday.txt
-│   ├── post_order_api_doc.txt
-│   └── put_order_api_doc.txt
+├── dhan
+│   ├── all_in_one.txt
+│   ├── get_history_orders.txt
+│   ├── get_orders_intraday.txt
+│   ├── post_order_api_doc.txt
+│   └── put_order_api_doc.txt
 ├── directory_tree.py
 ├── go.mod
 ├── go.sum
-├── internal/
-│   ├── core/
-│   │   ├── adapters/
-│   │   │   └── client/
-│   │   │       ├── dhan/
-│   │   │       │   ├── dhan_client.go
-│   │   │       │   └── models.go
-│   │   │       └── upstox/
-│   │   │           ├── auth_service.go
-│   │   │           ├── auth_service_test.go
-│   │   │           ├── config.go
-│   │   │           ├── kb/
-│   │   │           │   └── 1.authentication.txt
-│   │   │           └── token_repository.go
-│   │   ├── constant/
-│   │   ├── dto/
-│   │   │   ├── request/
-│   │   │   │   ├── market_quotes.go
-│   │   │   │   └── orders.go
-│   │   │   └── response/
-│   │   │       ├── filter_pipeline.go
-│   │   │       ├── market_quotes.go
-│   │   │       ├── orders.go
-│   │   │       └── stock_group_response.go
-│   │   └── service/
-│   │       └── orders/
-│   │           └── service.go
-│   ├── domain/
-│   │   ├── candle.go
-│   │   ├── filtered_stock.go
-│   │   ├── indicator.go
-│   │   ├── kb/
-│   │   │   ├── 1.1_stock_group_functionality.txt
-│   │   │   ├── 1.2_stock_group_functionality_v2.txt
-│   │   │   └── 1.3_stock_group_functionality.txt
-│   │   ├── mamba_types.go
-│   │   ├── models.go
-│   │   ├── sequence_metrics.go
-│   │   ├── stock_filter.go
-│   │   ├── stock_group.go
-│   │   ├── stock_universe.go
-│   │   └── utility.go
-│   ├── repository/
-│   │   ├── interfaces.go
-│   │   └── postgres/
-│   │       ├── candle_repository.go
-│   │       ├── execution_plan_repository.go
-│   │       ├── filtered_stock_repository.go
-│   │       ├── level_entry_repository.go
-│   │       ├── order_execution_repository.go
-│   │       ├── stock_group_repository.go
-│   │       ├── stock_repository.go
-│   │       ├── stock_universe_repository.go
-│   │       └── trade_parameters_repository.go
-│   ├── service/
-│   │   ├── 19th_may_log.txt
-│   │   ├── 20th_may_log.txt
-│   │   ├── 21st_may_log.txt
-│   │   ├── 22nd_may_log.txt
-│   │   ├── 22nd_may_log_consolidated.txt
-│   │   ├── basic_filter.go
-│   │   ├── batch_fetch_service.go
-│   │   ├── candle_aggregation_service.go
-│   │   ├── candle_processing_service.go
-│   │   ├── ema_filter.go
-│   │   ├── execution_plan_service.go
-│   │   ├── fibonacci_calculator.go
-│   │   ├── group_execution_scheduler.go
-│   │   ├── group_execution_scheduler_test.go
-│   │   ├── group_execution_service.go
-│   │   ├── kb/
-│   │   │   ├── 1.1_sotck_agent_service.md
-│   │   │   └── 1.2_stock_agent_service.md
-│   │   ├── log1pm.txt
-│   │   ├── log_915.txt
-│   │   ├── log_9_15.txt
-│   │   ├── mamba_filter.go
-│   │   ├── market_quote_service.go
-│   │   ├── move_analyzer.go
-│   │   ├── normalizer/
-│   │   │   └── stock_normalizer.go
-│   │   ├── order_execution_service.go
-│   │   ├── parser/
-│   │   │   └── upstox_parser.go
-│   │   ├── pipline_monitor.go
-│   │   ├── report_generator.go
-│   │   ├── rsi_filter.go
-│   │   ├── sequence_analyzer.go
-│   │   ├── sequence_detector.go
-│   │   ├── sequence_pattern_analyzer.go
-│   │   ├── stock_filter_pipeline.go
-│   │   ├── stock_group_service.go
-│   │   ├── stock_service.go
-│   │   ├── stock_universe_service.go
-│   │   ├── technical_indicator_service.go
-│   │   ├── trade_parameters_service.go
-│   │   ├── trading_calendar_service.go
-│   │   ├── trend_analyzer.go
-│   │   ├── trend_detector.go
-│   │   ├── utility_service.go
-│   │   └── volatility_calculator.go
-│   └── trading/
-│       ├── config/
-│       │   └── config.go
-│       └── service/
-│           └── query/
-├── kb/
-│   ├── 1.1_connecting_backtesting_pipline.txt
-│   ├── 1.2_scheduler_timing_accuracy.txt
-│   ├── 1.3_multiple_trades_per_stock_issue.txt
-│   └── 1.4_VWAP_strategy_requirement.tx
+├── internal
+│   ├── core
+│   │   ├── adapters
+│   │   │   └── client
+│   │   │       └── dhan
+│   │   │           ├── dhan_client.go
+│   │   │           └── models.go
+│   │   ├── constant
+│   │   ├── dto
+│   │   │   ├── request
+│   │   │   │   ├── market_quotes.go
+│   │   │   │   └── orders.go
+│   │   │   └── response
+│   │   │       ├── filter_pipeline.go
+│   │   │       ├── market_quotes.go
+│   │   │       ├── orders.go
+│   │   │       └── stock_group_response.go
+│   │   └── service
+│   │       └── orders
+│   │           └── service.go
+│   ├── domain
+│   │   ├── candle.go
+│   │   ├── filtered_stock.go
+│   │   ├── indicator.go
+│   │   ├── kb
+│   │   │   ├── 1.1_stock_group_functionality.txt
+│   │   │   ├── 1.2_stock_group_functionality_v2.txt
+│   │   │   └── 1.3_stock_group_functionality.txt
+│   │   ├── mamba_types.go
+│   │   ├── models.go
+│   │   ├── sequence_metrics.go
+│   │   ├── stock_filter.go
+│   │   ├── stock_group.go
+│   │   ├── stock_universe.go
+│   │   └── utility.go
+│   ├── repository
+│   │   ├── interfaces.go
+│   │   └── postgres
+│   │       ├── candle_repository.go
+│   │       ├── execution_plan_repository.go
+│   │       ├── filtered_stock_repository.go
+│   │       ├── level_entry_repository.go
+│   │       ├── order_execution_repository.go
+│   │       ├── stock_group_repository.go
+│   │       ├── stock_repository.go
+│   │       ├── stock_universe_repository.go
+│   │       └── trade_parameters_repository.go
+│   ├── service
+│   │   ├── 19th_may_log.txt
+│   │   ├── 20th_may_log.txt
+│   │   ├── 21st_may_log.txt
+│   │   ├── 22nd_may_log.txt
+│   │   ├── 22nd_may_log_consolidated.txt
+│   │   ├── 26th_may_log.txt
+│   │   ├── basic_filter.go
+│   │   ├── batch_fetch_service.go
+│   │   ├── candle_aggregation_service.go
+│   │   ├── candle_processing_service.go
+│   │   ├── ema_filter.go
+│   │   ├── execution_plan_service.go
+│   │   ├── fibonacci_calculator.go
+│   │   ├── group_execution_scheduler.go
+│   │   ├── group_execution_scheduler_test.go
+│   │   ├── group_execution_service.go
+│   │   ├── kb
+│   │   │   ├── 1.1_sotck_agent_service.md
+│   │   │   └── 1.2_stock_agent_service.md
+│   │   ├── log1pm.txt
+│   │   ├── log_915.txt
+│   │   ├── log_9_15.txt
+│   │   ├── mamba_filter.go
+│   │   ├── market_quote_service.go
+│   │   ├── move_analyzer.go
+│   │   ├── normalizer
+│   │   │   └── stock_normalizer.go
+│   │   ├── order_execution_service.go
+│   │   ├── parser
+│   │   │   └── upstox_parser.go
+│   │   ├── pipline_monitor.go
+│   │   ├── report_generator.go
+│   │   ├── rsi_filter.go
+│   │   ├── sequence_analyzer.go
+│   │   ├── sequence_detector.go
+│   │   ├── sequence_pattern_analyzer.go
+│   │   ├── stock_filter_pipeline.go
+│   │   ├── stock_group_service.go
+│   │   ├── stock_service.go
+│   │   ├── stock_universe_service.go
+│   │   ├── technical_indicator_service.go
+│   │   ├── trade_parameters_service.go
+│   │   ├── trading_calendar_service.go
+│   │   ├── trend_analyzer.go
+│   │   ├── trend_detector.go
+│   │   ├── utility_service.go
+│   │   └── volatility_calculator.go
+│   └── trading
+│       ├── config
+│       │   └── config.go
+│       └── service
+│           └── query
+├── kb
+│   ├── 1.1_connecting_backtesting_pipline.txt
+│   ├── 1.2_scheduler_timing_accuracy.txt
+│   ├── 1.3_multiple_trades_per_stock_issue.txt
+│   ├── 1.4_backtesting_per_candle.txt
+│   ├── 2.1_VWAP_strategy_requirement.txt
+│   ├── 2.2_VWAP_technical_requirement.txt
+│   ├── 2.3_VWAP_learning.txt
+│   ├── 3.1_EMA_VWAP_BB_strategy.txt
+│   └── 3.2_EVB_questions_and_doubts.txt
 ├── main.go
 ├── nse_stocks.txt
 ├── nse_upstox.json
 ├── performance_analyzer.py
-├── pkg/
-│   ├── apperrors/
-│   │   └── errors.go
-│   ├── cache/
-│   │   ├── cache.go
-│   │   ├── gocache.go
-│   │   └── redis.go
-│   ├── database/
-│   │   ├── context.txt
-│   │   ├── database.go
-│   │   ├── migration.go
-│   │   ├── migrations/
-│   │   │   ├── 20250315163258_create_table_template.down.sql
-│   │   │   ├── 20250315163258_create_table_template.up.sql
-│   │   │   ├── 20250316035135_add_active_and_timestamps.down.sql
-│   │   │   ├── 20250316035135_add_active_and_timestamps.up.sql
-│   │   │   ├── 20250317154127_add_security_id_to_stocks.down.sql
-│   │   │   ├── 20250317154127_add_security_id_to_stocks.up.sql
-│   │   │   ├── 20250331091305_create_candle_data_table.down.sql
-│   │   │   ├── 20250331091305_create_candle_data_table.up.sql
-│   │   │   ├── 20250403150051_create_stock_universe_table.down.sql
-│   │   │   ├── 20250403150051_create_stock_universe_table.up.sql
-│   │   │   ├── 20250406123051_create_filtered_stock_table.down.sql
-│   │   │   ├── 20250406123051_create_filtered_stock_table.up.sql
-│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.down.sql
-│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
-│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.down.sql
-│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.up.sql
-│   │   │   ├── 20250711120000_create_stock_group_tables.down.sql
-│   │   │   └── 20250711120000_create_stock_group_tables.up.sql
-│   │   └── queries/
-│   │       ├── stock_candle_data_1day_aggregation.sql
-│   │       └── stock_candle_data_5min_aggregation.sql
-│   ├── log/
-│   │   └── log.go
-│   └── util/
-│       └── stockparser/
-│           └── nse_parser.go
+├── pkg
+│   ├── apperrors
+│   │   └── errors.go
+│   ├── cache
+│   │   ├── cache.go
+│   │   ├── gocache.go
+│   │   └── redis.go
+│   ├── database
+│   │   ├── context.txt
+│   │   ├── database.go
+│   │   ├── migration.go
+│   │   ├── migrations
+│   │   │   ├── 20250315163258_create_table_template.down.sql
+│   │   │   ├── 20250315163258_create_table_template.up.sql
+│   │   │   ├── 20250316035135_add_active_and_timestamps.down.sql
+│   │   │   ├── 20250316035135_add_active_and_timestamps.up.sql
+│   │   │   ├── 20250317154127_add_security_id_to_stocks.down.sql
+│   │   │   ├── 20250317154127_add_security_id_to_stocks.up.sql
+│   │   │   ├── 20250331091305_create_candle_data_table.down.sql
+│   │   │   ├── 20250331091305_create_candle_data_table.up.sql
+│   │   │   ├── 20250403150051_create_stock_universe_table.down.sql
+│   │   │   ├── 20250403150051_create_stock_universe_table.up.sql
+│   │   │   ├── 20250406123051_create_filtered_stock_table.down.sql
+│   │   │   ├── 20250406123051_create_filtered_stock_table.up.sql
+│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.down.sql
+│   │   │   ├── 20250406173057_alter_filtered_stock_table_add_strategy_columns.up.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.down.sql
+│   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.up.sql
+│   │   │   ├── 20250711120000_create_stock_group_tables.down.sql
+│   │   │   └── 20250711120000_create_stock_group_tables.up.sql
+│   │   └── queries
+│   │       ├── stock_candle_data_1day_aggregation.sql
+│   │       └── stock_candle_data_5min_aggregation.sql
+│   ├── log
+│   │   └── log.go
+│   └── util
+│       └── stockparser
+│           └── nse_parser.go
+├── strategies
+│   ├── 1st_entry_strategy.pine
+│   └── kb
+│       ├── 1.1_design.md
+│       ├── 1.2_directory_structure_with_python.md
+│       ├── 1.3_phase_breakdown.md
+│       ├── 1.4_modelling.md
+│       ├── 1.5_knowledge_graphy.md
+│       └── 1_init.md
 ├── trading_data.csv
+└── training
+    ├── 1_execution_requirement.txt
+    ├── 2_thoughts-timeline-1.txt
+    ├── 3_design.txt
+    ├── 4_required_apis.txt
+    ├── 5_new_stock_file_format_knowledge.txt
+    ├── 6_pine_script_impl.txt
+    ├── 7_stock_universe_ingestion.txt
+    ├── 8_stock_universe_daily_candle.txt
+    └── 9_filter_pipeline.txt
+
+45 directories, 178 files
