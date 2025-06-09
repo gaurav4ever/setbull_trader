@@ -1,0 +1,178 @@
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE324A01032","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:24:08.349999+05:30 | Intended: 2025-06-04T09:24:08+05:30 | Drift: 349ms","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE395N01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE070D01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE391J01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE438K01021","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE324A01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[5min AGG] Aggregating 5-min candle for all stocks for time range 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Notifying listeners of new 5-min candles from 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:25:08.373669+05:30 | Intended: 2025-06-04T09:25:08+05:30 | Drift: 373ms","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[Scheduler] Received 5-min candle close event from 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE395N01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE070D01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE391J01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE438K01021","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE324A01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:26:08.367869+05:30 | Intended: 2025-06-04T09:26:08+05:30 | Drift: 367ms","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE395N01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE070D01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE391J01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE438K01021","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE324A01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:27:08.324001+05:30 | Intended: 2025-06-04T09:27:08+05:30 | Drift: 324ms","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE395N01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE070D01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE391J01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE438K01021","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE324A01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:28:08.361403+05:30 | Intended: 2025-06-04T09:28:08+05:30 | Drift: 361ms","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Total candles: 14 for NSE_EQ|INE395N01027","time":"2025-06-04T09:29:08+05:30"}
+panic: runtime error: index out of range [13] with length 13
+
+goroutine 50 [running]:
+setbull_trader/internal/service.(*TechnicalIndicatorService).CalculateATRV2(0x10530ca00?, {0x1400034d408, 0xe, 0x19?}, 0xe)
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/technical_indicator_service.go:347 +0x2d0
+setbull_trader/internal/service.(*CandleProcessingService).convertIntraDayCandles(0x140001f73e0, 0x140003403c0, {0x1400037cc60, 0x13}, {0x105114508, 0x7})
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/candle_processing_service.go:374 +0xa30
+setbull_trader/internal/service.(*CandleProcessingService).ProcessIntraDayCandles(0x140001f73e0, {0x1054a1ca8, 0x1400051a000}, {0x1400037cc60, 0x13}, {0x105114508, 0x7})
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/candle_processing_service.go:80 +0xc8
+setbull_trader/cmd/trading/app.(*App).Run.func2()
+        /Users/gaurav/setbull_projects/setbull_trader/cmd/trading/app/app.go:291 +0x670
+created by setbull_trader/cmd/trading/app.(*App).Run in goroutine 1
+        /Users/gaurav/setbull_projects/setbull_trader/cmd/trading/app/app.go:258 +0x26c
+
+
+":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE395N01027","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE070D01027","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE391J01032","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE438K01021","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE324A01032","time":"2025-06-04T09:23:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:23:08.391995+05:30 | Intended: 2025-06-04T09:23:08+05:30 | Drift: 391ms","time":"2025-06-04T09:23:08+05:30"}
+
+
+
+
+
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE395N01027","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE070D01027","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE391J01032","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE438K01021","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Total candles: 9 for NSE_EQ|INE324A01032","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:24:08.349999+05:30 | Intended: 2025-06-04T09:24:08+05:30 | Drift: 349ms","time":"2025-06-04T09:24:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE395N01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE070D01027","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE391J01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE438K01021","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Total candles: 10 for NSE_EQ|INE324A01032","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[5min AGG] Aggregating 5-min candle for all stocks for time range 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Notifying listeners of new 5-min candles from 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:25:08.373669+05:30 | Intended: 2025-06-04T09:25:08+05:30 | Drift: 373ms","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"[Scheduler] Received 5-min candle close event from 2025-06-04T09:20:00+05:30 to 2025-06-04T09:25:00+05:30","time":"2025-06-04T09:25:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE395N01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE070D01027","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE391J01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE438K01021","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Total candles: 11 for NSE_EQ|INE324A01032","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:26:08.367869+05:30 | Intended: 2025-06-04T09:26:08+05:30 | Drift: 367ms","time":"2025-06-04T09:26:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE395N01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE070D01027","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE391J01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE438K01021","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Total candles: 12 for NSE_EQ|INE324A01032","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:27:08.324001+05:30 | Intended: 2025-06-04T09:27:08+05:30 | Drift: 324ms","time":"2025-06-04T09:27:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE395N01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE070D01027","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE391J01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE438K01021","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Total candles: 13 for NSE_EQ|INE324A01032","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-06-04T09:28:08.361403+05:30 | Intended: 2025-06-04T09:28:08+05:30 | Drift: 361ms","time":"2025-06-04T09:28:08+05:30"}
+{"level":"info","msg":"Fetching 2 groups","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Fetched 5 stocks","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-06-04T09:29:08+05:30"}
+{"level":"info","msg":"Total candles: 14 for NSE_EQ|INE395N01027","time":"2025-06-04T09:29:08+05:30"}
+panic: runtime error: index out of range [13] with length 13
+
+goroutine 50 [running]:
+setbull_trader/internal/service.(*TechnicalIndicatorService).CalculateATRV2(0x10530ca00?, {0x1400034d408, 0xe, 0x19?}, 0xe)
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/technical_indicator_service.go:347 +0x2d0
+setbull_trader/internal/service.(*CandleProcessingService).convertIntraDayCandles(0x140001f73e0, 0x140003403c0, {0x1400037cc60, 0x13}, {0x105114508, 0x7})
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/candle_processing_service.go:374 +0xa30
+setbull_trader/internal/service.(*CandleProcessingService).ProcessIntraDayCandles(0x140001f73e0, {0x1054a1ca8, 0x1400051a000}, {0x1400037cc60, 0x13}, {0x105114508, 0x7})
+        /Users/gaurav/setbull_projects/setbull_trader/internal/service/candle_processing_service.go:80 +0xc8
+setbull_trader/cmd/trading/app.(*App).Run.func2()
+        /Users/gaurav/setbull_projects/setbull_trader/cmd/trading/app/app.go:291 +0x670
+created by setbull_trader/cmd/trading/app.(*App).Run in goroutine 1
+        /Users/gaurav/setbull_projects/setbull_trader/cmd/trading/app/app.go:258 +0x26c
+exit status 2

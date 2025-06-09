@@ -1,0 +1,41 @@
+Updated Phase-wise Implementation Plan (BB Width Only)
+Phase 1: Database & Model Changes
+Goal: Add a bb_width column to the stock_candle_data table and update Go models/entities to include this field.
+Files:
+pkg/database/migrations/ (add migration for new column)
+internal/domain/candle.go (or wherever the candle model/entity is defined)
+Phase 2: Repository & Service Logic
+Goal: Update repository and service logic to calculate and persist bb_width for each new candle.
+Files:
+internal/repository/postgres/candle_repository.go
+internal/service/technical_indicator_service.go
+internal/service/candle_processing_service.go
+Phase 3: API/DTO Exposure
+Goal: Expose the bb_width field in all relevant candle data APIs.
+Files:
+internal/core/dto/response/market_quotes.go
+cmd/trading/transport/rest/candle_handlers.go
+Phase 4: Testing
+Goal: Add/extend unit and integration tests to ensure bb_width is correctly calculated, stored, and exposed.
+Files:
+internal/service/technical_indicator_service_test.go (or similar)
+API integration test files
+Phase 5: Documentation
+Goal: Update API docs and migration/setup docs to reflect the new field.
+Phase 1: File-by-File Plan
+1. Migration
+Create a new migration file in pkg/database/migrations/ to add a bb_width (FLOAT) column to stock_candle_data.
+2. Go Model Update
+Update the candle data struct in internal/domain/candle.go (or equivalent) to include a BBWidth float64 field.
+Would you like to proceed with Phase 1 (migration + model update)?
+If yes, I’ll present the exact migration and struct changes for your review.
+
+-------------------------------
+JAICORP
+Average: 
+# avg_5min_bb_width
+'0.0091219346856153'
+
+Squeeze                      expanded
+# bb_width_5th_percentile,   bb_width_95th_percentile
+'0.002326494756',            '0.103981401472'

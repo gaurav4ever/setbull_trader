@@ -1,0 +1,117 @@
+{
+    "runner_config": {
+        "mode": "SINGLE",
+        "start_date": "2025-01-01T09:15:00+05:30",
+        "end_date": "2025-05-25T15:25:00+05:30",
+        "strategies": [
+            {
+                "type": "Range",
+                "params": {
+                    "range_type": "5MR",
+                    "entry_type": "1ST_ENTRY",
+                    "entry_candle": "9:15",
+                    "sl_percentage": 0.2,
+                    "target_r": 4.0
+                }
+            }
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "9:20",
+            //         "sl_percentage": 0.5,
+            //         "target_r": 4.0
+            //     }
+            // },
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "10:15",
+            //         "sl_percentage": 0.5,
+            //         "target_r": 4.0
+            //     }
+            // },
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "11:15",
+            //         "sl_percentage": 0.5,
+            //         "target_r": 4.0
+            //     }
+            // },
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "12:15",
+            //         "sl_percentage": 0.5,
+            //         "target_r": 4.0
+            //     }
+            // },
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "13:05",
+            //         "sl_percentage": 0.3,
+            //         "target_r": 4.0
+            //     }
+            // }
+            // ,
+            // {
+            //     "type": "Range",
+            //     "params": {
+            //         "range_type": "5MR",
+            //         "entry_type": "2_30_ENTRY",
+            //         "entry_candle": "14:15",
+            //         "sl_percentage": 0.5,
+            //         "target_r": 4.0
+            //     }
+            // }
+        ],
+        "initial_capital": 1000000.0,
+        "output_dir": "backtest_results"
+    },
+    "instrument_configs": [
+        // {
+        //     "key": "NSE_EQ|INE438K01021",
+        //     "name": "KALAMANDIR",
+        //     "direction": "BEARISH"
+        // }
+        // ,
+        // {
+        //     "key": "NSE_EQ|INE070D01027",
+        //     "name": "JAICORPLTD",
+        //     "direction": "BEARISH"
+        // }
+        // ,
+        // {
+        //     "key": "NSE_INDEX|Nifty 50",
+        //     "name": "NIFTY50",
+        //     "direction": "BULLISH"
+        // },
+        // {
+        //     "key": "NSE_INDEX|Nifty 50",
+        //     "name": "NIFTY50",
+        //     "direction": "BEARISH"
+        // }
+        // ,
+        {
+            "key": "NSE_INDEX|Nifty Bank",
+            "name": "BANKNIFTY",
+            "direction": "BEARISH"
+        },
+        {
+            "key": "NSE_INDEX|Nifty Bank",
+            "name": "BANKNIFTY",
+            "direction": "BULLISH"
+        }
+    ]
+}

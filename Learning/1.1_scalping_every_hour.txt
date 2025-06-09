@@ -1,0 +1,250 @@
+https://www.youtube.com/watch?v=-dAwaexfn5c&ab_channel=ICTGems
+
+The source discusses a scalping strategy for trading the NASDAQ, focusing on identifying setups that can yield at least a 10-handle profit. The speaker emphasizes that scalping opportunities exist hourly, particularly within macro windows around the top of each hour, though the strategy also applies to smaller timeframes like the 5-minute chart. The core idea is to look for situations where the market is likely to move higher, specifically targeting areas like inversion fair value gaps and locations where sell-side liquidity has been taken out below lows. Entries are typically placed within these identified areas, often with a small stop loss below the relevant low, aiming for that minimum 10-handle profit target rather than the absolute lowest low or highest high.
+
+Here is a detailed timeline and cast of characters based on the provided source:
+
+Detailed Timeline
+
+7:00 AM New York Session Begins: This is noted as the starting time to begin observing charts for trading opportunities.
+7:50 AM - 8:10 AM (Approximate Macro Period): The speaker identifies a specific macro trading period occurring from 10 minutes before the hour to 10 minutes after the hour. At 7:51 AM, the market is observed dropping down, interpreted as taking out liquidity at a previous low.
+Shortly After 7:51 AM (Implied): Following the market dropping down to take out liquidity at the low around 7:51 AM, the expectation is for the market to start "spooling" to clear liquidity above a higher point.
+Any 15-Minute Period (Throughout the Trading Day): The speaker states that a scalp opportunity exists within every 15-minute interval.
+Any Hour (Throughout the Trading Day, Outside of the Last Hour): The speaker identifies a macro trading period within each hour, specifically from 10 minutes before the top of the hour to 10 minutes after the top of the hour. These macros are expected to yield a minimum of 10 handles.
+3:00 PM - 4:00 PM Eastern Standard Time (Last Hour US Markets): This one-hour period is highlighted as a significant time for algorithmic market runs, containing four specific macros.
+Cast of Characters
+
+ICT (Implied Speaker/Teacher): The source is an excerpt from something titled "ICT Gems - ICT Teaches how to Scalp Every 1 Hour Candle | Macros," indicating that ICT is the individual providing the trading instruction and insights. While not explicitly described as a person, ICT represents the source of the trading knowledge being shared. His teachings focus on specific time-based trading strategies (macros) and price action analysis (order blocks, fair value gaps, liquidity).
+
+Briefing Document: ICT Scalping Strategy
+This document provides a briefing on the scalping strategy outlined in the provided excerpts from "ICT Gems - ICT Teaches how to Scalp Every 1 Hour Candle | Macros." The core of this strategy revolves around identifying short-term trading opportunities, primarily for scalping a minimum of 10 handles on the NASDAQ, using specific time-based entries and chart patterns.
+
+Key Themes and Concepts:
+
+Time-Based Entries (Macros): The strategy emphasizes specific time windows, referred to as "macros," for potential scalping opportunities.
+Hourly Macros: There is a macro within every hour, specifically from 10 minutes before the top of the hour to 10 minutes after the hour. The excerpt explicitly states, "Every single macro apart from that one [the last hour] is only 10 minutes till the top of the hour to 10 minutes after the hour there's a macro in every single hour." This means for each hour (e.g., 8:00 AM), the macro window is from 7:50 AM to 8:10 AM.
+Last Hour Macro (3:00 PM - 4:00 PM EST): The excerpt highlights a significant macro period in the last hour of US market trading, from 3:00 PM to 4:00 PM Eastern Standard Time. It mentions there are "four specific macros in that 1-hour time frame," implying multiple distinct trading opportunities within this final hour.
+Starting Time: While the New York session starts at 7:00 AM, the strategy suggests starting to look at charts around that time, or even later at 8:15 AM, waiting for 8:30 AM. However, the emphasis is on the hourly macros, suggesting opportunities exist throughout the day within those specific time windows.
+Minimum Profit Target (10 Handles): A crucial element of this strategy is a minimum profit target of 10 handles when scalping the NASDAQ. The source states, "If I can't at least make 10 handles... I'm not willing to take the trade." This sets a clear hurdle for trade selection, filtering out setups that don't offer sufficient potential profit for a short-term trade.
+Liquidity and Order Blocks: The strategy incorporates concepts of liquidity grabs and identifying "order blocks" as potential turning points.
+Liquidity Grabs: The market is described as trading down to take out "sell side liquidity" below previous lows or trading up to clear "buy side" above previous highs. This liquidity hunting is seen as a catalyst for potential price reversals. The excerpt gives an example: "we have the market trading below the lows here I see the market taking out sell side I want to be a buyer of that".
+Order Blocks: A "down close candle in a market that's predisposed to go higher" is identified as an order block. This refers to a candle where price closed lower, but the overall context of the market suggests upward movement. This order block is considered a potential area for a reversal or a "footing to send us higher."
+Fair Value Gaps (FVG) and Inversion Fair Value Gaps (IFVG): These concepts are used to identify areas of inefficiency in price action that can act as potential support or resistance.
+Fair Value Gap: Described as the "separation right here between this candle's low and this candle's high if I'm bullish." This refers to a gap in price where there was no trading activity, suggesting an imbalance between buyers and sellers.
+Inversion Fair Value Gap: This is a Fair Value Gap that, after being traded through, acts as support or resistance in the opposite direction. The excerpt describes trading "inside of a fair value Gap that is now an inversion fair value Gap" as a potential entry point.
+Trade Execution and Risk Management:
+Entry Points: Entries are suggested within the identified setups, particularly within inversion fair value gaps after liquidity has been taken out. The example given shows two entries: "my first entry right there was inside that inversion fair value Gap right there then my second entry was right here as we touched the low of that inversion fair value Gap".
+Stop Loss: A "very very very small stop" is placed "right below that low" of the entry area, indicating a focus on tight risk management for these short-term trades.
+Most Important Ideas and Facts:
+
+The 10-Handle Minimum: This is a non-negotiable rule for taking a scalp trade. If the potential profit is less than 10 handles, the trade is to be skipped.
+Hourly Macros are Key: The window from 10 minutes before the hour to 10 minutes after the hour is critical for identifying potential scalp setups.
+Liquidity Grabs Precede Potential Reversals: Observing the market trade below lows (taking sell-side) or above highs (taking buy-side) is a trigger to look for potential counter-trend scalp opportunities.
+Inversion Fair Value Gaps as Entry Points: These gaps, once breached, can act as strong support or resistance, providing potential entry locations.
+The Last Hour (3 PM - 4 PM EST) is a High-Probability Period: This specific hour is highlighted as having multiple "macros" and likely providing more significant trading opportunities than other hourly macros.
+Quotes from the Source:
+
+"Every single macro apart from that one is only 10 minutes till the top of the hour to 10 minutes after the hour there's a macro in every single hour"
+"If I can't at least make 10 handles I'm not willing to take the trade"
+"we have the market trading below the lows here I see the market taking out sell side I want to be a buyer of that"
+"a down close candle that is an order block what this is is a candle that is opposed it's closing lower so it's a down close in a market that's predisposed to go higher"
+"inside of a fair value Gap that is now an inversion fair value Gap then I know this is a potential footing to send us higher"
+"my first entry right there was inside that inversion fair value Gap right there then my second entry was right here as we touched the low of that inversion fair value Gap my risk was right below that low very very very small stop"
+"The last hour between 3:00 and 4:00 in the US markets okay the last hour 300 p.m. Eastern Standard Time to 400 p.m. Eastern Standard Time there are four specific macros in that 1H hour time uh frame"
+In summary, this strategy provides a structured approach to scalping based on specific time windows, liquidity analysis, and the identification of key chart patterns like order blocks and inversion fair value gaps, with a strict minimum profit target of 10 handles. The emphasis is on short-term, high-probability trades within defined time frames.
+
+
+
+ICT NASDAQ Scalping Guide
+
+Quiz
+
+When does the NASDAQ scalping strategy described in the text suggest looking at the charts?
+What is the minimum number of handles the speaker aims to make when scalping the NASDAQ?
+What is a "down closed candle" identified on a lower timeframe chart in a market expected to go higher?
+Where is sell-side liquidity typically found in relation to price lows?
+What is an "inversion fair value gap"?
+How many handles is considered a successful scalp trade according to the speaker?
+What time frame is specifically highlighted for significant algorithmic market runs?
+How long does a typical algorithmic macro last?
+At what points in the hour do these macros generally occur?
+In the example given, what time does the macro begin in the 8 o'clock hour?
+Quiz Answer Key
+
+The strategy suggests looking at the charts starting around 7 o'clock in the morning New York session, but starting at 8:15 and waiting for 8:30 is also considered a good time.
+The minimum number of handles the speaker aims to make is 10 handles.
+A "down closed candle" in this context, on a lower timeframe chart, occurring in a market predisposed to go higher, is identified as an order block.
+Sell-side liquidity is typically found right below price lows.
+An inversion fair value gap is a fair value gap that price has traded through and is now acting as an area where a potential footing for price to move higher can occur.
+A successful scalp trade according to the speaker is considered to be making 10 handles.
+The last hour of US markets, between 3:00 p.m. and 4:00 p.m. Eastern Standard Time, is highlighted for significant algorithmic market runs.
+A typical algorithmic macro, apart from the last hour, lasts 10 minutes before the top of the hour to 10 minutes after the hour (a total of 20 minutes).
+These macros generally occur 10 minutes before the top of the hour to 10 minutes after the hour.
+In the example given, the macro begins at 7:50 for the 8 o'clock hour.
+Essay Format Questions
+
+Analyze the relationship between different timeframes (e.g., 5-minute and 15-minute) as described in the text, particularly concerning identifying order blocks and potential price targets.
+Discuss the significance of liquidity (both buy-side and sell-side) in the context of the scalping strategy described. How does the market's interaction with liquidity inform trading decisions?
+Explain the concept of an inversion fair value gap and its role as a potential entry or "footing" for a bullish scalp trade.
+Describe the timing aspects of the strategy, including the suggested start times for trading and the specific times when algorithmic macros are said to occur. How does understanding these times influence the approach to scalping?
+Evaluate the risk management aspect mentioned in the text, specifically the use of a small stop loss in relation to the inversion fair value gap entry.
+Glossary of Key Terms
+
+Handles: A unit of price movement, specifically referring to 10 units of price in this context when discussing the NASDAQ.
+Order Block: A down-closed candle (in a bullish scenario) or an up-closed candle (in a bearish scenario) that is identified on a lower timeframe chart and is seen as a potential area where institutional buying or selling occurred, leading to a significant price move.
+Sell-Side Liquidity: The collective stop losses and pending sell orders located below price lows. The market often targets these areas to fuel moves in the opposite direction.
+Buy-Side Liquidity: The collective stop losses and pending buy orders located above price highs. The market often targets these areas to fuel moves in the opposite direction.
+Fair Value Gap: An area on the chart where there is an inefficiency or void in price delivery, typically identified by a gap between the wick of one candle and the body of a later candle.
+Inversion Fair Value Gap: A fair value gap that has been traded through by price and is now potentially acting as support (in a bullish scenario) or resistance (in a bearish scenario).
+Macro: A specific time window during the trading day when algorithmic trading is expected to be more active and can lead to predictable price movements.
+Scalping: A trading strategy focused on making small profits from frequent, short-term trades.
+NASDAQ: A major US stock market index, the primary instrument being traded and discussed in this text.
+
+
+
+CHAT GPT 
+
+Implementing a macro-based scalping strategy similar to ICT’s NASDAQ approach in the Indian stock market (e.g., Nifty, BankNifty) requires adaptation of his time, price, and liquidity principles to Indian instruments, sessions, and structure.
+
+Here's your step-by-step framework to implement this in the Indian market, with precision and automation in mind:
+⚙️ 1. Understand the Market Structure
+ICT (NASDAQ)	Indian Market Equivalent
+New York session: 7:00 AM–4:00 PM EST	NSE session: 9:15 AM–3:30 PM IST
+Macro window: 10 mins before & after every hour	10 mins before & after each hour (e.g., 10:50–11:10)
+Target: 10 handles (40 points on NQ)	Target: ~25–50 points on BankNifty, ~15–30 points on Nifty
+⏰ 2. Define Indian Macro Time Windows (IST)
+Hour Slot	Macro Window (IST)
+10 AM	9:50 AM – 10:10 AM
+11 AM	10:50 AM – 11:10 AM
+12 PM	11:50 AM – 12:10 PM
+1 PM	12:50 PM – 1:10 PM
+2 PM	1:50 PM – 2:10 PM
+3 PM	2:50 PM – 3:10 PM
+
+Optional: 4:00 PM run ideas not applicable as Indian markets close by 3:30 PM.
+📈 3. Identify Setup Components (ICT → Indian Mapping)
+ICT Concept	Indian Market Adaptation
+Sell-side liquidity below lows	Swing lows on 5-min chart
+Buy-side liquidity above highs	Swing highs on 5-min chart
+Order block (down close)	Last red candle before rally (5-min)
+Fair Value Gap (FVG)	Gaps between low of a candle and high of 2 candles ahead (no overlap)
+Inversion FVG	Once traded through, becomes S/R zone
+Entry	When price retraces into IFVG after taking liquidity
+Stop Loss	Just below order block / liquidity wick
+Target	15–30 points on Nifty, 30–50 points on BankNifty
+🔍 4. Chart Logic & Execution Plan
+(A) Detection Logic for Each Macro Window:
+
+    Time: Is current time within macro window?
+
+    Liquidity sweep: Did price break recent swing low or high?
+
+    Context: Is HTF bias bullish or bearish? (e.g., above 50 EMA?)
+
+    Entry zone: Is price entering an IFVG or order block?
+
+    Confirmation: Bullish candle or price reversal inside the zone?
+
+(B) Execution Logic:
+
+    Entry: Once conditions are met inside the zone
+
+    SL: Just below swing low / OB
+
+    Target: Defined points or opposing liquidity
+
+🛠 5. Automate the Strategy (Suggested Stack)
+Data Collection:
+
+    Source: Use a broker API like Upstox, Zerodha Kite, or Aliceblue
+
+    Interval: 1-min candles aggregated into 5-min
+
+    Store to database (MySQL/PostgreSQL) for fast analysis
+
+Indicator Computation:
+
+    Use Python + Pandas to compute:
+
+        Swing highs/lows
+
+        FVGs, IFVGs
+
+        Order blocks
+
+        BB width / ATR for volatility filter
+
+Signal Engine:
+
+    Python or Node.js-based cron job that runs:
+
+        Every 1 minute
+
+        Scans all instruments (Nifty, BankNifty, top F&O stocks)
+
+        Flags macro windows and detects ICT setups
+
+Execution Engine:
+
+    Place order with:
+
+        Predefined SL (tight)
+
+        Target (min 1:2 R:R or defined point target)
+
+        Use trailing SL once 1:1 achieved
+
+Journaling:
+
+    Log:
+
+        Time, setup type (OB, IFVG), entry zone
+
+        SL, Target, R:R, result
+
+    Use this for daily macro map review
+
+🧪 6. Backtest Strategy
+
+Use 3–6 months of 1-min data on:
+
+    BankNifty Futures
+
+    Nifty Futures
+
+    Top 5 Liquid Stocks (RELIANCE, HDFCBANK, ICICIBANK, INFY, TCS)
+
+Run your macro detector + IFVG entries inside those time blocks:
+
+    Log entry/SL/TP and compute:
+
+        Win rate
+
+        Avg profit/loss
+
+        R-multiple
+
+        Macro win probability by hour
+
+🔁 7. Refinement Loop
+Phase	Action
+Review Trades	Filter by hour, setup type
+Refine Zones	Add filters like BB squeeze, EMA trend, RSI
+Add Confidence	Add confluence with HTF structure (15-min)
+Expand Scope	Apply to F&O stocks beyond index
+✅ Final Deliverables to Build
+
+5-min candle generator with gap/OB detection
+
+IFVG detection module (Python or SQL)
+
+Macro window timer logic
+
+Entry/SL/Target planner (per instrument config)
+
+Backtest engine + summary table
+
+Live cron-based strategy executor
+
+    Auto-journaling system for review
+
