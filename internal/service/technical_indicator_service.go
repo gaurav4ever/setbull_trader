@@ -680,3 +680,22 @@ func AggregatedCandlesToCandles(aggs []domain.AggregatedCandle) []domain.Candle 
 	}
 	return candles
 }
+
+// CalculateBBWidth calculates the Bollinger Band width for each candle
+func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle []domain.IndicatorValue) []domain.IndicatorValue {
+	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
+		return nil
+	}
+	widths := make([]domain.IndicatorValue, len(bbUpper))
+	for i := range bbUpper {
+		bbWidth := 0.0
+		if bbMiddle[i].Value != 0 {
+			bbWidth = (bbUpper[i].Value - bbLower[i].Value) / bbMiddle[i].Value
+		}
+		widths[i] = domain.IndicatorValue{
+			Timestamp: bbUpper[i].Timestamp,
+			Value:     bbWidth,
+		}
+	}
+	return widths
+}

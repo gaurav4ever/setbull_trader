@@ -252,16 +252,23 @@ func (r *FilteredStockRepository) GetLatestBySymbol(ctx context.Context, symbol 
 	return &record, nil
 }
 
-// Get Top 10 Filtered Stocks
+// GetTop10FilteredStocks retrieves the latest record for each symbol, ordered by filter_date DESC, mamba_count DESC, limited to 10
 func (r *FilteredStockRepository) GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error) {
 	var records []domain.FilteredStockRecord
 
-	result := r.db.WithContext(ctx).
-		Table("filtered_stocks").
-		Order("mamba_count DESC").
-		Limit(50).
-		Find(&records)
+	query := `
+		SELECT fs.*
+		FROM filtered_stocks fs
+		JOIN (
+			SELECT symbol, MAX(filter_date) AS max_filter_date
+			FROM filtered_stocks
+			GROUP BY symbol
+		) latest ON fs.symbol = latest.symbol AND fs.filter_date = latest.max_filter_date
+		ORDER BY fs.filter_date DESC, fs.mamba_count DESC
+		LIMIT 10
+	`
 
+	result := r.db.WithContext(ctx).Raw(query).Scan(&records)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get top 10 filtered stocks: %w", result.Error)
 	}

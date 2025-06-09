@@ -210,6 +210,8 @@ func (s *CandleProcessingService) convertHistoricalCandles(
 	ma9 := tis.CalculateSMA(candles, 9)
 	// Bollinger Bands (20, 2.0)
 	bbUpper, bbMiddle, bbLower := tis.CalculateBollingerBands(candles, 20, 2.0)
+	// BB Width
+	bbWidth := tis.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
 	// VWAP
 	vwap := tis.CalculateVWAP(candles)
 	// EMA
@@ -224,6 +226,7 @@ func (s *CandleProcessingService) convertHistoricalCandles(
 	// Map indicator values to candles by timestamp
 	ma9Idx := 0
 	bbIdx := 0
+	bbWidthIdx := 0
 	vwapIdx := 0
 	ema5Idx := 0
 	ema9Idx := 0
@@ -242,6 +245,11 @@ func (s *CandleProcessingService) convertHistoricalCandles(
 			candles[i].BBMiddle = bbMiddle[bbIdx].Value
 			candles[i].BBLower = bbLower[bbIdx].Value
 			bbIdx++
+		}
+		// BB Width
+		if bbWidthIdx < len(bbWidth) && candles[i].Timestamp.Equal(bbWidth[bbWidthIdx].Timestamp) {
+			candles[i].BBWidth = bbWidth[bbWidthIdx].Value
+			bbWidthIdx++
 		}
 		// VWAP
 		if vwapIdx < len(vwap) && candles[i].Timestamp.Equal(vwap[vwapIdx].Timestamp) {
@@ -367,6 +375,7 @@ func (s *CandleProcessingService) convertIntraDayCandles(
 	tis := NewTechnicalIndicatorService(s.candleRepo)
 	ma9 := tis.CalculateSMA(candles, 9)
 	bbUpper, bbMiddle, bbLower := tis.CalculateBollingerBands(candles, 20, 2.0)
+	bbWidth := tis.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
 	vwap := tis.CalculateVWAP(candles)
 	ema5 := tis.CalculateEMAV2(candles, 5)
 	ema9 := tis.CalculateEMAV2(candles, 9)
@@ -376,6 +385,7 @@ func (s *CandleProcessingService) convertIntraDayCandles(
 
 	ma9Idx := 0
 	bbIdx := 0
+	bbWidthIdx := 0
 	vwapIdx := 0
 	ema5Idx := 0
 	ema9Idx := 0
@@ -392,6 +402,10 @@ func (s *CandleProcessingService) convertIntraDayCandles(
 			candles[i].BBMiddle = bbMiddle[bbIdx].Value
 			candles[i].BBLower = bbLower[bbIdx].Value
 			bbIdx++
+		}
+		if bbWidthIdx < len(bbWidth) && candles[i].Timestamp.Equal(bbWidth[bbWidthIdx].Timestamp) {
+			candles[i].BBWidth = bbWidth[bbWidthIdx].Value
+			bbWidthIdx++
 		}
 		if vwapIdx < len(vwap) && candles[i].Timestamp.Equal(vwap[vwapIdx].Timestamp) {
 			candles[i].VWAP = vwap[vwapIdx].Value

@@ -97,10 +97,11 @@ func (s *MarketQuoteService) GetQuotes(
 	for inputKey, instKey := range keyMap {
 		if ohlc, ok := data[instKey]; ok {
 			resp.Data[inputKey] = response.Ohlc{
-				Open:  ohlc.Open,
-				High:  ohlc.High,
-				Low:   ohlc.Low,
-				Close: ohlc.Close,
+				Open:    ohlc.Open,
+				High:    ohlc.High,
+				Low:     ohlc.Low,
+				Close:   ohlc.Close,
+				BBWidth: 0, // TODO: Map actual bb_width if available from upstream data
 			}
 		} else if upstoxErrors != nil {
 			if errMsg, exists := upstoxErrors[instKey]; exists {

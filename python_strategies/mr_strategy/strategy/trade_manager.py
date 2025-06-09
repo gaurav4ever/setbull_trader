@@ -222,9 +222,7 @@ class TradeManager:
         candle_range = prev_day_high - prev_day_low
         # calculate 70% of candle range
         seventy_percent_of_candle_range = candle_range * 0.7
-        # calculate 50% of candle range
-        fifty_percent_of_candle_range = candle_range * 0.5
-        if prev_day_close > prev_day_open and prev_day_close > (prev_day_high + prev_day_low) / 2:
+        if prev_day_close > seventy_percent_of_candle_range and prev_day_close > prev_day_open:
             return True
         return False
     
@@ -236,7 +234,10 @@ class TradeManager:
         prev_day_low = candle_data["prev_day_low"]
         prev_day_close = candle_data["prev_day_close"]
         prev_day_open = candle_data["prev_day_open"]
-        if prev_day_close < prev_day_open and prev_day_close < (prev_day_high + prev_day_low) / 2:
+        candle_range = prev_day_high - prev_day_low
+        # calculate 50% of candle range
+        seventy_percent_of_candle_range = candle_range * 0.7
+        if prev_day_close < seventy_percent_of_candle_range and prev_day_close < prev_day_open:
             return True
         return False
     

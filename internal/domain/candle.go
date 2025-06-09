@@ -29,6 +29,7 @@ type Candle struct {
 	EMA50    float64 `json:"ema_50" gorm:"column:ema_50"`
 	ATR      float64 `json:"atr" gorm:"column:atr"`
 	RSI      float64 `json:"rsi" gorm:"column:rsi"`
+	BBWidth  float64 `json:"bb_width" gorm:"column:bb_width"`
 }
 
 // TableName specifies the database table name for the Candle model

@@ -102,6 +102,11 @@ async def run_backtest(request: BacktestRequest):
                     "name": stock["symbol"],
                     "direction": "BEARISH"
                 })
+                instrument_configs.append({
+                    "key": stock["instrument_key"],
+                    "name": stock["symbol"],
+                    "direction": "BULLISH"
+                })
             
             json_data = request.runner_config
             strategies = json_data["strategies"]
