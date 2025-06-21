@@ -1,0 +1,51 @@
+python /Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/load_polar/analyze_bb_width.py 
+Columns in loaded CSV: ['id', 'instrument_key', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'open_interest', 'time_interval', 'created_at', 'ma_9', 'bb_upper', 'bb_middle', 'bb_lower', 'vwap', 'partition_yyyymm', 'ema_5', 'ema_9', 'ema_50', 'atr', 'rsi', 'bb_width']
+/Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/load_polar/analyze_bb_width.py:70: DeprecationWarning: `is_in` with a collection of the same datatype is ambiguous and deprecated.
+Please use `implode` to return to previous behavior.
+
+See https://github.com/pola-rs/polars/issues/22149 for more information.
+  grouped = grouped.filter(pl.col("date").is_in(last_n_dates))
+
+Analysis over the last 20 trading day(s):
+
+--- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) ---
+shape: (5, 3)
+┌────────────┬──────────────┬──────────────┐
+│ date       ┆ p10_bb_width ┆ p95_bb_width │
+│ ---        ┆ ---          ┆ ---          │
+│ date       ┆ f64          ┆ f64          │
+╞════════════╪══════════════╪══════════════╡
+│ 2025-05-16 ┆ 4.1547e-8    ┆ 0.095595     │
+│ 2025-05-21 ┆ 5.0386e-8    ┆ 0.109868     │
+│ 2025-05-19 ┆ 5.7702e-8    ┆ 0.088864     │
+│ 2025-05-20 ┆ 6.8085e-8    ┆ 0.09573      │
+│ 2025-05-26 ┆ 0.005309     ┆ 0.021836     │
+└────────────┴──────────────┴──────────────┘
+
+--- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) ---
+shape: (5, 3)
+┌────────────┬──────────────┬──────────────┐
+│ date       ┆ p10_bb_width ┆ p95_bb_width │
+│ ---        ┆ ---          ┆ ---          │
+│ date       ┆ f64          ┆ f64          │
+╞════════════╪══════════════╪══════════════╡
+│ 2025-05-21 ┆ 5.0386e-8    ┆ 0.109868     │
+│ 2025-05-20 ┆ 6.8085e-8    ┆ 0.09573      │
+│ 2025-05-16 ┆ 4.1547e-8    ┆ 0.095595     │
+│ 2025-05-19 ┆ 5.7702e-8    ┆ 0.088864     │
+│ 2025-05-30 ┆ 0.01034      ┆ 0.085401     │
+└────────────┴──────────────┴──────────────┘
+
+Daily stats preview:
+shape: (5, 3)
+┌────────────┬──────────────┬──────────────┐
+│ date       ┆ p10_bb_width ┆ p95_bb_width │
+│ ---        ┆ ---          ┆ ---          │
+│ date       ┆ f64          ┆ f64          │
+╞════════════╪══════════════╪══════════════╡
+│ 2025-06-06 ┆ 0.006052     ┆ 0.052386     │
+│ 2025-06-05 ┆ 0.077219     ┆ 0.084727     │
+│ 2025-05-16 ┆ 4.1547e-8    ┆ 0.095595     │
+│ 2025-05-19 ┆ 5.7702e-8    ┆ 0.088864     │
+│ 2025-05-20 ┆ 6.8085e-8    ┆ 0.09573      │
+└────────────┴──────────────┴──────────────┘

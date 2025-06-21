@@ -1,0 +1,64 @@
+You want a simple, scalable, and low-maintenance architecture that allows you to:
+Dynamically query the stock_candle_data table and load results into a Polars DataFrame.
+Perform arbitrary, parameterized analyses (like Bollinger Band width percentiles) on the resulting DataFrame.
+Easily extend or add new analyses in the future.
+Restated Query:
+You want a design that lets you flexibly fetch and analyze stock candle data (e.g., BB width percentiles) using Polars, with a focus on simplicity, scalability, and minimal maintenance. You want to ensure the system can handle new types of analyses as your needs grow, without requiring major refactoring.
+High-Level Design
+Core Principles:
+Separation of Concerns:
+Data fetching (API) and data analysis (Python functions) are decoupled.
+Composable Analysis:
+Analyses are implemented as modular, reusable Python functions/classes.
+Stateless API:
+The API only fetches data; all analysis is performed client-side in Python.
+Polars for Analytics:
+All analytics leverage Polars for speed and scalability.
+Extensibility:
+New analyses can be added by simply writing new Python functions.
+Architecture Diagram:
+Apply to 4.1_polars_i...
+]
+Low-Level Design
+1. API Layer (Data Fetching)
+FastAPI endpoint: Accepts query parameters, returns data as JSON/Arrow.
+Security: Only allows SELECTs on stock_candle_data.
+Scalability: Stateless, horizontally scalable, no business logic.
+2. Analysis Layer (Python/Polars)
+Analysis functions:
+Each analysis (e.g., BB width percentiles) is a function that takes a Polars DataFrame and parameters (e.g., window size, percentiles).
+Functions are pure, stateless, and easily testable.
+Extensibility:
+New analyses = new functions, no API changes needed.
+3. Usage Pattern
+User fetches data via API → loads into Polars DataFrame → calls analysis functions → gets results.
+Example: Bollinger Band Width Percentile Analysis
+Function signature:
+Apply to 4.1_polars_i...
+days
+Usage:
+Apply to 4.1_polars_i...
+)
+Scalability & Maintenance
+Scalability:
+API is stateless and can be scaled horizontally.
+Polars is fast and can handle large datasets in memory.
+Analyses are client-side, so you can run many in parallel or on distributed systems if needed.
+Low Maintenance:
+No need to update the API for new analyses.
+Adding new analytics is as simple as writing a new function.
+No complex orchestration or state management.
+Phase-wise Implementation Plan
+Phase 1:
+Implement the API endpoint for safe, parameterized querying of stock_candle_data.
+Phase 2:
+Write a Python client function to fetch data and load it into a Polars DataFrame.
+Phase 3:
+Implement analysis functions (e.g., BB width percentiles) as standalone Python functions.
+Phase 4:
+Provide example scripts/notebooks for running analyses and visualizing results.
+API only fetches data, not analysis.
+All analytics are pure Python/Polars functions.
+Easy to add new analytics, no API changes needed.
+Stateless, horizontally scalable, and low maintenance.
+Would you like to proceed with Phase 1 (API endpoint), or do you want to see example code for the analysis functions first?

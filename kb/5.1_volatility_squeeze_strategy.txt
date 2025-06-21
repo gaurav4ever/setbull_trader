@@ -1,0 +1,33 @@
+# Volatility Squeeze Trading Strategy
+
+## 1. Philosophy & Goal
+
+The core philosophy is to identify and engage with stocks during periods of exceptionally low volatility, anticipating a significant price movement (expansion). This strategy aims to position us as early participants, entering before the crowd and capturing the majority of the impending move. We are moving away from chasing momentum and instead focusing on identifying the conditions that precede it.
+
+The primary goal is to achieve substantial returns (targeting 20%, 50%, up to 100%) by systematically finding these low-risk entry points ahead of explosive breakouts.
+
+## 2. Methodology
+
+### Primary Indicator: Bollinger Bands
+We will use Bollinger Bands on the **daily** timeframe as the primary tool to quantify volatility.
+
+### Key Metric: Normalized Bollinger Band Width (BBW)
+To measure volatility consistently across different stocks and price levels, we will use a normalized Bollinger Band Width.
+
+- **Formula:** `BBW = (Upper Bollinger Band - Lower Bollinger Band) / Middle Bollinger Band (20-period SMA)`
+
+A low BBW value indicates low volatility, and a high value indicates high volatility.
+
+## 3. Stock Selection Process (The "Screener")
+
+The screener is designed to find stocks that are currently in a "volatility squeeze."
+
+1.  **Universe:** All stocks with available daily candle data.
+2.  **Timeframe:** Daily.
+3.  **Bollinger Bands Settings:**
+    -   **Period:** 20 days
+    -   **Standard Deviations:** 2
+4.  **Squeeze Condition:**
+    - The screener will identify stocks where the **current daily BBW is at its lowest point over a 126-day lookback period** (approximately 6 months of trading days).
+5.  **Confirmation - Range Contraction:**
+    - To ensure we are in a stable consolidation phase, we will verify that the Bollinger Bands have been contracting or moving sideways over the last 3-5 trading sessions. This confirms the squeeze is established.
