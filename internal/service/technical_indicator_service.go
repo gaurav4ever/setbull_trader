@@ -9,6 +9,8 @@ import (
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository"
 	"setbull_trader/pkg/log"
+
+	"github.com/cinar/indicator"
 )
 
 // TechnicalIndicatorService provides operations for calculating technical indicators
@@ -173,76 +175,26 @@ func (s *TechnicalIndicatorService) CalculateRSI(
 
 // CalculateRSIV2 calculates the Relative Strength Index for the given period
 func (s *TechnicalIndicatorService) CalculateRSIV2(candles []domain.Candle, period int) []domain.IndicatorValue {
-	if period <= 0 || len(candles) < period {
+	// Note: The cinar/indicator Rsi function uses a default period of 14.
+	// The period parameter is ignored for now to use the library's high-level function.
+	const rsiPeriod = 14
+	if len(candles) <= rsiPeriod {
 		return nil
 	}
-	// Calculate RSI
-	// Step 1: Calculate price changes
-	changes := make([]float64, len(candles)-1)
-	for i := 1; i < len(candles); i++ {
-		changes[i-1] = candles[i].Close - candles[i-1].Close
-	}
+	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	rsiValues, _ := indicator.Rsi(closePrices)
 
-	// Step 2: Separate gains and losses
-	gains := make([]float64, len(changes))
-	losses := make([]float64, len(changes))
-	for i, change := range changes {
-		if change > 0 {
-			gains[i] = change
-		} else {
-			losses[i] = math.Abs(change)
+	indicatorValues := make([]domain.IndicatorValue, len(candles))
+	offset := len(candles) - len(rsiValues)
+	for i, v := range rsiValues {
+		if i+offset < len(candles) {
+			indicatorValues[i+offset] = domain.IndicatorValue{
+				Timestamp: candles[i+offset].Timestamp,
+				Value:     v,
+			}
 		}
 	}
-
-	// Step 3: Calculate average gains and losses for the first period
-	var avgGain, avgLoss float64
-	for i := 0; i < period; i++ {
-		avgGain += gains[i]
-		avgLoss += losses[i]
-	}
-	avgGain /= float64(period)
-	avgLoss /= float64(period)
-
-	// Step 4: Calculate RSI values
-	values := make([]domain.IndicatorValue, len(candles)-period)
-
-	// First RSI value
-	var rs, rsi float64
-	if avgLoss == 0 {
-		rsi = 100 // Prevent division by zero
-	} else {
-		rs = avgGain / avgLoss
-		rsi = 100 - (100 / (1 + rs))
-	}
-
-	values[0] = domain.IndicatorValue{
-		Timestamp: candles[period].Timestamp,
-		Value:     rsi,
-	}
-
-	// Subsequent RSI values using smoothed method
-	for i := period; i < len(changes); i++ {
-		// Update average gain and loss using smoothing formula
-		avgGain = ((avgGain * float64(period-1)) + gains[i]) / float64(period)
-		avgLoss = ((avgLoss * float64(period-1)) + losses[i]) / float64(period)
-
-		if avgLoss == 0 {
-			rsi = 100 // Prevent division by zero
-		} else {
-			rs = avgGain / avgLoss
-			rsi = 100 - (100 / (1 + rs))
-		}
-
-		values[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i+1].Timestamp,
-			Value:     rsi,
-		}
-	}
-
-	// log.Info("Calculated RSI-%d for %s, found %d values",
-	// 	period, instrumentKey, len(values))
-
-	return values
+	return indicatorValues
 }
 
 // CalculateATR calculates the Average True Range for the given period
@@ -318,53 +270,23 @@ func (s *TechnicalIndicatorService) CalculateATR(
 
 // CalculateATRV2 calculates the Average True Range for the given period
 func (s *TechnicalIndicatorService) CalculateATRV2(candles []domain.Candle, period int) []domain.IndicatorValue {
-	if period <= 0 || len(candles) < period {
+	if period <= 0 || len(candles) <= period {
 		return nil
 	}
+	closePrices, _, highPrices, lowPrices, _ := candlesToFloat64Slices(candles)
+	atrValues, _ := indicator.Atr(period, highPrices, lowPrices, closePrices)
 
-	// Calculate ATR
-	// Step 1: Calculate True Range for each candle
-	trueRanges := make([]float64, len(candles)-1)
-	for i := 1; i < len(candles); i++ {
-		high := candles[i].High
-		low := candles[i].Low
-		prevClose := candles[i-1].Close
-
-		// True Range is the greatest of:
-		// 1. Current High - Current Low
-		// 2. |Current High - Previous Close|
-		// 3. |Current Low - Previous Close|
-		tr1 := high - low
-		tr2 := math.Abs(high - prevClose)
-		tr3 := math.Abs(low - prevClose)
-
-		trueRanges[i-1] = math.Max(tr1, math.Max(tr2, tr3))
-	}
-
-	// Step 2: Calculate initial ATR (simple average for first period)
-	var sum float64
-	for i := 0; i < period; i++ {
-		sum += trueRanges[i]
-	}
-	atr := sum / float64(period)
-
-	// Step 3: Calculate subsequent ATR values using smoothing
-	values := make([]domain.IndicatorValue, len(candles)-period)
-	values[0] = domain.IndicatorValue{
-		Timestamp: candles[period].Timestamp,
-		Value:     atr,
-	}
-
-	// Use smoothed method: ATR = ((Period-1) * Previous ATR + Current TR) / Period
-	for i := period; i < len(trueRanges); i++ {
-		atr = ((atr * float64(period-1)) + trueRanges[i]) / float64(period)
-		values[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i+1].Timestamp,
-			Value:     atr,
+	indicatorValues := make([]domain.IndicatorValue, len(candles))
+	offset := len(candles) - len(atrValues)
+	for i, v := range atrValues {
+		if i+offset < len(candles) {
+			indicatorValues[i+offset] = domain.IndicatorValue{
+				Timestamp: candles[i+offset].Timestamp,
+				Value:     v,
+			}
 		}
 	}
-
-	return values
+	return indicatorValues
 }
 
 // CalculateVolumeMA calculates the Volume Moving Average for the given period
@@ -605,22 +527,15 @@ func (s *TechnicalIndicatorService) CalculateBollingerBandsForRange(
 		}
 	}
 
-	// Trim the results to match the original requested range
-	// The calculation functions already return slices that are shorter by `period-1`.
-	// We need to adjust our startIndex accordingly.
-	resultStartIndex := startIndex - (period - 1)
-	if resultStartIndex < 0 {
-		resultStartIndex = 0 // Should not happen if we have enough data
-	}
-
-	// Ensure we don't slice out of bounds
-	if resultStartIndex >= len(bbMiddleAll) {
+	// The 'All' slices are already padded and aligned with the 'candles' slice.
+	// We just need to slice them from the calculated startIndex to get the requested range.
+	if startIndex >= len(bbMiddleAll) {
 		return []domain.IndicatorValue{}, []domain.IndicatorValue{}, []domain.IndicatorValue{}, nil
 	}
 
-	upper = bbUpperAll[resultStartIndex:]
-	middle = bbMiddleAll[resultStartIndex:]
-	lower = bbLowerAll[resultStartIndex:]
+	upper = bbUpperAll[startIndex:]
+	middle = bbMiddleAll[startIndex:]
+	lower = bbLowerAll[startIndex:]
 
 	return upper, middle, lower, nil
 }
@@ -630,18 +545,20 @@ func (s *TechnicalIndicatorService) CalculateSMA(candles []domain.Candle, period
 	if period <= 0 || len(candles) < period {
 		return nil
 	}
-	values := make([]domain.IndicatorValue, len(candles)-period+1)
-	for i := period - 1; i < len(candles); i++ {
-		sum := 0.0
-		for j := i - period + 1; j <= i; j++ {
-			sum += candles[j].Close
-		}
-		values[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i].Timestamp,
-			Value:     sum / float64(period),
+	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	smaValues := indicator.Sma(period, closePrices)
+
+	indicatorValues := make([]domain.IndicatorValue, len(candles))
+	offset := len(candles) - len(smaValues)
+	for i, v := range smaValues {
+		if i+offset < len(candles) {
+			indicatorValues[i+offset] = domain.IndicatorValue{
+				Timestamp: candles[i+offset].Timestamp,
+				Value:     v,
+			}
 		}
 	}
-	return values
+	return indicatorValues
 }
 
 // CalculateEMAV2 calculates the Exponential Moving Average for the given period
@@ -649,65 +566,48 @@ func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, peri
 	if period <= 0 || len(candles) < period {
 		return nil
 	}
+	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	emaValues := indicator.Ema(period, closePrices)
 
-	k := 2.0 / float64(period+1)
-	values := make([]domain.IndicatorValue, len(candles)-period+1)
-
-	// Start with SMA for the first EMA point
-	sum := 0.0
-	for i := 0; i < period; i++ {
-		sum += candles[i].Close
-	}
-	ema := sum / float64(period)
-	values[0] = domain.IndicatorValue{
-		Timestamp: candles[period-1].Timestamp,
-		Value:     ema,
-	}
-
-	// EMA calculation
-	for i := period; i < len(candles); i++ {
-		ema = (candles[i].Close * k) + (ema * (1 - k))
-		values[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i].Timestamp,
-			Value:     ema,
+	indicatorValues := make([]domain.IndicatorValue, len(candles))
+	offset := len(candles) - len(emaValues)
+	for i, v := range emaValues {
+		if i+offset < len(candles) {
+			indicatorValues[i+offset] = domain.IndicatorValue{
+				Timestamp: candles[i+offset].Timestamp,
+				Value:     v,
+			}
 		}
 	}
-
-	return values
+	return indicatorValues
 }
 
 // CalculateBollingerBands calculates Bollinger Bands for the given period and stddev
 func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
-	if period <= 1 || len(candles) < period {
+	// Note: The cinar/indicator BollingerBands function uses default period=20, stddev=2.
+	// The parameters are ignored for now to use the library's high-level function.
+	const bbPeriod = 20
+	if len(candles) < bbPeriod {
 		return nil, nil, nil
 	}
-	upper = make([]domain.IndicatorValue, len(candles)-period+1)
-	middle = make([]domain.IndicatorValue, len(candles)-period+1)
-	lower = make([]domain.IndicatorValue, len(candles)-period+1)
-	for i := period - 1; i < len(candles); i++ {
-		sum := 0.0
-		for j := i - period + 1; j <= i; j++ {
-			sum += candles[j].Close
-		}
-		ma := sum / float64(period)
-		var variance float64
-		for j := i - period + 1; j <= i; j++ {
-			variance += (candles[j].Close - ma) * (candles[j].Close - ma)
-		}
-		std := math.Sqrt(variance / float64(period-1))
-		upper[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i].Timestamp,
-			Value:     ma + stddev*std,
-		}
-		middle[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i].Timestamp,
-			Value:     ma,
-		}
-		lower[i-period+1] = domain.IndicatorValue{
-			Timestamp: candles[i].Timestamp,
-			Value:     ma - stddev*std,
+
+	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	middleBand, upperBand, lowerBand := indicator.BollingerBands(closePrices)
+
+	upper = make([]domain.IndicatorValue, len(candles))
+	middle = make([]domain.IndicatorValue, len(candles))
+	lower = make([]domain.IndicatorValue, len(candles))
+
+	offset := len(candles) - len(middleBand)
+	for i := 0; i < len(middleBand); i++ {
+		idx := i + offset
+		if idx < len(candles) {
+			middle[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: middleBand[i]}
+			upper[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: upperBand[i]}
+			lower[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: lowerBand[i]}
 		}
 	}
+
 	return upper, middle, lower
 }
 
@@ -765,15 +665,26 @@ func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle 
 	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
 		return nil
 	}
-	widths := make([]domain.IndicatorValue, len(bbUpper))
+
+	upperValues := make([]float64, len(bbUpper))
+	lowerValues := make([]float64, len(bbLower))
+	middleValues := make([]float64, len(bbMiddle))
 	for i := range bbUpper {
-		bbWidth := 0.0
-		if bbMiddle[i].Value != 0 {
-			bbWidth = (bbUpper[i].Value - bbLower[i].Value) / bbMiddle[i].Value
+		upperValues[i] = bbUpper[i].Value
+		lowerValues[i] = bbLower[i].Value
+		middleValues[i] = bbMiddle[i].Value
+	}
+
+	bbWidthValues, _ := indicator.BollingerBandWidth(middleValues, upperValues, lowerValues)
+
+	widths := make([]domain.IndicatorValue, len(bbUpper))
+	for i, v := range bbWidthValues {
+		if bbMiddle[i].Timestamp.IsZero() {
+			continue
 		}
 		widths[i] = domain.IndicatorValue{
 			Timestamp: bbUpper[i].Timestamp,
-			Value:     bbWidth,
+			Value:     v,
 		}
 	}
 	return widths
@@ -785,4 +696,21 @@ func (s *TechnicalIndicatorService) CalculateBBWidthForRange(bbUpper, bbLower, b
 		return nil, fmt.Errorf("Bollinger Band slices have different lengths")
 	}
 	return s.CalculateBBWidth(bbUpper, bbLower, bbMiddle), nil
+}
+
+// candlesToFloat64Slices is a helper function to convert candle data to float slices for the indicator library.
+func candlesToFloat64Slices(candles []domain.Candle) (closing, opening, high, low []float64, volume []int64) {
+	closing = make([]float64, len(candles))
+	opening = make([]float64, len(candles))
+	high = make([]float64, len(candles))
+	low = make([]float64, len(candles))
+	volume = make([]int64, len(candles))
+	for i, c := range candles {
+		closing[i] = c.Close
+		opening[i] = c.Open
+		high[i] = c.High
+		low[i] = c.Low
+		volume[i] = c.Volume
+	}
+	return
 }

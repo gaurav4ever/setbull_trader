@@ -14,9 +14,9 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
 
     # --- LOAD DATA FROM DATABASE ---
     try:
-        # Fetch daily data. We also fetch bb_width to check if it's pre-calculated.
+        # Fetch daily data.
         query = """
-        SELECT timestamp AS date, open, high, low, close, bb_width
+        SELECT timestamp AS date, open, high, low, close
         FROM stock_candle_data
         WHERE instrument_key = %s
           AND time_interval = 'day'
@@ -33,33 +33,24 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
         print(f"No daily data found for instrument '{instrument_key}' in the database.")
         return
 
-    # --- CALCULATE BBW IF NOT PRESENT ---
-    # Check if 'bb_width' column has no valid data.
-    if daily_df["bb_width"].is_null().all():
-        print("BBW data not found or is all null. Calculating it on the fly...")
-        if len(daily_df) < bb_period:
-            print(f"Not enough daily data ({len(daily_df)}) to calculate Bollinger Bands with period {bb_period}.")
-            return
+    # --- CALCULATE BBW ---
+    print("Calculating Bollinger Bands and BBW on the fly...")
+    if len(daily_df) < bb_period:
+        print(f"Not enough daily data ({len(daily_df)}) to calculate Bollinger Bands with period {bb_period}.")
+        return
 
-        daily_df = daily_df.with_columns(
-            bb_mid=pl.col("close").rolling_mean(bb_period),
-            bb_std=pl.col("close").rolling_std(bb_period),
-        ).with_columns(
-            bb_upper=pl.col("bb_mid") + bb_std_dev * pl.col("bb_std"),
-            bb_lower=pl.col("bb_mid") - bb_std_dev * pl.col("bb_std"),
-        ).with_columns(
-            bb_width=((pl.col("bb_upper") - pl.col("bb_lower")) / pl.col("bb_mid"))
-        ).drop_nulls("bb_width")
+    daily_df = daily_df.with_columns(
+        bb_mid=pl.col("close").rolling_mean(bb_period),
+        bb_std=pl.col("close").rolling_std(bb_period),
+    ).with_columns(
+        bb_upper=pl.col("bb_mid") + bb_std_dev * pl.col("bb_std"),
+        bb_lower=pl.col("bb_mid") - bb_std_dev * pl.col("bb_std"),
+    ).with_columns(
+        bb_width=((pl.col("bb_upper") - pl.col("bb_lower")))
+    ).drop_nulls("bb_width")
 
-        if daily_df.is_empty():
-            print(f"Not enough data to calculate BBW for '{instrument_key}' after dropping nulls.")
-            return
-    else:
-        print("Found pre-calculated BBW data in the database.")
-        daily_df = daily_df.drop_nulls("bb_width")
-        
     if daily_df.is_empty():
-        print(f"No valid BBW data available for '{instrument_key}'.")
+        print(f"Not enough data to calculate BBW for '{instrument_key}' after dropping nulls.")
         return
 
     # --- FILTER OUT ZERO BB_WIDTH VALUES ---
@@ -94,8 +85,9 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
     print(f"Analyzed {len(daily_df)} days of data.")
 
     if not squeeze_signals.is_empty():
-        print(f"\n--- Found {len(squeeze_signals)} Squeeze Signals ---")
-        print(squeeze_signals.select(["date", "open", "high", "low", "close", "bb_width"]))
+        latest_signals = squeeze_signals.tail(5)
+        print(f"\n--- Found {len(squeeze_signals)} Squeeze Signals (displaying latest {len(latest_signals)}) ---")
+        print(latest_signals.select(["date", "open", "high", "low", "close", "bb_width"]))
     else:
         print("\n--- No Squeeze Signals Found ---")
 

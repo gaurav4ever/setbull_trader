@@ -24,6 +24,8 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
+require github.com/cinar/indicator v1.3.0 // indirect
+
 require (
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
