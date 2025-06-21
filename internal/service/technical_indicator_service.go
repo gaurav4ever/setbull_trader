@@ -542,8 +542,87 @@ func (s *TechnicalIndicatorService) CalculateAllIndicators(
 		indicators.VolumeMA10 = volumeMA10
 	}
 
+	// Calculate Bollinger Bands (20, 2)
+	bbUpper, bbMiddle, bbLower, err := s.CalculateBollingerBandsForRange(ctx, instrumentKey, 20, 2, interval, start, end)
+	if err != nil {
+		log.Warn("Failed to calculate Bollinger Bands: %v", err)
+	} else {
+		indicators.BBUpper = bbUpper
+		indicators.BBMiddle = bbMiddle
+		indicators.BBLower = bbLower
+
+		// Calculate BBWidth from the results
+		bbWidth, err := s.CalculateBBWidthForRange(bbUpper, bbLower, bbMiddle)
+		if err != nil {
+			log.Warn("Failed to calculate BBWidth: %v", err)
+		} else {
+			indicators.BBWidth = bbWidth
+		}
+	}
+
 	log.Info("Calculated all indicators for %s (%s)", instrumentKey, interval)
 	return indicators, nil
+}
+
+// CalculateBollingerBandsForRange fetches the required candles and calculates Bollinger Bands.
+// It handles fetching extra "warm-up" data to ensure indicators are present for the requested range.
+func (s *TechnicalIndicatorService) CalculateBollingerBandsForRange(
+	ctx context.Context,
+	instrumentKey string,
+	period int,
+	stddev float64,
+	interval string,
+	start, end time.Time,
+) (upper, middle, lower []domain.IndicatorValue, err error) {
+	if period <= 0 {
+		return nil, nil, nil, fmt.Errorf("period must be positive")
+	}
+
+	// Fetch extended candle data for warm-up
+	// Note: This estimation is not perfect for daily intervals with weekends/holidays.
+	// A more robust solution might involve fetching by limit/count rather than time.
+	estimatedLookbackDuration := time.Duration(period-1) * 24 * time.Hour // Simple estimation for 'day'
+	extendedStart := start.Add(-estimatedLookbackDuration)
+
+	candles, err := s.candleRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, interval, extendedStart, end)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get candles for BBands: %w", err)
+	}
+
+	if len(candles) < period {
+		return nil, nil, nil, fmt.Errorf("not enough data to calculate BBands, need at least %d candles, got %d", period, len(candles))
+	}
+
+	// Calculate indicators on the full (warm-up + requested) data
+	bbUpperAll, bbMiddleAll, bbLowerAll := s.CalculateBollingerBands(candles, period, stddev)
+
+	// Find the starting index of our requested time range
+	startIndex := 0
+	for i, c := range candles {
+		if !c.Timestamp.Before(start) {
+			startIndex = i
+			break
+		}
+	}
+
+	// Trim the results to match the original requested range
+	// The calculation functions already return slices that are shorter by `period-1`.
+	// We need to adjust our startIndex accordingly.
+	resultStartIndex := startIndex - (period - 1)
+	if resultStartIndex < 0 {
+		resultStartIndex = 0 // Should not happen if we have enough data
+	}
+
+	// Ensure we don't slice out of bounds
+	if resultStartIndex >= len(bbMiddleAll) {
+		return []domain.IndicatorValue{}, []domain.IndicatorValue{}, []domain.IndicatorValue{}, nil
+	}
+
+	upper = bbUpperAll[resultStartIndex:]
+	middle = bbMiddleAll[resultStartIndex:]
+	lower = bbLowerAll[resultStartIndex:]
+
+	return upper, middle, lower, nil
 }
 
 // CalculateSMA calculates the Simple Moving Average for the given period
@@ -599,7 +678,7 @@ func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, peri
 
 // CalculateBollingerBands calculates Bollinger Bands for the given period and stddev
 func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
-	if period <= 0 || len(candles) < period {
+	if period <= 1 || len(candles) < period {
 		return nil, nil, nil
 	}
 	upper = make([]domain.IndicatorValue, len(candles)-period+1)
@@ -615,7 +694,7 @@ func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Can
 		for j := i - period + 1; j <= i; j++ {
 			variance += (candles[j].Close - ma) * (candles[j].Close - ma)
 		}
-		std := math.Sqrt(variance / float64(period))
+		std := math.Sqrt(variance / float64(period-1))
 		upper[i-period+1] = domain.IndicatorValue{
 			Timestamp: candles[i].Timestamp,
 			Value:     ma + stddev*std,
@@ -698,4 +777,12 @@ func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle 
 		}
 	}
 	return widths
+}
+
+// CalculateBBWidthForRange calculates Bollinger Band Width from existing band values.
+func (s *TechnicalIndicatorService) CalculateBBWidthForRange(bbUpper, bbLower, bbMiddle []domain.IndicatorValue) ([]domain.IndicatorValue, error) {
+	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
+		return nil, fmt.Errorf("Bollinger Band slices have different lengths")
+	}
+	return s.CalculateBBWidth(bbUpper, bbLower, bbMiddle), nil
 }

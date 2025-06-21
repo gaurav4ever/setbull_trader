@@ -12,15 +12,19 @@ type IndicatorValue struct {
 
 // TechnicalIndicators encapsulates all technical indicators for a security
 type TechnicalIndicators struct {
-	InstrumentKey string           `json:"instrumentKey"`
+	InstrumentKey string           `json:"instrument_key"`
 	Interval      string           `json:"interval"`
-	StartTime     time.Time        `json:"startTime"`
-	EndTime       time.Time        `json:"endTime"`
-	EMA9          []IndicatorValue `json:"ema9,omitempty"`
-	EMA50         []IndicatorValue `json:"ema50,omitempty"`
-	RSI14         []IndicatorValue `json:"rsi14,omitempty"`
-	ATR14         []IndicatorValue `json:"atr14,omitempty"`
-	VolumeMA10    []IndicatorValue `json:"volumeMa10,omitempty"`
+	StartTime     time.Time        `json:"start_time"`
+	EndTime       time.Time        `json:"end_time"`
+	EMA9          []IndicatorValue `json:"ema_9,omitempty"`
+	EMA50         []IndicatorValue `json:"ema_50,omitempty"`
+	RSI14         []IndicatorValue `json:"rsi_14,omitempty"`
+	ATR14         []IndicatorValue `json:"atr_14,omitempty"`
+	VolumeMA10    []IndicatorValue `json:"volume_ma_10,omitempty"`
+	BBUpper       []IndicatorValue `json:"bb_upper,omitempty"`
+	BBMiddle      []IndicatorValue `json:"bb_middle,omitempty"`
+	BBLower       []IndicatorValue `json:"bb_lower,omitempty"`
+	BBWidth       []IndicatorValue `json:"bb_width,omitempty"`
 	MorningRange  float64          `json:"morningRange,omitempty"`
 }
 
