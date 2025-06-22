@@ -181,7 +181,12 @@ func (s *TechnicalIndicatorService) CalculateRSIV2(candles []domain.Candle, peri
 	if len(candles) <= rsiPeriod {
 		return nil
 	}
-	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	// reverse the candles
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+	closePrices, _, _, _, _ := candlesToFloat64Slices(reverseCandles)
 	rsiValues, _ := indicator.Rsi(closePrices)
 
 	indicatorValues := make([]domain.IndicatorValue, len(candles))
@@ -189,12 +194,16 @@ func (s *TechnicalIndicatorService) CalculateRSIV2(candles []domain.Candle, peri
 	for i, v := range rsiValues {
 		if i+offset < len(candles) {
 			indicatorValues[i+offset] = domain.IndicatorValue{
-				Timestamp: candles[i+offset].Timestamp,
+				Timestamp: reverseCandles[i+offset].Timestamp,
 				Value:     v,
 			}
 		}
 	}
-	return indicatorValues
+	reverseIndicatorValues := make([]domain.IndicatorValue, len(indicatorValues))
+	for i, v := range indicatorValues {
+		reverseIndicatorValues[len(indicatorValues)-1-i] = v
+	}
+	return reverseIndicatorValues
 }
 
 // CalculateATR calculates the Average True Range for the given period
@@ -273,7 +282,12 @@ func (s *TechnicalIndicatorService) CalculateATRV2(candles []domain.Candle, peri
 	if period <= 0 || len(candles) <= period {
 		return nil
 	}
-	closePrices, _, highPrices, lowPrices, _ := candlesToFloat64Slices(candles)
+	// reverse the candles
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+	closePrices, _, highPrices, lowPrices, _ := candlesToFloat64Slices(reverseCandles)
 	atrValues, _ := indicator.Atr(period, highPrices, lowPrices, closePrices)
 
 	indicatorValues := make([]domain.IndicatorValue, len(candles))
@@ -281,12 +295,16 @@ func (s *TechnicalIndicatorService) CalculateATRV2(candles []domain.Candle, peri
 	for i, v := range atrValues {
 		if i+offset < len(candles) {
 			indicatorValues[i+offset] = domain.IndicatorValue{
-				Timestamp: candles[i+offset].Timestamp,
+				Timestamp: reverseCandles[i+offset].Timestamp,
 				Value:     v,
 			}
 		}
 	}
-	return indicatorValues
+	reverseIndicatorValues := make([]domain.IndicatorValue, len(indicatorValues))
+	for i, v := range indicatorValues {
+		reverseIndicatorValues[len(indicatorValues)-1-i] = v
+	}
+	return reverseIndicatorValues
 }
 
 // CalculateVolumeMA calculates the Volume Moving Average for the given period
@@ -566,7 +584,12 @@ func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, peri
 	if period <= 0 || len(candles) < period {
 		return nil
 	}
-	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	// reverse the candles
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+	closePrices, _, _, _, _ := candlesToFloat64Slices(reverseCandles)
 	emaValues := indicator.Ema(period, closePrices)
 
 	indicatorValues := make([]domain.IndicatorValue, len(candles))
@@ -574,12 +597,16 @@ func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, peri
 	for i, v := range emaValues {
 		if i+offset < len(candles) {
 			indicatorValues[i+offset] = domain.IndicatorValue{
-				Timestamp: candles[i+offset].Timestamp,
+				Timestamp: reverseCandles[i+offset].Timestamp,
 				Value:     v,
 			}
 		}
 	}
-	return indicatorValues
+	reverseIndicatorValues := make([]domain.IndicatorValue, len(indicatorValues))
+	for i, v := range indicatorValues {
+		reverseIndicatorValues[len(indicatorValues)-1-i] = v
+	}
+	return reverseIndicatorValues
 }
 
 // CalculateBollingerBands calculates Bollinger Bands for the given period and stddev
@@ -591,7 +618,13 @@ func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Can
 		return nil, nil, nil
 	}
 
-	closePrices, _, _, _, _ := candlesToFloat64Slices(candles)
+	// reverse the candles
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+
+	closePrices, _, _, _, _ := candlesToFloat64Slices(reverseCandles)
 	middleBand, upperBand, lowerBand := indicator.BollingerBands(closePrices)
 
 	upper = make([]domain.IndicatorValue, len(candles))
@@ -602,13 +635,27 @@ func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Can
 	for i := 0; i < len(middleBand); i++ {
 		idx := i + offset
 		if idx < len(candles) {
-			middle[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: middleBand[i]}
-			upper[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: upperBand[i]}
-			lower[idx] = domain.IndicatorValue{Timestamp: candles[idx].Timestamp, Value: lowerBand[i]}
+			middle[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: middleBand[i]}
+			upper[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: upperBand[i]}
+			lower[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: lowerBand[i]}
 		}
 	}
 
-	return upper, middle, lower
+	// reverse the upper, middle, lower
+	reverseUpper := make([]domain.IndicatorValue, len(upper))
+	reverseMiddle := make([]domain.IndicatorValue, len(middle))
+	reverseLower := make([]domain.IndicatorValue, len(lower))
+	for i, v := range upper {
+		reverseUpper[len(upper)-1-i] = v
+	}
+	for i, v := range middle {
+		reverseMiddle[len(middle)-1-i] = v
+	}
+	for i, v := range lower {
+		reverseLower[len(lower)-1-i] = v
+	}
+
+	return reverseUpper, reverseMiddle, reverseLower
 }
 
 // CalculateVWAP calculates the Volume Weighted Average Price for the given candles (reset daily if needed)

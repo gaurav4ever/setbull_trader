@@ -55,6 +55,61 @@ type CandleRepository interface {
 	SaveAll(ctx context.Context, candles []Candle) error
 }
 
-// MinMaxTimestamp is a helper struct for aggregation operations
 type MinMaxTimestamp struct {
-	InstrumentKey  string    `
+	InstrumentKey  string    `json:"instrument_key"`
+	IntervalTime   time.Time `json:"interval_time"` // 5-min interval or day
+	FirstTimestamp time.Time `json:"first_timestamp"`
+	LastTimestamp  time.Time `json:"last_timestamp"`
+	HighPrice      float64   `json:"high_price"`
+	LowPrice       float64   `json:"low_price"`
+	TotalVolume    int64     `json:"total_volume"`
+}
+
+// OpenPriceData is a helper struct for holding open price data
+type OpenPriceData struct {
+	InstrumentKey string    `json:"instrument_key"`
+	IntervalTime  time.Time `json:"interval_time"`
+	OpenPrice     float64   `json:"open_price"`
+}
+
+// ClosePriceData is a helper struct for holding close price data
+type ClosePriceData struct {
+	InstrumentKey string    `json:"instrument_key"`
+	IntervalTime  time.Time `json:"interval_time"`
+	ClosePrice    float64   `json:"close_price"`
+	OpenInterest  int64     `json:"open_interest"`
+}
+
+// AggregatedCandle represents a candle at an aggregated timeframe (5-min, daily)
+type AggregatedCandle struct {
+	InstrumentKey string    `json:"instrument_key"`
+	Timestamp     time.Time `json:"timestamp"`
+	Open          float64   `json:"open"`
+	High          float64   `json:"high"`
+	Low           float64   `json:"low"`
+	Close         float64   `json:"close"`
+	Volume        int64     `json:"volume"`
+	OpenInterest  int64     `json:"open_interest"`
+	TimeInterval  string    `json:"time_interval"`
+
+	// Indicator fields for integration
+	MA9      float64 `json:"ma_9"`
+	BBUpper  float64 `json:"bb_upper"`
+	BBMiddle float64 `json:"bb_middle"`
+	BBLower  float64 `json:"bb_lower"`
+	VWAP     float64 `json:"vwap"`
+	EMA5     float64 `json:"ema_5"`
+	EMA9     float64 `json:"ema_9"`
+	EMA50    float64 `json:"ema_50"`
+	ATR      float64 `json:"atr"`
+	RSI      float64 `json:"rsi"`
+}
+
+// DailyCandelFetchResult represents the result of a batch operation to fetch daily candles
+type DailyCandelFetchResult struct {
+	TotalStocks      int      `json:"total_stocks"`
+	ProcessedStocks  int      `json:"processed_stocks"`
+	SuccessfulStocks int      `json:"successful_stocks"`
+	FailedStocks     int      `json:"failed_stocks"`
+	FailedSymbols    []string `json:"failed_symbols,omitempty"`
+}
