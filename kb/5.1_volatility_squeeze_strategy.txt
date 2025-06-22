@@ -31,3 +31,10 @@ The screener is designed to find stocks that are currently in a "volatility sque
     - The screener will identify stocks where the **current daily BBW is at its lowest point over a 126-day lookback period** (approximately 6 months of trading days).
 5.  **Confirmation - Range Contraction:**
     - To ensure we are in a stable consolidation phase, we will verify that the Bollinger Bands have been contracting or moving sideways over the last 3-5 trading sessions. This confirms the squeeze is established.
+
+---------------------------
+
+
+Now after filtering based on @analyze_all_stock_volatility.py I got 800 stocks. These are too much for me to analyze manually. 
+
+What do you suggest ? How should I move foraward ?
