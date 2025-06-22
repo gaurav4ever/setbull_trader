@@ -66,7 +66,8 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
 
     # --- SQUEEZE CONDITION: BBW is at its lowest point over the lookback period ---
     daily_df = daily_df.with_columns(
-        is_squeeze=(pl.col("bb_width") == pl.col("bb_width").rolling_min(lookback_period))
+        is_squeeze=(pl.col("bb_width") == pl.col("bb_width").rolling_min(lookback_period)),
+        bb_width_lookback_avg=pl.col("bb_width").rolling_mean(lookback_period)
     )
 
     # --- CONFIRMATION: BBW has been contracting or sideways ---
@@ -74,7 +75,7 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
         is_contracting=(pl.col("bb_width").diff(1).fill_null(0) <= 0).rolling_min(confirmation_period)
     )
 
-    # --- FILTER FOR SQUEEZE SIGNALS ---
+    # --- FILTER FOR SQUEEZE SIGNALS (used for latest day check)---
     squeeze_signals = daily_df.filter(
         pl.col("is_squeeze") & pl.col("is_contracting")
     )
@@ -84,18 +85,30 @@ def analyze_bb_squeeze(db_connection, instrument_key: str, bb_period: int, bb_st
     print(f"Configuration: BB({bb_period}, {bb_std_dev}), Lookback: {lookback_period}, Contraction: {confirmation_period} days")
     print(f"Analyzed {len(daily_df)} days of data.")
 
-    if not squeeze_signals.is_empty():
-        latest_signals = squeeze_signals.tail(5)
-        print(f"\n--- Found {len(squeeze_signals)} Squeeze Signals (displaying latest {len(latest_signals)}) ---")
-        print(latest_signals.select(["date", "open", "high", "low", "close", "bb_width"]))
+    # --- 10th Percentile BBW Days (Last 30 Days) ---
+    if len(daily_df) >= 30:
+        last_30_days_df = daily_df.tail(30)
+        percentile_10_threshold = last_30_days_df.select(pl.col("bb_width").quantile(0.10)).item()
+        
+        low_bbw_days = last_30_days_df.filter(pl.col("bb_width") <= percentile_10_threshold)
+        
+        print(f"\n--- Days in 10th BBW Percentile (Last 30 Days) | Threshold: {percentile_10_threshold:.4f} ---")
+        if not low_bbw_days.is_empty():
+            print(low_bbw_days.select(["date", "close", "bb_width"]))
+        else:
+            print("No days found in the 10th percentile within the last 30 days.")
     else:
-        print("\n--- No Squeeze Signals Found ---")
+        print("\n--- Not enough data (less than 30 days) to calculate 10th percentile ---")
+
+    # --- Last 10 days BBW ---
+    print("\n--- Last 10 Days BB Width ---")
+    print(daily_df.tail(10).select(["date", "close", "bb_width"]))
 
     # --- LATEST DAY STATUS ---
     latest_day = daily_df.tail(1)
     if not latest_day.is_empty():
         print("\n--- Latest Day Status ---")
-        print(latest_day.select(["date", "close", "bb_width", "is_squeeze", "is_contracting"]))
+        print(latest_day.select(["date", "close", "bb_width", "bb_width_lookback_avg", "is_squeeze", "is_contracting"]))
         
         if latest_day.select("is_squeeze").item() and latest_day.select("is_contracting").item():
             print("\n>> ALERT: Volatility Squeeze DETECTED for the most recent day! <<")
