@@ -40,7 +40,7 @@ def analyze_instrument_volatility(db_connection, instrument_key: str, symbol: st
     """
     try:
         query = """
-        SELECT timestamp AS date, close
+        SELECT timestamp AS date, close, volume
         FROM stock_candle_data
         WHERE instrument_key = %s
           AND time_interval = 'day'
@@ -56,10 +56,10 @@ def analyze_instrument_volatility(db_connection, instrument_key: str, symbol: st
         return None
 
     # Need enough data for the initial BB calculation
-    if len(daily_df) < bb_period:
+    if len(daily_df) < bb_period or len(daily_df) < 50:
         return None
 
-    # Calculate Normalized Bollinger Band Width (BBW)
+    # Calculate Bollinger Bands and BBW
     daily_df = daily_df.with_columns(
         bb_mid=pl.col("close").rolling_mean(bb_period),
         bb_std=pl.col("close").rolling_std(bb_period),
@@ -67,15 +67,14 @@ def analyze_instrument_volatility(db_connection, instrument_key: str, symbol: st
         bb_upper=pl.col("bb_mid") + bb_std_dev * pl.col("bb_std"),
         bb_lower=pl.col("bb_mid") - bb_std_dev * pl.col("bb_std"),
     ).with_columns(
-        # Normalize BBW by the middle band to compare across stocks
         bb_width=((pl.col("bb_upper") - pl.col("bb_lower")) / pl.col("bb_mid"))
-    ).drop_nulls("bb_width")
+    ).drop_nulls(["bb_width", "volume", "bb_upper", "bb_lower"])
 
     # Filter out any non-positive BBW values
     daily_df = daily_df.filter(pl.col("bb_width") > 0)
 
     # Need enough data for the lookback period
-    if len(daily_df) < lookback_period:
+    if len(daily_df) < lookback_period or len(daily_df) < 50:
         return None
 
     # Use the last `lookback_period` of data to establish the percentile.
@@ -98,14 +97,37 @@ def analyze_instrument_volatility(db_connection, instrument_key: str, symbol: st
 
     if not low_vol_days.is_empty():
         latest_day = daily_df.tail(1)
+        latest_close = latest_day.select("close").item()
+        latest_bb_width = latest_day.select("bb_width").item()
+        latest_upper_band = latest_day.select("bb_upper").item()
+        latest_lower_band = latest_day.select("bb_lower").item()
+        latest_volume = latest_day.select("volume").item()
+
+        # Squeeze Tightness Score
+        squeeze_ratio = latest_bb_width / avg_bb_width_lookback if avg_bb_width_lookback else None
+
+        # Volume Contraction Ratio
+        last_5_vol = daily_df.tail(5).select(pl.col("volume")).to_series().mean()
+        last_50_vol = daily_df.tail(50).select(pl.col("volume")).to_series().mean()
+        volume_ratio = last_5_vol / last_50_vol if last_50_vol else None
+
+        # Breakout Readiness Score
+        if (latest_upper_band - latest_lower_band) != 0:
+            breakout_readiness = (latest_close - latest_lower_band) / (latest_upper_band - latest_lower_band)
+        else:
+            breakout_readiness = None
+
         return {
             "instrument_key": instrument_key,
             "symbol": symbol,
             "latest_date": latest_day.select("date").item(),
-            "latest_close": latest_day.select("close").item(),
-            "latest_bb_width": latest_day.select("bb_width").item(),
+            "latest_close": latest_close,
+            "latest_bb_width": latest_bb_width,
             "10_percentile_threshold": percentile_10_threshold,
-            "avg_bb_width_lookback": avg_bb_width_lookback
+            "avg_bb_width_lookback": avg_bb_width_lookback,
+            "squeeze_ratio": squeeze_ratio,
+            "volume_ratio": volume_ratio,
+            "breakout_readiness": breakout_readiness
         }
         
     return None
@@ -169,7 +191,8 @@ def main():
         # Reorder columns for better readability
         results_df = results_df.select([
             "symbol", "instrument_key", "latest_date", "latest_close",
-            "latest_bb_width", "10_percentile_threshold", "avg_bb_width_lookback"
+            "latest_bb_width", "10_percentile_threshold", "avg_bb_width_lookback",
+            "squeeze_ratio", "volume_ratio", "breakout_readiness"
         ])
         # Sort by the lowest width to see the most compressed stocks first
         results_df = results_df.sort("latest_bb_width")

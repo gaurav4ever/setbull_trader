@@ -736,7 +736,7 @@
 				<div class="ml-3">
 					<p class="text-sm text-yellow-700">{tradeError}</p>
 					<p class="text-sm text-yellow-600 mt-2">
-						Make sure your backend API is running at http://localhost:8080/api/v1
+						Make sure your backend API is running at http://localhost:8083/api/v1
 					</p>
 				</div>
 			</div>
