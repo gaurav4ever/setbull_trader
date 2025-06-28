@@ -2,9 +2,12 @@
 
 ## 1. Philosophy & Goal
 
-The core philosophy is to identify and engage with stocks during periods of exceptionally low volatility, anticipating a significant price movement (expansion). This strategy aims to position us as early participants, entering before the crowd and capturing the majority of the impending move. We are moving away from chasing momentum and instead focusing on identifying the conditions that precede it.
+The core philosophy is to identify and engage with stocks during periods of exceptionally low volatility, anticipating a significant price movement (expansion). 
+This strategy aims to position us as early participants, entering before the crowd and capturing the majority of the impending move. 
+We are moving away from chasing momentum and instead focusing on identifying the conditions that precede it.
 
-The primary goal is to achieve substantial returns (targeting 20%, 50%, up to 100%) by systematically finding these low-risk entry points ahead of explosive breakouts.
+The primary goal is to achieve substantial returns (targeting 20%, 50%, up to 100%) 
+by systematically finding these low-risk entry points ahead of explosive breakouts.
 
 ## 2. Methodology
 
@@ -30,7 +33,19 @@ The screener is designed to find stocks that are currently in a "volatility sque
 4.  **Squeeze Condition:**
     - The screener will identify stocks where the **current daily BBW is at its lowest point over a 126-day lookback period** (approximately 6 months of trading days).
 5.  **Confirmation - Range Contraction:**
-    - To ensure we are in a stable consolidation phase, we will verify that the Bollinger Bands have been contracting or moving sideways over the last 3-5 trading sessions. This confirms the squeeze is established.
+    1. To ensure we are in a stable consolidation phase, 
+    2. We will first find the Volatility avg squeeze range where stock has performed the best in last n days. We will store it in a new table column in the same table 
+        2.1 In the table if the time_interval is "day" then, the column value should be the most preferred squeeze range for the stock. 
+    3. Point 2 will be a one time activity. Once saved, this data will get use in Back testing the daily analysis.
+    4. Once we have point 2 data, we wil keep checking the following things
+     4.1 A range at any point of time in the available data. So that i can be alert and looking into the screen, serious trading opportunity. 
+        4.1.1 There will be n number of things i'll be observing once all these required data is there with me.
+        4.1.1.1 Like: moving sideways over the last 3-5 trading sessions. 
+        4.1.1.2 Like: Bullish stocks (daily level) are moving down intraday and volatility is decreasing. Tradable squeeze range achieved.
+     4.2 Name it as tradable range. tradeable_bb_range
+     4.3 After that I will do in next Knowledge base iteration. (ANalyze -> Find -> quantify -> backest -> automate backtest -> decision -> automate the trading system)
+    
+    This confirms the squeeze is established.
 
 ---------------------------
 
@@ -39,15 +54,26 @@ The screener is designed to find stocks that are currently in a "volatility sque
 
 ## 1. Executive Summary
 
-This document provides a comprehensive technical overview of the Bollinger Band Width (BBW) volatility analysis pipeline. The primary objective of this pipeline is to systematically screen a universe of stocks to identify those currently experiencing periods of unusually low volatility, often referred to as a "volatility squeeze." The underlying hypothesis is that such periods of consolidation are frequently precursors to significant price expansions, offering high-potential, early entry opportunities.
+This document provides a comprehensive technical overview of the 
+Bollinger Band Width (BBW) volatility analysis pipeline. 
+The primary objective of this pipeline is to systematically screen 
+a universe of stocks to identify those currently experiencing periods of unusually low volatility,
+often referred to as a "volatility squeeze." The underlying hypothesis is that such periods 
+of consolidation are frequently precursors to significant price expansions, 
+offering high-potential, early entry opportunities.
 
-The methodology is implemented in the Python script `python_strategies/polars/analysis/analyze_all_stock_volatility.py` and is guided by the principles outlined in `kb/5.1_volatility_squeeze_strategy.txt`.
+The methodology is implemented in the Python script 
+`python_strategies/polars/analysis/analyze_all_stock_volatility.py` 
+and is guided by the principles outlined in `kb/5.1_volatility_squeeze_strategy.txt`.
 
 ## 2. Core Concept: The Volatility Squeeze
 
-Volatility in financial markets is cyclical. Periods of low volatility (consolidation) are typically followed by periods of high volatility (expansion or breakouts). A "volatility squeeze" occurs when a stock's price trades in an unusually narrow range for an extended period, causing its Bollinger Bands to contract or "squeeze" together.
+Volatility in financial markets is cyclical. 
+Periods of low volatility (consolidation) are typically followed by periods of high volatility
+(expansion or breakouts). A "volatility squeeze" occurs when a stock's price trades in an unusually narrow range for an extended period, causing its Bollinger Bands to contract or "squeeze" together.
 
-Our strategy is to detect this squeeze condition just as it's happening, positioning us to capitalize on the subsequent price move, regardless of direction.
+Our strategy is to detect this squeeze condition just as it's happening, 
+positioning us to capitalize on the subsequent price move, regardless of direction.
 
 ## 3. Key Metric: Normalized Bollinger Band Width (BBW)
 

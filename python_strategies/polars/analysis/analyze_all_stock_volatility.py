@@ -5,26 +5,76 @@ import pandas as pd
 from tqdm import tqdm
 
 def get_all_instrument_keys(db_connection):
-    """Fetches all unique daily instrument keys and their symbols from the database, filtering out ETFs."""
+    """Fetches all unique daily instrument keys and their symbols from the database, filtering out ETFs and non-stock instruments."""
     print("Fetching all instrument keys and symbols...")
     try:
-        # Join with stock_universe to get the symbol
+        # Join with stock_universe to get the symbol and name
         query = """
-        SELECT DISTINCT scd.instrument_key, su.symbol
+        SELECT DISTINCT scd.instrument_key, su.symbol, su.name
         FROM stock_candle_data scd
         JOIN stock_universe su ON scd.instrument_key = su.instrument_key
         WHERE scd.time_interval = 'day'
+          AND su.active = TRUE
         """
         df_pandas = pd.read_sql(query, db_connection)
 
-        # Filter out ETFs and liquid funds based on symbol name
+        # Comprehensive filtering for ETFs and non-stock instruments
         initial_count = len(df_pandas)
-        exclusions = ['LIQUID', 'ETF', 'BEES', 'NIFTY']
+        exclusions = [
+            'LIQUID', 'ETF', 'BEES', 'NIFTY', 'BANKNIFTY', 'FINNIFTY',
+            'SENSEX', 'TOP100', 'TOP50', 'TOP200', 'TOP500',
+            'INDEX', 'INDIA', 'GOLD', 'SILVER', 'COPPER', 'CRUDE',
+            'USDINR', 'EURINR', 'GBPINR', 'JPYINR',
+            'GOVT', 'CORP', 'POWERGRID', 'ONGC', 'COALINDIA',
+            'MUTUAL', 'FUND', 'BOND', 'DEBT', 'MONEY',
+            'LIQUIDBEES', 'LIQUIDETF', 'LIQUIDFUND',
+            'NIFTYBEES', 'BANKBEES', 'GOLDBEES',
+            'JUNIOR', 'SMALL', 'MID', 'LARGE', 'MULTI',
+            'CONSUMPTION', 'ENERGY', 'FINANCIAL', 'HEALTHCARE',
+            'INDUSTRIAL', 'MATERIALS', 'REALESTATE', 'TECHNOLOGY',
+            'UTILITIES', 'COMMUNICATION', 'CONSUMER', 'DISCRETIONARY'
+        ]
+        
+        filtered_reasons = {}
+        
         for exclusion in exclusions:
-            df_pandas = df_pandas[~df_pandas['symbol'].str.contains(exclusion, case=False)]
+            # Check both symbol and name columns
+            symbol_matches = df_pandas[df_pandas['symbol'].str.contains(exclusion, case=False, na=False)]
+            name_matches = df_pandas[df_pandas['name'].str.contains(exclusion, case=False, na=False)]
+            
+            if len(symbol_matches) > 0 or len(name_matches) > 0:
+                filtered_reasons[exclusion] = len(symbol_matches) + len(name_matches)
+            
+            # Filter out matches from both symbol and name
+            df_pandas = df_pandas[~df_pandas['symbol'].str.contains(exclusion, case=False, na=False)]
+            df_pandas = df_pandas[~df_pandas['name'].str.contains(exclusion, case=False, na=False)]
+        
+        # Additional filtering for common patterns
+        # Remove instruments with very short symbols (likely indices)
+        df_pandas = df_pandas[df_pandas['symbol'].str.len() >= 3]
+        
+        # Remove instruments with all caps and common index patterns
+        df_pandas = df_pandas[~df_pandas['symbol'].str.match(r'^[A-Z]{2,5}$')]  # Remove 2-5 letter all caps
+        
+        # Remove instruments with numbers only
+        df_pandas = df_pandas[~df_pandas['symbol'].str.match(r'^\d+$')]
+        
+        # Remove instruments with special characters (except dots and dashes)
+        df_pandas = df_pandas[~df_pandas['symbol'].str.contains(r'[^A-Za-z0-9.-]')]
 
         filtered_count = len(df_pandas)
-        print(f"Filtered out {initial_count - filtered_count} instruments (ETFs, etc.).")
+        total_filtered = initial_count - filtered_count
+        
+        print(f"Data sanitization results:")
+        print(f"  Initial instruments: {initial_count}")
+        print(f"  Filtered out: {total_filtered}")
+        print(f"  Remaining instruments: {filtered_count}")
+        
+        if filtered_reasons:
+            print("  Filtering breakdown:")
+            for reason, count in filtered_reasons.items():
+                if count > 0:
+                    print(f"    {reason}: {count} instruments")
 
         keys = df_pandas.to_dict('records')
         print(f"Found {len(keys)} unique instruments for analysis.")
