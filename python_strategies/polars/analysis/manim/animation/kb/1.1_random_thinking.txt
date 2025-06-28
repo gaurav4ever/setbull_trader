@@ -1,0 +1,688 @@
+So basically, I am writing some python code and it is fetching the data and applying some processing in it. I want to see the visualisation of the code and its ration in some beautiful and attractive manner visually so that I can post it on Instagram and people will start liking and following it by default. Every tech person will be addicted to it. Just simple visualisation of something there will be explanation 32 to 3 line explanation and then video of it. For example if I'm doing a short I'm writing a code in python, then it will it will it will show me whistle representation of the data and how is sorting which is trading first that's TTTTTTY Mart will be done for the first attraction. Two second third and it will built and it will be, and it will be different for all the sorting methods and searching methods. Similarly, I am developing a my ow analysis on a data on polar library library in Python. I want the same visualisation.
+
+
+
+
+Show thinking
+Of course! Creating visually captivating animations of your Python code is an excellent way to showcase your skills and make complex processes understandable and shareable. For a tech-savvy audience on Instagram, you need visualizations that are not only informative but also aesthetically pleasing.
+
+Here’s a guide to creating the "addictive" visualizations you're looking for, for both your sorting algorithms and your Polars data analysis.
+
+Part 1: Visualizing Sorting Algorithms
+For algorithms, you want to show the step-by-step process. The key is to turn the abstract logic of your code into concrete, moving objects. The absolute best tool for this is Manim.
+
+Manim (Mathematical Animation Engine) is a Python library created by Grant Sanderson (of the YouTube channel 3Blue1Brown) specifically for creating beautiful, explanatory animations. It gives you programmatic control over every line, shape, and transformation.
+
+Your 2-3 Line Explanation (Example for Bubble Sort):
+"Watch Bubble Sort in action! In this algorithm, we repeatedly step through the list, compare adjacent elements, and swap them if they are in the wrong order. The largest unsorted element 'bubbles' up to its correct position in each pass."
+
+How to Create the Visualization with Manim:
+The core idea is to represent your list of numbers as visual elements (like bars or squares) and then animate their movements according to the logic of your sorting algorithm.
+
+Conceptual Workflow:
+
+Represent Data as Bars: Create a VGroup of Rectangle objects, where the height of each rectangle corresponds to a number in your list.
+
+Instrument Your Algorithm: Modify your sorting function so that instead of just performing a swap, it yields the indices of the elements being compared and swapped.
+
+Create Manim Animations: In your Manim Scene, you'll loop through the steps yielded by your algorithm. For each step, you'll create an animation.
+
+Comparison: Highlight the bars being compared (e.g., change their color).
+
+Swap: Use Manim's Swap or animate methods to visually exchange the positions of the two bars.
+
+Render the Video: Manim will render your scene as a high-quality video file (e.g., MP4), perfect for uploading to Instagram.
+
+Example Snippet (Conceptual):
+
+Python
+
+from manim import *
+
+class BubbleSortScene(Scene):
+    def construct(self):
+        # 1. Create visual bars from your data
+        numbers = [3, 1, 4, 1, 5, 9, 2, 6]
+        bars = VGroup(*[
+            Rectangle(width=0.5, height=n, color=BLUE) for n in numbers
+        ]).arrange(RIGHT, buff=0.2)
+        
+        self.play(Create(bars))
+        self.wait(1)
+
+        # 2. Your bubble sort logic that yields steps
+        def bubble_sort_steps(arr):
+            n = len(arr)
+            for i in range(n):
+                for j in range(0, n - i - 1):
+                    yield j, j + 1, "comparing" # Yield indices being compared
+                    if arr[j] > arr[j + 1]:
+                        arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                        yield j, j + 1, "swapping" # Yield indices being swapped
+
+        # 3. Animate the steps
+        for i, j, action in bubble_sort_steps(numbers):
+            if action == "comparing":
+                self.play(
+                    bars[i].animate.set_color(YELLOW),
+                    bars[j].animate.set_color(YELLOW)
+                )
+            elif action == "swapping":
+                self.play(Swap(bars[i], bars[j]))
+                # After swapping the visual bars, update their positions in the VGroup
+                bars[i], bars[j] = bars[j], bars[i]
+
+            # Revert color
+            self.play(
+                bars[i].animate.set_color(BLUE),
+                bars[j].animate.set_color(BLUE)
+            )
+        
+        self.wait(2)
+This will produce a different, unique animation for every sorting algorithm (Quick Sort, Merge Sort, etc.), which is exactly what you want.
+
+Part 2: Visualizing Polars Data Analysis
+For data analysis with a library like Polars, you want to visualize the transformation of the data. This shows your audience how you go from raw data to insights. The best tool for this is Plotly.
+
+Plotly is a powerful, high-level library that makes creating interactive and animated plots incredibly simple, especially from dataframes. While Plotly primarily supports Pandas dataframes, you can easily convert your Polars dataframe for visualization using .to_pandas().
+
+Your 2-3 Line Explanation (Example for Data Aggregation):
+"Ever wondered how raw data turns into clear insights? Here, I'm taking thousands of individual data points and grouping them by category to calculate the average. This simple aggregation reveals powerful trends hidden in the noise."
+
+How to Create the Visualization with Plotly:
+The key here is to use the animation_frame and animation_group arguments in Plotly Express. This lets you create an animation based on the values in a specific column (like a year, a category, or a step in your analysis).
+
+Conceptual Workflow & Ideas:
+
+Prepare a "Staged" DataFrame: To animate your analysis, you'll need a dataframe that shows the data at different stages. You might add a column called "step" or "frame" to your dataframe to identify each phase of the animation.
+
+Animate with Plotly Express: Use a single line of code to create the animation.
+
+Export as a File: While Plotly creates interactive HTML files, you can export these to static images for each frame and then stitch them into a video using a tool like ffmpeg.
+
+Creative Visualization Ideas for Polars Analysis:
+
+Animating a filter:
+
+Frame 1: Show a scatter plot of all your data.
+
+Frame 2: Keep the points that match your filter and make the others fade out or change color to grey.
+
+Animating a group_by:
+
+Start with a scatter plot of your raw data.
+
+Animate the points moving and clustering by their category.
+
+Finally, have them transform into a bar chart representing the final aggregated value (e.g., the mean or sum).
+
+Animating a Time-Series Analysis:
+
+If you have time-series data, this is the most straightforward. Use your date column as the animation_frame.
+
+This will create a bar chart race, a moving line plot, or an evolving scatter plot that shows how your data changes over time.
+
+Example Snippet (Conceptual using Polars and Plotly):
+
+Python
+
+import polars as pl
+import plotly.express as px
+import pandas as pd
+
+# Assume 'df' is your Polars DataFrame with a 'year' column
+# df = pl.read_csv("your_data.csv")
+
+# For Plotly, convert to a Pandas DataFrame
+pandas_df = df.to_pandas()
+
+# Create an animated scatter plot showing life expectancy vs. GDP over the years
+fig = px.scatter(
+    pandas_df,
+    x="gdp_per_capita",
+    y="life_expectancy",
+    color="continent",
+    size="population",
+    hover_name="country",
+    log_x=True,
+    size_max=60,
+    # This is the magic!
+    animation_frame="year",
+    animation_group="country",
+    range_y=[25, 90],
+    labels={"gdp_per_capita": "GDP Per Capita", "life_expectancy": "Life Expectancy"}
+)
+
+# To make this a video file for Instagram:
+# 1. You would programmatically save each frame of the animation as an image.
+# 2. Then, use a library like imageio or a command-line tool like ffmpeg to create a video.
+
+# Example of saving frames (conceptual loop)
+# for frame_num in sorted(pandas_df['year'].unique()):
+#   # Code to generate and save the plot for this frame_num
+#   fig.write_image(f"frames/frame_{frame_num}.png")
+
+# Then, ffmpeg can create a video from these images.
+
+fig.show() # This will show the interactive animation in your browser/notebook
+By applying these techniques, you'll be able to create the compelling, high-quality visual content you're aiming for. Good luck, and get ready for those likes and follows!
+
+
+
+
+
+
+
+rank_squee...candidates
+PY
+(venv)  ✘ gaurav@Macs-MacBook-Pro  ~/setbull_projects/setbull_trader/python_strategies   volatility ±  python  --version
+
+Python 3.12.10
+
+(venv)  gaurav@Macs-MacBook-Pro  ~/setbull_projects/setbull_trader/python_strategies   volatility ±  pip --version
+
+pip 25.0.1 from /Users/gaurav/setbull_projects/setbull_trader/python_strategies/venv/lib/python3.12/site-packages/pip (python 3.12)
+
+(venv)  gaurav@Macs-MacBook-Pro  ~/setbull_projects/setbull_trader/python_strategies   volatility ±  
+
+
+
+
+
+Give me full installations of the lib and final script
+
+A working animation on the data from the given attached script.
+
+
+
+
+Show thinking
+Of course. Based on your rank_squeeze_candidates.py script, I will provide the full installation instructions and a complete, working Python script to generate an engaging animation of the data filtering and ranking process.
+
+The animation will visually narrate the story of your script: starting with a universe of stock candidates, filtering them down based on your criteria, and finally highlighting the top-ranked bullish and bearish opportunities.
+
+1. Library Installations
+First, you need to install the necessary Python libraries. Your script uses polars, and for the animation, we will use matplotlib for plotting and numpy for generating sample data.
+
+Open your terminal or command prompt (with your venv activated) and run the following command:
+
+Bash
+
+pip install polars matplotlib numpy
+You may also need a backend for matplotlib to save the video file, such as ffmpeg. If you don't have it, you can install it with a package manager like Homebrew (on macOS) or Chocolatey (on Windows):
+
+macOS: brew install ffmpeg
+
+Windows: choco install ffmpeg
+
+Linux (Ubuntu/Debian): sudo apt-get install ffmpeg
+
+2. Final Animation Script
+The following script will create an animated scatter plot that visualizes the entire workflow of your rank_squeeze_candidates.py file. It simulates a dataset, so it can run standalone without needing an input CSV.
+
+Save this code as create_animation.py:
+
+Python
+
+import polars as pl
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import matplotlib.patches as mpatches
+
+# --- Configuration (matches the logic in your script) ---
+MAX_SQUEEZE_RATIO = 0.6
+MAX_VOLUME_RATIO = 0.8
+BULLISH_THRESHOLD = 0.7
+BEARISH_THRESHOLD = 0.7
+TOP_N = 5
+TOTAL_CANDIDATES = 200
+
+def generate_mock_data(num_records: int) -> pl.DataFrame:
+    """Generates a Polars DataFrame with random data mimicking your input file."""
+    np.random.seed(42)  # for reproducible results
+    data = {
+        "symbol": [f"SYM{i:03}" for i in range(num_records)],
+        "squeeze_ratio": np.random.uniform(0.1, 1.0, num_records),
+        "volume_ratio": np.random.uniform(0.2, 1.5, num_records),
+        "breakout_readiness": np.random.uniform(0.0, 1.0, num_records),
+        "latest_close": np.random.uniform(20, 300, num_records)
+    }
+    return pl.DataFrame(data)
+
+def animate_ranking_process():
+    """Creates and saves an animation visualizing the filtering and ranking process."""
+    
+    # --- 1. Data Preparation (from your script's logic) ---
+    df = generate_mock_data(TOTAL_CANDIDATES)
+    df = df.with_columns(
+        (1 - pl.col("breakout_readiness")).alias("breakdown_readiness")
+    )
+
+    # --- Bullish Candidates ---
+    bullish_df = df.filter(
+        (pl.col("squeeze_ratio") <= MAX_SQUEEZE_RATIO) &
+        (pl.col("volume_ratio") <= MAX_VOLUME_RATIO) &
+        (pl.col("breakout_readiness") >= BULLISH_THRESHOLD)
+    )
+    if not bullish_df.is_empty():
+        bullish_ranked = bullish_df.with_columns([
+            pl.col("squeeze_ratio").rank(method='min').alias("squeeze_rank"),
+            pl.col("volume_ratio").rank(method='min').alias("volume_rank"),
+            pl.col("breakout_readiness").rank(method='min', descending=True).alias("readiness_rank")
+        ]).with_columns(
+            (pl.col("squeeze_rank") + pl.col("volume_rank") + pl.col("readiness_rank")).alias("composite_rank")
+        ).sort("composite_rank").head(TOP_N)
+        top_bullish_symbols = bullish_ranked["symbol"].to_list()
+    else:
+        top_bullish_symbols = []
+
+    # --- Bearish Candidates ---
+    bearish_df = df.filter(
+        (pl.col("squeeze_ratio") <= MAX_SQUEEZE_RATIO) &
+        (pl.col("volume_ratio") <= MAX_VOLUME_RATIO) &
+        (pl.col("breakdown_readiness") >= BEARISH_THRESHOLD)
+    )
+    if not bearish_df.is_empty():
+        bearish_ranked = bearish_df.with_columns([
+            pl.col("squeeze_ratio").rank(method='min').alias("squeeze_rank"),
+            pl.col("volume_ratio").rank(method='min').alias("volume_rank"),
+            pl.col("breakdown_readiness").rank(method='min', descending=True).alias("readiness_rank")
+        ]).with_columns(
+            (pl.col("squeeze_rank") + pl.col("volume_rank") + pl.col("readiness_rank")).alias("composite_rank")
+        ).sort("composite_rank").head(TOP_N)
+        top_bearish_symbols = bearish_ranked["symbol"].to_list()
+    else:
+        top_bearish_symbols = []
+
+    # --- 2. Animation Setup ---
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=100)
+    fig.patch.set_facecolor('#1a1a1a')
+    ax.set_facecolor('#1a1a1a')
+
+    # Scatter plot: size represents breakout_readiness
+    sizes = (df["breakout_readiness"] * 150).to_numpy()
+    scatter = ax.scatter(df["squeeze_ratio"], df["volume_ratio"], s=sizes, c=df["breakout_readiness"], 
+                         cmap="viridis", alpha=0.7, edgecolors='w', linewidths=0.5)
+
+    # --- Animation Frames Logic ---
+    total_frames = 150
+    def update(frame):
+        ax.clear()
+        ax.set_facecolor('#1a1a1a')
+
+        # Style plot
+        ax.set_xlim(0, 1.6)
+        ax.set_ylim(0, 1.6)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.set_xlabel("Squeeze Ratio (Lower is Tighter)", color='white', fontsize=12)
+        ax.set_ylabel("Volume Ratio (Lower is Quieter)", color='white', fontsize=12)
+        
+        # Determine current phase of the animation
+        phase_length = total_frames // 3
+        current_phase = frame // phase_length
+        
+        # --- PHASE 0: Show all candidates ---
+        if current_phase == 0:
+            ax.set_title("Analyzing All Potential Squeeze Candidates", color='white', fontsize=16, pad=20)
+            alpha = 1.0
+            colors = df["breakout_readiness"]
+            cmap = "viridis"
+            edgecolors = 'w'
+            linewidths = 0.5
+        
+        # --- PHASE 1: Filter for Bullish ---
+        elif current_phase == 1:
+            ax.set_title(f"Filtering for Top {TOP_N} Bullish Candidates", color='#2ECC71', fontsize=16, pad=20)
+            
+            is_bullish = (df["squeeze_ratio"] <= MAX_SQUEEZE_RATIO) & \
+                         (df["volume_ratio"] <= MAX_VOLUME_RATIO) & \
+                         (df["breakout_readiness"] >= BULLISH_THRESHOLD)
+            
+            colors = np.where(is_bullish, '#2ECC71', '#444444')
+            alpha = np.where(is_bullish, 0.9, 0.1)
+            edgecolors = np.where(is_bullish, 'w', 'none')
+            linewidths = 0.5
+            
+            # Highlight top N
+            is_top_bullish = df["symbol"].is_in(top_bullish_symbols)
+            colors = np.where(is_top_bullish, '#FFFFFF', colors)
+            alpha = np.where(is_top_bullish, 1.0, alpha)
+            
+            # Legend
+            bullish_patch = mpatches.Patch(color='#2ECC71', label='Passes Filter')
+            top_patch = mpatches.Patch(color='#FFFFFF', label=f'Top {TOP_N} Ranked')
+            legend = ax.legend(handles=[bullish_patch, top_patch], loc='upper right', frameon=False)
+            plt.setp(legend.get_texts(), color='white')
+
+
+        # --- PHASE 2: Filter for Bearish ---
+        else:
+            ax.set_title(f"Filtering for Top {TOP_N} Bearish Candidates", color='#E74C3C', fontsize=16, pad=20)
+            
+            is_bearish = (df["squeeze_ratio"] <= MAX_SQUEEZE_RATIO) & \
+                         (df["volume_ratio"] <= MAX_VOLUME_RATIO) & \
+                         (df["breakdown_readiness"] >= BEARISH_THRESHOLD)
+                         
+            colors = np.where(is_bearish, '#E74C3C', '#444444')
+            alpha = np.where(is_bearish, 0.9, 0.1)
+            edgecolors = np.where(is_bearish, 'w', 'none')
+            linewidths = 0.5
+            
+            # Highlight top N
+            is_top_bearish = df["symbol"].is_in(top_bearish_symbols)
+            colors = np.where(is_top_bearish, '#FFFFFF', colors)
+            alpha = np.where(is_top_bearish, 1.0, alpha)
+            
+            # Legend
+            bearish_patch = mpatches.Patch(color='#E74C3C', label='Passes Filter')
+            top_patch = mpatches.Patch(color='#FFFFFF', label=f'Top {TOP_N} Ranked')
+            legend = ax.legend(handles=[bearish_patch, top_patch], loc='upper right', frameon=False)
+            plt.setp(legend.get_texts(), color='white')
+            
+
+        ax.scatter(df["squeeze_ratio"], df["volume_ratio"], s=sizes, c=colors, 
+                   alpha=alpha, edgecolors=edgecolors, linewidths=linewidths)
+        
+        # Add filtering criteria text
+        if current_phase > 0:
+            criteria_text = f'Squeeze Ratio ≤ {MAX_SQUEEZE_RATIO}\nVolume Ratio ≤ {MAX_VOLUME_RATIO}'
+            if current_phase == 1:
+                 criteria_text += f'\nBreakout Readiness ≥ {BULLISH_THRESHOLD}'
+            else:
+                 criteria_text += f'\nBreakdown Readiness ≥ {BEARISH_THRESHOLD}'
+            ax.text(0.98, 0.65, criteria_text, transform=ax.transAxes, fontsize=10, 
+                    verticalalignment='top', horizontalalignment='right', color='white', 
+                    bbox=dict(boxstyle='round,pad=0.5', fc='#333333', ec='none', alpha=0.8))
+
+
+    # --- 3. Create and Save Animation ---
+    print("Generating animation... This may take a few moments.")
+    ani = FuncAnimation(fig, update, frames=total_frames, repeat=False)
+    
+    # Save the animation
+    output_filename = "squeeze_candidates_animation.mp4"
+    ani.save(output_filename, writer='ffmpeg', fps=15, 
+             progress_callback=lambda i, n: print(f'Saving frame {i+1} of {n}'))
+    
+    print(f"\nAnimation saved successfully as '{output_filename}'!")
+
+if __name__ == "__main__":
+    animate_ranking_process()
+How to Run the Script
+Make sure you have installed the libraries from Step 1.
+
+Save the code above as create_animation.py in the same directory as your other scripts.
+
+Run it from your terminal:
+
+Bash
+
+python create_animation.py
+It will print its progress to the console and save a video file named squeeze_candidates_animation.mp4 in the same folder. You can now post this video to Instagram!
+
+How the Animation Works
+Phase 1 (Initial View): It starts by plotting all 200 simulated candidates. The x-axis is the squeeze_ratio, the y-axis is the volume_ratio, and the color and size of each dot represent its breakout_readiness.
+
+Phase 2 (Bullish Filtering): The animation transitions to focus on bullish candidates.
+
+Any stocks that don't meet the bullish criteria (squeeze_ratio, volume_ratio, breakout_readiness) fade into the background.
+
+Stocks that do meet the criteria are colored bright green.
+
+The Top 5 ranked bullish stocks are highlighted in white to make them stand out.
+
+Phase 3 (Bearish Filtering): The view shifts again to analyze bearish candidates.
+
+Stocks that don't meet the bearish criteria fade out.
+
+Those that pass are colored red.
+
+The Top 5 ranked bearish stocks are highlighted in white.
+
+This visual storytelling makes your data processing logic instantly understandable and far more engaging for a social media audience.
+
+
+
+
+
+
+
+0:10
+
+1.1_test_script
+PY
+
+There is no real animation. I need a proper animation should be a 15/ second 10 to 15. Second video should be very simple and understandable and addictive. I want for the Instagram for the tech audience.
+
+
+
+
+Show thinking
+You are absolutely right. The previous version was a static slideshow, not a true animation. To create something "addictive" and professional for Instagram, we need fluid motion that tells a story.
+
+Here is a completely revamped script that introduces real, dynamic animation. Instead of jumping between states, this version will smoothly:
+
+Fade and shrink the candidates that don't meet the criteria.
+
+Make the top-ranked candidates pulse to draw the viewer's eye.
+
+Transition smoothly between the Bullish and Bearish analysis phases.
+
+This approach creates a far more engaging and visually appealing narrative of your data analysis process, tailored for a tech audience.
+
+Final Animation Script (v2 - Dynamic & Addictive)
+This script replaces the previous one. It uses the same logic from your original rank_squeeze_candidates.py but visualizes it with continuous, frame-by-frame animation.
+
+Save this code as create_addictive_animation.py and run it.
+
+Python
+
+import polars as pl
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import math
+
+# --- Configuration ---
+MAX_SQUEEZE_RATIO = 0.6
+MAX_VOLUME_RATIO = 0.8
+BULLISH_THRESHOLD = 0.7
+BEARISH_THRESHOLD = 0.7
+TOP_N = 5
+TOTAL_CANDIDATES = 200
+
+# --- Animation Timing (14 seconds @ 15 FPS) ---
+FPS = 15
+TOTAL_FRAMES = 14 * FPS 
+
+# Define animation stages
+# [Stage Name, Start Frame, End Frame]
+STAGES = {
+    "INIT_FADE_IN":      [0, FPS * 2],          # 2s
+    "BULLISH_FILTER":    [FPS * 2, FPS * 5],    # 3s
+    "BULLISH_RANK":      [FPS * 5, FPS * 7],    # 2s
+    "TRANSITION_BEARISH":[FPS * 7, FPS * 9],    # 2s
+    "BEARISH_FILTER":    [FPS * 9, FPS * 12],   # 3s
+    "BEARISH_RANK":      [FPS * 12, TOTAL_FRAMES], # 2s
+}
+
+def get_stage(frame):
+    """Returns the current animation stage for a given frame."""
+    for stage, (start, end) in STAGES.items():
+        if start <= frame < end:
+            # Calculate progress within the stage (0.0 to 1.0)
+            progress = (frame - start) / (end - start)
+            return stage, progress
+    return STAGES.keys()[-1], 1.0 # Return last stage if at the end
+
+
+def generate_mock_data(num_records: int) -> pl.DataFrame:
+    """Generates a Polars DataFrame with random data mimicking your input file."""
+    np.random.seed(42)
+    data = {
+        "symbol": [f"SYM{i:03}" for i in range(num_records)],
+        "squeeze_ratio": np.random.uniform(0.1, 1.0, num_records),
+        "volume_ratio": np.random.uniform(0.2, 1.5, num_records),
+        "breakout_readiness": np.random.uniform(0.0, 1.0, num_records),
+    }
+    return pl.DataFrame(data)
+
+def animate_ranking_process():
+    """Creates and saves a dynamic animation of the filtering and ranking process."""
+    
+    # --- 1. Data Preparation ---
+    df = generate_mock_data(TOTAL_CANDIDATES)
+    df = df.with_columns(
+        (1 - pl.col("breakout_readiness")).alias("breakdown_readiness")
+    )
+    
+    # Identify boolean masks for different candidate types
+    is_bullish_pass = (df["squeeze_ratio"] <= MAX_SQUEEZE_RATIO) & \
+                      (df["volume_ratio"] <= MAX_VOLUME_RATIO) & \
+                      (df["breakout_readiness"] >= BULLISH_THRESHOLD)
+    
+    is_bearish_pass = (df["squeeze_ratio"] <= MAX_SQUEEZE_RATIO) & \
+                      (df["volume_ratio"] <= MAX_VOLUME_RATIO) & \
+                      (df["breakdown_readiness"] >= BEARISH_THRESHOLD)
+
+    top_bullish_symbols = df.filter(is_bullish_pass).sort("breakout_readiness", descending=True).head(TOP_N)["symbol"].to_list()
+    is_top_bullish = df["symbol"].is_in(top_bullish_symbols)
+
+    top_bearish_symbols = df.filter(is_bearish_pass).sort("breakdown_readiness", descending=True).head(TOP_N)["symbol"].to_list()
+    is_top_bearish = df["symbol"].is_in(top_bearish_symbols)
+    
+    # --- 2. Animation Setup ---
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=120)
+    fig.patch.set_facecolor('#1a1a1a')
+    ax.set_facecolor('#1a1a1a')
+
+    base_sizes = (df["breakout_readiness"] * 120 + 20).to_numpy()
+    
+    scatter = ax.scatter([], []) # Initial empty scatter plot
+
+    title_text = ax.text(0.5, 1.05, "", transform=ax.transAxes, ha='center',
+                         fontsize=20, color='white', weight='bold')
+    
+    criteria_text_obj = ax.text(0.98, 0.95, "", transform=ax.transAxes, fontsize=11, 
+                                verticalalignment='top', horizontalalignment='right', color='white', 
+                                bbox=dict(boxstyle='round,pad=0.5', fc='#333333', ec='none', alpha=0.8))
+
+    # --- 3. Animation Update Function ---
+    def update(frame):
+        stage, progress = get_stage(frame)
+        
+        # --- Configure plot appearance ---
+        ax.clear()
+        ax.set_facecolor('#1a1a1a')
+        ax.set_xlim(0, 1.1)
+        ax.set_ylim(0, 1.6)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+        ax.set_xlabel("Squeeze Ratio (Lower is Tighter)", color='white', fontsize=12)
+        ax.set_ylabel("Volume Ratio (Lower is Quieter)", color='white', fontsize=12)
+
+        # Initialize arrays for plot attributes
+        sizes = base_sizes.copy()
+        alphas = np.zeros(TOTAL_CANDIDATES)
+        colors = np.empty(TOTAL_CANDIDATES, dtype=object)
+        colors.fill('#444444') # Default color
+        
+        criteria_text = ""
+
+        # --- ANIMATION LOGIC BY STAGE ---
+
+        if stage == "INIT_FADE_IN":
+            title_text.set_text("Scanning All Potential Candidates")
+            title_text.set_color("white")
+            alphas = np.clip(progress * 2, 0, 1) # Fade in
+            colors = plt.cm.viridis(df["breakout_readiness"].to_numpy())
+
+        elif stage == "BULLISH_FILTER":
+            title_text.set_text("Filtering for Bullish Setups")
+            title_text.set_color("#2ECC71")
+            criteria_text = f'Squeeze Ratio ≤ {MAX_SQUEEZE_RATIO}\nVolume Ratio ≤ {MAX_VOLUME_RATIO}\nBreakout Readiness ≥ {BULLISH_THRESHOLD}'
+            
+            # Keep passed candidates, fade out failed ones
+            alphas[is_bullish_pass] = 1.0
+            alphas[~is_bullish_pass] = 1.0 - progress 
+            colors[is_bullish_pass] = '#2ECC71'
+        
+        elif stage == "BULLISH_RANK":
+            title_text.set_text(f"Highlighting Top {TOP_N} Bullish")
+            title_text.set_color("#2ECC71")
+            criteria_text = f'Squeeze Ratio ≤ {MAX_SQUEEZE_RATIO}\nVolume Ratio ≤ {MAX_VOLUME_RATIO}\nBreakout Readiness ≥ {BULLISH_THRESHOLD}'
+
+            alphas[is_bullish_pass] = 1.0
+            alphas[~is_bullish_pass] = 0.0
+            colors[is_bullish_pass] = '#2ECC71'
+            colors[is_top_bullish] = 'white'
+            
+            # Pulse effect
+            pulse = 1 + 0.5 * math.sin(progress * 2 * math.pi)
+            sizes[is_top_bullish] *= pulse
+
+        elif stage == "TRANSITION_BEARISH":
+            title_text.set_text("Scanning for Bearish Setups")
+            title_text.set_color("white")
+            
+            # Fade out bullish, then fade in all for bearish
+            if progress < 0.5:
+                # Fade out old
+                alphas[is_bullish_pass] = 1.0 - (progress * 2)
+                colors[is_bullish_pass] = '#2ECC71'
+                colors[is_top_bullish] = 'white'
+            else:
+                # Fade in new
+                alphas[:] = (progress - 0.5) * 2
+                colors = plt.cm.autumn(df["breakdown_readiness"].to_numpy())
+
+        elif stage == "BEARISH_FILTER":
+            title_text.set_text("Filtering for Bearish Setups")
+            title_text.set_color("#E74C3C")
+            criteria_text = f'Squeeze Ratio ≤ {MAX_SQUEEZE_RATIO}\nVolume Ratio ≤ {MAX_VOLUME_RATIO}\nBreakdown Readiness ≥ {BEARISH_THRESHOLD}'
+
+            alphas[is_bearish_pass] = 1.0
+            alphas[~is_bearish_pass] = 1.0 - progress
+            colors[is_bearish_pass] = '#E74C3C'
+
+        elif stage == "BEARISH_RANK":
+            title_text.set_text(f"Highlighting Top {TOP_N} Bearish")
+            title_text.set_color("#E74C3C")
+            criteria_text = f'Squeeze Ratio ≤ {MAX_SQUEEZE_RATIO}\nVolume Ratio ≤ {MAX_VOLUME_RATIO}\nBreakdown Readiness ≥ {BEARISH_THRESHOLD}'
+
+            alphas[is_bearish_pass] = 1.0
+            alphas[~is_bearish_pass] = 0.0
+            colors[is_bearish_pass] = '#E74C3C'
+            colors[is_top_bearish] = 'white'
+
+            # Pulse effect
+            pulse = 1 + 0.5 * math.sin(progress * 2 * math.pi)
+            sizes[is_top_bearish] *= pulse
+            
+        # Update plot objects
+        ax.scatter(df["squeeze_ratio"], df["volume_ratio"], s=sizes, c=colors, alpha=alphas, edgecolors='none')
+        title_text.set_text(title_text.get_text()) # Redraw title
+        criteria_text_obj.set_text(criteria_text)
+
+    # --- 4. Create and Save Animation ---
+    print("Generating addictive animation... This will take a moment.")
+    ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, repeat=False)
+    
+    output_filename = "addictive_squeeze_animation.mp4"
+    ani.save(output_filename, writer='ffmpeg', fps=FPS, 
+             progress_callback=lambda i, n: print(f'Saving frame {i+1} of {n}'))
+    
+    print(f"\nAnimation saved successfully as '{output_filename}'!")
+
+if __name__ == "__main__":
+    animate_ranking_process()
