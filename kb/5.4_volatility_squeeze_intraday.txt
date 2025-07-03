@@ -1,0 +1,308 @@
+# BB Width Intraday Analysis - Database-Driven Analyzer
+
+## Overview
+
+This script analyzes Bollinger Band Width (BBW) for intraday data from the database, identifying days with lowest BBW (contraction) and highest BBW (expansion). It follows the same architectural patterns as the volatility squeeze analyzer for consistency and maintainability.
+
+## Features
+
+- **Database Integration**: Direct connection to `stock_candle_data` table
+- **Flexible Symbol Selection**: Analyze single stock, multiple stocks, or all stocks
+- **Configurable Lookback**: Specify lookback period or use all available data
+- **Market Hours Filtering**: Filter data for specific market hours
+- **5-Minute Aggregation**: Aggregate 1-minute data to 5-minute candles
+- **Comprehensive Statistics**: Calculate various BB width percentiles and metrics
+- **Multiple Output Formats**: Generate summary and detailed reports
+- **Performance Monitoring**: Track execution time and performance metrics
+- **Comprehensive Logging**: Detailed logging with file and console output
+
+## Architecture
+
+The analyzer follows a layered architecture similar to the volatility squeeze analyzer:
+
+### Section 1: Configuration & Setup
+- `ConfigurationManager`: Manages all configuration parameters
+- `DatabaseManager`: Handles database connections and operations
+- `LoggingManager`: Sets up comprehensive logging
+- `PerformanceMonitor`: Tracks performance metrics
+
+### Section 2: Data Layer
+- `DataValidator`: Validates data quality and completeness
+- `DataFetcher`: Fetches and filters data from database
+
+### Section 3: Analysis Engine
+- `BollingerBandCalculator`: Calculates Bollinger Bands and BBW
+- `IntradayAnalyzer`: Main analyzer orchestrating the process
+
+### Section 4: Output Generation
+- `OutputGenerator`: Generates CSV outputs and reports
+
+## Database Schema
+
+The analyzer works with the `stock_candle_data` table:
+
+```sql
+CREATE TABLE `stock_candle_data` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `instrument_key` varchar(50) NOT NULL,
+  `timestamp` timestamp NOT NULL,
+  `open` decimal(18,2) NOT NULL,
+  `high` decimal(18,2) NOT NULL,
+  `low` decimal(18,2) NOT NULL,
+  `close` decimal(18,2) NOT NULL,
+  `volume` bigint NOT NULL,
+  `open_interest` bigint NOT NULL,
+  `time_interval` varchar(20) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `ma_9` decimal(18,4) DEFAULT NULL,
+  `bb_upper` decimal(18,4) DEFAULT NULL,
+  `bb_middle` decimal(18,4) DEFAULT NULL,
+  `bb_lower` decimal(18,4) DEFAULT NULL,
+  `vwap` decimal(18,4) DEFAULT NULL,
+  `partition_yyyymm` int GENERATED ALWAYS AS (((year(`timestamp`) * 100) + month(`timestamp`))) STORED NOT NULL,
+  `ema_5` decimal(18,4) DEFAULT NULL,
+  `ema_9` decimal(18,4) DEFAULT NULL,
+  `ema_50` decimal(18,4) DEFAULT NULL,
+  `atr` decimal(18,4) DEFAULT NULL,
+  `rsi` decimal(18,4) DEFAULT NULL,
+  `bb_width` double DEFAULT NULL,
+  PRIMARY KEY (`id`,`partition_yyyymm`),
+  UNIQUE KEY `idx_stock_candle_unique` (`instrument_key`,`timestamp`,`time_interval`,`partition_yyyymm`),
+  KEY `idx_stock_candle_instrument_key` (`instrument_key`),
+  KEY `idx_stock_candle_timestamp` (`timestamp`),
+  KEY `idx_stock_candle_instrument_timestamp` (`instrument_key`,`timestamp`),
+  KEY `idx_stock_candle_interval` (`time_interval`)
+)
+```
+
+## Installation & Setup
+
+### Prerequisites
+
+1. Python 3.8+
+2. Required packages:
+   ```bash
+   pip install polars pandas mysql-connector-python tqdm
+   ```
+
+### Database Configuration
+
+Update the database configuration in the `ConfigurationManager` class:
+
+```python
+self.db_config = {
+    'host': '127.0.0.1',
+    'port': 3306,
+    'user': 'root',
+    'password': 'root1234',
+    'database': 'setbull_trader',
+    'autocommit': True,
+    'pool_size': 10,
+    'pool_name': 'bbw_pool',
+    'connection_timeout': 30
+}
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Analyze all instruments
+python analyze_bb_width_intraday.py
+
+# Analyze specific symbols
+python analyze_bb_width_intraday.py --symbols RELIANCE TCS INFY
+
+# Analyze with lookback period
+python analyze_bb_width_intraday.py --symbols HDFCBANK --lookback-days 30
+```
+
+### Advanced Usage
+
+```bash
+# Custom BB parameters
+python analyze_bb_width_intraday.py --symbols ICICIBANK --bb-period 14 --bb-std 1.5
+
+# Generate detailed report
+python analyze_bb_width_intraday.py --symbols RELIANCE TCS --detailed-report
+
+# Custom market hours
+python analyze_bb_width_intraday.py --symbols WIPRO --market-start 09:30 --market-end 15:00
+
+# Verbose logging
+python analyze_bb_width_intraday.py --symbols TATAMOTORS --verbose
+```
+
+### Command Line Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--symbols` | Specific symbols to analyze | All instruments |
+| `--lookback-days` | Number of days to look back | All available data |
+| `--bb-period` | Bollinger Bands period | 20 |
+| `--bb-std` | Bollinger Bands standard deviations | 2.0 |
+| `--market-start` | Market start time (HH:MM) | 09:15 |
+| `--market-end` | Market end time (HH:MM) | 15:30 |
+| `--output-file` | Output CSV filename | bb_width_analysis.csv |
+| `--detailed-report` | Generate detailed report | False |
+| `--verbose` | Enable verbose logging | False |
+
+## Output Files
+
+### Main CSV Output
+
+The main output file contains a summary for each instrument:
+
+| Column | Description |
+|--------|-------------|
+| `instrument_key` | Database instrument key |
+| `symbol` | Stock symbol |
+| `analysis_date` | Analysis execution date |
+| `lookback_days` | Lookback period used |
+| `total_days_analyzed` | Number of days analyzed |
+| `lowest_bb_date` | Date with lowest BB width |
+| `lowest_p10_bb_width` | 10th percentile BB width on lowest day |
+| `lowest_mean_bb_width` | Mean BB width on lowest day |
+| `lowest_min_bb_width` | Minimum BB width on lowest day |
+| `lowest_max_bb_width` | Maximum BB width on lowest day |
+| `lowest_day_data_points` | Number of data points on lowest day |
+
+### Detailed Report
+
+When using `--detailed-report`, an additional CSV is generated with all daily statistics:
+
+| Column | Description |
+|--------|-------------|
+| `instrument_key` | Database instrument key |
+| `symbol` | Stock symbol |
+| `date` | Trading date |
+| `p10_bb_width` | 10th percentile BB width |
+| `p25_bb_width` | 25th percentile BB width |
+| `p50_bb_width` | 50th percentile BB width |
+| `p75_bb_width` | 75th percentile BB width |
+| `p90_bb_width` | 90th percentile BB width |
+| `p95_bb_width` | 95th percentile BB width |
+| `mean_bb_width` | Mean BB width |
+| `std_bb_width` | Standard deviation of BB width |
+| `min_bb_width` | Minimum BB width |
+| `max_bb_width` | Maximum BB width |
+| `data_points` | Number of data points |
+
+## Analysis Process
+
+1. **Data Fetching**: Retrieve intraday data from database
+2. **Market Hours Filtering**: Filter data for specified market hours
+3. **5-Minute Aggregation**: Aggregate 1-minute data to 5-minute candles
+4. **Bollinger Bands Calculation**: Calculate BB upper, lower, and width
+5. **Daily Statistics**: Calculate percentiles and statistics for each day
+6. **Lowest BB Day Identification**: Find day with lowest BB width
+7. **Output Generation**: Generate CSV files with results
+
+## Performance Considerations
+
+- **Connection Pooling**: Uses MySQL connection pooling for efficient database access
+- **Batch Processing**: Processes instruments in batches to manage memory
+- **Data Validation**: Validates data quality before processing
+- **Progress Tracking**: Shows progress bars for long-running operations
+- **Performance Monitoring**: Tracks execution time for each operation
+
+## Logging
+
+The analyzer provides comprehensive logging:
+
+- **File Logging**: Logs saved to `output/logs/` directory with timestamps
+- **Console Logging**: Real-time output to console
+- **Verbose Mode**: Additional debug information when `--verbose` is used
+- **Error Handling**: Detailed error messages and stack traces
+
+## Examples
+
+### Example 1: Analyze Top Stocks
+
+```bash
+python analyze_bb_width_intraday.py \
+  --symbols RELIANCE TCS INFY HDFCBANK ICICIBANK \
+  --lookback-days 60 \
+  --output-file top_stocks_bb_analysis.csv
+```
+
+### Example 2: Custom Analysis
+
+```bash
+python analyze_bb_width_intraday.py \
+  --symbols HDFCBANK \
+  --bb-period 14 \
+  --bb-std 1.5 \
+  --market-start 09:30 \
+  --market-end 15:00 \
+  --detailed-report \
+  --verbose \
+  --output-file hdfc_custom_analysis.csv
+```
+
+### Example 3: All Instruments Analysis
+
+```bash
+python analyze_bb_width_intraday.py \
+  --lookback-days 30 \
+  --output-file all_instruments_30days.csv
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Failed**
+   - Check database credentials in `ConfigurationManager`
+   - Ensure MySQL server is running
+   - Verify network connectivity
+
+2. **No Data Found**
+   - Check if `stock_candle_data` table has data
+   - Verify `time_interval = '1min'` data exists
+   - Check symbol names in `stock_universe` table
+
+3. **Memory Issues**
+   - Reduce batch size in configuration
+   - Use shorter lookback periods
+   - Analyze fewer symbols at once
+
+4. **Performance Issues**
+   - Check database indexes
+   - Monitor database connection pool
+   - Use appropriate lookback periods
+
+### Debug Mode
+
+Use `--verbose` flag for detailed debugging information:
+
+```bash
+python analyze_bb_width_intraday.py --symbols RELIANCE --verbose
+```
+
+## Integration
+
+The analyzer can be integrated with other trading systems:
+
+- **API Integration**: Import classes for programmatic use
+- **Scheduled Analysis**: Run via cron jobs or task schedulers
+- **Data Pipeline**: Use as part of larger data processing pipelines
+- **Trading Signals**: Use results for trading signal generation
+
+## Future Enhancements
+
+- **Real-time Analysis**: Support for real-time data streaming
+- **Advanced Filters**: Additional technical indicators and filters
+- **Backtesting Integration**: Integration with backtesting frameworks
+- **Web Interface**: Web-based interface for analysis
+- **Alert System**: Email/SMS alerts for specific conditions
+- **Machine Learning**: ML-based pattern recognition
+
+## Support
+
+For issues and questions:
+- Check the logs in `output/logs/` directory
+- Review database connectivity and data availability
+- Verify command line parameters
+- Use `--verbose` flag for detailed debugging 
