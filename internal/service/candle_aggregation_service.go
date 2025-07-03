@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"setbull_trader/internal/core/dto/response"
@@ -94,46 +95,46 @@ func (s *CandleAggregationService) Get5MinCandles(
 	// Calculate RSI (14)
 	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
 
-	// Map indicator values by timestamp for fast lookup
+	// Map indicator values by timestamp for fast lookup, handling NaN values
 	ma9Map := make(map[time.Time]float64)
 	for _, v := range ma9 {
-		ma9Map[v.Timestamp] = v.Value
+		ma9Map[v.Timestamp] = handleNaN(v.Value)
 	}
 	bbUpperMap := make(map[time.Time]float64)
 	bbMiddleMap := make(map[time.Time]float64)
 	bbLowerMap := make(map[time.Time]float64)
 	for _, v := range bbUpper {
-		bbUpperMap[v.Timestamp] = v.Value
+		bbUpperMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	for _, v := range bbMiddle {
-		bbMiddleMap[v.Timestamp] = v.Value
+		bbMiddleMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	for _, v := range bbLower {
-		bbLowerMap[v.Timestamp] = v.Value
+		bbLowerMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	vwapMap := make(map[time.Time]float64)
 	for _, v := range vwap {
-		vwapMap[v.Timestamp] = v.Value
+		vwapMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	ema5Map := make(map[time.Time]float64)
 	for _, v := range ema5 {
-		ema5Map[v.Timestamp] = v.Value
+		ema5Map[v.Timestamp] = handleNaN(v.Value)
 	}
 	ema9emaMap := make(map[time.Time]float64)
 	for _, v := range ema9ema {
-		ema9emaMap[v.Timestamp] = v.Value
+		ema9emaMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	ema50Map := make(map[time.Time]float64)
 	for _, v := range ema50 {
-		ema50Map[v.Timestamp] = v.Value
+		ema50Map[v.Timestamp] = handleNaN(v.Value)
 	}
 	atrMap := make(map[time.Time]float64)
 	for _, v := range atr {
-		atrMap[v.Timestamp] = v.Value
+		atrMap[v.Timestamp] = handleNaN(v.Value)
 	}
 	rsiMap := make(map[time.Time]float64)
 	for _, v := range rsi {
-		rsiMap[v.Timestamp] = v.Value
+		rsiMap[v.Timestamp] = handleNaN(v.Value)
 	}
 
 	// Populate indicator fields in AggregatedCandle
@@ -676,4 +677,12 @@ func ExampleRegisterCandleCloseListener(s *CandleAggregationService) {
 			// Here you would trigger group execution logic, etc.
 		}
 	})
+}
+
+// handleNaN converts NaN and Infinity values to 0.0 to prevent JSON marshaling issues
+func handleNaN(value float64) float64 {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0.0
+	}
+	return value
 }

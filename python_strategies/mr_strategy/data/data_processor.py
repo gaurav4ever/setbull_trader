@@ -175,6 +175,7 @@ class ApiClient:
             'end': end_date
         }
         url = f"{url}?{urlencode(params)}"
+        logger.info(f"Fetching candles from {url}")
         
         try:
             # Make request with retry logic
@@ -1018,15 +1019,15 @@ class CandleProcessor:
                                if col not in ['timestamp', 'date']]
                 # remove open, high, low, close, volume, openInterest from daily_columns
                 daily_columns.remove('id')
-                daily_columns.remove('instrumentKey')
+                daily_columns.remove('instrument_key')
                 daily_columns.remove('open')
                 daily_columns.remove('high')
                 daily_columns.remove('low')
                 daily_columns.remove('close')
                 daily_columns.remove('volume')
-                daily_columns.remove('openInterest')
-                daily_columns.remove('timeInterval')
-                daily_columns.remove('createdAt')
+                daily_columns.remove('open_interest')
+                daily_columns.remove('time_interval')
+                daily_columns.remove('created_at')
                 
                 # Merge the data
                 df = df.merge(

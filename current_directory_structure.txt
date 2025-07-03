@@ -1,13 +1,10 @@
 .
-├── Dockerfile
-├── GOALS
-│   ├── 1_next_2_weeks.txt
-│   ├── 2_next_2_week.txt
-│   ├── 3_next_2_weekts.txt
-│   ├── 4_2025_GOAL.md
-│   └── 5_next_week.txt
-├── Makefile
-├── README.md
+├── __pycache__
+│   └── volatility_squeeze_analyzer.cpython-311.pyc
+├── analysis
+│   ├── 1.1_JAICORP.txt
+│   └── curl_requests
+│       └── 1.1_backtesting.txt
 ├── application.dev.yaml
 ├── application.yaml
 ├── cmd
@@ -47,8 +44,15 @@
 │   ├── post_order_api_doc.txt
 │   └── put_order_api_doc.txt
 ├── directory_tree.py
+├── Dockerfile
 ├── go.mod
 ├── go.sum
+├── GOALS
+│   ├── 1_next_2_weeks.txt
+│   ├── 2_next_2_week.txt
+│   ├── 3_next_2_weekts.txt
+│   ├── 4_2025_GOAL.md
+│   └── 5_next_week.txt
 ├── internal
 │   ├── core
 │   │   ├── adapters
@@ -100,8 +104,8 @@
 │   │   ├── 19th_may_log.txt
 │   │   ├── 20th_may_log.txt
 │   │   ├── 21st_may_log.txt
-│   │   ├── 22nd_may_log.txt
 │   │   ├── 22nd_may_log_consolidated.txt
+│   │   ├── 22nd_may_log.txt
 │   │   ├── 26th_may_log.txt
 │   │   ├── basic_filter.go
 │   │   ├── batch_fetch_service.go
@@ -110,15 +114,15 @@
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
-│   │   ├── group_execution_scheduler.go
 │   │   ├── group_execution_scheduler_test.go
+│   │   ├── group_execution_scheduler.go
 │   │   ├── group_execution_service.go
 │   │   ├── kb
 │   │   │   ├── 1.1_sotck_agent_service.md
 │   │   │   └── 1.2_stock_agent_service.md
-│   │   ├── log1pm.txt
-│   │   ├── log_915.txt
 │   │   ├── log_9_15.txt
+│   │   ├── log_915.txt
+│   │   ├── log1pm.txt
 │   │   ├── mamba_filter.go
 │   │   ├── market_quote_service.go
 │   │   ├── move_analyzer.go
@@ -158,8 +162,24 @@
 │   ├── 2.2_VWAP_technical_requirement.txt
 │   ├── 2.3_VWAP_learning.txt
 │   ├── 3.1_EMA_VWAP_BB_strategy.txt
-│   └── 3.2_EVB_questions_and_doubts.txt
+│   ├── 3.2_EVB_questions_and_doubts.txt
+│   ├── 3.3_EVB_requirement_context.txt
+│   ├── 3.4_EVB_Priority_items.txt
+│   ├── 3.5_EVB_data_columns.txt
+│   ├── 3.6_EVB_implementation1.txt
+│   ├── 4.1_polars_impl.txt
+│   ├── 5.1_volatility_squeeze_strategy.txt
+│   ├── 5.2_volatility_squeeze_system_architecture.md
+│   ├── 5.3_volatility_squeeze_code_walkthrough.md
+│   └── 5.4_volatility_squeeze_intraday.txt
+├── Learning
+│   ├── 1.1_scalping_every_hour.txt
+│   └── 1.2_my_position_sizing_techniques.txt
+├── logs
+│   ├── 4th_june_log.txt
+│   └── 5th_june_log.txt
 ├── main.go
+├── Makefile
 ├── nse_stocks.txt
 ├── nse_upstox.json
 ├── performance_analyzer.py
@@ -192,8 +212,15 @@
 │   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.down.sql
 │   │   │   ├── 20250507205336_alter_trade_parameters_and_level_entries_table.up.sql
 │   │   │   ├── 20250711120000_create_stock_group_tables.down.sql
-│   │   │   └── 20250711120000_create_stock_group_tables.up.sql
+│   │   │   ├── 20250711120000_create_stock_group_tables.up.sql
+│   │   │   ├── 20250730174403_stock_candle_data_table_new_columns.sql.down.sql
+│   │   │   ├── 20250730174403_stock_candle_data_table_new_columns.sql.up.sql
+│   │   │   ├── 20250730191948_add_ema_atr_rsi_to_stock_candle_data.sql.down.sql
+│   │   │   ├── 20250730191948_add_ema_atr_rsi_to_stock_candle_data.sql.up.sql
+│   │   │   ├── 20250801000000_add_bb_width_to_stock_candle_data.down.sql
+│   │   │   └── 20250801000000_add_bb_width_to_stock_candle_data.up.sql
 │   │   └── queries
+│   │       ├── 1.1_query_all.txt
 │   │       ├── stock_candle_data_1day_aggregation.sql
 │   │       └── stock_candle_data_5min_aggregation.sql
 │   ├── log
@@ -201,15 +228,16 @@
 │   └── util
 │       └── stockparser
 │           └── nse_parser.go
+├── README.md
 ├── strategies
 │   ├── 1st_entry_strategy.pine
 │   └── kb
+│       ├── 1_init.md
 │       ├── 1.1_design.md
 │       ├── 1.2_directory_structure_with_python.md
 │       ├── 1.3_phase_breakdown.md
 │       ├── 1.4_modelling.md
-│       ├── 1.5_knowledge_graphy.md
-│       └── 1_init.md
+│       └── 1.5_knowledge_graphy.md
 ├── trading_data.csv
 └── training
     ├── 1_execution_requirement.txt
@@ -222,4 +250,4 @@
     ├── 8_stock_universe_daily_candle.txt
     └── 9_filter_pipeline.txt
 
-45 directories, 178 files
+50 directories, 201 files

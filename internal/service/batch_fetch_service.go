@@ -12,16 +12,18 @@ import (
 
 // BatchFetchService handles batch fetching of historical data for multiple instruments
 type BatchFetchService struct {
-	candleService   *CandleProcessingService
-	maxConcurrent   int
-	defaultFromDate string
-	defaultToDate   string
-	defaultInterval string
+	candleService        *CandleProcessingService
+	stockUniverseService *StockUniverseService
+	maxConcurrent        int
+	defaultFromDate      string
+	defaultToDate        string
+	defaultInterval      string
 }
 
 // NewBatchFetchService creates a new batch fetch service
 func NewBatchFetchService(
 	candleService *CandleProcessingService,
+	stockUniverseService *StockUniverseService,
 	maxConcurrent int,
 ) *BatchFetchService {
 	if maxConcurrent <= 0 {
@@ -34,11 +36,12 @@ func NewBatchFetchService(
 	defaultFromDate := now.AddDate(0, 0, -30).Format("2006-01-02")
 
 	return &BatchFetchService{
-		candleService:   candleService,
-		maxConcurrent:   maxConcurrent,
-		defaultFromDate: defaultFromDate,
-		defaultToDate:   defaultToDate,
-		defaultInterval: "1minute",
+		candleService:        candleService,
+		stockUniverseService: stockUniverseService,
+		maxConcurrent:        maxConcurrent,
+		defaultFromDate:      defaultFromDate,
+		defaultToDate:        defaultToDate,
+		defaultInterval:      "1minute",
 	}
 }
 
@@ -48,7 +51,6 @@ func (s *BatchFetchService) ProcessBatchRequest(
 	request *domain.BatchStoreHistoricalDataRequest,
 ) (*domain.BatchProcessResultData, error) {
 	startTime := time.Now()
-	log.Info("Starting batch processing for %d instruments", len(request.InstrumentKeys))
 
 	// Validate and set defaults for request parameters
 	if request.Interval == "" {
@@ -63,9 +65,44 @@ func (s *BatchFetchService) ProcessBatchRequest(
 		request.FromDate = s.defaultFromDate
 	}
 
+	// Determine which instrument keys to process
+	var instrumentKeys []string
+
+	if len(request.InstrumentKeys) > 0 {
+		// Use provided instrument keys
+		instrumentKeys = request.InstrumentKeys
+		log.Info("Starting batch processing for %d specified instruments", len(instrumentKeys))
+	} else {
+		// Fetch all stocks from universe
+		log.Info("No instrument keys provided, fetching all stocks from universe")
+		stocks, _, err := s.stockUniverseService.GetAllStocks(ctx, false, 1, 10000)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get stocks from universe: %w", err)
+		}
+
+		// Extract instrument keys from stocks
+		instrumentKeys = make([]string, 0, len(stocks))
+		for _, stock := range stocks {
+			if stock.InstrumentKey != "" {
+				instrumentKeys = append(instrumentKeys, stock.InstrumentKey)
+			}
+		}
+
+		log.Info("Retrieved %d instrument keys from universe", len(instrumentKeys))
+	}
+
+	if len(instrumentKeys) == 0 {
+		return &domain.BatchProcessResultData{
+			ProcessedItems:  0,
+			SuccessfulItems: 0,
+			FailedItems:     0,
+			Details:         []domain.InstrumentProcessed{},
+		}, nil
+	}
+
 	// Process instruments concurrently with a semaphore to limit concurrency
 	sem := make(chan struct{}, s.maxConcurrent)
-	resultsChan := make(chan *domain.ProcessingResult, len(request.InstrumentKeys))
+	resultsChan := make(chan *domain.ProcessingResult, len(instrumentKeys))
 	var wg sync.WaitGroup
 
 	// Create a child context that can be canceled
@@ -73,7 +110,7 @@ func (s *BatchFetchService) ProcessBatchRequest(
 	defer cancel()
 
 	// Process each instrument concurrently
-	for _, instrumentKey := range request.InstrumentKeys {
+	for _, instrumentKey := range instrumentKeys {
 		wg.Add(1)
 
 		go func(key string) {
@@ -126,6 +163,8 @@ func (s *BatchFetchService) ProcessBatchRequest(
 				RecordsStored: recordCount,
 			}
 		}(instrumentKey)
+
+		time.Sleep(1 * time.Second)
 	}
 
 	// Wait for all goroutines to complete in a separate goroutine
@@ -135,7 +174,7 @@ func (s *BatchFetchService) ProcessBatchRequest(
 	}()
 
 	// Collect results
-	results := make([]*domain.ProcessingResult, 0, len(request.InstrumentKeys))
+	results := make([]*domain.ProcessingResult, 0, len(instrumentKeys))
 	for result := range resultsChan {
 		results = append(results, result)
 	}

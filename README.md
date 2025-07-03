@@ -141,6 +141,70 @@ The frontend is built with SvelteKit and includes:
 | `/api/v1/trades/history` | GET | Get historical trade data with filtering |
 | `/api/v1/health` | GET | Health check endpoint |
 
+### Historical Data Management
+
+#### Batch Store Historical Data
+**Endpoint:** `POST /api/v1/historical-data/batch-store`
+
+Stores historical candle data for multiple instruments. If no instrument keys are provided, it fetches all stocks from the universe.
+
+**Request Body:**
+```json
+{
+  "instrumentKeys": ["NSE_EQ|INE005B01027", "NSE_EQ|INE349Y01013"],  // Optional: if not provided, fetches all from universe
+  "interval": "1minute",  // Required: 1minute, 5minute, 30minute, day, week, month
+  "fromDate": "2024-01-01",  // Required: YYYY-MM-DD format
+  "toDate": "2024-01-31"     // Required: YYYY-MM-DD format
+}
+```
+
+**Examples:**
+
+1. **Fetch specific stocks:**
+```json
+{
+  "instrumentKeys": ["NSE_EQ|INE005B01027", "NSE_EQ|INE349Y01013"],
+  "interval": "1minute",
+  "fromDate": "2024-01-01",
+  "toDate": "2024-01-31"
+}
+```
+
+2. **Fetch all stocks from universe:**
+```json
+{
+  "interval": "1minute",
+  "fromDate": "2024-01-01",
+  "toDate": "2024-01-31"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": {
+    "processedItems": 2,
+    "successfulItems": 2,
+    "failedItems": 0,
+    "details": [
+      {
+        "instrumentKey": "NSE_EQ|INE005B01027",
+        "status": "success",
+        "recordsStored": 1500,
+        "message": "Successfully processed 1500 records"
+      },
+      {
+        "instrumentKey": "NSE_EQ|INE349Y01013",
+        "status": "success",
+        "recordsStored": 1200,
+        "message": "Successfully processed 1200 records"
+      }
+    ]
+  }
+}
+```
+
 ## Troubleshooting
 
 ### Common Issues

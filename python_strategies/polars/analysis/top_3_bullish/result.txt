@@ -1,28 +1,28 @@
-python /Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/analyze_bb_width.py 
+python /Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/analyze_bb_width_intraday.py
 Columns in loaded CSV: ['id', 'instrument_key', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'open_interest', 'time_interval', 'created_at', 'ma_9', 'bb_upper', 'bb_middle', 'bb_lower', 'vwap', 'partition_yyyymm', 'ema_5', 'ema_9', 'ema_50', 'atr', 'rsi', 'bb_width']
 
 ==================== Processing Instrument: ('NSE_EQ|INE005B01027',) ====================
 Warning for '('NSE_EQ|INE005B01027',)': Not enough days in data. Found 4, using all of them.
-/Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/analyze_bb_width.py:83: DeprecationWarning: `is_in` with a collection of the same datatype is ambiguous and deprecated.
+/Users/gaurav/setbull_projects/setbull_trader/python_strategies/polars/analysis/analyze_bb_width_intraday.py:83: DeprecationWarning: `is_in` with a collection of the same datatype is ambiguous and deprecated.
 Please use `implode` to return to previous behavior.
 
 See https://github.com/pola-rs/polars/issues/22149 for more information.
   analysis_df = grouped.filter(pl.col("date").is_in(last_n_dates))
 
---- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE005B01027, AVANTEL',) ---
+--- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE005B01027',) ---
 shape: (4, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │
 │ ---        ┆ ---          ┆ ---          │
 │ date       ┆ f64          ┆ f64          │
 ╞════════════╪══════════════╪══════════════╡
-│ 2025-06-02 ┆ 0.006828     ┆ 0.154132     │ 1:17
-│ 2025-06-03 ┆ 0.007785     ┆ 0.140768     │ 1:3.7
-│ 2025-06-04 ┆ 0.008732     ┆ 0.052183     │ 
+│ 2025-06-02 ┆ 0.006828     ┆ 0.154132     │
+│ 2025-06-03 ┆ 0.007785     ┆ 0.140768     │
+│ 2025-06-04 ┆ 0.008732     ┆ 0.052183     │
 │ 2025-06-05 ┆ 0.017886     ┆ 0.139083     │
 └────────────┴──────────────┴──────────────┘
 
---- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE005B01027', AVANTEL) ---
+--- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE005B01027',) ---
 shape: (4, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │
@@ -37,21 +37,21 @@ shape: (4, 3)
 
 ==================== Processing Instrument: ('NSE_EQ|INE863B01029',) ====================
 
---- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE863B01029', PREMEXPLN) ---
+--- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE863B01029',) ---
 shape: (5, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │
 │ ---        ┆ ---          ┆ ---          │
 │ date       ┆ f64          ┆ f64          │
 ╞════════════╪══════════════╪══════════════╡
-│ 2025-05-23 ┆ 9.2453e-8    ┆ 0.220775     │ 
-│ 2025-05-29 ┆ 0.00421      ┆ 0.022257     │ 1:4.22
-│ 2025-06-05 ┆ 0.004876     ┆ 0.027858     │ 1:2.5
-│ 2025-05-12 ┆ 0.005929     ┆ 0.114682     │ LOSS
-│ 2025-06-04 ┆ 0.007048     ┆ 0.028874     │ NA
+│ 2025-05-23 ┆ 9.2453e-8    ┆ 0.220775     │
+│ 2025-05-29 ┆ 0.00421      ┆ 0.022257     │
+│ 2025-06-05 ┆ 0.004876     ┆ 0.027858     │
+│ 2025-05-12 ┆ 0.005929     ┆ 0.114682     │
+│ 2025-06-04 ┆ 0.007048     ┆ 0.028874     │
 └────────────┴──────────────┴──────────────┘
 
---- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE863B01029', PREMEXPLN) ---
+--- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE863B01029',) ---
 shape: (5, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │
@@ -68,20 +68,20 @@ shape: (5, 3)
 ==================== Processing Instrument: ('NSE_EQ|INE349Y01013',) ====================
 Warning for '('NSE_EQ|INE349Y01013',)': Not enough days in data. Found 4, using all of them.
 
---- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE349Y01013', IDEAFORGE) ---
+--- Top 5 Days with Lowest 10th Percentile BB_Width (Contraction) for ('NSE_EQ|INE349Y01013',) ---
 shape: (4, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │
 │ ---        ┆ ---          ┆ ---          │
 │ date       ┆ f64          ┆ f64          │
 ╞════════════╪══════════════╪══════════════╡
-│ 2025-06-02 ┆ 0.004843     ┆ 0.327693     │ NA
-│ 2025-06-05 ┆ 0.010334     ┆ 0.052116     │ 1:5
-│ 2025-06-03 ┆ 0.012149     ┆ 0.060534     │ 1:4
-│ 2025-06-04 ┆ 0.01432      ┆ 0.098163     │ NA
+│ 2025-06-02 ┆ 0.004843     ┆ 0.327693     │
+│ 2025-06-05 ┆ 0.010334     ┆ 0.052116     │
+│ 2025-06-03 ┆ 0.012149     ┆ 0.060534     │
+│ 2025-06-04 ┆ 0.01432      ┆ 0.098163     │
 └────────────┴──────────────┴──────────────┘
 
---- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE349Y01013', IDEAFORGE) ---
+--- Top 5 Days with Highest 95th Percentile BB_Width (Expansion) for ('NSE_EQ|INE349Y01013',) ---
 shape: (4, 3)
 ┌────────────┬──────────────┬──────────────┐
 │ date       ┆ p10_bb_width ┆ p95_bb_width │

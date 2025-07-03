@@ -116,7 +116,7 @@ type ValidationError struct {
 
 // BatchStoreHistoricalDataRequest represents the request body for storing historical data
 type BatchStoreHistoricalDataRequest struct {
-	InstrumentKeys []string `json:"instrumentKeys" validate:"required,min=1"`
+	InstrumentKeys []string `json:"instrumentKeys"`
 	Interval       string   `json:"interval" validate:"required,oneof=1minute 5minute 30minute day week month"`
 	FromDate       string   `json:"fromDate" validate:"required,datetime=2006-01-02"`
 	ToDate         string   `json:"toDate" validate:"required,datetime=2006-01-02"`

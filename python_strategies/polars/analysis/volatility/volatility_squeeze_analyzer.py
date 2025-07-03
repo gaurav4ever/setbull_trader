@@ -7,9 +7,9 @@ This script implements a complete volatility squeeze trading system that identif
 stocks experiencing periods of exceptionally low volatility (consolidation) that
 typically precede significant price movements.
 
-Author: Setbull Trader Team
+Author: Gaurav Sharma - CEO, Setbull Trader
 Version: 1.0.0
-Date: 2024
+Date: 2025-06-30
 """
 
 import polars as pl
