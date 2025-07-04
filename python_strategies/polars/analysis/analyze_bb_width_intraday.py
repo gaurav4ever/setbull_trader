@@ -116,6 +116,199 @@ class DatabaseManager:
         except Exception as e:
             self.logger.error(f"Query execution failed: {e}")
             return None
+    
+    def update_lowest_bb_width(self, instrument_key: str, lowest_bb_width: float) -> bool:
+        """Update the lowest_bb_width column for all candles of a specific instrument."""
+        try:
+            query = """
+            UPDATE stock_candle_data 
+            SET lowest_bb_width = %s 
+            WHERE instrument_key = %s
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (lowest_bb_width, instrument_key))
+            rows_affected = cursor.rowcount
+            cursor.close()
+            
+            self.logger.info(f"Updated lowest_bb_width to {lowest_bb_width:.4f} for {instrument_key} ({rows_affected} rows affected)")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to update lowest_bb_width for {instrument_key}: {e}")
+            return False
+    
+    def batch_update_lowest_bb_width(self, updates: List[Tuple[str, float]]) -> Dict[str, bool]:
+        """Batch update lowest_bb_width for multiple instruments."""
+        results = {}
+        try:
+            cursor = self.connection.cursor()
+            
+            for instrument_key, lowest_bb_width in updates:
+                try:
+                    query = """
+                    UPDATE stock_candle_data 
+                    SET lowest_bb_width = %s 
+                    WHERE instrument_key = %s
+                    """
+                    cursor.execute(query, (lowest_bb_width, instrument_key))
+                    rows_affected = cursor.rowcount
+                    results[instrument_key] = True
+                    self.logger.info(f"Updated lowest_bb_width to {lowest_bb_width:.4f} for {instrument_key} ({rows_affected} rows affected)")
+                except Exception as e:
+                    self.logger.error(f"Failed to update lowest_bb_width for {instrument_key}: {e}")
+                    results[instrument_key] = False
+            
+            cursor.close()
+            return results
+        except Exception as e:
+            self.logger.error(f"Batch update failed: {e}")
+            return results
+    
+    def get_lowest_bb_width_summary(self) -> Optional[pd.DataFrame]:
+        """Get a summary of current lowest_bb_width values in the database."""
+        try:
+            query = """
+            SELECT 
+                instrument_key,
+                COUNT(*) as total_candles,
+                COUNT(lowest_bb_width) as candles_with_lowest_bb,
+                MIN(lowest_bb_width) as min_lowest_bb,
+                MAX(lowest_bb_width) as max_lowest_bb,
+                AVG(lowest_bb_width) as avg_lowest_bb
+            FROM stock_candle_data 
+            GROUP BY instrument_key 
+            HAVING COUNT(lowest_bb_width) > 0
+            ORDER BY avg_lowest_bb ASC
+            """
+            
+            df = self.execute_query(query)
+            if df is not None and not df.empty:
+                self.logger.info(f"Found {len(df)} instruments with lowest_bb_width data")
+            return df
+        except Exception as e:
+            self.logger.error(f"Failed to get lowest BB width summary: {e}")
+            return None
+    
+    def update_from_csv(self, csv_file_path: str, symbol_column: str = "symbol", 
+                       lowest_bb_column: str = "lowest_min_bb_width") -> Dict[str, bool]:
+        """Update database from CSV file containing lowest BB width data."""
+        try:
+            # Read CSV file
+            if not os.path.exists(csv_file_path):
+                self.logger.error(f"CSV file not found: {csv_file_path}")
+                return {}
+            
+            # Read CSV with Polars for better performance
+            df = pl.read_csv(csv_file_path)
+            self.logger.info(f"Loaded CSV with {df.height} records and columns: {df.columns}")
+            
+            # Validate required columns
+            if symbol_column not in df.columns:
+                self.logger.error(f"Symbol column '{symbol_column}' not found in CSV. Available columns: {df.columns}")
+                return {}
+            
+            if lowest_bb_column not in df.columns:
+                self.logger.error(f"Lowest BB width column '{lowest_bb_column}' not found in CSV. Available columns: {df.columns}")
+                return {}
+            
+            # Filter out records with invalid lowest BB width values
+            # First, try to convert to float and filter out nulls and zeros
+            df = df.with_columns(
+                pl.col(lowest_bb_column).cast(pl.Float64).alias("bb_width_float")
+            ).filter(
+                pl.col("bb_width_float").is_not_null() & 
+                (pl.col("bb_width_float") > 0)
+            )
+            
+            if df.is_empty():
+                self.logger.warning("No valid lowest BB width values found in CSV")
+                return {}
+            
+            self.logger.info(f"Found {df.height} records with valid lowest BB width values")
+            
+            # Get unique symbols
+            symbols = df[symbol_column].unique().to_list()
+            self.logger.info(f"Processing {len(symbols)} unique symbols")
+            
+            # Get instrument keys for symbols
+            symbol_to_instrument = self._get_instrument_keys_for_symbols(symbols)
+            if not symbol_to_instrument:
+                self.logger.error("No instrument keys found for symbols in CSV")
+                return {}
+            
+            # Prepare updates
+            updates = []
+            results = {}
+            
+            for symbol in symbols:
+                if symbol not in symbol_to_instrument:
+                    self.logger.warning(f"No instrument key found for symbol: {symbol}")
+                    results[symbol] = False
+                    continue
+                
+                instrument_key = symbol_to_instrument[symbol]
+                
+                # Get the lowest BB width value for this symbol
+                symbol_data = df.filter(pl.col(symbol_column) == symbol)
+                if symbol_data.is_empty():
+                    self.logger.warning(f"No data found for symbol: {symbol}")
+                    results[symbol] = False
+                    continue
+                
+                # Get the first valid value (assuming all values for a symbol are the same)
+                lowest_bb_value = symbol_data["bb_width_float"].item(0)
+                
+                # The value is already converted to float and validated
+                updates.append((instrument_key, lowest_bb_value))
+                self.logger.info(f"Prepared update for {symbol} ({instrument_key}): {lowest_bb_value:.4f}")
+            
+            # Perform batch update
+            if updates:
+                self.logger.info(f"Updating database with {len(updates)} instruments from CSV")
+                update_results = self.batch_update_lowest_bb_width(updates)
+                
+                # Map results back to symbols
+                for symbol, instrument_key in symbol_to_instrument.items():
+                    if instrument_key in update_results:
+                        results[symbol] = update_results[instrument_key]
+                    else:
+                        results[symbol] = False
+            else:
+                self.logger.warning("No valid updates prepared from CSV")
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Failed to update from CSV: {e}")
+            return {}
+    
+    def _get_instrument_keys_for_symbols(self, symbols: List[str]) -> Dict[str, str]:
+        """Get instrument keys for given symbols."""
+        try:
+            if not symbols:
+                return {}
+            
+            placeholders = ','.join(['%s'] * len(symbols))
+            query = f"""
+            SELECT symbol, instrument_key
+            FROM stock_universe
+            WHERE symbol IN ({placeholders})
+            """
+            
+            df = self.execute_query(query, tuple(symbols))
+            if df is None or df.empty:
+                return {}
+            
+            # Create mapping
+            symbol_to_instrument = {}
+            for _, row in df.iterrows():
+                symbol_to_instrument[row['symbol']] = row['instrument_key']
+            
+            self.logger.info(f"Found instrument keys for {len(symbol_to_instrument)} symbols")
+            return symbol_to_instrument
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get instrument keys for symbols: {e}")
+            return {}
 
 class LoggingManager:
     """Manages logging configuration and setup."""
@@ -441,12 +634,14 @@ class IntradayAnalyzer:
             self.logger.error(f"Analysis failed for {symbol}: {e}")
             return None
     
-    def analyze_multiple_instruments(self, instruments: List[Dict], lookback_days: Optional[int] = None) -> List[Dict]:
+    def analyze_multiple_instruments(self, instruments: List[Dict], lookback_days: Optional[int] = None, update_database: bool = False) -> List[Dict]:
         """Analyze multiple instruments."""
         try:
             self.logger.info(f"Starting analysis of {len(instruments)} instruments")
             
             results = []
+            database_updates = []  # Store updates for batch processing
+            
             for instrument in tqdm(instruments, desc="Analyzing instruments"):
                 result = self.analyze_instrument(
                     instrument['instrument_key'], 
@@ -455,6 +650,27 @@ class IntradayAnalyzer:
                 )
                 if result:
                     results.append(result)
+                    
+                    # Extract lowest BB width for database update (if enabled)
+                    if update_database:
+                        lowest_day = result.get("lowest_bb_day", {})
+                        lowest_min_bb_width = lowest_day.get("min_bb_width", 0)
+                        
+                        if lowest_min_bb_width > 0:
+                            database_updates.append((
+                                instrument['instrument_key'], 
+                                lowest_min_bb_width
+                            ))
+            
+            # Batch update database with lowest BB width values (if enabled)
+            if update_database and database_updates:
+                self.logger.info(f"Updating database with lowest BB width for {len(database_updates)} instruments")
+                update_results = self.db_manager.batch_update_lowest_bb_width(database_updates)
+                
+                successful_updates = sum(1 for success in update_results.values() if success)
+                self.logger.info(f"Database update complete: {successful_updates}/{len(database_updates)} successful")
+            elif update_database:
+                self.logger.info("No valid lowest BB width values found for database update")
             
             self.logger.info(f"Analysis complete. Processed {len(results)} instruments")
             return results
@@ -589,6 +805,30 @@ class IntradayAnalyzer:
         except Exception as e:
             self.logger.error(f"Intraday analysis failed for {symbol}: {e}")
             return None
+    
+    def update_instrument_lowest_bb_width(self, instrument_key: str, symbol: str, lookback_days: Optional[int] = None) -> bool:
+        """Analyze a single instrument and update its lowest BB width in the database."""
+        try:
+            result = self.analyze_instrument(instrument_key, symbol, lookback_days)
+            if not result:
+                return False
+            
+            # Extract lowest BB width
+            lowest_day = result.get("lowest_bb_day", {})
+            lowest_min_bb_width = lowest_day.get("min_bb_width", 0)
+            
+            if lowest_min_bb_width > 0:
+                success = self.db_manager.update_lowest_bb_width(instrument_key, lowest_min_bb_width)
+                if success:
+                    self.logger.info(f"Successfully updated lowest BB width for {symbol} ({instrument_key}): {lowest_min_bb_width:.4f}")
+                return success
+            else:
+                self.logger.warning(f"No valid lowest BB width found for {symbol} ({instrument_key})")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"Failed to update lowest BB width for {symbol}: {e}")
+            return False
 
 # =============================================================================
 # SECTION 4: OUTPUT GENERATION
@@ -852,6 +1092,20 @@ def main():
     parser.add_argument("--verbose", action='store_true',
                        help="Enable verbose logging")
     
+    # Database update parameters
+    parser.add_argument("--update-database", action='store_true',
+                       help="Update lowest_bb_width column in database for analyzed instruments")
+    parser.add_argument("--skip-csv-output", action='store_true',
+                       help="Skip CSV output generation (useful when only updating database)")
+    parser.add_argument("--show-db-summary", action='store_true',
+                       help="Show summary of current lowest_bb_width values in database")
+    parser.add_argument("--update-from-csv", type=str,
+                       help="Update database from existing CSV file (provide CSV file path)")
+    parser.add_argument("--csv-symbol-column", type=str, default="symbol",
+                       help="Column name for symbol in CSV (default: symbol)")
+    parser.add_argument("--csv-lowest-bb-column", type=str, default="lowest_min_bb_width",
+                       help="Column name for lowest BB width in CSV (default: lowest_min_bb_width)")
+    
     args = parser.parse_args()
     
     # Initialize configuration
@@ -888,6 +1142,47 @@ def main():
         analyzer = IntradayAnalyzer(config, db_manager)
         output_generator = OutputGenerator(config)
         
+        # Show database summary if requested
+        if args.show_db_summary:
+            logger.info("Fetching database summary...")
+            summary_df = db_manager.get_lowest_bb_width_summary()
+            if summary_df is not None and not summary_df.empty:
+                logger.info(f"\nDatabase Summary (Top 10 instruments with lowest BB width):")
+                logger.info(summary_df.head(10).to_string(index=False))
+            else:
+                logger.info("No lowest_bb_width data found in database")
+            return
+        
+        # Update database from CSV if requested
+        if args.update_from_csv:
+            logger.info(f"Updating database from CSV file: {args.update_from_csv}")
+            monitor.start_timer("csv_update")
+            
+            update_results = db_manager.update_from_csv(
+                args.update_from_csv,
+                args.csv_symbol_column,
+                args.csv_lowest_bb_column
+            )
+            
+            monitor.end_timer("csv_update")
+            
+            if update_results:
+                successful_updates = sum(1 for success in update_results.values() if success)
+                total_updates = len(update_results)
+                
+                logger.info(f"\nCSV Update Summary:")
+                logger.info(f"  Total symbols processed: {total_updates}")
+                logger.info(f"  Successful updates: {successful_updates}")
+                logger.info(f"  Failed updates: {total_updates - successful_updates}")
+                
+                if successful_updates < total_updates:
+                    failed_symbols = [symbol for symbol, success in update_results.items() if not success]
+                    logger.warning(f"Failed symbols: {failed_symbols}")
+            else:
+                logger.error("No updates performed from CSV")
+            
+            return
+        
         # Determine instruments to analyze
         if args.symbols:
             logger.info(f"Analyzing specific symbols: {args.symbols}")
@@ -907,34 +1202,44 @@ def main():
         # Perform analysis
         logger.info(f"Starting analysis of {len(instruments)} instruments")
         monitor.start_timer("analysis")
-        results = analyzer.analyze_multiple_instruments(instruments, args.lookback_days)
+        results = analyzer.analyze_multiple_instruments(instruments, args.lookback_days, args.update_database)
         monitor.end_timer("analysis")
         
         if not results:
             logger.warning("No analysis results generated")
             return
         
-        # Generate outputs
-        logger.info("Generating output files")
-        monitor.start_timer("output_generation")
-        
-        # Generate main CSV output
-        csv_path = output_generator.generate_csv_output(results, args.output_file)
-        
-        # Generate detailed report if requested
-        if args.detailed_report:
-            detailed_filename = f"detailed_{args.output_file}"
-            detailed_path = output_generator.generate_detailed_report(results, detailed_filename)
-        
-        monitor.end_timer("output_generation")
+        # Generate outputs (if not skipped)
+        if not args.skip_csv_output:
+            logger.info("Generating output files")
+            monitor.start_timer("output_generation")
+            
+            # Generate main CSV output
+            csv_path = output_generator.generate_csv_output(results, args.output_file)
+            
+            # Generate detailed report if requested
+            if args.detailed_report:
+                detailed_filename = f"detailed_{args.output_file}"
+                detailed_path = output_generator.generate_detailed_report(results, detailed_filename)
+            
+            monitor.end_timer("output_generation")
+        else:
+            logger.info("Skipping CSV output generation as requested")
+            csv_path = "skipped"
+            detailed_path = "skipped"
         
         # Display summary
         logger.info(f"\nAnalysis Summary:")
         logger.info(f"  Instruments analyzed: {len(instruments)}")
         logger.info(f"  Successful analyses: {len(results)}")
-        logger.info(f"  Output file: {csv_path}")
-        if args.detailed_report:
-            logger.info(f"  Detailed report: {detailed_path}")
+        if args.update_database:
+            logger.info(f"  Database updates: Enabled")
+        if not args.skip_csv_output:
+            logger.info(f"  Output file: {csv_path}")
+            if args.detailed_report:
+                logger.info(f"  Detailed report: {detailed_path}")
+        else:
+            logger.info(f"  CSV output: Skipped")
         
         # Display top 5 lowest BB width instruments
         if results:
