@@ -619,6 +619,8 @@ func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Can
 	}
 
 	// reverse the candles
+	// Because the normal candle order is New to Old.
+	// But to calculate indicators correctly, we need to reverse the candles order from old to new.
 	reverseCandles := make([]domain.Candle, len(candles))
 	for i, c := range candles {
 		reverseCandles[len(candles)-1-i] = c
