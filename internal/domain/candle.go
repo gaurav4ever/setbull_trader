@@ -20,17 +20,18 @@ type Candle struct {
 	CreatedAt     time.Time `json:"created_at" gorm:"autoCreateTime"`
 
 	// Indicator fields for integration
-	MA9      float64 `json:"ma_9" gorm:"column:ma_9"`
-	BBUpper  float64 `json:"bb_upper" gorm:"column:bb_upper"`
-	BBMiddle float64 `json:"bb_middle" gorm:"column:bb_middle"`
-	BBLower  float64 `json:"bb_lower" gorm:"column:bb_lower"`
-	VWAP     float64 `json:"vwap" gorm:"column:vwap"`
-	EMA5     float64 `json:"ema_5" gorm:"column:ema_5"`
-	EMA9     float64 `json:"ema_9" gorm:"column:ema_9"`
-	EMA50    float64 `json:"ema_50" gorm:"column:ema_50"`
-	ATR      float64 `json:"atr" gorm:"column:atr"`
-	RSI      float64 `json:"rsi" gorm:"column:rsi"`
-	BBWidth  float64 `json:"bb_width" gorm:"column:bb_width"`
+	MA9           float64 `json:"ma_9" gorm:"column:ma_9"`
+	BBUpper       float64 `json:"bb_upper" gorm:"column:bb_upper"`
+	BBMiddle      float64 `json:"bb_middle" gorm:"column:bb_middle"`
+	BBLower       float64 `json:"bb_lower" gorm:"column:bb_lower"`
+	VWAP          float64 `json:"vwap" gorm:"column:vwap"`
+	EMA5          float64 `json:"ema_5" gorm:"column:ema_5"`
+	EMA9          float64 `json:"ema_9" gorm:"column:ema_9"`
+	EMA50         float64 `json:"ema_50" gorm:"column:ema_50"`
+	ATR           float64 `json:"atr" gorm:"column:atr"`
+	RSI           float64 `json:"rsi" gorm:"column:rsi"`
+	BBWidth       float64 `json:"bb_width" gorm:"column:bb_width"`
+	LowestBBWidth float64 `json:"lowest_bb_width" gorm:"column:lowest_bb_width"`
 }
 
 // TableName returns the table name for the Candle model
@@ -93,16 +94,18 @@ type AggregatedCandle struct {
 	TimeInterval  string    `json:"time_interval"`
 
 	// Indicator fields for integration
-	MA9      float64 `json:"ma_9"`
-	BBUpper  float64 `json:"bb_upper"`
-	BBMiddle float64 `json:"bb_middle"`
-	BBLower  float64 `json:"bb_lower"`
-	VWAP     float64 `json:"vwap"`
-	EMA5     float64 `json:"ema_5"`
-	EMA9     float64 `json:"ema_9"`
-	EMA50    float64 `json:"ema_50"`
-	ATR      float64 `json:"atr"`
-	RSI      float64 `json:"rsi"`
+	MA9           float64 `json:"ma_9"`
+	BBUpper       float64 `json:"bb_upper"`
+	BBMiddle      float64 `json:"bb_middle"`
+	BBLower       float64 `json:"bb_lower"`
+	VWAP          float64 `json:"vwap"`
+	EMA5          float64 `json:"ema_5"`
+	EMA9          float64 `json:"ema_9"`
+	EMA50         float64 `json:"ema_50"`
+	ATR           float64 `json:"atr"`
+	RSI           float64 `json:"rsi"`
+	BBWidth       float64 `json:"bb_width"`
+	LowestBBWidth float64 `json:"lowest_bb_width"`
 }
 
 // DailyCandelFetchResult represents the result of a batch operation to fetch daily candles

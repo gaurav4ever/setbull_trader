@@ -1,11 +1,12 @@
 package response
 
 type Ohlc struct {
-	Open    float64 `json:"open,omitempty"`
-	High    float64 `json:"high,omitempty"`
-	Low     float64 `json:"low,omitempty"`
-	Close   float64 `json:"close,omitempty"`
-	BBWidth float64 `json:"bb_width,omitempty"`
+	Open          float64 `json:"open,omitempty"`
+	High          float64 `json:"high,omitempty"`
+	Low           float64 `json:"low,omitempty"`
+	Close         float64 `json:"close,omitempty"`
+	BBWidth       float64 `json:"bb_width,omitempty"`
+	LowestBBWidth float64 `json:"lowest_bb_width,omitempty"`
 }
 
 type MarketQuotesResponse struct {
