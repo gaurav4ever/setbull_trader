@@ -17,6 +17,7 @@ class IntradayDataProcessor:
             'ema_indicators': self._process_ema_indicators,
             'rsi_indicators': self._process_rsi_indicators,
             'atr_indicators': self._process_atr_indicators,
+            'bb_indicators': self._process_bb_indicators,
         }
     
     def process(self, intraday_df: pd.DataFrame) -> pd.DataFrame:
@@ -65,4 +66,25 @@ class IntradayDataProcessor:
         ranges = pd.concat([high_low, high_close, low_close], axis=1)
         true_range = np.max(ranges, axis=1)
         df['INTRADAY_ATR_14'] = true_range.rolling(14).mean()
+        return df
+    
+    def _process_bb_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate Bollinger Bands indicators."""
+        # Get BB parameters from config or use defaults
+        bb_period = self.config.get('bb_period', 20)
+        bb_std_dev = self.config.get('bb_std_dev', 2.0)
+        
+        # Calculate BB middle (SMA)
+        df['bb_middle'] = df['close'].rolling(window=bb_period).mean()
+        
+        # Calculate BB standard deviation
+        bb_std = df['close'].rolling(window=bb_period).std()
+        
+        # Calculate BB upper and lower bands
+        df['bb_upper'] = df['bb_middle'] + (bb_std * bb_std_dev)
+        df['bb_lower'] = df['bb_middle'] - (bb_std * bb_std_dev)
+        
+        # Calculate BB width (percentage)
+        df['bb_width'] = (df['bb_upper'] - df['bb_lower']) / df['bb_middle']
+        
         return df 
