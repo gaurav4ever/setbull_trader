@@ -1,7 +1,17 @@
 .
+├── __pycache__
+│   ├── test_mr_strategy.cpython-311-pytest-8.3.5.pyc
+│   ├── test_mr_strategy.cpython-311.pyc
+│   └── test_mr_strategy.cpython-312.pyc
 ├── analysis
+│   ├── __pycache__
+│   │   ├── analyze_trades.cpython-312.pyc
+│   │   └── intraday_data_analysis.cpython-312.pyc
 │   ├── analyze_trades.py
 │   └── intraday_data_analysis.py
+├── analysis_df_('NSE_EQ|INE005B01027',).csv
+├── analysis_df_('NSE_EQ|INE349Y01013',).csv
+├── analysis_df_('NSE_EQ|INE863B01029',).csv
 ├── backtest_results
 │   ├── correlation_analysis
 │   │   ├── binary_heatmap.png
@@ -10,8 +20,11 @@
 │   │   ├── r_multiple_network.png
 │   │   ├── spearman_heatmap.png
 │   │   └── spearman_network.png
+│   ├── daily_trades copy.csv
+│   ├── daily_trades_24thmay2025.csv
+│   ├── daily_trades-27thMay2025.csv
+│   ├── daily_trades-NF_BNF.csv
 │   ├── daily_trades.csv
-│   ├── daily_trades_16th_april_2025.csv
 │   ├── instruments
 │   │   └── NSE_EQ|INE777F01014_20250413_075345.json
 │   ├── plots
@@ -26,15 +39,32 @@
 │   └── strategy_results
 │       ├── 2_30_1PM_entry old.txt
 │       ├── 2_30_1PM_entry.txt
+│       ├── backtest_analysis_29thMay2025.txt
 │       └── backtest_analysis.csv
 ├── backtest_run.log
 ├── backtest_server.log
 ├── config
 │   └── db_config.py
 ├── correlation_analysis
+│   ├── __pycache__
+│   │   ├── __init__.cpython-311.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── correlation_analyzer.cpython-311.pyc
+│   │   ├── correlation_analyzer.cpython-312.pyc
+│   │   ├── correlation_visualizer.cpython-311.pyc
+│   │   ├── correlation_visualizer.cpython-312.pyc
+│   │   ├── data_loader.cpython-312.pyc
+│   │   ├── stock_clusterer.cpython-311.pyc
+│   │   └── stock_clusterer.cpython-312.pyc
 │   └── tests
+│       └── __pycache__
+│           ├── __init__.cpython-312.pyc
+│           ├── test_correlation_analyzer.cpython-312-pytest-8.3.5.pyc
+│           ├── test_correlation_visualizer.cpython-312-pytest-8.3.5.pyc
+│           └── test_data_loader.cpython-312-pytest-8.3.5.pyc
 ├── current_directory_structure.txt
 ├── debug_test.py
+├── instrument_parser.py
 ├── logs
 │   ├── mr_strategy_2025-04-19.log
 │   ├── mr_strategy_2025-04-20.log
@@ -46,10 +76,27 @@
 │   └── mr_strategy_v2_2025-04-25.log
 ├── main.py
 ├── mr_strategy
-│   ├── README.md
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-311.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── __init__.cpython-313.pyc
 │   ├── backtest
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── comparison.cpython-311.pyc
+│   │   │   ├── engine.cpython-311.pyc
+│   │   │   ├── engine.cpython-312.pyc
+│   │   │   ├── metrics.cpython-311.pyc
+│   │   │   ├── metrics.cpython-312.pyc
+│   │   │   ├── mr_backtrader_strategy_v2.cpython-311.pyc
+│   │   │   ├── mr_backtrader_strategy.cpython-311.pyc
+│   │   │   ├── runner.cpython-311.pyc
+│   │   │   ├── runner.cpython-312.pyc
+│   │   │   ├── simulator.cpython-311.pyc
+│   │   │   └── simulator.cpython-312.pyc
 │   │   ├── engine.py
 │   │   ├── example_usage.py
 │   │   ├── metrics.py
@@ -63,18 +110,69 @@
 │   │   └── __init__.py
 │   ├── data
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── api_client.cpython-312.pyc
+│   │   │   ├── api_client.cpython-313.pyc
+│   │   │   ├── backtrader_data.cpython-311.pyc
+│   │   │   ├── daily_data_processor.cpython-311.pyc
+│   │   │   ├── daily_data_processor.cpython-312.pyc
+│   │   │   ├── data_processor.cpython-311.pyc
+│   │   │   ├── data_processor.cpython-312.pyc
+│   │   │   ├── data_processor.cpython-313.pyc
+│   │   │   ├── intraday_data_processor.cpython-311.pyc
+│   │   │   ├── intraday_data_processor.cpython-312.pyc
+│   │   │   ├── technical_indicators.cpython-311.pyc
+│   │   │   └── technical_indicators.cpython-312.pyc
 │   │   ├── api_client.py
 │   │   ├── daily_data_processor.py
 │   │   ├── data_processor.py
 │   │   ├── distance_matrix_raw.txt
 │   │   └── intraday_data_processor.py
+│   ├── README.md
 │   ├── signals
+│   │   └── __pycache__
+│   │       └── signal_generator.cpython-311.pyc
 │   ├── strategy
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── base_strategy.cpython-311.pyc
+│   │   │   ├── base_strategy.cpython-312.pyc
+│   │   │   ├── config.cpython-311.pyc
+│   │   │   ├── config.cpython-312.pyc
+│   │   │   ├── config.cpython-313.pyc
+│   │   │   ├── models.cpython-311.pyc
+│   │   │   ├── models.cpython-312.pyc
+│   │   │   ├── models.cpython-313.pyc
+│   │   │   ├── morning_range.cpython-311.pyc
+│   │   │   ├── morning_range.cpython-312.pyc
+│   │   │   ├── morning_range.cpython-313.pyc
+│   │   │   ├── mr_strategy_base.cpython-311.pyc
+│   │   │   ├── mr_strategy_base.cpython-312.pyc
+│   │   │   ├── position_manager.cpython-311.pyc
+│   │   │   ├── position_manager.cpython-312.pyc
+│   │   │   ├── risk_calculator.cpython-311.pyc
+│   │   │   ├── risk_calculator.cpython-312.pyc
+│   │   │   ├── signal_generator.cpython-311.pyc
+│   │   │   ├── signal_generator.cpython-312.pyc
+│   │   │   ├── signal_generator.cpython-313.pyc
+│   │   │   ├── trade_manager.cpython-311.pyc
+│   │   │   └── trade_manager.cpython-312.pyc
 │   │   ├── base_strategy.py
 │   │   ├── config.py
 │   │   ├── entry_strategies
 │   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── base.cpython-312.pyc
+│   │   │   │   ├── factory.cpython-312.pyc
+│   │   │   │   ├── first_entry.cpython-312.pyc
+│   │   │   │   └── two_thirty_entry.cpython-312.pyc
 │   │   │   ├── base.py
 │   │   │   ├── factory.py
 │   │   │   ├── first_entry.py
@@ -100,7 +198,79 @@
 │   │   └── test_signal_generator.py
 │   └── utils
 │       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-312.pyc
+│       │   ├── __init__.cpython-313.pyc
+│       │   ├── time_utils.cpython-312.pyc
+│       │   └── time_utils.cpython-313.pyc
 │       └── time_utils.py
+├── output
+│   ├── bb_width_analysis.csv
+│   └── logs
+│       └── bb_width_analysis_20250706_003353.log
+├── polars
+│   ├── analysis
+│   │   ├── all_stocks_volatility
+│   │   │   ├── 1.1_report.csv
+│   │   │   ├── bearish_candidates.csv
+│   │   │   ├── bullish_candidates.csv
+│   │   │   └── top_ranked_report.csv
+│   │   ├── analyze_all_stock_volatility.py
+│   │   ├── analyze_bb_width_daily.py
+│   │   ├── analyze_bb_width_intraday.py
+│   │   ├── bb_width_usage_examples.py
+│   │   ├── JAIRCORP
+│   │   │   ├── JAICORP_ALL_1min.csv
+│   │   │   ├── JAICORP_ALL_SAMPLE_1min.csv
+│   │   │   └── result.txt
+│   │   ├── manim
+│   │   │   ├── 1.1_test_script.py
+│   │   │   └── animation
+│   │   │       ├── kb
+│   │   │       │   └── 1.1_random_thinking.txt
+│   │   │       └── videos
+│   │   │           ├── addictive_squeeze_animation.mp4
+│   │   │           ├── iterative_squeeze_candidates_animation.mp4
+│   │   │           ├── sorting_animation.mp4
+│   │   │           ├── squeeze_candidates_animation_instagram.mp4
+│   │   │           └── squeeze_candidates_animation.mp4
+│   │   ├── output
+│   │   │   ├── bb_width_analysis.csv
+│   │   │   └── logs
+│   │   │       ├── bb_width_analysis_20250630_092018.log
+│   │   │       ├── bb_width_analysis_20250630_092034.log
+│   │   │       ├── bb_width_analysis_20250630_224010.log
+│   │   │       ├── bb_width_analysis_20250704_233001.log
+│   │   │       └── bb_width_analysis_20250704_233013.log
+│   │   ├── rank_squeeze_candidates.py
+│   │   ├── test_db_connection.py
+│   │   ├── top_3_bullish
+│   │   │   ├── result.txt
+│   │   │   └── top_3_bullish.csv
+│   │   └── volatility
+│   │       ├── __pycache__
+│   │       │   └── volatility_squeeze_analyzer.cpython-311.pyc
+│   │       ├── output
+│   │       │   ├── candidates
+│   │       │   │   ├── category_A_enhanced_volatility_squeeze_candidates.csv
+│   │       │   │   ├── category_B_enhanced_volatility_squeeze_candidates.csv
+│   │       │   │   ├── category_C_enhanced_volatility_squeeze_candidates.csv
+│   │       │   │   ├── enhanced_volatility_squeeze_candidates.csv
+│   │       │   │   ├── trading_view_file.txt
+│   │       │   │   └── volatility_squeeze_candidates.csv
+│   │       │   └── logs
+│   │       │       ├── volatility_analysis_20250629_044521.log
+│   │       │       └── volatility_analysis_20250629_044616.log
+│   │       ├── test_analyzer.py
+│   │       ├── test_phase3_phase4.py
+│   │       └── volatility_squeeze_analyzer.py
+│   └── output
+│       ├── candidates
+│       │   ├── category_A_volatility_squeeze_candidates.csv
+│       │   ├── category_B_volatility_squeeze_candidates.csv
+│       │   ├── category_C_volatility_squeeze_candidates.csv
+│       │   └── volatility_squeeze_candidates.csv
+│       └── logs
 ├── requirements.txt
 ├── results
 │   ├── datafeed
@@ -112,8 +282,11 @@
 │   │   └── stock_success_report_2025-04-22_23-08-50.txt
 │   └── trade_summary_20april25.csv
 ├── setup.py
-├── test_mr_strategy.py
 ├── test_mr_strategy_agg.py
+├── test_mr_strategy.py
 ├── test_phase1.py
 └── utils
+    ├── __pycache__
+    │   ├── utils.cpython-311.pyc
+    │   └── utils.cpython-312.pyc
     └── utils.py
