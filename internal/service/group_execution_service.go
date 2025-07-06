@@ -86,20 +86,20 @@ func (s *GroupExecutionService) ExecuteDetailedGroup(
 
 	tradingMetadata, err := parseBackTestAnalysisFile(group.Stocks)
 	if err != nil {
-		log.Error("failed to parse backtest analysis file: %w", err)
+		log.Error("failed to parse backtest analysis file: %v", err)
 		return fmt.Errorf("failed to parse backtest analysis file: %w", err)
 	}
 
 	for _, stockRef := range group.Stocks {
 		stock, err := s.getAndSelectStock(ctx, stockRef)
 		if err != nil {
-			log.Error("failed to get and select stock: %w", err)
+			log.Error("failed to get and select stock: %v", err)
 			continue
 		}
 
 		candles, err := s.CandleAggregationService.Get5MinCandles(ctx, stockRef.InstrumentKey, start, end)
 		if err != nil {
-			log.Error("failed to get 5 min candles: %w", err)
+			log.Error("failed to get 5 min candles: %v", err)
 			continue
 		}
 		if len(candles) == 0 {
@@ -122,19 +122,19 @@ func (s *GroupExecutionService) ExecuteDetailedGroup(
 
 		_, meta, err := s.getInstrumentKeyAndMetadata(ctx, stock, tradingMetadata)
 		if err != nil {
-			log.Error("failed to get instrument key and metadata: %w", err)
+			log.Error("failed to get instrument key and metadata: %v", err)
 			continue
 		}
 
 		entryPrice, err := s.calculateEntryPrice(ctx, meta, candle)
 		if err != nil {
-			log.Error("failed to calculate entry price: %w", err)
+			log.Error("failed to calculate entry price: %v", err)
 			continue
 		}
 
 		slPrice, _, positionSize, tradeSide, riskPerTrade, err := s.calculateSLAndPositionSize(ctx, meta, entryPrice, group.EntryType)
 		if err != nil {
-			log.Error("failed to calculate SL and position size: %w", err)
+			log.Error("failed to calculate SL and position size: %v", err)
 			results = append(results, stockExecutionResult{StockID: stockRef.StockID, Symbol: stock.Symbol, Success: false, Error: err.Error()})
 			anyFailed = true
 			continue
@@ -229,7 +229,7 @@ func (s *GroupExecutionService) ExecuteGroup(ctx context.Context, groupID string
 	// Fetch the group by ID
 	group, err := s.StockGroupService.GetGroupByID(ctx, groupID, s.StockUniverseService)
 	if err != nil {
-		log.Error("failed to fetch group: %w", err)
+		log.Error("failed to fetch group: %v", err)
 		return fmt.Errorf("failed to fetch group: %w", err)
 	}
 	if len(group.Stocks) == 0 {
@@ -245,7 +245,7 @@ func (s *GroupExecutionService) ExecuteGroup(ctx context.Context, groupID string
 
 	tradingMetadata, err := parseBackTestAnalysisFile(group.Stocks)
 	if err != nil {
-		log.Error("failed to parse backtest analysis file: %w", err)
+		log.Error("failed to parse backtest analysis file: %v", err)
 		return fmt.Errorf("failed to parse backtest analysis file: %w", err)
 	}
 
@@ -501,7 +501,7 @@ func (s *GroupExecutionService) calculateSLAndPositionSize(ctx context.Context, 
 	slPercent, err := strconv.ParseFloat(meta.SLPercent, 64)
 	slDecimal := slPercent / 100.0
 	if err != nil {
-		return 0, 0, 0, domain.TradeSide(0), 0, fmt.Errorf("invalid SL percent: %w", err)
+		return 0, 0, 0, "", 0, fmt.Errorf("invalid SL percent: %w", err)
 	}
 	if groupEntryType == "1ST_ENTRY" {
 		riskPerTrade = s.Config.GetFirstEntryRiskPerTrade()

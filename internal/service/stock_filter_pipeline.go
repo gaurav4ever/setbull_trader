@@ -301,7 +301,7 @@ func (p *StockFilterPipeline) logMambaSeries(stock domain.FilteredStock) {
 		})
 
 		// Print the series
-		log.Info("Date\t\tMove Type\tChange%\tOpen\tHigh\tLow\tClose")
+		log.Info("Date\t\tMove Type\tChange%%\tOpen\tHigh\tLow\tClose")
 		log.Info("----\t\t---------\t-------\t----\t----\t---\t-----")
 
 		for _, candle := range candles {

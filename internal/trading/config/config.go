@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"setbull_trader/pkg/cache"
 	"setbull_trader/pkg/database"
 	"time"
@@ -12,14 +13,15 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Server                             ServerConfig         `mapstructure:"server"`
-	Trading                            TradingConfig        `mapstructure:"trading" yaml:"trading"`
-	Dhan                               DhanConfig           `mapstructure:"dhan"`
-	Upstox                             UpstoxConfig         `mapstructure:"upstox"`
-	StockUniverse                      StockUniverseConfig  `mapstructure:"stock_universe"`
-	HistoricalData                     HistoricalDataConfig `mapstructure:"historical_data"`
-	MambaFilter                        MambaFilterConfig    `mapstructure:"mamba_filter" yaml:"mamba_filter"`
-	OneMinCandleIngestionOffsetSeconds int                  `mapstructure:"one_min_candle_ingestion_offset_seconds" yaml:"one_min_candle_ingestion_offset_seconds"`
+	Server                             ServerConfig            `mapstructure:"server"`
+	Trading                            TradingConfig           `mapstructure:"trading" yaml:"trading"`
+	Dhan                               DhanConfig              `mapstructure:"dhan"`
+	Upstox                             UpstoxConfig            `mapstructure:"upstox"`
+	StockUniverse                      StockUniverseConfig     `mapstructure:"stock_universe"`
+	HistoricalData                     HistoricalDataConfig    `mapstructure:"historical_data"`
+	MambaFilter                        MambaFilterConfig       `mapstructure:"mamba_filter" yaml:"mamba_filter"`
+	BBWidthMonitoring                  BBWidthMonitoringConfig `mapstructure:"bb_width_monitoring" yaml:"bb_width_monitoring"`
+	OneMinCandleIngestionOffsetSeconds int                     `mapstructure:"one_min_candle_ingestion_offset_seconds" yaml:"one_min_candle_ingestion_offset_seconds"`
 	Database                           struct {
 		MasterDatasource struct {
 			User     string `yaml:"user"`
@@ -127,6 +129,28 @@ type MambaFilterConfig struct {
 	} `yaml:"move_analyzer" json:"move_analyzer"`
 }
 
+// BBWidthMonitoringConfig contains configuration for BB width monitoring and alerts
+type BBWidthMonitoringConfig struct {
+	Enabled bool `yaml:"enabled" json:"enabled"`
+	Alert   struct {
+		Enabled             bool    `yaml:"enabled" json:"enabled"`
+		Volume              float64 `yaml:"volume" json:"volume"`
+		SoundPath           string  `yaml:"sound_path" json:"sound_path"`
+		CooldownSeconds     int     `yaml:"cooldown_seconds" json:"cooldown_seconds"`
+		MaxAlertsPerHour    int     `yaml:"max_alerts_per_hour" json:"max_alerts_per_hour"`
+		SymbolPronunciation bool    `yaml:"symbol_pronunciation" json:"symbol_pronunciation"`
+	} `yaml:"alert" json:"alert"`
+	PatternDetection struct {
+		MinContractingCandles int     `yaml:"min_contracting_candles" json:"min_contracting_candles"`
+		MaxContractingCandles int     `yaml:"max_contracting_candles" json:"max_contracting_candles"`
+		RangeThresholdPercent float64 `yaml:"range_threshold_percent" json:"range_threshold_percent"`
+		LookbackDays          int     `yaml:"lookback_days" json:"lookback_days"`
+	} `yaml:"pattern_detection" json:"pattern_detection"`
+	EntryTypes struct {
+		BBRange string `yaml:"bb_range" json:"bb_range"`
+	} `yaml:"entry_types" json:"entry_types"`
+}
+
 // LoadConfig loads the application configuration from application.yaml
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("application.dev")
@@ -151,7 +175,20 @@ func LoadConfig() (*Config, error) {
 		return nil, errors.Wrap(err, "invalid upstox configuration")
 	}
 
+	// Set default values BEFORE validation
 	setDefaultHistoricalDataConfig(&config)
+	setDefaultBBWidthMonitoringConfig(&config)
+
+	// Validate BB Width Monitoring configuration AFTER setting defaults
+	if err := config.ValidateBBWidthMonitoringConfig(); err != nil {
+		return nil, errors.Wrap(err, "invalid bb width monitoring configuration")
+	}
+
+	// Debug: Print the actual values for troubleshooting
+	fmt.Printf("DEBUG: BB Width Monitoring Config - Enabled: %v, MinCandles: %d, MaxCandles: %d\n",
+		config.BBWidthMonitoring.Enabled,
+		config.BBWidthMonitoring.PatternDetection.MinContractingCandles,
+		config.BBWidthMonitoring.PatternDetection.MaxContractingCandles)
 
 	return &config, nil
 }
@@ -167,6 +204,45 @@ func setDefaultHistoricalDataConfig(config *Config) {
 			BatchSize:             1000,
 			EnableAutoCleanup:     true,
 			CleanupInterval:       24 * time.Hour,
+		}
+	}
+}
+
+func setDefaultBBWidthMonitoringConfig(config *Config) {
+	if config.BBWidthMonitoring == (BBWidthMonitoringConfig{}) {
+		config.BBWidthMonitoring = BBWidthMonitoringConfig{
+			Enabled: true,
+			Alert: struct {
+				Enabled             bool    `yaml:"enabled" json:"enabled"`
+				Volume              float64 `yaml:"volume" json:"volume"`
+				SoundPath           string  `yaml:"sound_path" json:"sound_path"`
+				CooldownSeconds     int     `yaml:"cooldown_seconds" json:"cooldown_seconds"`
+				MaxAlertsPerHour    int     `yaml:"max_alerts_per_hour" json:"max_alerts_per_hour"`
+				SymbolPronunciation bool    `yaml:"symbol_pronunciation" json:"symbol_pronunciation"`
+			}{
+				Enabled:             true,
+				Volume:              0.8,
+				SoundPath:           "/assets",
+				CooldownSeconds:     300, // 5 minutes
+				MaxAlertsPerHour:    10,
+				SymbolPronunciation: false,
+			},
+			PatternDetection: struct {
+				MinContractingCandles int     `yaml:"min_contracting_candles" json:"min_contracting_candles"`
+				MaxContractingCandles int     `yaml:"max_contracting_candles" json:"max_contracting_candles"`
+				RangeThresholdPercent float64 `yaml:"range_threshold_percent" json:"range_threshold_percent"`
+				LookbackDays          int     `yaml:"lookback_days" json:"lookback_days"`
+			}{
+				MinContractingCandles: 3,
+				MaxContractingCandles: 5,
+				RangeThresholdPercent: 0.10,
+				LookbackDays:          7,
+			},
+			EntryTypes: struct {
+				BBRange string `yaml:"bb_range" json:"bb_range"`
+			}{
+				BBRange: "BB_RANGE",
+			},
 		}
 	}
 }
@@ -265,4 +341,40 @@ func (c *Config) GetSecondEntrySLPercent() float64 {
 
 func (c *Config) GetSecondEntryRiskPerTrade() int {
 	return c.Trading.SecondEntryRiskPerTrade
+}
+
+// ValidateBBWidthMonitoringConfig validates the BB width monitoring configuration
+func (c *Config) ValidateBBWidthMonitoringConfig() error {
+	if !c.BBWidthMonitoring.Enabled {
+		return nil // Skip validation if disabled
+	}
+
+	// Validate alert configuration
+	if c.BBWidthMonitoring.Alert.Enabled {
+		if c.BBWidthMonitoring.Alert.CooldownSeconds < 0 {
+			return errors.New("alert cooldown seconds must be non-negative")
+		}
+		if c.BBWidthMonitoring.Alert.MaxAlertsPerHour < 0 {
+			return errors.New("max alerts per hour must be non-negative")
+		}
+		if c.BBWidthMonitoring.Alert.Volume < 0 || c.BBWidthMonitoring.Alert.Volume > 1 {
+			return errors.New("alert volume must be between 0 and 1")
+		}
+	}
+
+	// Validate pattern detection configuration
+	if c.BBWidthMonitoring.PatternDetection.MinContractingCandles < 3 {
+		return errors.New("min contracting candles must be at least 3")
+	}
+	if c.BBWidthMonitoring.PatternDetection.MaxContractingCandles < c.BBWidthMonitoring.PatternDetection.MinContractingCandles {
+		return errors.New("max contracting candles must be greater than or equal to min contracting candles")
+	}
+	if c.BBWidthMonitoring.PatternDetection.RangeThresholdPercent <= 0 {
+		return errors.New("range threshold percent must be positive")
+	}
+	if c.BBWidthMonitoring.PatternDetection.LookbackDays <= 0 {
+		return errors.New("lookback days must be positive")
+	}
+
+	return nil
 }

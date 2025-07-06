@@ -28,10 +28,13 @@ class EntryStrategyFactory:
         # Import here to avoid circular imports
         from .first_entry import FirstEntryStrategy
         from .two_thirty_entry import TwoThirtyEntryStrategy
+        from .bb_width_entry import BBWidthEntryStrategy
         
         if entry_type == "1ST_ENTRY":
             return FirstEntryStrategy(config)
         elif entry_type == "2_30_ENTRY":
             return TwoThirtyEntryStrategy(config)
+        elif entry_type == "BB_WIDTH_ENTRY":
+            return BBWidthEntryStrategy(config)
         else:
             raise ValueError(f"Unknown entry type: {entry_type}") 

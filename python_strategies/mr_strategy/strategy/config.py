@@ -26,6 +26,11 @@ class MRStrategyConfig:
         range_type: Type of morning range ('5MR' or '15MR')
         market_open: Market open time
         respect_trend: Whether to respect trend direction
+        bb_width_threshold: BB width threshold for squeeze detection (default: 0.001 for 0.1%)
+        bb_period: Period for Bollinger Bands calculation (default: 20)
+        bb_std_dev: Standard deviation for Bollinger Bands (default: 2.0)
+        squeeze_duration_min: Minimum squeeze duration in candles (default: 3)
+        squeeze_duration_max: Maximum squeeze duration in candles (default: 5)
     """
     breakout_percentage: float = 0.003  # 0.3% default
     invalidation_percentage: float = 0.005  # 0.5% default
@@ -37,6 +42,13 @@ class MRStrategyConfig:
     range_type: str = '5MR'
     market_open: time = time(9, 15)
     respect_trend: bool = True
+    
+    # BB Width strategy parameters
+    bb_width_threshold: float = 0.001  # 0.1% default
+    bb_period: int = 20  # 20 period default
+    bb_std_dev: float = 2.0  # 2 standard deviations default
+    squeeze_duration_min: int = 3  # Minimum 3 candles
+    squeeze_duration_max: int = 5  # Maximum 5 candles
     
     def __post_init__(self):
         """Validate configuration values after initialization."""
@@ -50,6 +62,20 @@ class MRStrategyConfig:
             raise ValueError("tick_size must be positive")
         if self.range_type not in ['5MR', '15MR']:
             raise ValueError("range_type must be either '5MR' or '15MR'")
+        
+        # BB Width strategy validation
+        if self.bb_width_threshold <= 0:
+            raise ValueError("bb_width_threshold must be positive")
+        if self.bb_period <= 0:
+            raise ValueError("bb_period must be positive")
+        if self.bb_std_dev <= 0:
+            raise ValueError("bb_std_dev must be positive")
+        if self.squeeze_duration_min <= 0:
+            raise ValueError("squeeze_duration_min must be positive")
+        if self.squeeze_duration_max <= 0:
+            raise ValueError("squeeze_duration_max must be positive")
+        if self.squeeze_duration_min > self.squeeze_duration_max:
+            raise ValueError("squeeze_duration_min cannot be greater than squeeze_duration_max")
 
 @dataclass
 class BreakoutState:

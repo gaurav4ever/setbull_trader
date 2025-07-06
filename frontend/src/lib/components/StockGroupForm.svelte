@@ -5,7 +5,7 @@
 	import EnhancedStockSelector from './EnhancedStockSelector.svelte';
 	import { formatStockForStockGroupDisplay } from '../utils/stockFormatting.js';
 
-	const ENTRY_TYPES = ['1ST_ENTRY', '2_30_ENTRY'];
+	const ENTRY_TYPES = ['1ST_ENTRY', '2_30_ENTRY', 'BB_RANGE'];
 
 	export let show: boolean = false;
 	export let mode: 'create' | 'edit' = 'create';

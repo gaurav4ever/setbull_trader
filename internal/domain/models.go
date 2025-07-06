@@ -11,6 +11,13 @@ const (
 	Sell TradeSide = "SELL"
 )
 
+// EntryType constants for stock groups
+const (
+	EntryTypeFirstEntry = "1ST_ENTRY"
+	EntryTypeTwoThirty  = "2_30_ENTRY"
+	EntryTypeBBRange    = "BB_RANGE"
+)
+
 type Stock struct {
 	ID           string    `gorm:"column:id" json:"id"`
 	Symbol       string    `gorm:"column:symbol" json:"symbol"`

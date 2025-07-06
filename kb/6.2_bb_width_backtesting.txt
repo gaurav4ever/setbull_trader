@@ -1,0 +1,359 @@
+# Technical Understanding Document: Backtesting System and Entry Strategies
+
+## 1. System Architecture Overview
+
+### 1.1 Core Components
+The backtesting system follows a modular architecture with clear separation of concerns:
+
+```
+BacktestEngine
+├── SignalGenerator (Entry Strategy Integration)
+├── MorningRangeStrategy (Core Strategy Logic)
+├── PositionManager (Position Management)
+├── TradeManager (Trade Execution & Management)
+├── RiskCalculator (Risk Management)
+└── BacktestSimulator (Trade Simulation)
+```
+
+### 1.2 Data Flow
+```
+Raw Data → CandleProcessor → MorningRangeStrategy → SignalGenerator → Entry Strategies → Trade Execution → Results
+```
+
+## 2. Entry Strategy System
+
+### 2.1 Entry Strategy Architecture
+
+The system uses a **Factory Pattern** for entry strategies with the following structure:
+
+```
+EntryStrategy (Abstract Base Class)
+├── FirstEntryStrategy (1ST_ENTRY)
+├── TwoThirtyEntryStrategy (2_30_ENTRY)
+└── [Future: BBWidthEntryStrategy]
+```
+
+**Key Interface:**
+```python
+@abstractmethod
+async def check_entry_conditions(self, 
+                           candle: Dict[str, Any], 
+                           mr_values: Dict[str, Any]) -> Optional[Signal]:
+    """Check if entry conditions are met for this candle."""
+    pass
+```
+
+### 2.2 Entry Strategy Factory
+
+**Location:** `python_strategies/mr_strategy/strategy/entry_strategies/factory.py`
+
+```python
+class EntryStrategyFactory:
+    @staticmethod
+    def create_strategy(entry_type: str, config: Any) -> EntryStrategy:
+        if entry_type == "1ST_ENTRY":
+            return FirstEntryStrategy(config)
+        elif entry_type == "2_30_ENTRY":
+            return TwoThirtyEntryStrategy(config)
+        else:
+            raise ValueError(f"Unknown entry type: {entry_type}")
+```
+
+## 3. Current Entry Strategies Analysis
+
+### 3.1 1ST_ENTRY Strategy (FirstEntryStrategy)
+
+**Location:** `python_strategies/mr_strategy/strategy/entry_strategies/first_entry.py`
+
+**Core Logic:**
+- **Entry Condition:** Immediate breakout of morning range
+- **Buffer:** 0.07% buffer added to MR high/low levels
+- **Timing:** Skips first candle (9:15 AM), then checks every candle
+- **Signal Type:** `SignalType.IMMEDIATE_BREAKOUT`
+
+**Key Implementation Details:**
+```python
+# Buffer calculation
+mr_high_with_buffer = mr_values['mr_high'] * (1 + 0.0007)  # 0.07% buffer
+mr_low_with_buffer = mr_values['mr_low'] * (1 - 0.0007)
+
+# Entry conditions
+if candle['high'] >= mr_high_with_buffer:  # Long entry
+if candle['low'] <= mr_low_with_buffer:    # Short entry
+```
+
+**State Management:**
+- `in_long_trade`: Prevents multiple long entries
+- `in_short_trade`: Prevents multiple short entries
+- `can_generate_signal()`: Prevents duplicate signals
+
+### 3.2 2_30_ENTRY Strategy (TwoThirtyEntryStrategy)
+
+**Location:** `python_strategies/mr_strategy/strategy/entry_strategies/two_thirty_entry.py`
+
+**Core Logic:**
+- **Entry Condition:** Time-based entry at 2:30 PM with price movement validation
+- **Timing:** Waits for 2:30 PM candle, then looks for price movement
+- **Price Movement:** 0.03% buffer from 2:30 PM high/low
+- **Signal Type:** `SignalType.IMMEDIATE_BREAKOUT`
+
+**Key Implementation Details:**
+```python
+# Entry time setup
+self.entry_time = time(14, 30)  # 2:30 PM
+
+# At 2:30 PM, capture range levels
+if candle_time == self.entry_time:
+    self.range_high = candle['high']
+    self.range_low = candle['low']
+    self.range_high_entry_price = self.range_high + (self.range_high * 0.0003)
+    self.range_low_entry_price = self.range_low - (self.range_low * 0.0003)
+
+# After 2:30 PM, check for breakouts
+if candle['high'] > self.range_high_entry_price:  # Long entry
+if candle['low'] < self.range_low_entry_price:    # Short entry
+```
+
+**State Management:**
+- `range_high/range_low`: Captured at 2:30 PM
+- `range_high_entry_price/range_low_entry_price`: Entry levels with buffer
+- `in_long_trade/in_short_trade`: Prevents multiple entries
+
+## 4. Signal Generation Integration
+
+### 4.1 SignalGenerator Class
+
+**Location:** `python_strategies/mr_strategy/strategy/signal_generator.py`
+
+**Integration Point:**
+```python
+class SignalGenerator:
+    def __init__(self, config, entry_type: str = "1ST_ENTRY"):
+        # Create entry strategy using factory
+        self.entry_strategy = EntryStrategyFactory.create_strategy(entry_type, config)
+        self.entry_type = entry_type
+
+    async def process_candle(self, candle: Dict[str, Any], mr_values: Dict[str, Any]) -> List[Signal]:
+        # Delegate to entry strategy
+        signal = await self.entry_strategy.check_entry_conditions(candle, mr_values)
+        if signal:
+            return [signal]
+        return []
+```
+
+### 4.2 Signal Types
+
+**Location:** `python_strategies/mr_strategy/strategy/models.py`
+
+```python
+class SignalType(Enum):
+    IMMEDIATE_BREAKOUT = "IMMEDIATE_BREAKOUT"
+    RETEST_ENTRY = "RETEST_ENTRY"
+    TWO_THIRTY_ENTRY = "TWO_THIRTY_ENTRY"
+    # Future: BB_WIDTH_ENTRY = "BB_WIDTH_ENTRY"
+```
+
+## 5. Backtest Engine Integration
+
+### 5.1 Strategy Configuration
+
+**Location:** `python_strategies/mr_strategy/backtest/engine.py`
+
+```python
+# Strategy config includes entry type
+strategy_config = StrategyConfig(
+    instrument_key=instrument,
+    range_type="MORNING_RANGE",
+    entry_type="1ST_ENTRY",  # or "2_30_ENTRY"
+    entry_candle="09:15",    # for 2_30_ENTRY: "14:30"
+    sl_percentage=0.5,
+    target_r=3.0
+)
+```
+
+### 5.2 Backtest Execution Flow
+
+```python
+async def _run_single_strategy(self, data, instrument_config, strategy_config):
+    # 1. Create SignalGenerator with entry strategy
+    self.signal_generator = SignalGenerator(strategy_config, entry_type=strategy_config.entry_type)
+    
+    # 2. Process each candle
+    for candle in day_candles:
+        # 3. Generate signals using entry strategy
+        strategy_signals = await self.signal_generator.process_candle(candle_dict, range_values)
+        
+        # 4. Filter signals based on instrument direction
+        if signal.direction.value == "LONG" and instrument_config['direction'] == "BULLISH":
+            # Accept signal
+        elif signal.direction.value == "SHORT" and instrument_config['direction'] == "BEARISH":
+            # Accept signal
+```
+
+## 6. Morning Range Calculation
+
+### 6.1 MR Validation
+
+**Location:** `python_strategies/mr_strategy/strategy/mr_strategy_base.py`
+
+```python
+async def calculate_morning_range(self, candles: pd.DataFrame) -> Dict:
+    # Calculate MR high/low from first candle
+    morning_candle = candles.iloc[0]
+    mr_high = morning_candle['high']
+    mr_low = morning_candle['low']
+    mr_size = mr_high - mr_low
+    
+    # Calculate MR value (ATR ratio)
+    atr_14 = morning_candle['DAILY_ATR_14']
+    mr_value = (atr_14 / mr_size) * 1.2
+    
+    # Validation: MR value > 3
+    is_valid = mr_value > 3
+```
+
+### 6.2 Entry Level Calculation
+
+```python
+def calculate_entry_levels(self) -> Dict:
+    # Add buffer to MR levels
+    buffer = self.config.buffer_ticks * self.config.tick_size
+    long_entry = mr_high + buffer
+    short_entry = mr_low - buffer
+    
+    # Calculate stop loss and targets
+    long_sl = long_entry * (1 - self.config.sl_percentage/100)
+    long_target = long_entry + (long_risk * self.config.target_r)
+```
+
+## 7. Adding BB Width Entry Strategy
+
+### 7.1 Implementation Steps
+
+1. **Create BB Width Entry Strategy Class:**
+   ```python
+   # python_strategies/mr_strategy/strategy/entry_strategies/bb_width_entry.py
+   class BBWidthEntryStrategy(EntryStrategy):
+       async def check_entry_conditions(self, candle: Dict[str, Any], mr_values: Dict[str, Any]) -> Optional[Signal]:
+           # BB width logic here
+           # Verfiy if range is contracting and is +- 0.1% of lowest_bb_width
+           pass
+   ```
+
+2. **Update Factory:**
+   ```python
+   # In factory.py
+   elif entry_type == "BB_WIDTH_ENTRY":
+       return BBWidthEntryStrategy(config)
+   ```
+
+3. **Add Signal Type:**
+   ```python
+   # In models.py
+   BB_WIDTH_ENTRY = "BB_WIDTH_ENTRY"
+   ```
+
+4. **Update Trade Types:**
+   ```python
+   # In trade_manager.py
+   BB_WIDTH_ENTRY = "BB_WIDTH_ENTRY"
+   ```
+
+### 7.2 BB Width Strategy Requirements
+
+**Data Requirements:**
+- Bollinger Bands data (upper, middle, lower)
+- BB width calculation
+- Historical BB width for comparison
+
+**Entry Conditions:**
+- BB width below threshold range (squeeze condition) -> +- 0.1% of lowest_bb_width
+- When achieved, Entry price will above bb upper band, below bb lower band
+- For Buy side: Entry price will bb upper band level. 
+- For sell side: Entry price will bb lower band level. 
+
+
+** SL conditions **
+- For Buy side: SL will be BB lower band level
+- For sell side: SL will be BB above band level 
+
+** Exit or TP conditions **
+- Will be exiting based on existing flow in trade_manager.py class. 
+- Don't change anything in POsition management and trade_manager.py.
+
+
+**State Management:**
+- Track squeeze state
+- Monitor BB width changes
+- Prevent multiple entries during same squeeze
+    - Only 1 entry should be taken as soon as 3-5 candles are reached in contracting. 
+    - Anything further will be just a observations to reach lowest min bb width again. 
+
+** Points to Note for better understanding **
+- I only want to add a new strategy. which is BB_WIDTH_ENTRY
+- it should seamlessly integrate with existing strategies and entry type. 
+
+### 7.3 Integration Points
+
+1. **Data Processing:** Ensure BB indicators are calculated in `CandleProcessor`
+2. **MR Values:** Extend `mr_values` dict to include BB data
+3. **Signal Generation:** Add BB width validation in entry strategy
+4. **Configuration:** Add BB width parameters to strategy config
+
+## 8. Configuration Parameters
+
+### 8.1 Strategy Configuration
+
+```python
+# For BB width strategy
+strategy_config = StrategyConfig(
+    instrument_key=instrument,
+    range_type="MORNING_RANGE",
+    entry_type="BB_WIDTH_ENTRY",
+    bb_width_threshold=0.001,  # 1% BB width threshold
+    bb_period=20,             # BB period
+    bb_std_dev=2,             # BB standard deviation
+    volume_threshold=1.5,     # Volume multiplier threshold
+    sl_percentage=0.5,
+    target_r=3.0
+)
+```
+
+## 10. Performance Metrics
+
+### 10.1 Entry-Specific Metrics
+
+**Location:** `python_strategies/mr_strategy/backtest/metrics.py`
+
+```python
+@dataclass
+class EntryMetrics:
+    avg_entry_efficiency: float = 0.0
+    missed_entries: int = 0
+    false_signals: int = 0
+    entry_time_distribution: Dict[str, float] = None
+    # For BB width: squeeze_detection_rate, avg_squeeze_duration
+```
+
+### 10.2 BB Width Specific Metrics
+
+```python
+@dataclass
+class BBWidthMetrics:
+    squeeze_detection_rate: float = 0.0
+    avg_squeeze_duration: float = 0.0
+    successful_squeeze_breakouts: int = 0
+    false_squeeze_signals: int = 0
+    bb_width_distribution: Dict[str, float] = None
+```
+
+## 11. Key Integration Points Summary
+
+1. **Entry Strategy Factory:** Add new strategy type
+2. **Signal Generator:** Integrate with existing signal processing
+3. **Data Processing:** Ensure BB indicators are available
+4. **Configuration:** Extend strategy config for BB parameters
+5. **Metrics:** Add BB-specific performance metrics
+6. **Documentation:** Update strategy documentation
+
+This architecture provides a clean, extensible framework for adding new entry strategies while maintaining consistency with existing patterns and ensuring proper integration with the backtesting system.

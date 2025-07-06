@@ -177,11 +177,8 @@ func (s *OrderExecutionService) executeOrders(
 	}
 
 	// Add debug log to show how many level entries we're processing
-	log.Info("Processing level entries",
-		"executionID", executionID,
-		"stockSymbol", stock.Symbol,
-		"entryCount", len(levelEntries),
-		"tradeSide", tradeSide)
+	log.Info("Processing level entries for executionID: %s, stockSymbol: %s, entryCount: %d, tradeSide: %s",
+		executionID, stock.Symbol, len(levelEntries), tradeSide)
 
 	// Track which levels we've already processed to avoid duplicates
 	processedLevels := make(map[string]bool)
@@ -190,11 +187,8 @@ func (s *OrderExecutionService) executeOrders(
 	for i, entry := range levelEntries {
 
 		// Add detailed logging for each entry
-		log.Info("Processing entry",
-			"index", i,
-			"description", entry.Description,
-			"price", entry.Price,
-			"quantity", entry.Quantity)
+		log.Info("Processing entry index: %d, description: %s, price: %f, quantity: %d",
+			i, entry.Description, entry.Price, entry.Quantity)
 
 		if i == 0 || entry.Quantity <= 0 {
 			// Skip stop loss level or entries with no quantity
@@ -203,9 +197,8 @@ func (s *OrderExecutionService) executeOrders(
 
 		// Check if we've already processed this level (using description as identifier)
 		if processedLevels[entry.Description] {
-			log.Warn("Duplicate level entry detected - skipping",
-				"description", entry.Description,
-				"price", entry.Price)
+			log.Warn("Duplicate level entry detected - skipping description: %s, price: %f",
+				entry.Description, entry.Price)
 			continue
 		}
 
@@ -233,11 +226,8 @@ func (s *OrderExecutionService) executeOrders(
 		}
 
 		// Log the order request details
-		log.Info("Placing order",
-			"level", entry.Description,
-			"price", entry.Price,
-			"triggerPrice", triggerPrice,
-			"quantity", entry.Quantity)
+		log.Info("Placing order level: %s, price: %f, triggerPrice: %f, quantity: %d",
+			entry.Description, entry.Price, triggerPrice, entry.Quantity)
 
 		// Place the order with Dhan
 		response, err := s.orderService.PlaceOrder(orderReq)
@@ -250,26 +240,21 @@ func (s *OrderExecutionService) executeOrders(
 			result.Success = false
 			result.Error = err.Error()
 			results.Success = false
-			log.Error("Failed to place order", "level", entry.Description, "error", err)
+			log.Error("Failed to place order level: %s, error: %v", entry.Description, err)
 		} else {
 			result.Success = true
 			result.OrderID = response.OrderID
 			result.OrderStatus = response.OrderStatus
-			log.Info("Order placed successfully",
-				"level", entry.Description,
-				"orderID", response.OrderID,
-				"status", response.OrderStatus)
+			log.Info("Order placed successfully level: %s, orderID: %s, status: %s",
+				entry.Description, response.OrderID, response.OrderStatus)
 		}
 
 		results.Results = append(results.Results, result)
 	}
 
 	// Log summary of execution
-	log.Info("Order execution completed",
-		"executionID", executionID,
-		"stockSymbol", stock.Symbol,
-		"orderCount", len(results.Results),
-		"success", results.Success)
+	log.Info("Order execution completed executionID: %s, stockSymbol: %s, orderCount: %d, success: %t",
+		executionID, stock.Symbol, len(results.Results), results.Success)
 
 	if len(results.Results) == 0 {
 		return nil, errors.New("no orders were attempted")
