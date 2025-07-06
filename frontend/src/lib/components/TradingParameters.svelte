@@ -389,6 +389,7 @@
 					>
 						<option value="1ST_ENTRY">1ST_ENTRY</option>
 						<option value="2_30_ENTRY">2_30_ENTRY</option>
+						<option value="BB_RANGE">BB_RANGE</option>
 					</select>
 				</div>
 				{#if formErrors.entryType}

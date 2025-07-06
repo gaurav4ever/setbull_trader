@@ -188,6 +188,10 @@ func (s *TechnicalIndicatorService) CalculateRSIV2(candles []domain.Candle, peri
 	}
 	closePrices, _, _, _, _ := candlesToFloat64Slices(reverseCandles)
 	rsiValues, _ := indicator.Rsi(closePrices)
+	// round to 2 decimal places
+	for i, v := range rsiValues {
+		rsiValues[i] = math.Round(v*100) / 100
+	}
 
 	indicatorValues := make([]domain.IndicatorValue, len(candles))
 	offset := len(candles) - len(rsiValues)

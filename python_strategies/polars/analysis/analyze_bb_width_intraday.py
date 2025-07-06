@@ -53,7 +53,15 @@ class ConfigurationManager:
             'market_end': "15:30",              # Market end time
             'time_interval': '5m',              # Aggregation interval
             'min_data_points': 20,              # Minimum data points required
-            'default_lookback_days': 20         # Default lookback period
+            'default_lookback_days': 20,        # Default lookback period
+            'data_validation': {
+                'min_days_required': 3,         # Minimum days required for daily analysis
+                'min_data_points_per_day': 10,  # Minimum data points per day
+                'min_bb_period_multiplier': 2,  # Minimum data points = bb_period * this multiplier
+                'lookback_coverage_threshold': 0.5,  # Minimum coverage of requested lookback period
+                'trading_data_threshold': 0.8,  # Minimum expected trading data (80% of expected)
+                'strict_validation': True       # Enable strict validation (can be disabled for testing)
+            }
         }
         
         # Performance Parameters
@@ -66,7 +74,7 @@ class ConfigurationManager:
         
         # Output Configuration
         self.output_config = {
-            'output_dir': 'output',
+            'output_dir': '/Users/gaurav/setbull_projects/setbull_trader/python_strategies/output',
             'logs_dir': 'logs',
             'csv_filename': 'bb_width_analysis.csv'
         }
@@ -466,7 +474,7 @@ class DataFetcher:
                   AND timestamp >= DATE_SUB(NOW(), INTERVAL %s DAY)
                 ORDER BY timestamp ASC
                 """
-                params = (instrument_key, lookback_days)
+                params = (instrument_key, lookback_days + 20)
             else:
                 query = """
                 SELECT timestamp, open, high, low, close, volume, time_interval
@@ -484,14 +492,69 @@ class DataFetcher:
             # Convert to Polars DataFrame
             df = pl.from_pandas(df_pandas)
             
-            # Apply data quality filters
-            if not self._apply_data_filters(df):
+            # Enhanced data validation with lookback period check
+            if not self._validate_data_for_analysis(df, lookback_days):
                 return None
             
             return df
         except Exception as e:
             self.logger.error(f"Error fetching data for {instrument_key}: {e}")
             return None
+    
+    def _validate_data_for_analysis(self, df: pl.DataFrame, lookback_days: Optional[int] = None) -> bool:
+        """Enhanced validation that checks data sufficiency for the requested lookback period."""
+        try:
+            validation_config = self.config.analysis_params['data_validation']
+            
+            # Skip validation if strict validation is disabled
+            if not validation_config['strict_validation']:
+                self.logger.debug("Strict validation disabled, skipping data validation")
+                return True
+            
+            # Check minimum data requirements
+            if not self.validator.check_data_completeness(df, self.config.analysis_params['min_data_points']):
+                return False
+            
+            # Validate price data
+            if not self.validator.validate_price_data(df):
+                return False
+            
+            # Check if we have enough data for the requested lookback period
+            if lookback_days:
+                # Calculate expected minimum data points for the lookback period
+                # Assuming 6.5 hours of trading per day (9:15 AM to 3:30 PM)
+                # and 1-minute data points
+                trading_minutes_per_day = 6.5 * 60  # 390 minutes
+                expected_min_data_points = lookback_days * trading_minutes_per_day * validation_config['trading_data_threshold']
+                
+                if df.height < expected_min_data_points:
+                    self.logger.warning(f"Insufficient data for {lookback_days} days lookback: "
+                                       f"got {df.height} points, expected at least {expected_min_data_points:.0f} points")
+                    return False
+            
+            # Check if we have enough data for Bollinger Band calculation
+            bb_period = self.config.analysis_params['bb_period']
+            min_bb_points = bb_period * validation_config['min_bb_period_multiplier']
+            if df.height < min_bb_points:
+                self.logger.warning(f"Insufficient data for BB calculation: "
+                                   f"got {df.height} points, need at least {min_bb_points} points")
+                return False
+            
+            # Check date range coverage
+            if df.height > 0:
+                min_date = df["timestamp"].min()
+                max_date = df["timestamp"].max()
+                date_range = (max_date - min_date).days
+                
+                if lookback_days and date_range < lookback_days * validation_config['lookback_coverage_threshold']:
+                    self.logger.warning(f"Insufficient date range coverage: "
+                                       f"got {date_range} days, requested {lookback_days} days")
+                    return False
+            
+            return True
+        except Exception as e:
+            self.logger.error(f"Data validation failed: {e}")
+            return False
     
     def get_instruments_by_symbols(self, symbols: List[str], lookback_days: Optional[int] = None) -> List[Dict]:
         """Fetch instruments by symbol list (only with 1minute data)."""
@@ -542,22 +605,6 @@ class DataFetcher:
         except Exception as e:
             self.logger.error(f"Error fetching instruments by symbols: {e}")
             return []
-    
-    def _apply_data_filters(self, df: pl.DataFrame) -> bool:
-        """Apply data quality filters."""
-        try:
-            # Check minimum data requirements
-            if not self.validator.check_data_completeness(df, self.config.analysis_params['min_data_points']):
-                return False
-            
-            # Validate price data
-            if not self.validator.validate_price_data(df):
-                return False
-            
-            return True
-        except Exception as e:
-            self.logger.error(f"Data filtering failed: {e}")
-            return False
 
 # =============================================================================
 # SECTION 3: ANALYSIS ENGINE
@@ -575,6 +622,12 @@ class BollingerBandCalculator:
         try:
             bb_period = self.config.analysis_params['bb_period']
             bb_std_dev = self.config.analysis_params['bb_std_dev']
+            validation_config = self.config.analysis_params['data_validation']
+            
+            # Pre-validation: Check if we have enough data for meaningful BB calculation
+            if df.height < bb_period:
+                self.logger.warning(f"Insufficient data for BB calculation: {df.height} points < {bb_period} required")
+                return df.filter(pl.lit(False))  # Return empty DataFrame
             
             # Calculate Bollinger Bands
             df = df.with_columns([
@@ -593,10 +646,23 @@ class BollingerBandCalculator:
             # Filter out non-positive BB width values
             df = df.filter(pl.col("bb_width") > 0)
             
+            # Post-validation: Check if we have meaningful results
+            if df.is_empty():
+                self.logger.warning("No valid BB width values calculated after filtering")
+                return df
+            
+            # Check if we have enough valid BB width values for analysis
+            min_valid_points = bb_period // validation_config['min_bb_period_multiplier']
+            if df.height < min_valid_points:
+                self.logger.warning(f"Insufficient valid BB width values: {df.height} < {min_valid_points} required")
+                return df.filter(pl.lit(False))  # Return empty DataFrame
+            
+            self.logger.debug(f"Successfully calculated BB width for {df.height} data points")
             return df
+            
         except Exception as e:
             self.logger.error(f"Bollinger Band calculation failed: {e}")
-            return df
+            return df.filter(pl.lit(False))  # Return empty DataFrame on error
 
 class IntradayAnalyzer:
     """Main analyzer that orchestrates the intraday analysis process."""
@@ -607,6 +673,20 @@ class IntradayAnalyzer:
         self.data_fetcher = DataFetcher(config, db_manager)
         self.bb_calculator = BollingerBandCalculator(config)
         self.logger = logging.getLogger(__name__)
+        # Track skipped stocks for reporting
+        self.skipped_stocks = {}
+    
+    def get_skip_summary(self) -> Dict[str, int]:
+        """Get summary of skipped stocks by reason."""
+        summary = {}
+        for reason in self.skipped_stocks.values():
+            summary[reason] = summary.get(reason, 0) + 1
+        return summary
+    
+    def _record_skip(self, symbol: str, reason: str):
+        """Record a skipped stock with the reason."""
+        self.skipped_stocks[symbol] = reason
+        self.logger.debug(f"Skipped {symbol}: {reason}")
     
     def analyze_instrument(self, instrument_key: str, symbol: str, lookback_days: Optional[int] = None) -> Optional[Dict]:
         """Analyze a single instrument for BB width patterns (strictly intraday)."""
@@ -614,23 +694,27 @@ class IntradayAnalyzer:
             # Fetch instrument data (1minute only)
             df = self.data_fetcher.get_instrument_data(instrument_key, lookback_days)
             if df is None or df.is_empty():
+                self._record_skip(symbol, "No 1minute data available")
                 self.logger.warning(f"No 1minute data for {symbol} ({instrument_key}), skipping.")
                 return None
             
             # Filter for market hours
             market_hours_df = self._filter_market_hours(df)
             if market_hours_df.is_empty():
+                self._record_skip(symbol, "No market hours data")
                 self.logger.warning(f"No market hours data for {symbol} ({instrument_key}), skipping.")
                 return None
             
             # Aggregate to 5-minute candles
             aggregated_df = self._aggregate_to_5min(market_hours_df)
             if aggregated_df.is_empty():
+                self._record_skip(symbol, "No 5-minute aggregated data")
                 self.logger.warning(f"No 5-minute aggregated data for {symbol} ({instrument_key}), skipping.")
                 return None
             
             return self._analyze_intraday_data(aggregated_df, instrument_key, symbol, lookback_days)
         except Exception as e:
+            self._record_skip(symbol, f"Analysis error: {str(e)}")
             self.logger.error(f"Analysis failed for {symbol}: {e}")
             return None
     
@@ -638,6 +722,9 @@ class IntradayAnalyzer:
         """Analyze multiple instruments."""
         try:
             self.logger.info(f"Starting analysis of {len(instruments)} instruments")
+            
+            # Reset skip tracking for this analysis run
+            self.skipped_stocks = {}
             
             results = []
             database_updates = []  # Store updates for batch processing
@@ -672,7 +759,28 @@ class IntradayAnalyzer:
             elif update_database:
                 self.logger.info("No valid lowest BB width values found for database update")
             
-            self.logger.info(f"Analysis complete. Processed {len(results)} instruments")
+            # Generate skip summary
+            skip_summary = self.get_skip_summary()
+            if skip_summary:
+                self.logger.info(f"\nSkipped Stocks Summary:")
+                for reason, count in skip_summary.items():
+                    self.logger.info(f"  {reason}: {count} stocks")
+                
+                # Log some examples of skipped stocks for each reason
+                for reason in skip_summary.keys():
+                    skipped_examples = [symbol for symbol, skip_reason in self.skipped_stocks.items() if skip_reason == reason]
+                    if skipped_examples:
+                        example_count = min(5, len(skipped_examples))
+                        examples = skipped_examples[:example_count]
+                        self.logger.info(f"    Examples ({reason}): {', '.join(examples)}")
+                        if len(skipped_examples) > example_count:
+                            self.logger.info(f"    ... and {len(skipped_examples) - example_count} more")
+            
+            self.logger.info(f"\nAnalysis complete. Processed {len(instruments)} instruments:")
+            self.logger.info(f"  ✅ Successful analyses: {len(results)}")
+            self.logger.info(f"  ❌ Skipped stocks: {len(self.skipped_stocks)}")
+            self.logger.info(f"  📊 Success rate: {len(results)/len(instruments)*100:.1f}%")
+            
             return results
             
         except Exception as e:
@@ -718,6 +826,13 @@ class IntradayAnalyzer:
     def _calculate_daily_stats(self, df: pl.DataFrame) -> pl.DataFrame:
         """Calculate daily BB width statistics."""
         try:
+            validation_config = self.config.analysis_params['data_validation']
+            
+            # Check if we have enough data for daily analysis
+            if df.is_empty():
+                self.logger.warning("No data available for daily stats calculation")
+                return df
+            
             # Check if we have a 'date' column (from intraday aggregation) or need to extract from 'timestamp'
             if 'date' in df.columns:
                 # Intraday data already has date column
@@ -726,6 +841,14 @@ class IntradayAnalyzer:
                 # Daily data - extract date from timestamp
                 df = df.with_columns(pl.col("timestamp").dt.date().alias("date"))
                 group_col = 'date'
+            
+            # Count unique days
+            unique_days = df[group_col].n_unique()
+            min_days_required = validation_config['min_days_required']
+            
+            if unique_days < min_days_required:
+                self.logger.warning(f"Insufficient days for daily analysis: {unique_days} days < {min_days_required} required")
+                return df.filter(pl.lit(False))  # Return empty DataFrame
             
             daily_stats = df.group_by(group_col, maintain_order=True).agg(
                 p10_bb_width=pl.col("bb_width").quantile(0.10).round(2),
@@ -741,10 +864,24 @@ class IntradayAnalyzer:
                 data_points=pl.count()
             )
             
+            # Validate that we have meaningful daily stats
+            if daily_stats.is_empty():
+                self.logger.warning("No daily statistics calculated")
+                return daily_stats
+            
+            # Check if we have enough days with sufficient data points
+            min_data_points_per_day = validation_config['min_data_points_per_day']
+            days_with_data = daily_stats.filter(pl.col("data_points") >= min_data_points_per_day).height
+            if days_with_data < min_days_required:
+                self.logger.warning(f"Insufficient days with adequate data: {days_with_data} days < {min_days_required} required")
+                return df.filter(pl.lit(False))  # Return empty DataFrame
+            
+            self.logger.debug(f"Calculated daily stats for {daily_stats.height} days")
             return daily_stats
+            
         except Exception as e:
             self.logger.error(f"Daily stats calculation failed: {e}")
-            return df
+            return df.filter(pl.lit(False))  # Return empty DataFrame on error
     
     def _find_lowest_bb_day(self, daily_stats: pl.DataFrame) -> Dict:
         """Find the day with the lowest BB width."""
@@ -1083,6 +1220,18 @@ def main():
     parser.add_argument("--market-end", type=str, default="15:30",
                        help="Market end time (HH:MM)")
     
+    # Data validation parameters
+    parser.add_argument("--min-days-required", type=int, default=3,
+                       help="Minimum days required for daily analysis")
+    parser.add_argument("--min-data-points-per-day", type=int, default=10,
+                       help="Minimum data points per day required")
+    parser.add_argument("--lookback-coverage-threshold", type=float, default=0.5,
+                       help="Minimum coverage of requested lookback period (0.0-1.0)")
+    parser.add_argument("--trading-data-threshold", type=float, default=0.8,
+                       help="Minimum expected trading data coverage (0.0-1.0)")
+    parser.add_argument("--disable-strict-validation", action='store_true',
+                       help="Disable strict data validation (useful for testing with limited data)")
+    
     # Output parameters
     parser.add_argument("--output-file", type=str, 
                        default="bb_width_analysis.csv",
@@ -1116,6 +1265,13 @@ def main():
     config.analysis_params['bb_std_dev'] = args.bb_std
     config.analysis_params['market_start'] = args.market_start
     config.analysis_params['market_end'] = args.market_end
+    
+    # Update validation parameters
+    config.analysis_params['data_validation']['min_days_required'] = args.min_days_required
+    config.analysis_params['data_validation']['min_data_points_per_day'] = args.min_data_points_per_day
+    config.analysis_params['data_validation']['lookback_coverage_threshold'] = args.lookback_coverage_threshold
+    config.analysis_params['data_validation']['trading_data_threshold'] = args.trading_data_threshold
+    config.analysis_params['data_validation']['strict_validation'] = not args.disable_strict_validation
     
     # Setup logging
     logging_manager = LoggingManager(config)

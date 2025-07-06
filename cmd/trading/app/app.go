@@ -59,6 +59,9 @@ type App struct {
 	marketQuoteService      *service.MarketQuoteService
 	stockGroupService       *service.StockGroupService
 	groupExecutionService   *service.GroupExecutionService
+	alertService            *service.AlertService
+	bbWidthMonitorService   *service.BBWidthMonitorService
+	groupExecutionScheduler *service.GroupExecutionScheduler
 }
 
 // NewApp creates a new application
@@ -169,6 +172,16 @@ func NewApp() *App {
 	groupExecutionService := service.NewGroupExecutionService(stockGroupService, marketQuoteService, tradeParamsService, executionPlanService, orderExecutionService, cfg, stockUniverseService, technicalIndicatorService, candleAggService)
 	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService, groupExecutionService)
 
+	// Initialize BB width monitoring services
+	alertService := service.NewAlertService(&cfg.BBWidthMonitoring)
+	bbWidthMonitorService := service.NewBBWidthMonitorService(
+		stockGroupService,
+		technicalIndicatorService,
+		alertService,
+		stockUniverseService,
+		&cfg.BBWidthMonitoring,
+	)
+
 	restServer := rest.NewServer(
 		orderService,
 		stockService,
@@ -188,8 +201,8 @@ func NewApp() *App {
 		stockGroupHandler,
 	)
 
-	// Wire up the group execution scheduler
-	_ = service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService)
+	// Wire up the group execution scheduler with BB width monitoring
+	groupExecutionScheduler := service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService, bbWidthMonitorService)
 
 	return &App{
 		config:                  cfg,
@@ -221,6 +234,9 @@ func NewApp() *App {
 		marketQuoteService:      marketQuoteService,
 		stockGroupService:       stockGroupService,
 		groupExecutionService:   groupExecutionService,
+		alertService:            alertService,
+		bbWidthMonitorService:   bbWidthMonitorService,
+		groupExecutionScheduler: groupExecutionScheduler,
 	}
 }
 

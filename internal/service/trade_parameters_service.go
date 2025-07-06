@@ -109,8 +109,8 @@ func (s *TradeParametersService) validateParameters(params *domain.TradeParamete
 		return errors.New("psType must be either FIXED or DYNAMIC")
 	}
 
-	if params.EntryType != "1ST_ENTRY" && params.EntryType != "2_30_ENTRY" {
-		return errors.New("entryType must be either 1ST_ENTRY or 2_30_ENTRY")
+	if params.EntryType != "1ST_ENTRY" && params.EntryType != "2_30_ENTRY" && params.EntryType != "BB_RANGE" {
+		return errors.New("entryType must be either 1ST_ENTRY, 2_30_ENTRY, or BB_RANGE")
 	}
 
 	return nil
