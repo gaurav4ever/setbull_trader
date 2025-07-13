@@ -638,10 +638,12 @@ class BollingerBandCalculator:
                 (pl.col("bb_mid") - bb_std_dev * pl.col("bb_std")).alias("bb_lower")
             ]).with_columns([
                 (pl.col("bb_upper") - pl.col("bb_lower")).alias("bb_width")
+            ]).with_columns([
+                (pl.col("bb_width") / pl.col("bb_mid") * 100).alias("normalized_bb_width_percentage")
             ])
             
             # Drop null values
-            df = df.drop_nulls(["bb_width", "bb_upper", "bb_lower"])
+            df = df.drop_nulls(["bb_width", "bb_upper", "bb_lower", "normalized_bb_width_percentage"])
             
             # Filter out non-positive BB width values
             df = df.filter(pl.col("bb_width") > 0)
@@ -852,6 +854,8 @@ class IntradayAnalyzer:
             
             daily_stats = df.group_by(group_col, maintain_order=True).agg(
                 p10_bb_width=pl.col("bb_width").quantile(0.10).round(2),
+                p15_bb_width=pl.col("bb_width").quantile(0.15).round(2),
+                p20_bb_width=pl.col("bb_width").quantile(0.20).round(2),
                 p25_bb_width=pl.col("bb_width").quantile(0.25).round(2),
                 p50_bb_width=pl.col("bb_width").quantile(0.50).round(2),
                 p75_bb_width=pl.col("bb_width").quantile(0.75).round(2),
@@ -861,6 +865,14 @@ class IntradayAnalyzer:
                 std_bb_width=pl.col("bb_width").std().round(2),
                 min_bb_width=pl.col("bb_width").min().round(2),
                 max_bb_width=pl.col("bb_width").max().round(2),
+                p10_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").quantile(0.10).round(2),
+                p15_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").quantile(0.15).round(2),
+                p20_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").quantile(0.20).round(2),
+                p25_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").quantile(0.25).round(2),
+                p50_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").quantile(0.50).round(2),
+                mean_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").mean().round(2),
+                min_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").min().round(2),
+                max_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").max().round(2),
                 data_points=pl.count()
             )
             
@@ -900,9 +912,21 @@ class IntradayAnalyzer:
             return {
                 "date": lowest_day["date"],
                 "p10_bb_width": lowest_day["p10_bb_width"],
+                "p15_bb_width": lowest_day["p15_bb_width"],
+                "p20_bb_width": lowest_day["p20_bb_width"],
+                "p25_bb_width": lowest_day["p25_bb_width"],
+                "p50_bb_width": lowest_day["p50_bb_width"],
                 "mean_bb_width": lowest_day["mean_bb_width"],
                 "min_bb_width": lowest_day["min_bb_width"],
                 "max_bb_width": lowest_day["max_bb_width"],
+                "p10_normalized_bb_width_percentage": lowest_day["p10_normalized_bb_width_percentage"],
+                "p15_normalized_bb_width_percentage": lowest_day["p15_normalized_bb_width_percentage"],
+                "p20_normalized_bb_width_percentage": lowest_day["p20_normalized_bb_width_percentage"],
+                "p25_normalized_bb_width_percentage": lowest_day["p25_normalized_bb_width_percentage"],
+                "p50_normalized_bb_width_percentage": lowest_day["p50_normalized_bb_width_percentage"],
+                "mean_normalized_bb_width_percentage": lowest_day["mean_normalized_bb_width_percentage"],
+                "min_normalized_bb_width_percentage": lowest_day["min_normalized_bb_width_percentage"],
+                "max_normalized_bb_width_percentage": lowest_day["max_normalized_bb_width_percentage"],
                 "data_points": lowest_day["data_points"]
             }
         except Exception as e:
@@ -1000,9 +1024,21 @@ class OutputGenerator:
                     "data_type": str(result.get("data_type", "unknown")),
                     "lowest_bb_date": str(lowest_day.get("date", "")),
                     "lowest_p10_bb_width": f"{lowest_day.get('p10_bb_width', 0):.2f}",
+                    "lowest_p15_bb_width": f"{lowest_day.get('p15_bb_width', 0):.2f}",
+                    "lowest_p20_bb_width": f"{lowest_day.get('p20_bb_width', 0):.2f}",
+                    "lowest_p25_bb_width": f"{lowest_day.get('p25_bb_width', 0):.2f}",
+                    "lowest_p50_bb_width": f"{lowest_day.get('p50_bb_width', 0):.2f}",
                     "lowest_mean_bb_width": f"{lowest_day.get('mean_bb_width', 0):.2f}",
                     "lowest_min_bb_width": f"{lowest_day.get('min_bb_width', 0):.2f}",
                     "lowest_max_bb_width": f"{lowest_day.get('max_bb_width', 0):.2f}",
+                    "lowest_p10_normalized_bb_width_percentage": f"{lowest_day.get('p10_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_p15_normalized_bb_width_percentage": f"{lowest_day.get('p15_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_p20_normalized_bb_width_percentage": f"{lowest_day.get('p20_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_p25_normalized_bb_width_percentage": f"{lowest_day.get('p25_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_p50_normalized_bb_width_percentage": f"{lowest_day.get('p50_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_mean_normalized_bb_width_percentage": f"{lowest_day.get('mean_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_min_normalized_bb_width_percentage": f"{lowest_day.get('min_normalized_bb_width_percentage', 0):.2f}",
+                    "lowest_max_normalized_bb_width_percentage": f"{lowest_day.get('max_normalized_bb_width_percentage', 0):.2f}",
                     "lowest_day_data_points": str(lowest_day.get("data_points", 0))
                 })
             
@@ -1022,9 +1058,21 @@ class OutputGenerator:
                         "data_type": pl.Utf8,
                         "lowest_bb_date": pl.Utf8,
                         "lowest_p10_bb_width": pl.Utf8,
+                        "lowest_p15_bb_width": pl.Utf8,
+                        "lowest_p20_bb_width": pl.Utf8,
+                        "lowest_p25_bb_width": pl.Utf8,
+                        "lowest_p50_bb_width": pl.Utf8,
                         "lowest_mean_bb_width": pl.Utf8,
                         "lowest_min_bb_width": pl.Utf8,
                         "lowest_max_bb_width": pl.Utf8,
+                        "lowest_p10_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_p15_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_p20_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_p25_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_p50_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_mean_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_min_normalized_bb_width_percentage": pl.Utf8,
+                        "lowest_max_normalized_bb_width_percentage": pl.Utf8,
                         "lowest_day_data_points": pl.Utf8
                     })
                     self.logger.info(f"Found existing CSV with {existing_df.height} records")
@@ -1101,6 +1149,8 @@ class OutputGenerator:
                         "lookback_days": str(result["lookback_days"]),
                         "date": str(daily_stat["date"]),
                         "p10_bb_width": f"{daily_stat['p10_bb_width']:.2f}",
+                        "p15_bb_width": f"{daily_stat['p15_bb_width']:.2f}",
+                        "p20_bb_width": f"{daily_stat['p20_bb_width']:.2f}",
                         "p25_bb_width": f"{daily_stat['p25_bb_width']:.2f}",
                         "p50_bb_width": f"{daily_stat['p50_bb_width']:.2f}",
                         "p75_bb_width": f"{daily_stat['p75_bb_width']:.2f}",
@@ -1110,6 +1160,14 @@ class OutputGenerator:
                         "std_bb_width": f"{daily_stat['std_bb_width']:.2f}",
                         "min_bb_width": f"{daily_stat['min_bb_width']:.2f}",
                         "max_bb_width": f"{daily_stat['max_bb_width']:.2f}",
+                        "p10_normalized_bb_width_percentage": f"{daily_stat['p10_normalized_bb_width_percentage']:.2f}",
+                        "p15_normalized_bb_width_percentage": f"{daily_stat['p15_normalized_bb_width_percentage']:.2f}",
+                        "p20_normalized_bb_width_percentage": f"{daily_stat['p20_normalized_bb_width_percentage']:.2f}",
+                        "p25_normalized_bb_width_percentage": f"{daily_stat['p25_normalized_bb_width_percentage']:.2f}",
+                        "p50_normalized_bb_width_percentage": f"{daily_stat['p50_normalized_bb_width_percentage']:.2f}",
+                        "mean_normalized_bb_width_percentage": f"{daily_stat['mean_normalized_bb_width_percentage']:.2f}",
+                        "min_normalized_bb_width_percentage": f"{daily_stat['min_normalized_bb_width_percentage']:.2f}",
+                        "max_normalized_bb_width_percentage": f"{daily_stat['max_normalized_bb_width_percentage']:.2f}",
                         "data_points": str(daily_stat["data_points"])
                     })
             
@@ -1126,6 +1184,8 @@ class OutputGenerator:
                         "lookback_days": pl.Utf8,
                         "date": pl.Utf8,
                         "p10_bb_width": pl.Utf8,
+                        "p15_bb_width": pl.Utf8,
+                        "p20_bb_width": pl.Utf8,
                         "p25_bb_width": pl.Utf8,
                         "p50_bb_width": pl.Utf8,
                         "p75_bb_width": pl.Utf8,
@@ -1135,6 +1195,14 @@ class OutputGenerator:
                         "std_bb_width": pl.Utf8,
                         "min_bb_width": pl.Utf8,
                         "max_bb_width": pl.Utf8,
+                        "p10_normalized_bb_width_percentage": pl.Utf8,
+                        "p15_normalized_bb_width_percentage": pl.Utf8,
+                        "p20_normalized_bb_width_percentage": pl.Utf8,
+                        "p25_normalized_bb_width_percentage": pl.Utf8,
+                        "p50_normalized_bb_width_percentage": pl.Utf8,
+                        "mean_normalized_bb_width_percentage": pl.Utf8,
+                        "min_normalized_bb_width_percentage": pl.Utf8,
+                        "max_normalized_bb_width_percentage": pl.Utf8,
                         "data_points": pl.Utf8
                     })
                     self.logger.info(f"Found existing detailed CSV with {existing_df.height} records")
@@ -1406,7 +1474,17 @@ def main():
                 logger.info(f"  {i}. {result['symbol']} ({result['instrument_key']})")
                 logger.info(f"     Lowest BB Width Date: {lowest_day.get('date', 'N/A')}")
                 logger.info(f"     P10 BB Width: {lowest_day.get('p10_bb_width', 0):.2f}")
+                logger.info(f"     P15 BB Width: {lowest_day.get('p15_bb_width', 0):.2f}")
+                logger.info(f"     P20 BB Width: {lowest_day.get('p20_bb_width', 0):.2f}")
+                logger.info(f"     P25 BB Width: {lowest_day.get('p25_bb_width', 0):.2f}")
+                logger.info(f"     P50 BB Width: {lowest_day.get('p50_bb_width', 0):.2f}")
                 logger.info(f"     Mean BB Width: {lowest_day.get('mean_bb_width', 0):.2f}")
+                logger.info(f"     P10 Normalized BB Width %: {lowest_day.get('p10_normalized_bb_width_percentage', 0):.2f}%")
+                logger.info(f"     P15 Normalized BB Width %: {lowest_day.get('p15_normalized_bb_width_percentage', 0):.2f}%")
+                logger.info(f"     P20 Normalized BB Width %: {lowest_day.get('p20_normalized_bb_width_percentage', 0):.2f}%")
+                logger.info(f"     P25 Normalized BB Width %: {lowest_day.get('p25_normalized_bb_width_percentage', 0):.2f}%")
+                logger.info(f"     P50 Normalized BB Width %: {lowest_day.get('p50_normalized_bb_width_percentage', 0):.2f}%")
+                logger.info(f"     Mean Normalized BB Width %: {lowest_day.get('mean_normalized_bb_width_percentage', 0):.2f}%")
         
         # Log performance metrics
         monitor.end_timer("total_analysis")

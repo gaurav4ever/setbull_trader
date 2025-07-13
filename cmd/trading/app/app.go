@@ -164,7 +164,7 @@ func NewApp() *App {
 	candleProcessingService := service.NewCandleProcessingService(upstoxAuthService, candleRepo, cfg.HistoricalData.BatchSize, "upstox_session")
 	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
 	batchFetchService := service.NewBatchFetchService(candleProcessingService, stockUniverseService, cfg.HistoricalData.MaxConcurrentRequests)
-	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService)
+	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService, utilityService)
 	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)

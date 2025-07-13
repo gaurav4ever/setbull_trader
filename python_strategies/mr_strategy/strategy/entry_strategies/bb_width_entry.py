@@ -29,7 +29,7 @@ class BBWidthEntryStrategy(EntryStrategy):
         super().__init__(config)
         
         # BB Width strategy specific parameters
-        self.bb_width_threshold = getattr(config, 'bb_width_threshold', 0.001)  # 0.1% default
+        self.bb_width_threshold = getattr(config, 'bb_width_threshold', 0.2)  # 20% default
         self.bb_period = getattr(config, 'bb_period', 20)  # 20 period default
         self.bb_std_dev = getattr(config, 'bb_std_dev', 2.0)  # 2 standard deviations default
         self.squeeze_duration_min = getattr(config, 'squeeze_duration_min', 3)  # Minimum 3 candles
@@ -87,10 +87,11 @@ class BBWidthEntryStrategy(EntryStrategy):
             return None
             
         # Extract BB values
-        self.bb_upper = candle.get('bb_upper', 0)
-        self.bb_lower = candle.get('bb_lower', 0)
-        self.bb_middle = candle.get('bb_middle', 0)
-        self.current_bb_width = candle.get('bb_width', 0)
+        self.bb_upper = candle.get('bb_upper_x', 0)
+        self.bb_lower = candle.get('bb_lower_x', 0)
+        self.bb_middle = candle.get('bb_middle_x', 0)
+        self.current_bb_width = self.bb_upper - self.bb_lower
+        self.current_bb_width = round(self.current_bb_width, 2)
         
         # Update BB width history
         # self._update_bb_width_history(self.current_bb_width)
@@ -101,6 +102,7 @@ class BBWidthEntryStrategy(EntryStrategy):
         
         # Check for squeeze condition
         squeeze_threshold = self.lowest_bb_width * (1 + self.bb_width_threshold)  # ±0.1% of lowest
+        squeeze_threshold = round(squeeze_threshold, 2)
         
         if self.current_bb_width <= squeeze_threshold:
             # Squeeze condition detected
@@ -135,7 +137,7 @@ class BBWidthEntryStrategy(EntryStrategy):
     
     def _validate_bb_data(self, candle: Dict[str, Any]) -> bool:
         """Validate that required BB data is present and valid."""
-        required_fields = ['bb_upper', 'bb_lower', 'bb_middle', 'bb_width']
+        required_fields = ['bb_upper_x', 'bb_lower_x', 'bb_middle_x']
         
         for field in required_fields:
             if field not in candle:
@@ -148,15 +150,19 @@ class BBWidthEntryStrategy(EntryStrategy):
                 return False
         
         # Validate BB relationships
-        bb_upper = candle['bb_upper']
-        bb_lower = candle['bb_lower']
-        bb_middle = candle['bb_middle']
+        bb_upper = candle['bb_upper_x']
+        bb_lower = candle['bb_lower_x']
+        bb_middle = candle['bb_middle_x']
+
+        if bb_upper == bb_lower == bb_middle:
+            logger.warning(f"No buy sell on candle {candle['timestamp']}")
+            return True
         
-        if bb_upper <= bb_lower:
-            logger.warning(f"Invalid BB relationship: upper ({bb_upper}) <= lower ({bb_lower})")
+        if bb_upper < bb_lower:
+            logger.warning(f"Invalid BB relationship: upper ({bb_upper}) < lower ({bb_lower})")
             return False
         
-        if not (bb_lower <= bb_middle <= bb_upper):
+        if not (bb_lower < bb_middle < bb_upper):
             logger.warning(f"Invalid BB relationship: middle ({bb_middle}) not between upper ({bb_upper}) and lower ({bb_lower})")
             return False
         
@@ -188,8 +194,9 @@ class BBWidthEntryStrategy(EntryStrategy):
                 logger.warning(f"No data found for instrument_key: {instrument_key}, using default lowest BB width")
                 return 0.001  # Default fallback value
             
-            # Get the lowest BB width (using lowest_p10_bb_width column)
-            lowest_bb_width = instrument_data.iloc[0]['lowest_p10_bb_width']
+            # Get the lowest BB width (using lowest_mean_bb_width column)
+            lowest_bb_width = instrument_data.iloc[0]['lowest_mean_bb_width']
+            lowest_bb_width = lowest_bb_width/2
             
             # Convert to float and validate
             if pd.isna(lowest_bb_width) or lowest_bb_width <= 0:
@@ -227,13 +234,13 @@ class BBWidthEntryStrategy(EntryStrategy):
         # Check for long entry (price above BB upper band)
         if (current_price > self.bb_upper and 
             direction == "BULLISH" and
-            self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG")):
+            self.can_generate_signal(SignalType.BB_WIDTH_ENTRY.value, "LONG")):
             
             self.in_long_trade = True
             logger.info(f"{candle_info}BB Width long entry detected - Price: {current_price:.2f}, BB Upper: {self.bb_upper:.2f}")
             
             signal = Signal(
-                type=SignalType.IMMEDIATE_BREAKOUT,
+                type=SignalType.BB_WIDTH_ENTRY,
                 direction=SignalDirection.LONG,
                 timestamp=timestamp,
                 price=self.bb_upper,  # Entry at BB upper band
@@ -256,19 +263,19 @@ class BBWidthEntryStrategy(EntryStrategy):
                 }
             )
             
-            self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "LONG")
+            self.update_signal_state(SignalType.BB_WIDTH_ENTRY.value, "LONG")
             return signal
         
         # Check for short entry (price below BB lower band)
         elif (current_price < self.bb_lower and 
               direction == "BEARISH" and
-              self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT")):
+              self.can_generate_signal(SignalType.BB_WIDTH_ENTRY.value, "SHORT")):
             
             self.in_short_trade = True
             logger.info(f"{candle_info}BB Width short entry detected - Price: {current_price:.2f}, BB Lower: {self.bb_lower:.2f}")
             
             signal = Signal(
-                type=SignalType.IMMEDIATE_BREAKOUT,
+                type=SignalType.BB_WIDTH_ENTRY,
                 direction=SignalDirection.SHORT,
                 timestamp=timestamp,
                 price=self.bb_lower,  # Entry at BB lower band
@@ -291,7 +298,7 @@ class BBWidthEntryStrategy(EntryStrategy):
                 }
             )
             
-            self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT")
+            self.update_signal_state(SignalType.BB_WIDTH_ENTRY.value, "SHORT")
             return signal
         
         return None

@@ -44,7 +44,7 @@ class MRStrategyConfig:
     respect_trend: bool = True
     
     # BB Width strategy parameters
-    bb_width_threshold: float = 0.001  # 0.1% default
+    bb_width_threshold: float = 0.2  # 20% default
     bb_period: int = 20  # 20 period default
     bb_std_dev: float = 2.0  # 2 standard deviations default
     squeeze_duration_min: int = 3  # Minimum 3 candles

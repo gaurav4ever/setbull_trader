@@ -14,10 +14,10 @@ import (
 
 // CandleAggregationService provides operations for aggregating candles to different timeframes
 type CandleAggregationService struct {
-	candleRepo        repository.CandleRepository
-	batchFetchService *BatchFetchService
-	tradingCalendar   *TradingCalendarService
-
+	candleRepo           repository.CandleRepository
+	batchFetchService    *BatchFetchService
+	tradingCalendar      *TradingCalendarService
+	utilityService       *UtilityService
 	candleCloseListeners []CandleCloseListener // listeners for candle close events
 }
 
@@ -32,11 +32,14 @@ type DateRangeSegment struct {
 func NewCandleAggregationService(
 	candleRepo repository.CandleRepository,
 	batchFetchService *BatchFetchService,
-	tradingCalendar *TradingCalendarService) *CandleAggregationService {
+	tradingCalendar *TradingCalendarService,
+	utilityService *UtilityService,
+) *CandleAggregationService {
 	return &CandleAggregationService{
 		candleRepo:        candleRepo,
 		batchFetchService: batchFetchService,
 		tradingCalendar:   tradingCalendar,
+		utilityService:    utilityService,
 	}
 }
 
@@ -94,6 +97,8 @@ func (s *CandleAggregationService) Get5MinCandles(
 	atr := indicatorService.CalculateATRV2(candleSlice, 14)
 	// Calculate RSI (14)
 	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
+	// Calculate BB Width
+	bbWidth := indicatorService.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
 
 	// Map indicator values by timestamp for fast lookup, handling NaN values
 	ma9Map := make(map[time.Time]float64)
@@ -136,6 +141,10 @@ func (s *CandleAggregationService) Get5MinCandles(
 	for _, v := range rsi {
 		rsiMap[v.Timestamp] = handleNaN(v.Value)
 	}
+	bbWidthMap := make(map[time.Time]float64)
+	for _, v := range bbWidth {
+		bbWidthMap[v.Timestamp] = handleNaN(v.Value)
+	}
 
 	// Populate indicator fields in AggregatedCandle
 	for i := range aggCandles {
@@ -145,31 +154,59 @@ func (s *CandleAggregationService) Get5MinCandles(
 		}
 		if val, ok := bbUpperMap[ts]; ok {
 			aggCandles[i].BBUpper = val
+			// round values to 2 decimal places
+			aggCandles[i].BBUpper = math.Round(val*100) / 100
 		}
 		if val, ok := bbMiddleMap[ts]; ok {
 			aggCandles[i].BBMiddle = val
+			// round values to 2 decimal places
+			aggCandles[i].BBMiddle = math.Round(val*100) / 100
 		}
 		if val, ok := bbLowerMap[ts]; ok {
 			aggCandles[i].BBLower = val
+			// round values to 2 decimal places
+			aggCandles[i].BBLower = math.Round(val*100) / 100
 		}
 		if val, ok := vwapMap[ts]; ok {
 			aggCandles[i].VWAP = val
+			// round values to 2 decimal places
+			aggCandles[i].VWAP = math.Round(val*100) / 100
 		}
 		if val, ok := ema5Map[ts]; ok {
 			aggCandles[i].EMA5 = val
+			// round values to 2 decimal places
+			aggCandles[i].EMA5 = math.Round(val*100) / 100
 		}
 		if val, ok := ema9emaMap[ts]; ok {
 			aggCandles[i].EMA9 = val
+			// round values to 2 decimal places
+			aggCandles[i].EMA9 = math.Round(val*100) / 100
 		}
 		if val, ok := ema50Map[ts]; ok {
 			aggCandles[i].EMA50 = val
+			// round values to 2 decimal places
+			aggCandles[i].EMA50 = math.Round(val*100) / 100
 		}
 		if val, ok := atrMap[ts]; ok {
 			aggCandles[i].ATR = val
+			// round values to 2 decimal places
+			aggCandles[i].ATR = math.Round(val*100) / 100
 		}
 		if val, ok := rsiMap[ts]; ok {
 			aggCandles[i].RSI = val
+			// round values to 2 decimal places
+			aggCandles[i].RSI = math.Round(val*100) / 100
 		}
+		if val, ok := bbWidthMap[ts]; ok {
+			aggCandles[i].BBWidth = val
+			// round values to 2 decimal places
+			aggCandles[i].BBWidth = math.Round(val*100) / 100
+		}
+		lowestBBWidth, err := s.utilityService.getLowestMinBBWidth(aggCandles[i].InstrumentKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get lowest BB width: %w", err)
+		}
+		aggCandles[i].LowestBBWidth = lowestBBWidth
 	}
 
 	return aggCandles, nil
