@@ -645,12 +645,29 @@ class BollingerBandCalculator:
             # Drop null values
             df = df.drop_nulls(["bb_width", "bb_upper", "bb_lower", "normalized_bb_width_percentage"])
             
-            # Filter out non-positive BB width values
-            df = df.filter(pl.col("bb_width") > 0)
+            # PHASE 1: Zero value detection before filtering
+            zero_bb_width_count = df.filter(pl.col("bb_width") == 0).height
+            zero_bb_width_percentage = (zero_bb_width_count / df.height) * 100 if df.height > 0 else 0
+            has_zero_bb_width = zero_bb_width_count > 0
+            
+            # Log zero value detection
+            if has_zero_bb_width:
+                self.logger.warning(f"Detected {zero_bb_width_count} zero BB width values ({zero_bb_width_percentage:.2f}%)")
+            
+            # Enhanced filtering with minimum threshold instead of > 0
+            min_bb_width_threshold = 0.001  # Minimum BB width threshold
+            df = df.filter(pl.col("bb_width") > min_bb_width_threshold)
+            
+            # Add zero value metrics to result
+            df = df.with_columns([
+                pl.lit(zero_bb_width_count).alias("zero_bb_width_count"),
+                pl.lit(zero_bb_width_percentage).alias("zero_bb_width_percentage"),
+                pl.lit(has_zero_bb_width).alias("has_zero_bb_width")
+            ])
             
             # Post-validation: Check if we have meaningful results
             if df.is_empty():
-                self.logger.warning("No valid BB width values calculated after filtering")
+                self.logger.warning("No valid BB width values calculated after enhanced filtering")
                 return df
             
             # Check if we have enough valid BB width values for analysis
@@ -659,7 +676,7 @@ class BollingerBandCalculator:
                 self.logger.warning(f"Insufficient valid BB width values: {df.height} < {min_valid_points} required")
                 return df.filter(pl.lit(False))  # Return empty DataFrame
             
-            self.logger.debug(f"Successfully calculated BB width for {df.height} data points")
+            self.logger.debug(f"Successfully calculated BB width for {df.height} data points (filtered {zero_bb_width_count} zero values)")
             return df
             
         except Exception as e:
@@ -873,7 +890,11 @@ class IntradayAnalyzer:
                 mean_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").mean().round(2),
                 min_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").min().round(2),
                 max_normalized_bb_width_percentage=pl.col("normalized_bb_width_percentage").max().round(2),
-                data_points=pl.count()
+                data_points=pl.count(),
+                # PHASE 1: Add zero value metrics
+                zero_bb_width_count=pl.col("bb_width").filter(pl.col("bb_width") == 0).count(),
+                zero_bb_width_percentage=(pl.col("bb_width").filter(pl.col("bb_width") == 0).count() / pl.count()) * 100,
+                has_zero_bb_width=pl.col("bb_width").filter(pl.col("bb_width") == 0).count() > 0
             )
             
             # Validate that we have meaningful daily stats
@@ -901,8 +922,19 @@ class IntradayAnalyzer:
             if daily_stats.is_empty():
                 return {}
             
-            # Find day with lowest 10th percentile BB width
-            lowest_p10 = daily_stats.sort("p10_bb_width").head(1)
+            # PHASE 1: Filter out days with zero BB width
+            filtered_stats = daily_stats.filter(
+                (pl.col("p10_bb_width") > 0) & 
+                (pl.col("p15_bb_width") > 0) &
+                (pl.col("p10_bb_width") >= 0.01)  # Minimum threshold
+            )
+            
+            if filtered_stats.is_empty():
+                self.logger.warning("No days found after zero value filtering")
+                return {}
+            
+            # Find day with lowest 10th percentile BB width from filtered data
+            lowest_p10 = filtered_stats.sort("p10_bb_width").head(1)
             
             if lowest_p10.is_empty():
                 return {}
@@ -927,7 +959,11 @@ class IntradayAnalyzer:
                 "mean_normalized_bb_width_percentage": lowest_day["mean_normalized_bb_width_percentage"],
                 "min_normalized_bb_width_percentage": lowest_day["min_normalized_bb_width_percentage"],
                 "max_normalized_bb_width_percentage": lowest_day["max_normalized_bb_width_percentage"],
-                "data_points": lowest_day["data_points"]
+                "data_points": lowest_day["data_points"],
+                # PHASE 1: Add zero value metrics
+                "zero_bb_width_count": lowest_day.get("zero_bb_width_count", 0),
+                "zero_bb_width_percentage": lowest_day.get("zero_bb_width_percentage", 0),
+                "has_zero_bb_width": lowest_day.get("has_zero_bb_width", False)
             }
         except Exception as e:
             self.logger.error(f"Lowest BB day calculation failed: {e}")
@@ -1039,7 +1075,11 @@ class OutputGenerator:
                     "lowest_mean_normalized_bb_width_percentage": f"{lowest_day.get('mean_normalized_bb_width_percentage', 0):.2f}",
                     "lowest_min_normalized_bb_width_percentage": f"{lowest_day.get('min_normalized_bb_width_percentage', 0):.2f}",
                     "lowest_max_normalized_bb_width_percentage": f"{lowest_day.get('max_normalized_bb_width_percentage', 0):.2f}",
-                    "lowest_day_data_points": str(lowest_day.get("data_points", 0))
+                    "lowest_day_data_points": str(lowest_day.get("data_points", 0)),
+                    # PHASE 1: Add zero value metrics
+                    "zero_bb_width_flag": str(lowest_day.get("has_zero_bb_width", False)),
+                    "zero_bb_width_percentage": f"{lowest_day.get('zero_bb_width_percentage', 0):.2f}",
+                    "zero_bb_width_count": str(lowest_day.get("zero_bb_width_count", 0))
                 })
             
             # Create DataFrame for new data
@@ -1073,7 +1113,11 @@ class OutputGenerator:
                         "lowest_mean_normalized_bb_width_percentage": pl.Utf8,
                         "lowest_min_normalized_bb_width_percentage": pl.Utf8,
                         "lowest_max_normalized_bb_width_percentage": pl.Utf8,
-                        "lowest_day_data_points": pl.Utf8
+                        "lowest_day_data_points": pl.Utf8,
+                        # PHASE 1: Add zero value metrics dtypes
+                        "zero_bb_width_flag": pl.Utf8,
+                        "zero_bb_width_percentage": pl.Utf8,
+                        "zero_bb_width_count": pl.Utf8
                     })
                     self.logger.info(f"Found existing CSV with {existing_df.height} records")
                     

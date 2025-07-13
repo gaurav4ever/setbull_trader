@@ -190,26 +190,173 @@ new_parameters = {
 3. **Maximum exposure per stock**
 4. **Circuit limit monitoring**
 
-## 8. CONCLUSION
+## 8. IMPLEMENTATION PLAN
 
-**Zero BB width stocks are non-tradeable and must be eliminated from analysis.**
+### 8.1 Phase 1: Zero Value Detection & Filtering (Priority: HIGH) ✅ COMPLETED
+**Duration: 2-3 days**
 
-**New parameters needed:**
-1. Zero BB width detection and filtering
-2. Liquidity assessment metrics
-3. Circuit limit monitoring
-4. Quality scoring system
-5. Tradeable range identification
+#### 8.1.1 Modify BollingerBandCalculator Class ✅ IMPLEMENTED
+```python
+# File: analyze_bb_width_intraday.py
+# Class: BollingerBandCalculator
 
-**Implementation priority:**
-1. High: Zero value filtering
-2. High: Liquidity parameters
-3. Medium: Quality scoring
-4. Medium: Risk assessment
-5. Low: Advanced analytics
+def calculate_bollinger_bands(self, df: pl.DataFrame) -> pl.DataFrame:
+    # Existing code...
+    
+    # PHASE 1: Zero value detection before filtering
+    zero_bb_width_count = df.filter(pl.col("bb_width") == 0).height
+    zero_bb_width_percentage = (zero_bb_width_count / df.height) * 100 if df.height > 0 else 0
+    has_zero_bb_width = zero_bb_width_count > 0
+    
+    # Log zero value detection
+    if has_zero_bb_width:
+        self.logger.warning(f"Detected {zero_bb_width_count} zero BB width values ({zero_bb_width_percentage:.2f}%)")
+    
+    # Enhanced filtering with minimum threshold instead of > 0
+    min_bb_width_threshold = 0.001  # Minimum BB width threshold
+    df = df.filter(pl.col("bb_width") > min_bb_width_threshold)
+    
+    # Add zero value metrics to result
+    df = df.with_columns([
+        pl.lit(zero_bb_width_count).alias("zero_bb_width_count"),
+        pl.lit(zero_bb_width_percentage).alias("zero_bb_width_percentage"),
+        pl.lit(has_zero_bb_width).alias("has_zero_bb_width")
+    ])
+    
+    return df
+```
 
-**Expected outcome:**
-- Reduced false signals
-- Improved trade success rate
-- Better risk management
-- Focused analysis on tradeable stocks
+#### 8.1.2 Update Daily Stats Calculation ✅ IMPLEMENTED
+```python
+# File: analyze_bb_width_intraday.py
+# Method: _calculate_daily_stats
+
+def _calculate_daily_stats(self, df: pl.DataFrame) -> pl.DataFrame:
+    # Existing code...
+    
+    daily_stats = df.group_by(group_col, maintain_order=True).agg(
+        # Existing aggregations...
+        
+        # PHASE 1: Add zero value metrics
+        zero_bb_width_count=pl.col("bb_width").filter(pl.col("bb_width") == 0).count(),
+        zero_bb_width_percentage=(pl.col("bb_width").filter(pl.col("bb_width") == 0).count() / pl.count()) * 100,
+        has_zero_bb_width=pl.col("bb_width").filter(pl.col("bb_width") == 0).count() > 0
+    )
+    
+    return daily_stats
+```
+
+#### 8.1.3 Add Zero Value Filtering ✅ IMPLEMENTED
+```python
+# File: analyze_bb_width_intraday.py
+# Method: _find_lowest_bb_day
+
+def _find_lowest_bb_day(self, daily_stats: pl.DataFrame) -> Dict:
+    # PHASE 1: Filter out days with zero BB width
+    filtered_stats = daily_stats.filter(
+        (pl.col("p10_bb_width") > 0) & 
+        (pl.col("p15_bb_width") > 0) &
+        (pl.col("p10_bb_width") >= 0.01)  # Minimum threshold
+    )
+    
+    if filtered_stats.is_empty():
+        self.logger.warning("No days found after zero value filtering")
+        return {}
+    
+    # Rest of existing code...
+```
+
+#### 8.1.4 Phase 1 Implementation Summary ✅ COMPLETED
+**Files Modified:**
+- `analyze_bb_width_intraday.py`: Enhanced BollingerBandCalculator, daily stats, and filtering
+- `test_phase1_zero_detection.py`: Created comprehensive test script
+
+**Key Features Implemented:**
+1. **Zero Value Detection**: Detects and logs zero BB width values before filtering
+2. **Enhanced Filtering**: Uses minimum threshold (0.001) instead of > 0
+3. **Zero Value Metrics**: Tracks count, percentage, and flag for zero values
+4. **Daily Stats Enhancement**: Includes zero value metrics in daily aggregations
+5. **Result Filtering**: Filters out days with zero BB width from final results
+6. **CSV Output Enhancement**: Adds zero value columns to output
+7. **Comprehensive Testing**: Test script validates all functionality
+
+**New CSV Columns Added:**
+- `zero_bb_width_flag`: Boolean indicating if stock has zero BB width
+- `zero_bb_width_percentage`: Percentage of zero BB width values
+- `zero_bb_width_count`: Count of zero BB width values
+
+**Testing:**
+Run `python test_phase1_zero_detection.py` to validate implementation
+
+### 8.2 Phase 2: Liquidity Assessment (Priority: HIGH)
+**Duration: 3-4 days**
+
+#### 8.2.1 Add Volume Analysis
+```python
+# File: analyze_bb_width_intraday.py
+# New method in IntradayAnalyzer class
+
+def _analyze_liquidity(self, df: pl.DataFrame) -> Dict:
+    """Analyze stock liquidity based on volume metrics."""
+    try:
+        volume_metrics = {
+            "avg_volume": df["volume"].mean(),
+            "volume_std": df["volume"].std(),
+            "zero_volume_candles": df.filter(pl.col("volume") == 0).height,
+            "low_volume_candles": df.filter(pl.col("volume") < df["volume"].quantile(0.1)).height,
+            "total_candles": df.height
+        }
+        
+        # Calculate percentages
+        volume_metrics["zero_volume_percentage"] = (volume_metrics["zero_volume_candles"] / volume_metrics["total_candles"]) * 100
+        volume_metrics["low_volume_percentage"] = (volume_metrics["low_volume_candles"] / volume_metrics["total_candles"]) * 100
+        
+        # Liquidity score (1-10)
+        if volume_metrics["zero_volume_percentage"] > 50:
+            liquidity_score = 1
+        elif volume_metrics["zero_volume_percentage"] > 25:
+            liquidity_score = 3
+        elif volume_metrics["low_volume_percentage"] > 50:
+            liquidity_score = 5
+        elif volume_metrics["low_volume_percentage"] > 25:
+            liquidity_score = 7
+        else:
+            liquidity_score = 9
+            
+        volume_metrics["liquidity_score"] = liquidity_score
+        
+        return volume_metrics
+        
+    except Exception as e:
+        self.logger.error(f"Liquidity analysis failed: {e}")
+        return {}
+```
+
+#### 8.2.2 Integrate Liquidity Analysis
+```python
+# File: analyze_bb_width_intraday.py
+# Method: _analyze_intraday_data
+
+def _analyze_intraday_data(self, df: pl.DataFrame, instrument_key: str, symbol: str, lookback_days: Optional[int] = None) -> Optional[Dict]:
+    # Existing code...
+    
+    # Add liquidity analysis
+    liquidity_metrics = self._analyze_liquidity(df)
+    
+    # Compile results
+    result = {
+        # Existing fields...
+        "liquidity_metrics": liquidity_metrics
+    }
+    
+    return result
+```
+
+-------------------------------------------------------------
+
+
+
+
+
+
+
