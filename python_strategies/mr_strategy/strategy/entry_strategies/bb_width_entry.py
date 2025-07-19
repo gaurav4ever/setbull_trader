@@ -125,8 +125,7 @@ class BBWidthEntryStrategy(EntryStrategy):
         
         # Check entry conditions only if squeeze duration is within range
         if (self.squeeze_detected and 
-            self.squeeze_candle_count >= self.squeeze_duration_min and 
-            self.squeeze_candle_count <= self.squeeze_duration_max):
+            self.squeeze_candle_count >= self.squeeze_duration_min):
             
             # Check for entry conditions
             entry_signal = self._check_entry_conditions(candle, timestamp, candle_info)
@@ -176,13 +175,13 @@ class BBWidthEntryStrategy(EntryStrategy):
             float: The lowest BB width value for the current instrument
         """
         try:
-            csv_file_path = "/Users/gaurav/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv"
+            csv_file_path = "/Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv"
             
             # Read the CSV file
             df = pd.read_csv(csv_file_path)
             
             # Get the instrument key from config
-            instrument_key = self.config.instrument_key.get("instrument_key")
+            instrument_key = self.config.instrument_key.get("key")
             if not instrument_key:
                 logger.warning("No instrument_key found in config, using default lowest BB width")
                 return 0.001  # Default fallback value
@@ -224,7 +223,7 @@ class BBWidthEntryStrategy(EntryStrategy):
     
     def _check_entry_conditions(self, candle: Dict[str, Any], timestamp: datetime, candle_info: str) -> Optional[Signal]:
         """Check for actual entry conditions during squeeze."""
-        current_price = candle.get('close', 0)
+        # current_price = candle.get('high', 0)
         direction = self.config.instrument_key.get("direction")
         
         # Check if already in a trade
@@ -232,12 +231,11 @@ class BBWidthEntryStrategy(EntryStrategy):
             return None
         
         # Check for long entry (price above BB upper band)
-        if (current_price > self.bb_upper and 
-            direction == "BULLISH" and
+        if (direction == "BULLISH" and
             self.can_generate_signal(SignalType.BB_WIDTH_ENTRY.value, "LONG")):
             
             self.in_long_trade = True
-            logger.info(f"{candle_info}BB Width long entry detected - Price: {current_price:.2f}, BB Upper: {self.bb_upper:.2f}")
+            logger.info(f"{candle_info}BB Width long entry detected - Price: {candle.get('high', 0):.2f}, BB Upper: {self.bb_upper:.2f}")
             
             signal = Signal(
                 type=SignalType.BB_WIDTH_ENTRY,
@@ -267,12 +265,11 @@ class BBWidthEntryStrategy(EntryStrategy):
             return signal
         
         # Check for short entry (price below BB lower band)
-        elif (current_price < self.bb_lower and 
-              direction == "BEARISH" and
+        elif (direction == "BEARISH" and
               self.can_generate_signal(SignalType.BB_WIDTH_ENTRY.value, "SHORT")):
             
             self.in_short_trade = True
-            logger.info(f"{candle_info}BB Width short entry detected - Price: {current_price:.2f}, BB Lower: {self.bb_lower:.2f}")
+            logger.info(f"{candle_info}BB Width short entry detected - Price: {candle.get('high', 0):.2f}, BB Lower: {self.bb_lower:.2f}")
             
             signal = Signal(
                 type=SignalType.BB_WIDTH_ENTRY,

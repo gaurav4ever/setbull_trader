@@ -283,7 +283,7 @@ def _get_lowest_bb_width_from_csv(self) -> float:
         float: The lowest BB width value for the current instrument
     """
     try:
-        csv_file_path = "/Users/gaurav/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv"
+        csv_file_path = "/Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv"
         
         # Read the CSV file
         df = pd.read_csv(csv_file_path)
@@ -321,7 +321,7 @@ def _get_lowest_bb_width_from_csv(self) -> float:
 ```
 
 **CSV Data Source**:
-- Reads from pre-analyzed CSV file: `/Users/gaurav/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv`
+- Reads from pre-analyzed CSV file: `/Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/output/bb_width_analysis.csv`
 - Uses `lowest_p10_bb_width` column which represents the 10th percentile lowest BB width
 - Filters by `instrument_key` to get stock-specific lowest BB width values
 - Falls back to default value (0.001) if CSV file is not found or data is invalid
