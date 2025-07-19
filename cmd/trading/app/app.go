@@ -267,7 +267,7 @@ func (a *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var enable1MinCandleIngestion = true
+	var enable1MinCandleIngestion = false
 
 	if enable1MinCandleIngestion {
 		// Start precise 1-min ingestion and aggregation loop

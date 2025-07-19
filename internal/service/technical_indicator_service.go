@@ -613,8 +613,98 @@ func (s *TechnicalIndicatorService) CalculateEMAV2(candles []domain.Candle, peri
 	return reverseIndicatorValues
 }
 
+// CalculateBollingerBandsTradingViewCompatible implements TradingView-exact BB calculation
+// Uses direct standard deviation formula √(Σ(x-μ)²/n) instead of cinar's √(Σ(x²)/n - μ²)
+// This fixes the numerical precision issues causing the 20-candle delay
+func (s *TechnicalIndicatorService) CalculateBollingerBandsTradingViewCompatible(candles []domain.Candle, period int, multiplier float64) (upper, middle, lower []domain.IndicatorValue) {
+	if len(candles) < period {
+		return nil, nil, nil
+	}
+
+	// STEP 1: Reverse candles to process from oldest to newest (chronological order)
+	// Because the input candles are ordered from newest to oldest (2025-07-18 → 2025-07-14)
+	// But BB calculation needs chronological order (2025-07-14 → 2025-07-18)
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+
+	// STEP 2: Calculate BB on chronologically ordered candles
+	tempUpper := make([]domain.IndicatorValue, len(reverseCandles))
+	tempMiddle := make([]domain.IndicatorValue, len(reverseCandles))
+	tempLower := make([]domain.IndicatorValue, len(reverseCandles))
+
+	// Initialize all values with zero timestamps first
+	for i := 0; i < len(reverseCandles); i++ {
+		tempUpper[i] = domain.IndicatorValue{Timestamp: reverseCandles[i].Timestamp, Value: 0.0}
+		tempMiddle[i] = domain.IndicatorValue{Timestamp: reverseCandles[i].Timestamp, Value: 0.0}
+		tempLower[i] = domain.IndicatorValue{Timestamp: reverseCandles[i].Timestamp, Value: 0.0}
+	}
+
+	// Calculate BB for each position starting from period-1 (chronologically)
+	for i := period - 1; i < len(reverseCandles); i++ {
+		// Calculate SMA (Middle Band) with high precision
+		sum := 0.0
+		for j := i - period + 1; j <= i; j++ {
+			sum += reverseCandles[j].Close
+		}
+		sma := sum / float64(period)
+
+		// Calculate Standard Deviation using TradingView method: √(Σ(x-μ)²/n)
+		// This avoids the precision loss in cinar's √(Σ(x²)/n - μ²) formula
+		sumSquaredDiff := 0.0
+		for j := i - period + 1; j <= i; j++ {
+			diff := reverseCandles[j].Close - sma
+			sumSquaredDiff += diff * diff
+		}
+
+		// Use population standard deviation (divide by n, not n-1)
+		variance := sumSquaredDiff / float64(period)
+		stdDev := math.Sqrt(variance)
+
+		// Calculate Bollinger Bands
+		upperBand := sma + (multiplier * stdDev)
+		lowerBand := sma - (multiplier * stdDev)
+
+		// Store results with proper timestamps
+		tempUpper[i] = domain.IndicatorValue{
+			Timestamp: reverseCandles[i].Timestamp,
+			Value:     upperBand,
+		}
+		tempMiddle[i] = domain.IndicatorValue{
+			Timestamp: reverseCandles[i].Timestamp,
+			Value:     sma,
+		}
+		tempLower[i] = domain.IndicatorValue{
+			Timestamp: reverseCandles[i].Timestamp,
+			Value:     lowerBand,
+		}
+	}
+
+	// STEP 3: Reverse the results back to match original candle order (newest to oldest)
+	upper = make([]domain.IndicatorValue, len(candles))
+	middle = make([]domain.IndicatorValue, len(candles))
+	lower = make([]domain.IndicatorValue, len(candles))
+
+	for i := 0; i < len(tempUpper); i++ {
+		reverseIndex := len(tempUpper) - 1 - i
+		upper[i] = tempUpper[reverseIndex]
+		middle[i] = tempMiddle[reverseIndex]
+		lower[i] = tempLower[reverseIndex]
+	}
+
+	return upper, middle, lower
+}
+
 // CalculateBollingerBands calculates Bollinger Bands for the given period and stddev
+// UPDATED: Now uses TradingView-compatible calculation to fix 20-candle delay issue
 func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
+	// Use the new TradingView-compatible implementation instead of cinar/indicator
+	return s.CalculateBollingerBandsTradingViewCompatible(candles, period, stddev)
+}
+
+// DEPRECATED: Old cinar/indicator implementation - kept for reference/rollback
+func (s *TechnicalIndicatorService) CalculateBollingerBandsOld(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
 	// Note: The cinar/indicator BollingerBands function uses default period=20, stddev=2.
 	// The parameters are ignored for now to use the library's high-level function.
 	const bbPeriod = 20

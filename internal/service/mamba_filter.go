@@ -109,7 +109,7 @@ func (f *MambaFilter) processStocks(ctx context.Context, stocks []domain.Filtere
 				bearishStocks = append(bearishStocks, stock)
 			}
 		} else {
-			stock.FilterReasons["mamba_filter"] = fmt.Sprintf("REJECTED: %s", analysis)
+			stock.FilterReasons["mamba_filter"] = fmt.Sprintf("REJECTED: %+v", analysis)
 			skippedStocks++
 		}
 	}
