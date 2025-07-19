@@ -800,8 +800,8 @@ func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle 
 			continue
 		}
 
-		// Calculate BB Width with bounds checking
-		bbWidth := (upper - lower) / middle
+		// Calculate BB Width: upper - lower (absolute difference)
+		bbWidth := upper - lower
 
 		// Log the calculation for debugging
 		log.Info("BB Width calculation: upper=%f, lower=%f, middle=%f, bbWidth=%f for timestamp %v",
@@ -852,6 +852,114 @@ func (s *TechnicalIndicatorService) CalculateBBWidthForRange(bbUpper, bbLower, b
 		return nil, fmt.Errorf("Bollinger Band slices have different lengths")
 	}
 	return s.CalculateBBWidth(bbUpper, bbLower, bbMiddle), nil
+}
+
+// CalculateBBWidthNormalized calculates the normalized Bollinger Band width: (upper - lower) / middle
+func (s *TechnicalIndicatorService) CalculateBBWidthNormalized(bbUpper, bbLower, bbMiddle []domain.IndicatorValue) []domain.IndicatorValue {
+	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
+		return nil
+	}
+
+	widths := make([]domain.IndicatorValue, len(bbUpper))
+	for i := range bbUpper {
+		if bbMiddle[i].Timestamp.IsZero() || bbMiddle[i].Value == 0 {
+			// Skip invalid data points
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
+			continue
+		}
+
+		upper := bbUpper[i].Value
+		lower := bbLower[i].Value
+		middle := bbMiddle[i].Value
+
+		// Validate that bands are in correct order
+		if upper < lower {
+			log.Warn("Invalid BB bands: upper (%f) < lower (%f) for timestamp %v", upper, lower, bbUpper[i].Timestamp)
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
+			continue
+		}
+
+		// Calculate normalized BB Width: (upper - lower) / middle
+		bbWidth := (upper - lower) / middle
+
+		// Validate the calculated value
+		if math.IsNaN(bbWidth) || math.IsInf(bbWidth, 0) || bbWidth < 0 {
+			log.Warn("Invalid normalized BB width calculated: %f for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 0.0
+		}
+
+		// Cap extremely large values
+		if bbWidth > 10.0 { // 1000% normalized BB width is extremely high
+			log.Warn("Normalized BB width too large (%f), capping to 10.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 10.0
+		}
+
+		widths[i] = domain.IndicatorValue{
+			Timestamp: bbUpper[i].Timestamp,
+			Value:     bbWidth,
+		}
+	}
+	return widths
+}
+
+// CalculateBBWidthNormalizedPercentage calculates the normalized percentage Bollinger Band width: ((upper - lower) / middle) * 100
+func (s *TechnicalIndicatorService) CalculateBBWidthNormalizedPercentage(bbUpper, bbLower, bbMiddle []domain.IndicatorValue) []domain.IndicatorValue {
+	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
+		return nil
+	}
+
+	widths := make([]domain.IndicatorValue, len(bbUpper))
+	for i := range bbUpper {
+		if bbMiddle[i].Timestamp.IsZero() || bbMiddle[i].Value == 0 {
+			// Skip invalid data points
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
+			continue
+		}
+
+		upper := bbUpper[i].Value
+		lower := bbLower[i].Value
+		middle := bbMiddle[i].Value
+
+		// Validate that bands are in correct order
+		if upper < lower {
+			log.Warn("Invalid BB bands: upper (%f) < lower (%f) for timestamp %v", upper, lower, bbUpper[i].Timestamp)
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
+			continue
+		}
+
+		// Calculate normalized percentage BB Width: ((upper - lower) / middle) * 100
+		bbWidth := (upper - lower) / middle * 100
+
+		// Validate the calculated value
+		if math.IsNaN(bbWidth) || math.IsInf(bbWidth, 0) || bbWidth < 0 {
+			log.Warn("Invalid normalized percentage BB width calculated: %f for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 0.0
+		}
+
+		// Cap extremely large values
+		if bbWidth > 1000.0 { // 1000% BB width is extremely high
+			log.Warn("Normalized percentage BB width too large (%f), capping to 1000.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 1000.0
+		}
+
+		widths[i] = domain.IndicatorValue{
+			Timestamp: bbUpper[i].Timestamp,
+			Value:     bbWidth,
+		}
+	}
+	return widths
 }
 
 // ValidateDataOrdering checks if candles are in chronological order (Past → Latest)

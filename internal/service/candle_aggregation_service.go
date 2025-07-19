@@ -75,10 +75,11 @@ func (s *CandleAggregationService) Get5MinCandles(
 	// Calculate how many 5-minute periods we need (20 periods for BB calculation)
 	// Each trading day has ~75 5-minute periods (9:15 AM to 3:30 PM = 6.25 hours = 375 minutes = 75 periods)
 	// We need at least 20 periods, so we'll fetch data from previous trading days if needed
-	requiredPeriods := bbPeriod + 5 // Extra buffer for safety
+	requiredPeriods := bbPeriod + 20 // Extra buffer for safety
 
 	// Calculate the extended start time using trading calendar
 	extendedStart, err := s.calculateExtendedStartForBB(ctx, instrumentKey, start, requiredPeriods)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate extended start time: %w", err)
 	}
@@ -121,11 +122,15 @@ func (s *CandleAggregationService) Get5MinCandles(
 	ema50 := indicatorService.CalculateEMAV2(candleSlice, 50)
 	atr := indicatorService.CalculateATRV2(candleSlice, 14)
 	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
-	bbWidth := indicatorService.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
+
+	// Calculate three different BB Width values
+	bbWidth := indicatorService.CalculateBBWidth(bbUpper, bbLower, bbMiddle)                                         // upper - lower
+	bbWidthNormalized := indicatorService.CalculateBBWidthNormalized(bbUpper, bbLower, bbMiddle)                     // (upper - lower) / middle
+	bbWidthNormalizedPercentage := indicatorService.CalculateBBWidthNormalizedPercentage(bbUpper, bbLower, bbMiddle) // ((upper - lower) / middle) * 100
 
 	// Log indicator calculation results
-	log.Info("Indicator calculation complete - BB Upper: %d values, BB Middle: %d values, BB Width: %d values",
-		len(bbUpper), len(bbMiddle), len(bbWidth))
+	log.Info("Indicator calculation complete - BB Upper: %d values, BB Middle: %d values, BB Width: %d values, BB Width Normalized: %d values, BB Width Normalized Percentage: %d values",
+		len(bbUpper), len(bbMiddle), len(bbWidth), len(bbWidthNormalized), len(bbWidthNormalizedPercentage))
 
 	// Map indicator values by timestamp for fast lookup, handling NaN values
 	ma9Map := make(map[time.Time]float64)
@@ -171,6 +176,14 @@ func (s *CandleAggregationService) Get5MinCandles(
 	bbWidthMap := make(map[time.Time]float64)
 	for _, v := range bbWidth {
 		bbWidthMap[v.Timestamp] = handleNaN(v.Value)
+	}
+	bbWidthNormalizedMap := make(map[time.Time]float64)
+	for _, v := range bbWidthNormalized {
+		bbWidthNormalizedMap[v.Timestamp] = handleNaN(v.Value)
+	}
+	bbWidthNormalizedPercentageMap := make(map[time.Time]float64)
+	for _, v := range bbWidthNormalizedPercentage {
+		bbWidthNormalizedPercentageMap[v.Timestamp] = handleNaN(v.Value)
 	}
 
 	// Filter to only return candles in the requested range
@@ -231,6 +244,14 @@ func (s *CandleAggregationService) Get5MinCandles(
 			resultCandles[i].BBWidth = val
 			resultCandles[i].BBWidth = math.Round(val*100) / 100
 		}
+		if val, ok := bbWidthNormalizedMap[ts]; ok {
+			resultCandles[i].BBWidthNormalized = val
+			resultCandles[i].BBWidthNormalized = math.Round(val*10000) / 10000 // 4 decimal places for normalized
+		}
+		if val, ok := bbWidthNormalizedPercentageMap[ts]; ok {
+			resultCandles[i].BBWidthNormalizedPercentage = val
+			resultCandles[i].BBWidthNormalizedPercentage = math.Round(val*10000) / 10000 // 4 decimal places for percentage
+		}
 		lowestBBWidth, err := s.utilityService.getLowestMinBBWidth(resultCandles[i].InstrumentKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get lowest BB width: %w", err)
@@ -270,12 +291,14 @@ func (s *CandleAggregationService) calculateExtendedStartForBB(
 		extendedStart = s.tradingCalendar.PreviousTradingDay(extendedStart)
 	}
 
-	// Set the time to market open (9:15 AM IST)
-	year, month, day := extendedStart.Date()
-	extendedStart = time.Date(year, month, day, 9, 15, 0, 0, time.UTC)
+	extendedStart = extendedStart.In(time.FixedZone("Asia/Kolkata", 5*60*60))
 
-	log.Info("Extended start calculated: %s (went back %d trading days)",
-		extendedStart.Format(time.RFC3339), tradingDaysNeeded)
+	// // Set the time to market open (9:15 AM IST)
+	// year, month, day := extendedStart.Date()
+	// extendedStart = time.Date(year, month, day, 9, 15, 0, 0, time.FixedZone("Asia/Kolkata", 5*60*60))
+
+	// log.Info("Extended start calculated: %s (went back %d trading days)",
+	// 	extendedStart.Format(time.RFC3339), tradingDaysNeeded)
 
 	return extendedStart, nil
 }

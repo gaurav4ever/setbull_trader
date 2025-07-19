@@ -94,18 +94,20 @@ type AggregatedCandle struct {
 	TimeInterval  string    `json:"time_interval"`
 
 	// Indicator fields for integration
-	MA9           float64 `json:"ma_9"`
-	BBUpper       float64 `json:"bb_upper"`
-	BBMiddle      float64 `json:"bb_middle"`
-	BBLower       float64 `json:"bb_lower"`
-	VWAP          float64 `json:"vwap"`
-	EMA5          float64 `json:"ema_5"`
-	EMA9          float64 `json:"ema_9"`
-	EMA50         float64 `json:"ema_50"`
-	ATR           float64 `json:"atr"`
-	RSI           float64 `json:"rsi"`
-	BBWidth       float64 `json:"bb_width"`
-	LowestBBWidth float64 `json:"lowest_bb_width"`
+	MA9                         float64 `json:"ma_9"`
+	BBUpper                     float64 `json:"bb_upper"`
+	BBMiddle                    float64 `json:"bb_middle"`
+	BBLower                     float64 `json:"bb_lower"`
+	VWAP                        float64 `json:"vwap"`
+	EMA5                        float64 `json:"ema_5"`
+	EMA9                        float64 `json:"ema_9"`
+	EMA50                       float64 `json:"ema_50"`
+	ATR                         float64 `json:"atr"`
+	RSI                         float64 `json:"rsi"`
+	BBWidth                     float64 `json:"bb_width"`                       // upper - lower
+	BBWidthNormalized           float64 `json:"bb_width_normalized"`            // (upper - lower) / middle
+	BBWidthNormalizedPercentage float64 `json:"bb_width_normalized_percentage"` // ((upper - lower) / middle) * 100
+	LowestBBWidth               float64 `json:"lowest_bb_width"`
 }
 
 // DailyCandelFetchResult represents the result of a batch operation to fetch daily candles
