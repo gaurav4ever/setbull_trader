@@ -1,0 +1,10 @@
+[2025-07-18T13:00:00.000+05:30]: Time: 1752823800000 | BB Width: 0.3183% | Upper: 703.7382 | Lower: 701.5018 | Middle: 702.62 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:01:00.000+05:30]: Time: 1752823860000 | BB Width: 0.2533% | Upper: 703.4371 | Lower: 701.6579 | Middle: 702.5475 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:02:00.000+05:30]: Time: 1752823920000 | BB Width: 0.2291% | Upper: 703.2772 | Lower: 701.6678 | Middle: 702.4725 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:03:00.000+05:30]: Time: 1752823980000 | BB Width: 0.2193% | Upper: 703.1903 | Lower: 701.6497 | Middle: 702.42 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:04:00.000+05:30]: Time: 1752824040000 | BB Width: 0.1881% | Upper: 703.043 | Lower: 701.722 | Middle: 702.3825 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:05:00.000+05:30]: Time: 1752824100000 | BB Width: 0.1764% | Upper: 702.9821 | Lower: 701.7429 | Middle: 702.3625 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:06:00.000+05:30]: Time: 1752824160000 | BB Width: 0.1556% | Upper: 702.8738 | Lower: 701.7812 | Middle: 702.3275 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:07:00.000+05:30]: Time: 1752824220000 | BB Width: 0.1589% | Upper: 702.8606 | Lower: 701.7444 | Middle: 702.3025 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:08:00.000+05:30]: Time: 1752824280000 | BB Width: 0.161% | Upper: 702.8427 | Lower: 701.7123 | Middle: 702.2775 | Threshold: 1 | Squeeze: YES
+[2025-07-18T13:09:00.000+05:30]: Time: 1752824340000 | BB Width: 0.1793% | Upper: 702.9496 | Lower: 701.6904 | Middle: 702.32 | Threshold: 1 | Squeeze: YES
