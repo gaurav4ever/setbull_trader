@@ -3,6 +3,8 @@
 # Script to fetch historical data in batches of 4 days
 # Date range: 2025-06-01 to 2025-07-18
 
+# TODO: Extend this to multiple stocks
+
 API_URL="http://localhost:8083/api/v1/historical-data/batch-store"
 INSTRUMENT_KEYS='["NSE_EQ|INE348A01023"]'
 INTERVAL="1minute"
