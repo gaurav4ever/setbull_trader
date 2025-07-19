@@ -703,55 +703,14 @@ func (s *TechnicalIndicatorService) CalculateBollingerBands(candles []domain.Can
 	return s.CalculateBollingerBandsTradingViewCompatible(candles, period, stddev)
 }
 
-// DEPRECATED: Old cinar/indicator implementation - kept for reference/rollback
+// DEPRECATED: Old cinar/indicator implementation - REMOVED due to data ordering issues
+// This method has been deprecated in favor of CalculateBollingerBandsTradingViewCompatible
+// which expects data in Past → Latest order (industry standard)
 func (s *TechnicalIndicatorService) CalculateBollingerBandsOld(candles []domain.Candle, period int, stddev float64) (upper, middle, lower []domain.IndicatorValue) {
-	// Note: The cinar/indicator BollingerBands function uses default period=20, stddev=2.
-	// The parameters are ignored for now to use the library's high-level function.
-	const bbPeriod = 20
-	if len(candles) < bbPeriod {
-		return nil, nil, nil
-	}
-
-	// reverse the candles
-	// Because the normal candle order is New to Old.
-	// But to calculate indicators correctly, we need to reverse the candles order from old to new.
-	reverseCandles := make([]domain.Candle, len(candles))
-	for i, c := range candles {
-		reverseCandles[len(candles)-1-i] = c
-	}
-
-	closePrices, _, _, _, _ := candlesToFloat64Slices(reverseCandles)
-	middleBand, upperBand, lowerBand := indicator.BollingerBands(closePrices)
-
-	upper = make([]domain.IndicatorValue, len(candles))
-	middle = make([]domain.IndicatorValue, len(candles))
-	lower = make([]domain.IndicatorValue, len(candles))
-
-	offset := len(candles) - len(middleBand)
-	for i := 0; i < len(middleBand); i++ {
-		idx := i + offset
-		if idx < len(candles) {
-			middle[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: middleBand[i]}
-			upper[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: upperBand[i]}
-			lower[idx] = domain.IndicatorValue{Timestamp: reverseCandles[idx].Timestamp, Value: lowerBand[i]}
-		}
-	}
-
-	// reverse the upper, middle, lower
-	reverseUpper := make([]domain.IndicatorValue, len(upper))
-	reverseMiddle := make([]domain.IndicatorValue, len(middle))
-	reverseLower := make([]domain.IndicatorValue, len(lower))
-	for i, v := range upper {
-		reverseUpper[len(upper)-1-i] = v
-	}
-	for i, v := range middle {
-		reverseMiddle[len(middle)-1-i] = v
-	}
-	for i, v := range lower {
-		reverseLower[len(lower)-1-i] = v
-	}
-
-	return reverseUpper, reverseMiddle, reverseLower
+	// DEPRECATED: Use CalculateBollingerBandsTradingViewCompatible instead
+	// This method had data ordering issues and has been removed
+	log.Warn("CalculateBollingerBandsOld is deprecated - use CalculateBollingerBandsTradingViewCompatible")
+	return s.CalculateBollingerBandsTradingViewCompatible(candles, period, stddev)
 }
 
 // CalculateVWAP calculates the Volume Weighted Average Price for the given candles (reset daily if needed)
@@ -800,34 +759,88 @@ func AggregatedCandlesToCandles(aggs []domain.AggregatedCandle) []domain.Candle 
 			TimeInterval:  a.TimeInterval,
 		}
 	}
-	return candles
+	// reverse the candles
+	reverseCandles := make([]domain.Candle, len(candles))
+	for i, c := range candles {
+		reverseCandles[len(candles)-1-i] = c
+	}
+	return reverseCandles
 }
 
 // CalculateBBWidth calculates the Bollinger Band width for each candle
+// Uses custom implementation to avoid cinar/indicator library precision issues
 func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle []domain.IndicatorValue) []domain.IndicatorValue {
 	if len(bbUpper) != len(bbLower) || len(bbUpper) != len(bbMiddle) {
 		return nil
 	}
 
-	upperValues := make([]float64, len(bbUpper))
-	lowerValues := make([]float64, len(bbLower))
-	middleValues := make([]float64, len(bbMiddle))
-	for i := range bbUpper {
-		upperValues[i] = bbUpper[i].Value
-		lowerValues[i] = bbLower[i].Value
-		middleValues[i] = bbMiddle[i].Value
-	}
-
-	bbWidthValues, _ := indicator.BollingerBandWidth(middleValues, upperValues, lowerValues)
-
 	widths := make([]domain.IndicatorValue, len(bbUpper))
-	for i, v := range bbWidthValues {
-		if bbMiddle[i].Timestamp.IsZero() {
+	for i := range bbUpper {
+		if bbMiddle[i].Timestamp.IsZero() || bbMiddle[i].Value == 0 {
+			// Skip invalid data points
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
 			continue
 		}
+
+		// Calculate BB Width using TradingView formula: (Upper - Lower) / Middle
+		upper := bbUpper[i].Value
+		lower := bbLower[i].Value
+		middle := bbMiddle[i].Value
+
+		// Validate that bands are in correct order
+		if upper < lower {
+			log.Warn("Invalid BB bands: upper (%f) < lower (%f) for timestamp %v", upper, lower, bbUpper[i].Timestamp)
+			widths[i] = domain.IndicatorValue{
+				Timestamp: bbUpper[i].Timestamp,
+				Value:     0.0,
+			}
+			continue
+		}
+
+		// Calculate BB Width with bounds checking
+		bbWidth := (upper - lower) / middle
+
+		// Log the calculation for debugging
+		log.Info("BB Width calculation: upper=%f, lower=%f, middle=%f, bbWidth=%f for timestamp %v",
+			upper, lower, middle, bbWidth, bbUpper[i].Timestamp)
+
+		// Validate the calculated value is reasonable
+		if math.IsNaN(bbWidth) || math.IsInf(bbWidth, 0) || bbWidth < 0 {
+			log.Warn("Invalid BB width calculated: %f for timestamp %v (upper: %f, lower: %f, middle: %f)",
+				bbWidth, bbUpper[i].Timestamp, upper, lower, middle)
+			bbWidth = 0.0
+		}
+
+		// Cap extremely large values to prevent database overflow
+		if bbWidth > 100.0 { // 10000% BB width is extremely high
+			log.Warn("BB width too large (%f), capping to 100.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 100.0
+		}
+
+		// Additional safety check for extremely large values that might cause MySQL overflow
+		if bbWidth > 1e15 { // 1 quadrillion is way beyond reasonable BB width
+			log.Error("BB width extremely large (%f), setting to 0.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 0.0
+		}
+
+		// MySQL DOUBLE limit check - prevent values larger than 1e308
+		if bbWidth > 1e308 {
+			log.Error("BB width exceeds MySQL DOUBLE limit (%f), setting to 0.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 0.0
+		}
+
+		// Additional safety check - cap at a reasonable maximum value
+		if bbWidth > 1e6 { // 1 million is way beyond reasonable BB width
+			log.Error("BB width unreasonably large (%f), capping to 1.0 for timestamp %v", bbWidth, bbUpper[i].Timestamp)
+			bbWidth = 1.0
+		}
+
 		widths[i] = domain.IndicatorValue{
 			Timestamp: bbUpper[i].Timestamp,
-			Value:     v,
+			Value:     bbWidth,
 		}
 	}
 	return widths
@@ -839,6 +852,24 @@ func (s *TechnicalIndicatorService) CalculateBBWidthForRange(bbUpper, bbLower, b
 		return nil, fmt.Errorf("Bollinger Band slices have different lengths")
 	}
 	return s.CalculateBBWidth(bbUpper, bbLower, bbMiddle), nil
+}
+
+// ValidateDataOrdering checks if candles are in chronological order (Past → Latest)
+// This helps ensure data consistency across the application
+func ValidateDataOrdering(candles []domain.Candle) error {
+	if len(candles) < 2 {
+		return nil // Single candle or empty slice is always valid
+	}
+
+	for i := 1; i < len(candles); i++ {
+		if !candles[i].Timestamp.After(candles[i-1].Timestamp) {
+			return fmt.Errorf("data ordering violation: candle %d (%s) is not after candle %d (%s)",
+				i, candles[i].Timestamp.Format(time.RFC3339),
+				i-1, candles[i-1].Timestamp.Format(time.RFC3339))
+		}
+	}
+
+	return nil
 }
 
 // candlesToFloat64Slices is a helper function to convert candle data to float slices for the indicator library.

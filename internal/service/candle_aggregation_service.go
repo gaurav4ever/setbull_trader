@@ -68,37 +68,64 @@ func (s *CandleAggregationService) Get5MinCandles(
 		start = end.AddDate(0, 0, -7)
 	}
 
-	log.Info("Retrieving 5-minute candles for %s from %s to %s",
-		instrumentKey, start.Format(time.RFC3339), end.Format(time.RFC3339))
+	// SOLUTION: Use trading calendar to get proper extended historical data for BB calculation
+	// BB calculation needs 20 periods, so we need to fetch sufficient historical data
+	bbPeriod := 20
 
-	// Get the aggregated candles from the repository
-	candles, err := s.candleRepo.GetAggregated5MinCandles(ctx, instrumentKey, start, end)
+	// Calculate how many 5-minute periods we need (20 periods for BB calculation)
+	// Each trading day has ~75 5-minute periods (9:15 AM to 3:30 PM = 6.25 hours = 375 minutes = 75 periods)
+	// We need at least 20 periods, so we'll fetch data from previous trading days if needed
+	requiredPeriods := bbPeriod + 5 // Extra buffer for safety
+
+	// Calculate the extended start time using trading calendar
+	extendedStart, err := s.calculateExtendedStartForBB(ctx, instrumentKey, start, requiredPeriods)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate extended start time: %w", err)
+	}
+
+	log.Info("Retrieving 5-minute candles for %s from %s to %s (extended from %s for BB calculation)",
+		instrumentKey, extendedStart.Format(time.RFC3339), end.Format(time.RFC3339), start.Format(time.RFC3339))
+
+	// Get the aggregated candles from the repository with extended range
+	allCandles, err := s.candleRepo.GetAggregated5MinCandles(ctx, instrumentKey, extendedStart, end)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get aggregated 5-minute candles: %w", err)
 	}
 
-	// --- Phase 4: Aggregation Logic ---
-	// Calculate indicators for the aggregated candles
+	// Calculate indicators using the full dataset
 	indicatorService := NewTechnicalIndicatorService(s.candleRepo)
-	aggCandles := candles
-	candleSlice := AggregatedCandlesToCandles(aggCandles)
+	candleSlice := AggregatedCandlesToCandles(allCandles)
 
-	// Calculate 9-period MA
+	// Validate data ordering (Past → Latest)
+	if err := ValidateDataOrdering(candleSlice); err != nil {
+		log.Warn("Data ordering validation failed: %v", err)
+		// Continue with calculation but log the issue
+	} else {
+		log.Info("Data ordering validation passed: candles are in Past → Latest order")
+	}
+
+	// Add data validation and logging
+	log.Info("Calculating indicators for %d candles (need minimum %d for BB calculation)", len(candleSlice), bbPeriod)
+
+	if len(candleSlice) < bbPeriod {
+		log.Warn("Insufficient data for BB calculation: %d candles available, need %d", len(candleSlice), bbPeriod)
+		// Could implement fallback calculation here
+	}
+
+	// Calculate indicators (now has sufficient historical data)
 	ma9 := indicatorService.CalculateSMA(candleSlice, 9)
-	// Calculate Bollinger Bands (20, 2.0)
-	bbUpper, bbMiddle, bbLower := indicatorService.CalculateBollingerBands(candleSlice, 20, 2.0)
-	// Calculate VWAP
+	bbUpper, bbMiddle, bbLower := indicatorService.CalculateBollingerBands(candleSlice, bbPeriod, 2.0)
 	vwap := indicatorService.CalculateVWAP(candleSlice)
-	// Calculate EMAs
 	ema5 := indicatorService.CalculateEMAV2(candleSlice, 5)
 	ema9ema := indicatorService.CalculateEMAV2(candleSlice, 9)
 	ema50 := indicatorService.CalculateEMAV2(candleSlice, 50)
-	// Calculate ATR (14)
 	atr := indicatorService.CalculateATRV2(candleSlice, 14)
-	// Calculate RSI (14)
 	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
-	// Calculate BB Width
 	bbWidth := indicatorService.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
+
+	// Log indicator calculation results
+	log.Info("Indicator calculation complete - BB Upper: %d values, BB Middle: %d values, BB Width: %d values",
+		len(bbUpper), len(bbMiddle), len(bbWidth))
 
 	// Map indicator values by timestamp for fast lookup, handling NaN values
 	ma9Map := make(map[time.Time]float64)
@@ -146,70 +173,111 @@ func (s *CandleAggregationService) Get5MinCandles(
 		bbWidthMap[v.Timestamp] = handleNaN(v.Value)
 	}
 
-	// Populate indicator fields in AggregatedCandle
-	for i := range aggCandles {
-		ts := aggCandles[i].Timestamp
+	// Filter to only return candles in the requested range
+	var resultCandles []domain.AggregatedCandle
+	for _, candle := range allCandles {
+		if candle.Timestamp.Before(start) {
+			continue // Skip candles before requested start
+		}
+		if candle.Timestamp.After(end) {
+			break // Stop when we exceed requested end
+		}
+		resultCandles = append(resultCandles, candle)
+	}
+
+	// Populate indicator fields in the result candles
+	for i := range resultCandles {
+		ts := resultCandles[i].Timestamp
 		if val, ok := ma9Map[ts]; ok {
-			aggCandles[i].MA9 = val
+			resultCandles[i].MA9 = val
 		}
 		if val, ok := bbUpperMap[ts]; ok {
-			aggCandles[i].BBUpper = val
-			// round values to 2 decimal places
-			aggCandles[i].BBUpper = math.Round(val*100) / 100
+			resultCandles[i].BBUpper = val
+			resultCandles[i].BBUpper = math.Round(val*100) / 100
 		}
 		if val, ok := bbMiddleMap[ts]; ok {
-			aggCandles[i].BBMiddle = val
-			// round values to 2 decimal places
-			aggCandles[i].BBMiddle = math.Round(val*100) / 100
+			resultCandles[i].BBMiddle = val
+			resultCandles[i].BBMiddle = math.Round(val*100) / 100
 		}
 		if val, ok := bbLowerMap[ts]; ok {
-			aggCandles[i].BBLower = val
-			// round values to 2 decimal places
-			aggCandles[i].BBLower = math.Round(val*100) / 100
+			resultCandles[i].BBLower = val
+			resultCandles[i].BBLower = math.Round(val*100) / 100
 		}
 		if val, ok := vwapMap[ts]; ok {
-			aggCandles[i].VWAP = val
-			// round values to 2 decimal places
-			aggCandles[i].VWAP = math.Round(val*100) / 100
+			resultCandles[i].VWAP = val
+			resultCandles[i].VWAP = math.Round(val*100) / 100
 		}
 		if val, ok := ema5Map[ts]; ok {
-			aggCandles[i].EMA5 = val
-			// round values to 2 decimal places
-			aggCandles[i].EMA5 = math.Round(val*100) / 100
+			resultCandles[i].EMA5 = val
+			resultCandles[i].EMA5 = math.Round(val*100) / 100
 		}
 		if val, ok := ema9emaMap[ts]; ok {
-			aggCandles[i].EMA9 = val
-			// round values to 2 decimal places
-			aggCandles[i].EMA9 = math.Round(val*100) / 100
+			resultCandles[i].EMA9 = val
+			resultCandles[i].EMA9 = math.Round(val*100) / 100
 		}
 		if val, ok := ema50Map[ts]; ok {
-			aggCandles[i].EMA50 = val
-			// round values to 2 decimal places
-			aggCandles[i].EMA50 = math.Round(val*100) / 100
+			resultCandles[i].EMA50 = val
+			resultCandles[i].EMA50 = math.Round(val*100) / 100
 		}
 		if val, ok := atrMap[ts]; ok {
-			aggCandles[i].ATR = val
-			// round values to 2 decimal places
-			aggCandles[i].ATR = math.Round(val*100) / 100
+			resultCandles[i].ATR = val
+			resultCandles[i].ATR = math.Round(val*100) / 100
 		}
 		if val, ok := rsiMap[ts]; ok {
-			aggCandles[i].RSI = val
-			// round values to 2 decimal places
-			aggCandles[i].RSI = math.Round(val*100) / 100
+			resultCandles[i].RSI = val
+			resultCandles[i].RSI = math.Round(val*100) / 100
 		}
 		if val, ok := bbWidthMap[ts]; ok {
-			aggCandles[i].BBWidth = val
-			// round values to 2 decimal places
-			aggCandles[i].BBWidth = math.Round(val*100) / 100
+			resultCandles[i].BBWidth = val
+			resultCandles[i].BBWidth = math.Round(val*100) / 100
 		}
-		lowestBBWidth, err := s.utilityService.getLowestMinBBWidth(aggCandles[i].InstrumentKey)
+		lowestBBWidth, err := s.utilityService.getLowestMinBBWidth(resultCandles[i].InstrumentKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get lowest BB width: %w", err)
 		}
-		aggCandles[i].LowestBBWidth = lowestBBWidth
+		resultCandles[i].LowestBBWidth = lowestBBWidth
 	}
 
-	return aggCandles, nil
+	log.Info("Returning %d candles with indicators (requested range: %s to %s)",
+		len(resultCandles), start.Format(time.RFC3339), end.Format(time.RFC3339))
+
+	return resultCandles, nil
+}
+
+// calculateExtendedStartForBB calculates the proper extended start time for BB calculation
+// considering trading hours and market boundaries
+func (s *CandleAggregationService) calculateExtendedStartForBB(
+	ctx context.Context,
+	instrumentKey string,
+	requestedStart time.Time,
+	requiredPeriods int,
+) (time.Time, error) {
+	// Indian market hours: 9:15 AM to 3:30 PM (IST)
+	// Each trading day has 75 5-minute periods (375 minutes / 5 = 75)
+	periodsPerDay := 75
+
+	// Calculate how many trading days we need to go back
+	tradingDaysNeeded := (requiredPeriods + periodsPerDay - 1) / periodsPerDay // Ceiling division
+
+	log.Info("Calculating extended start for BB calculation: need %d periods, %d trading days back from %s",
+		requiredPeriods, tradingDaysNeeded, requestedStart.Format(time.RFC3339))
+
+	// Start from the requested start time and go back by trading days
+	extendedStart := requestedStart
+
+	// Go back by the required number of trading days
+	for i := 0; i < tradingDaysNeeded; i++ {
+		extendedStart = s.tradingCalendar.PreviousTradingDay(extendedStart)
+	}
+
+	// Set the time to market open (9:15 AM IST)
+	year, month, day := extendedStart.Date()
+	extendedStart = time.Date(year, month, day, 9, 15, 0, 0, time.UTC)
+
+	log.Info("Extended start calculated: %s (went back %d trading days)",
+		extendedStart.Format(time.RFC3339), tradingDaysNeeded)
+
+	return extendedStart, nil
 }
 
 // GetDailyCandles retrieves daily candles for the given instrument and time range

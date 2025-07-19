@@ -74,7 +74,7 @@ class ConfigurationManager:
         
         # Output Configuration
         self.output_config = {
-            'output_dir': '/Users/gaurav/setbull_projects/setbull_trader/python_strategies/output',
+            'output_dir': os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'output'),
             'logs_dir': 'logs',
             'csv_filename': 'bb_width_analysis.csv'
         }

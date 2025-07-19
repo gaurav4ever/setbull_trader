@@ -8,14 +8,17 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "env": {},
-            "args": []
+            "args": [],
+            "showLog": true,
+            "trace": "verbose"
         },
         {
             "name": "Attach to Process",
             "type": "go",
             "request": "attach",
             "mode": "local",
-            "processId": 0
+            "processId": 0,
+            "showLog": true
         },
         {
             "name": "Debug Test",
@@ -23,7 +26,8 @@
             "request": "launch",
             "mode": "test",
             "program": "${fileDirname}",
-            "args": []
+            "args": [],
+            "showLog": true
         },
         {
             "name": "Launch Full Stack (Go+Svelte)",
