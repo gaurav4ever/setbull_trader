@@ -1,0 +1,45 @@
+================================================================================
+BB WIDTH BACKTESTING RESULTS ANALYSIS
+================================================================================
+
+OVERALL PERFORMANCE SUMMARY
+----------------------------------------
+Total Trades: 10645.0
+Profitable Trades: 3605.0
+Loss Trades: 6455.0
+Flat Trades: 585.0
+Win Rate: 33.9%
+Total PnL: ₹1,260,212.76
+Average PnL per Trade: ₹118.39
+
+1. MOST PROFITABLE STOCKS (by Total Profit Amount)
+--------------------------------------------------
+1. JAICORPLTD      ₹211,689.54 (537 trades, 36.1% win rate)
+2. FUSION          ₹104,087.40 (384 trades, 29.2% win rate)
+3. WALCHANNAG      ₹ 98,844.65 (359 trades, 29.3% win rate)
+4. KALAMANDIR      ₹ 59,341.73 (575 trades, 29.4% win rate)
+5. NIFTY50         ₹ 50,327.29 (527 trades, 40.6% win rate)
+
+2. MOST PROFITABLE STOCKS (by Number of Winning Trades)
+-------------------------------------------------------
+5. NIFTY50         214.0 winning trades (527 total, ₹  50,327 profit)
+1. JAICORPLTD      194.0 winning trades (537 total, ₹ 211,690 profit)
+11. BANKNIFTY       191.0 winning trades (527 total, ₹  35,543 profit)
+4. KALAMANDIR      169.0 winning trades (575 total, ₹  59,342 profit)
+9. EMBDL           162.0 winning trades (477 total, ₹  45,509 profit)
+
+3. MOST TRADED STOCKS (by Number of Trades)
+---------------------------------------------
+4. KALAMANDIR      575 trades (₹  59,342 profit, 29.4% win rate)
+1. JAICORPLTD      537 trades (₹ 211,690 profit, 36.1% win rate)
+5. NIFTY50         527 trades (₹  50,327 profit, 40.6% win rate)
+11. BANKNIFTY       527 trades (₹  35,543 profit, 36.2% win rate)
+6. INOXGREEN       507 trades (₹  48,188 profit, 29.2% win rate)
+
+ADDITIONAL INSIGHTS
+--------------------
+Best Overall Performer: JAICORPLTD (₹211,689.54 profit)
+Highest Win Rate (3+ trades): ENGINERSIN (100.0% win rate)
+Risk-Reward Ratio: 2.74 (Avg Profit: ₹1006, Avg Loss: ₹-367)
+
+================================================================================

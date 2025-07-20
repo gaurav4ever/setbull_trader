@@ -6,6 +6,13 @@ import logging
 import numpy as np
 import os
 
+# Optional SQLAlchemy import for better pandas compatibility
+try:
+    from sqlalchemy import create_engine
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
+
 class IntradayDataAnalysis:
     def __init__(self):
         self.db_config = {
@@ -34,6 +41,25 @@ class IntradayDataAnalysis:
         except Exception as e:
             self.logger.error(f"Database connection failed: {str(e)}")
             raise
+            
+    def get_sqlalchemy_engine(self):
+        """Create SQLAlchemy engine for pandas compatibility"""
+        if SQLALCHEMY_AVAILABLE:
+            # Create connection string for SQLAlchemy
+            connection_string = f"mysql+mysqlconnector://{self.db_config['user']}:{self.db_config['password']}@{self.db_config['host']}:{self.db_config['port']}/{self.db_config['database']}"
+            return create_engine(connection_string)
+        else:
+            self.logger.warning("SQLAlchemy not available, using direct connection")
+            return None
+            
+    def execute_query(self, query: str) -> pd.DataFrame:
+        """Execute SQL query and return DataFrame, using SQLAlchemy if available"""
+        # Use SQLAlchemy engine if available, otherwise use direct connection
+        engine = self.get_sqlalchemy_engine()
+        if engine:
+            return pd.read_sql(query, engine)
+        else:
+            return pd.read_sql(query, self.conn)
             
     def create_tables(self):
         create_trades_table = """
@@ -190,7 +216,7 @@ class IntradayDataAnalysis:
         GROUP BY direction, opening_type
         ORDER BY direction, opening_type;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_trend_analysis(self) -> pd.DataFrame:
         """Analyze trading performance based on trend conditions"""
@@ -208,7 +234,7 @@ class IntradayDataAnalysis:
         GROUP BY direction, trend, opening_type
         ORDER BY direction, trend, opening_type;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_market_reversal_analysis(self) -> pd.DataFrame:
         """Analyze lottery day conditions and market reversals with trend consideration"""
@@ -227,7 +253,7 @@ class IntradayDataAnalysis:
         AND t1.direction != t1.trend  -- Added condition to identify reversals
         ORDER BY t1.date, t1.max_r_multiple DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_pattern_recognition(self) -> pd.DataFrame:
         """Analyze patterns after 2-3 days of consolidation"""
@@ -255,7 +281,7 @@ class IntradayDataAnalysis:
         WHERE DATEDIFF(date, prev_date) BETWEEN 2 AND 3
         ORDER BY date, name;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_mamba_move_analysis(self) -> pd.DataFrame:
         """Analyze mamba moves and their success rates"""
@@ -273,7 +299,7 @@ class IntradayDataAnalysis:
         HAVING mamba_moves > 0
         ORDER BY mamba_win_rate DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_high_potential_stocks(self) -> pd.DataFrame:
         """Identify high-potential stocks based on performance metrics with trend consideration"""
@@ -294,7 +320,7 @@ class IntradayDataAnalysis:
         HAVING win_rate >= 60 AND avg_pnl > 0
         ORDER BY avg_pnl DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_stocks_performing_against_trend(self) -> pd.DataFrame:
         """Find stocks that perform better when trading against their trend"""
@@ -332,7 +358,7 @@ class IntradayDataAnalysis:
         AND avg_pnl > 0        -- Positive average PnL
         ORDER BY avg_pnl DESC, win_rate DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_stocks_performing_with_trend(self) -> pd.DataFrame:
         """Find stocks that perform better when trading with their trend"""
@@ -370,7 +396,7 @@ class IntradayDataAnalysis:
         AND avg_pnl > 0        -- Positive average PnL
         ORDER BY avg_pnl DESC, win_rate DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_1st_entry_trend_analysis(self) -> pd.DataFrame:
         """Analyze 1st_entry trades with/against trend, split by direction."""
@@ -388,7 +414,7 @@ class IntradayDataAnalysis:
         GROUP BY direction, trend_relation
         ORDER BY direction, trend_relation;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_2_30_entry_top_stocks(self, min_trades: int = 5) -> pd.DataFrame:
         """Get top performing stocks for 2_30_entry by win rate (min_trades filter)."""
@@ -408,7 +434,7 @@ class IntradayDataAnalysis:
         HAVING total_trades >= {min_trades} AND win_rate > 50
         ORDER BY total_pnl DESC, avg_pnl DESC, win_rate DESC, winning_trades DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
     
     def get_1st_entry_top_stocks(self, min_trades: int = 5) -> pd.DataFrame:
         """Get top performing stocks for 1st_entry by win rate (min_trades filter)."""
@@ -428,7 +454,7 @@ class IntradayDataAnalysis:
         HAVING total_trades >= {min_trades} AND win_rate > 50
         ORDER BY total_pnl DESC, avg_pnl DESC, win_rate DESC, winning_trades DESC;
         """
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
     
     def get_monthly_1st_entry_top_stocks(self, min_trades: int = 5, top_n: int = 10) -> pd.DataFrame:
         """Get top N performing stocks for 1st_entry by month, using win rate and avg_pnl (min_trades filter)."""
@@ -456,7 +482,7 @@ class IntradayDataAnalysis:
         SELECT * FROM ranked WHERE `rank` <= {top_n}
         ORDER BY year DESC, month DESC, `rank` ASC;
         '''
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def get_monthly_2_30_entry_top_stocks(self, min_trades: int = 5, top_n: int = 10) -> pd.DataFrame:
         """Get top N performing stocks for 2_30_entry by month, using win rate and avg_pnl (min_trades filter)."""
@@ -484,7 +510,7 @@ class IntradayDataAnalysis:
         SELECT * FROM ranked WHERE `rank` <= {top_n}
         ORDER BY year DESC, month DESC, `rank` ASC;
         '''
-        return pd.read_sql(query, self.conn)
+        return self.execute_query(query)
 
     def export_backtest_analysis_csv(self, output_path: str):
         """
@@ -526,6 +552,152 @@ class IntradayDataAnalysis:
         df_final.to_csv(output_path, index=False)
         self.logger.info(f"Backtest analysis exported to {output_path}")
 
+    def get_comprehensive_stock_analysis(self) -> Dict:
+        """Get comprehensive stock performance analysis similar to analyze_daily_trades.py"""
+        query = """
+        SELECT 
+            name,
+            COUNT(*) as trade_count,
+            SUM(pnl) as total_pnl,
+            AVG(pnl) as avg_pnl,
+            SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as profitable_trades,
+            ROUND(SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) / COUNT(*) * 100, 1) as win_rate
+        FROM trades
+        GROUP BY name
+        ORDER BY total_pnl DESC
+        """
+        
+        df = self.execute_query(query)
+        return df
+
+    def get_top_performers_analysis(self) -> Dict:
+        """Get top performers in different categories"""
+        stock_stats = self.get_comprehensive_stock_analysis()
+        
+        results = {}
+        
+        # 1. Most profitable stocks by total profit amount
+        top_profit = stock_stats.nlargest(5, 'total_pnl')[['name', 'total_pnl', 'trade_count', 'win_rate']]
+        results['top_profit_amount'] = top_profit
+        
+        # 2. Most profitable stocks by number of profitable trades
+        top_winning_trades = stock_stats.nlargest(5, 'profitable_trades')[['name', 'profitable_trades', 'trade_count', 'total_pnl', 'win_rate']]
+        results['top_winning_trades'] = top_winning_trades
+        
+        # 3. Most traded stocks by number of trades
+        top_traded = stock_stats.nlargest(5, 'trade_count')[['name', 'trade_count', 'total_pnl', 'profitable_trades', 'win_rate']]
+        results['top_traded'] = top_traded
+        
+        return results
+
+    def generate_comprehensive_report(self) -> str:
+        """Generate comprehensive analysis report"""
+        # Get overall statistics
+        overall_query = """
+        SELECT 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'PROFIT' THEN 1 ELSE 0 END) as profitable_trades,
+            SUM(CASE WHEN status = 'LOSS' THEN 1 ELSE 0 END) as loss_trades,
+            SUM(CASE WHEN status = 'FLAT' THEN 1 ELSE 0 END) as flat_trades,
+            SUM(pnl) as total_pnl,
+            AVG(pnl) as avg_pnl
+        FROM trades
+        """
+        
+        overall_stats = self.execute_query(overall_query).iloc[0]
+        
+        # Get top performers
+        top_performers = self.get_top_performers_analysis()
+        
+        # Generate report
+        report = []
+        report.append("=" * 80)
+        report.append("BB WIDTH BACKTESTING RESULTS ANALYSIS")
+        report.append("=" * 80)
+        report.append("")
+        
+        # Overall Performance Summary
+        total_trades = overall_stats['total_trades']
+        profitable_trades = overall_stats['profitable_trades']
+        win_rate = (profitable_trades / total_trades * 100) if total_trades > 0 else 0
+        
+        report.append("OVERALL PERFORMANCE SUMMARY")
+        report.append("-" * 40)
+        report.append(f"Total Trades: {total_trades}")
+        report.append(f"Profitable Trades: {profitable_trades}")
+        report.append(f"Loss Trades: {overall_stats['loss_trades']}")
+        report.append(f"Flat Trades: {overall_stats['flat_trades']}")
+        report.append(f"Win Rate: {win_rate:.1f}%")
+        report.append(f"Total PnL: ₹{overall_stats['total_pnl']:,.2f}")
+        report.append(f"Average PnL per Trade: ₹{overall_stats['avg_pnl']:,.2f}")
+        report.append("")
+        
+        # 1. Most Profitable Stocks by Profit Amount
+        report.append("1. MOST PROFITABLE STOCKS (by Total Profit Amount)")
+        report.append("-" * 50)
+        for idx, row in top_performers['top_profit_amount'].iterrows():
+            report.append(f"{idx+1}. {row['name']:<15} ₹{row['total_pnl']:>10,.2f} ({row['trade_count']} trades, {row['win_rate']}% win rate)")
+        report.append("")
+        
+        # 2. Most Profitable Stocks by Number of Winning Trades
+        report.append("2. MOST PROFITABLE STOCKS (by Number of Winning Trades)")
+        report.append("-" * 55)
+        for idx, row in top_performers['top_winning_trades'].iterrows():
+            report.append(f"{idx+1}. {row['name']:<15} {row['profitable_trades']:>2} winning trades ({row['trade_count']} total, ₹{row['total_pnl']:>8,.0f} profit)")
+        report.append("")
+        
+        # 3. Most Traded Stocks
+        report.append("3. MOST TRADED STOCKS (by Number of Trades)")
+        report.append("-" * 45)
+        for idx, row in top_performers['top_traded'].iterrows():
+            report.append(f"{idx+1}. {row['name']:<15} {row['trade_count']:>2} trades (₹{row['total_pnl']:>8,.0f} profit, {row['win_rate']}% win rate)")
+        report.append("")
+        
+        # Additional Insights
+        report.append("ADDITIONAL INSIGHTS")
+        report.append("-" * 20)
+        
+        # Best performing stock overall
+        best_stock = top_performers['top_profit_amount'].iloc[0]
+        report.append(f"Best Overall Performer: {best_stock['name']} (₹{best_stock['total_pnl']:,.2f} profit)")
+        
+        # Stock with highest win rate (minimum 3 trades)
+        stock_stats = self.get_comprehensive_stock_analysis()
+        high_volume_stocks = stock_stats[stock_stats['trade_count'] >= 3]
+        if len(high_volume_stocks) > 0:
+            best_win_rate = high_volume_stocks.loc[high_volume_stocks['win_rate'].idxmax()]
+            report.append(f"Highest Win Rate (3+ trades): {best_win_rate['name']} ({best_win_rate['win_rate']}% win rate)")
+        
+        # Risk analysis
+        risk_query = """
+        SELECT 
+            AVG(CASE WHEN pnl > 0 THEN pnl ELSE NULL END) as avg_profit,
+            AVG(CASE WHEN pnl < 0 THEN pnl ELSE NULL END) as avg_loss
+        FROM trades
+        """
+        risk_stats = self.execute_query(risk_query).iloc[0]
+        
+        if not pd.isna(risk_stats['avg_profit']) and not pd.isna(risk_stats['avg_loss']) and risk_stats['avg_loss'] != 0:
+            risk_reward_ratio = abs(risk_stats['avg_profit'] / risk_stats['avg_loss'])
+            report.append(f"Risk-Reward Ratio: {risk_reward_ratio:.2f} (Avg Profit: ₹{risk_stats['avg_profit']:.0f}, Avg Loss: ₹{risk_stats['avg_loss']:.0f})")
+        
+        report.append("")
+        report.append("=" * 80)
+        
+        return "\n".join(report)
+
+    def save_comprehensive_report(self, output_path: str = "kb/7.2.1_bb_width_backtesting_results.txt"):
+        """Save comprehensive analysis report to file"""
+        report = self.generate_comprehensive_report()
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            f.write(report)
+        
+        self.logger.info(f"Comprehensive analysis report saved to {output_path}")
+
     def close(self):
         """Close database connections"""
         if self.cursor:
@@ -562,7 +734,14 @@ class IntradayDataAnalysis:
                 HAVING total_trades >= {min_trades}
                 ORDER BY trade_type, avg_pnl DESC, win_rate DESC, total_trades DESC;
                 """
-                df = pd.read_sql(query, self.conn)
+                df = self.execute_query(query)
+                
+                # Convert to the expected format for consistency
+                result = {}
+                for entry_time in sorted(df['trade_type'].unique()):
+                    df_time = df[df['trade_type'] == entry_time].copy()
+                    result[entry_time] = df_time
+                return result
             else:
                 # Fallback: load from CSV
                 raise Exception('trade_type not in DB')
