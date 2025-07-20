@@ -1,0 +1,46 @@
+================================================================================
+BB WIDTH BACKTESTING RESULTS ANALYSIS
+================================================================================
+
+OVERALL PERFORMANCE SUMMARY
+----------------------------------------
+Total Trades: 350
+Profitable Trades: 80
+Loss Trades: 264
+Flat Trades: 6
+Win Rate: 22.9%
+Total PnL: ₹-29,719.46
+Average PnL per Trade: ₹-84.91
+
+1. MOST PROFITABLE STOCKS (by Total Profit Amount)
+--------------------------------------------------
+25. MUFIN           ₹  9,604.29 (14 trades, 7.1% win rate)
+20. KIMS            ₹  5,375.30 (11 trades, 54.5% win rate)
+32. PFOCUS          ₹  3,719.15 (4 trades, 25.0% win rate)
+22. KUANTUM         ₹  2,736.37 (10 trades, 30.0% win rate)
+11. EVEREADY        ₹  2,211.23 (6 trades, 50.0% win rate)
+
+2. MOST PROFITABLE STOCKS (by Number of Winning Trades)
+-------------------------------------------------------
+20. KIMS             6 winning trades (11 total, ₹   5,375 profit)
+1. ABSLAMC          5 winning trades (9 total, ₹    -115 profit)
+45. TIMETECHNO       4 winning trades (14 total, ₹  -1,519 profit)
+11. EVEREADY         3 winning trades (6 total, ₹   2,211 profit)
+17. IXIGO            3 winning trades (10 total, ₹  -1,286 profit)
+
+3. MOST TRADED STOCKS (by Number of Trades)
+---------------------------------------------
+3. ANANDRATHI      14 trades (₹  -7,001 profit, 0.0% win rate)
+13. GMRAIRPORT      14 trades (₹  -4,434 profit, 14.3% win rate)
+24. MANKIND         14 trades (₹  -3,279 profit, 7.1% win rate)
+25. MUFIN           14 trades (₹   9,604 profit, 7.1% win rate)
+33. PNB             14 trades (₹    -802 profit, 21.4% win rate)
+
+ADDITIONAL INSIGHTS
+--------------------
+Best Overall Performer: MUFIN (₹9,604.29 profit)
+Highest Win Rate (3+ trades): KAJARIACER (66.7% win rate)
+Most Consistent Performer: SPMLINFRA (lowest PnL volatility)
+Risk-Reward Ratio: 2.47 (Avg Profit: ₹1109, Avg Loss: ₹-449)
+
+================================================================================
