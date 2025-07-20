@@ -65,6 +65,17 @@ func (s *BatchFetchService) ProcessBatchRequest(
 		request.FromDate = s.defaultFromDate
 	}
 
+	// Parse dates to calculate intervals
+	fromDate, err := time.Parse("2006-01-02", request.FromDate)
+	if err != nil {
+		return nil, fmt.Errorf("invalid fromDate format: %w", err)
+	}
+
+	toDate, err := time.Parse("2006-01-02", request.ToDate)
+	if err != nil {
+		return nil, fmt.Errorf("invalid toDate format: %w", err)
+	}
+
 	// Determine which instrument keys to process
 	var instrumentKeys []string
 
@@ -136,10 +147,10 @@ func (s *BatchFetchService) ProcessBatchRequest(
 				return
 			}
 
-			// Process the instrument
-			log.Info("Processing historical data for instrument: %s", key)
-			recordCount, err := s.candleService.ProcessHistoricalCandles(
-				ctx, key, request.Interval, request.FromDate, request.ToDate,
+			// Process the instrument with 4-day intervals
+			log.Info("Processing historical data for instrument: %s from %s to %s", key, request.FromDate, request.ToDate)
+			recordCount, err := s.processInstrumentWithIntervals(
+				ctx, key, request.Interval, fromDate, toDate,
 			)
 
 			if err != nil {
@@ -187,6 +198,56 @@ func (s *BatchFetchService) ProcessBatchRequest(
 		responseData.SuccessfulItems, responseData.FailedItems)
 
 	return responseData, nil
+}
+
+// processInstrumentWithIntervals processes historical data for an instrument by breaking the date range into 4-day intervals
+func (s *BatchFetchService) processInstrumentWithIntervals(
+	ctx context.Context,
+	instrumentKey string,
+	interval string,
+	fromDate time.Time,
+	toDate time.Time,
+) (int, error) {
+	totalRecords := 0
+	currentDate := fromDate
+
+	// Process data in 4-day intervals
+	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
+		// Calculate the end date for this interval (4 days from current date)
+		intervalEndDate := currentDate.AddDate(0, 0, 4)
+
+		// If the calculated end date exceeds the requested toDate, use toDate instead
+		if intervalEndDate.After(toDate) {
+			intervalEndDate = toDate
+		}
+
+		// Format dates for API call
+		fromDateStr := currentDate.Format("2006-01-02")
+		toDateStr := intervalEndDate.Format("2006-01-02")
+
+		log.Info("Processing interval for %s: %s to %s", instrumentKey, fromDateStr, toDateStr)
+
+		// Process this interval
+		recordCount, err := s.candleService.ProcessHistoricalCandles(
+			ctx, instrumentKey, interval, fromDateStr, toDateStr,
+		)
+
+		if err != nil {
+			return totalRecords, fmt.Errorf("failed to process interval %s to %s: %w", fromDateStr, toDateStr, err)
+		}
+
+		totalRecords += recordCount
+		log.Info("Successfully processed %d records for %s in interval %s to %s",
+			recordCount, instrumentKey, fromDateStr, toDateStr)
+
+		// Move to the next interval (start from the day after the current interval end)
+		currentDate = intervalEndDate.AddDate(0, 0, 1)
+
+		// Add a small delay between API calls to avoid rate limiting
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	return totalRecords, nil
 }
 
 // processResults converts processing results to a response structure

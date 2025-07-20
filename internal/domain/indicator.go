@@ -25,6 +25,7 @@ type TechnicalIndicators struct {
 	BBMiddle      []IndicatorValue `json:"bb_middle,omitempty"`
 	BBLower       []IndicatorValue `json:"bb_lower,omitempty"`
 	BBWidth       []IndicatorValue `json:"bb_width,omitempty"`
+	LowestBBWidth []IndicatorValue `json:"lowest_bb_width,omitempty"`
 	MorningRange  float64          `json:"morningRange,omitempty"`
 }
 

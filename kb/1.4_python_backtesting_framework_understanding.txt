@@ -1,0 +1,757 @@
+# Standard Operating Procedure (SOP): Adding New Strategies to Backtesting Framework
+
+## Overview
+This SOP provides a comprehensive guide for seamlessly integrating new trading strategies into the existing Python backtesting framework. The framework follows a modular architecture with clear separation of concerns, making it extensible for new strategies.
+
+## Prerequisites
+- Understanding of Python async/await patterns
+- Familiarity with pandas DataFrames
+- Knowledge of trading strategy concepts
+- Access to the `python_strategies/mr_strategy/` directory
+
+## Framework Architecture Understanding
+
+### Core Components
+```
+BacktestEngine (Main Orchestrator)
+├── SignalGenerator (Strategy Integration Point)
+├── Entry Strategies (Strategy-Specific Logic)
+├── MorningRangeStrategy (Core MR Logic)
+├── PositionManager (Position Management)
+├── TradeManager (Trade Execution)
+├── RiskCalculator (Risk Management)
+└── BacktestSimulator (Trade Simulation)
+```
+
+### Data Flow
+```
+Raw OHLCV Data → CandleProcessor → Strategy Logic → Signal Generation → Trade Execution → Results
+```
+
+## Understanding the Entry Strategy Pattern
+
+### 1. Base Entry Strategy Interface
+All entry strategies inherit from `EntryStrategy` base class and must implement:
+
+```python
+@abstractmethod
+async def check_entry_conditions(self, 
+                           candle: Dict[str, Any], 
+                           mr_values: Dict[str, Any]) -> Optional[Signal]:
+    """Check if entry conditions are met for this candle."""
+    pass
+
+@abstractmethod
+def reset_state(self) -> None:
+    """Reset the entry strategy state."""
+    pass
+```
+
+### 2. Signal Structure
+Signals are the core output of entry strategies:
+
+```python
+@dataclass
+class Signal:
+    type: SignalType          # Type of signal (IMMEDIATE_BREAKOUT, etc.)
+    direction: SignalDirection # LONG or SHORT
+    timestamp: datetime       # When signal was generated
+    price: float             # Entry price
+    mr_values: Dict[str, Any] # Morning range values
+    range_values: Dict[str, Any] # Strategy-specific values
+    metadata: Dict[str, Any]  # Additional information
+```
+
+### 3. State Management
+Each strategy maintains its own state to prevent duplicate signals:
+
+```python
+self.state = {
+    'last_signal_time': None,
+    'signals_generated': [],
+    'can_generate_long': True,
+    'can_generate_short': True
+}
+```
+
+## SOP: Adding New Entry Strategy
+
+### Phase 1: Strategy Analysis & Design
+
+#### Step 1.1: Define Strategy Requirements
+**Objective**: Clearly define what the new strategy should do
+
+**Checklist**:
+- [ ] **Entry Conditions**: What triggers an entry?
+- [ ] **Exit Conditions**: How does the strategy exit?
+- [ ] **Data Requirements**: What indicators/data does it need?
+- [ ] **Risk Parameters**: What risk management rules apply?
+- [ ] **State Management**: What state needs to be tracked?
+
+**Example Strategy Requirements Template**:
+```python
+strategy_requirements = {
+    "name": "BB_WIDTH_ENTRY",
+    "entry_conditions": {
+        "bb_width_threshold": 0.001,  # 0.1% BB width threshold
+        "squeeze_duration": "3-5 candles",
+        "entry_price": "BB upper/lower bands",
+        "stop_loss": "BB lower/upper bands"
+    },
+    "data_requirements": [
+        "bb_upper", "bb_middle", "bb_lower", "bb_width"
+    ],
+    "state_variables": [
+        "in_long_trade", "in_short_trade", "squeeze_detected"
+    ]
+}
+```
+
+#### Step 1.2: Identify Integration Points
+**Objective**: Understand where the strategy fits in the framework
+
+**Key Integration Points**:
+1. **Entry Strategy Factory** (`factory.py`)
+2. **Signal Types** (`models.py`)
+3. **Trade Types** (`trade_manager.py`)
+4. **Data Processing** (`data_processor.py`)
+5. **Configuration** (`config.py`)
+
+### Phase 2: Implementation
+
+#### Step 2.1: Create Entry Strategy Class
+
+**File Location**: `python_strategies/mr_strategy/strategy/entry_strategies/[strategy_name]_entry.py`
+
+**Complete Template**:
+```python
+"""
+[Strategy Name] Entry Strategy Implementation
+
+This module implements the [strategy_name] entry strategy.
+"""
+
+from typing import Dict, Optional, Any
+from datetime import datetime, time
+import logging
+import pandas as pd
+
+from .base import EntryStrategy
+from ..models import Signal, SignalType, SignalDirection
+
+logger = logging.getLogger(__name__)
+
+class [StrategyName]EntryStrategy(EntryStrategy):
+    """Implementation of the [strategy_name] entry strategy."""
+    
+    def __init__(self, config):
+        """Initialize the strategy."""
+        super().__init__(config)
+        # Initialize strategy-specific state variables
+        self.in_long_trade = False
+        self.in_short_trade = False
+        # Add other state variables as needed
+        
+    async def check_entry_conditions(self, 
+                               candle: Dict[str, Any], 
+                               mr_values: Dict[str, Any]) -> Optional[Signal]:
+        """
+        Check for [strategy_name] entry conditions.
+        
+        Args:
+            candle: The current candle data
+            mr_values: Morning range values (may include additional data)
+            
+        Returns:
+            Signal if entry conditions are met, None otherwise
+        """
+        # 1. Validate input data
+        if not self._validate_input_data(candle, mr_values):
+            return None
+            
+        # 2. Check timing conditions
+        if not self._check_timing_conditions(candle):
+            return None
+            
+        # 3. Check strategy-specific conditions
+        entry_signal = self._check_strategy_conditions(candle, mr_values)
+        
+        # 4. Generate signal if conditions met
+        if entry_signal:
+            return self._create_signal(entry_signal, candle, mr_values)
+            
+        return None
+        
+    def _validate_input_data(self, candle: Dict, mr_values: Dict) -> bool:
+        """Validate required data is present."""
+        # Check for required candle data
+        required_candle_fields = ['timestamp', 'open', 'high', 'low', 'close']
+        for field in required_candle_fields:
+            if field not in candle:
+                logger.warning(f"Missing required candle field: {field}")
+                return False
+        
+        # Check for required strategy-specific data
+        required_strategy_fields = ['bb_upper', 'bb_lower', 'bb_width']  # Example
+        for field in required_strategy_fields:
+            if field not in candle:
+                logger.warning(f"Missing required strategy field: {field}")
+                return False
+        
+        return True
+        
+    def _check_timing_conditions(self, candle: Dict) -> bool:
+        """Check if timing conditions are met."""
+        # Convert timestamp if needed
+        timestamp = candle.get('timestamp')
+        if isinstance(timestamp, str):
+            timestamp = pd.to_datetime(timestamp)
+        
+        # Example: Skip first candle of the day
+        if timestamp.time() == time(9, 15):
+            logger.debug("Skipping first candle of the day (9:15 AM)")
+            return False
+        
+        # Add other timing conditions as needed
+        return True
+        
+    def _check_strategy_conditions(self, candle: Dict, mr_values: Dict) -> Optional[Dict]:
+        """Check strategy-specific entry conditions."""
+        # Implement your strategy logic here
+        # Example for BB Width strategy:
+        
+        # Check if already in a trade
+        if self.in_long_trade or self.in_short_trade:
+            return None
+        
+        # Get strategy-specific data
+        bb_width = candle.get('bb_width', 0)
+        bb_upper = candle.get('bb_upper', 0)
+        bb_lower = candle.get('bb_lower', 0)
+        current_price = candle.get('close', 0)
+        
+        # Check squeeze condition (BB width below threshold)
+        if bb_width <= self.config.bb_width_threshold:
+            # Check for long entry (price above BB upper)
+            if current_price > bb_upper:
+                if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "LONG"):
+                    self.in_long_trade = True
+                    return {
+                        'direction': SignalDirection.LONG,
+                        'price': bb_upper,
+                        'range_values': {
+                            'bb_upper': bb_upper,
+                            'bb_lower': bb_lower,
+                            'bb_width': bb_width
+                        }
+                    }
+            
+            # Check for short entry (price below BB lower)
+            elif current_price < bb_lower:
+                if self.can_generate_signal(SignalType.IMMEDIATE_BREAKOUT.value, "SHORT"):
+                    self.in_short_trade = True
+                    return {
+                        'direction': SignalDirection.SHORT,
+                        'price': bb_lower,
+                        'range_values': {
+                            'bb_upper': bb_upper,
+                            'bb_lower': bb_lower,
+                            'bb_width': bb_width
+                        }
+                    }
+        
+        return None
+        
+    def _create_signal(self, entry_data: Dict, candle: Dict, mr_values: Dict) -> Signal:
+        """Create signal object."""
+        timestamp = candle.get('timestamp')
+        if isinstance(timestamp, str):
+            timestamp = pd.to_datetime(timestamp)
+            
+        # Update signal state to prevent duplicates
+        self.update_signal_state(SignalType.IMMEDIATE_BREAKOUT.value, entry_data['direction'].value)
+        
+        logger.info(f"[{strategy_name}] {entry_data['direction'].value} entry detected at {timestamp}")
+        
+        return Signal(
+            type=SignalType.IMMEDIATE_BREAKOUT,  # or custom signal type
+            direction=entry_data['direction'],
+            timestamp=timestamp,
+            price=entry_data['price'],
+            mr_values=mr_values,
+            range_values=entry_data.get('range_values', {}),
+            metadata={
+                'entry_type': '[strategy_name]_entry',
+                'entry_time': timestamp.strftime('%H:%M'),
+                'strategy_specific_data': entry_data.get('range_values', {})
+            }
+        )
+        
+    def reset_state(self) -> None:
+        """Reset the entry strategy state."""
+        self.in_long_trade = False
+        self.in_short_trade = False
+        # Reset other state variables
+        super().reset_state()
+```
+
+#### Step 2.2: Update Entry Strategy Factory
+
+**File**: `python_strategies/mr_strategy/strategy/entry_strategies/factory.py`
+
+**Add to factory method**:
+```python
+@staticmethod
+def create_strategy(entry_type: str, config: Any) -> EntryStrategy:
+    # Import here to avoid circular imports
+    from .first_entry import FirstEntryStrategy
+    from .two_thirty_entry import TwoThirtyEntryStrategy
+    from .[strategy_name]_entry import [StrategyName]EntryStrategy  # Add this line
+    
+    if entry_type == "1ST_ENTRY":
+        return FirstEntryStrategy(config)
+    elif entry_type == "2_30_ENTRY":
+        return TwoThirtyEntryStrategy(config)
+    elif entry_type == "[STRATEGY_NAME]_ENTRY":  # Add this block
+        return [StrategyName]EntryStrategy(config)
+    else:
+        raise ValueError(f"Unknown entry type: {entry_type}")
+```
+
+#### Step 2.3: Add Signal Type (if needed)
+
+**File**: `python_strategies/mr_strategy/strategy/models.py`
+
+**Add to SignalType enum**:
+```python
+class SignalType(Enum):
+    IMMEDIATE_BREAKOUT = "immediate_breakout"
+    BREAKOUT_CONFIRMATION = "breakout_confirmation"
+    RETEST_ENTRY = "retest_entry"
+    TWO_THIRTY_ENTRY = "two_thirty_entry"
+    [STRATEGY_NAME]_ENTRY = "[strategy_name]_entry"  # Add this line
+```
+
+#### Step 2.4: Add Trade Type (if needed)
+
+**File**: `python_strategies/mr_strategy/strategy/trade_manager.py`
+
+**Add to TradeType enum**:
+```python
+class TradeType(Enum):
+    IMMEDIATE_BREAKOUT = "IMMEDIATE_BREAKOUT"
+    RETEST_ENTRY = "RETEST_ENTRY"
+    TWO_THIRTY_ENTRY = "TWO_THIRTY_ENTRY"
+    [STRATEGY_NAME]_ENTRY = "[STRATEGY_NAME]_ENTRY"  # Add this line
+```
+
+### Phase 3: Data Processing Integration
+
+#### Step 3.1: Add Required Indicators
+
+**File**: `python_strategies/mr_strategy/data/data_processor.py`
+
+**Add indicator calculation methods**:
+```python
+def calculate_[indicator_name](self, data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate [indicator_name] for the given data.
+    
+    Args:
+        data: DataFrame with OHLCV data
+        
+    Returns:
+        DataFrame with [indicator_name] column added
+    """
+    # Example for Bollinger Bands:
+    period = 20
+    std_dev = 2
+    
+    # Calculate moving average
+    data['bb_middle'] = data['close'].rolling(window=period).mean()
+    
+    # Calculate standard deviation
+    bb_std = data['close'].rolling(window=period).std()
+    
+    # Calculate upper and lower bands
+    data['bb_upper'] = data['bb_middle'] + (bb_std * std_dev)
+    data['bb_lower'] = data['bb_middle'] - (bb_std * std_dev)
+    
+    # Calculate BB width
+    data['bb_width'] = (data['bb_upper'] - data['bb_lower']) / data['bb_middle']
+    
+    return data
+```
+
+#### Step 3.2: Update CandleProcessor
+
+**Add to process_candles method**:
+```python
+def process_candles(self, candles: pd.DataFrame) -> pd.DataFrame:
+    """Process candles and add technical indicators."""
+    processed = candles.copy()
+    
+    # Add existing indicators
+    processed = self.calculate_ema_indicators(processed)
+    processed = self.calculate_rsi_indicators(processed)
+    processed = self.calculate_atr_indicators(processed)
+    
+    # Add new strategy indicators
+    processed = self.calculate_[indicator_name](processed)  # Add this line
+    
+    return processed
+```
+
+### Phase 4: Configuration Integration
+
+#### Step 4.1: Extend Strategy Configuration
+
+**File**: `python_strategies/mr_strategy/strategy/config.py`
+
+**Add strategy-specific parameters**:
+```python
+@dataclass
+class MRStrategyConfig:
+    # Existing parameters
+    breakout_percentage: float = 0.003
+    invalidation_percentage: float = 0.005
+    buffer_ticks: int = 5
+    tick_size: float = 0.05
+    range_type: str = '5MR'
+    market_open: time = time(9, 15)
+    respect_trend: bool = True
+    
+    # Strategy-specific parameters
+    [strategy_name]_threshold: float = 0.001  # Add this
+    [strategy_name]_period: int = 20          # Add this
+    [strategy_name]_std_dev: float = 2.0      # Add this
+    # Add other parameters as needed
+    
+    def __post_init__(self):
+        """Validate configuration values after initialization."""
+        # Existing validation
+        if self.breakout_percentage <= 0:
+            raise ValueError("breakout_percentage must be positive")
+        
+        # Strategy-specific validation
+        if self.[strategy_name]_threshold <= 0:
+            raise ValueError("[strategy_name]_threshold must be positive")
+        
+        if self.[strategy_name]_period <= 0:
+            raise ValueError("[strategy_name]_period must be positive")
+```
+
+### Phase 5: Testing Integration
+
+#### Step 5.1: Add Unit Tests
+
+**File**: `python_strategies/mr_strategy/tests/test_entry_strategies.py`
+
+**Add test methods**:
+```python
+def test_[strategy_name]_entry_strategy(config):
+    """Test [strategy_name] entry strategy creation."""
+    [strategy_name]_entry = EntryStrategyFactory.create_strategy("[STRATEGY_NAME]_ENTRY", config)
+    assert isinstance([strategy_name]_entry, [StrategyName]EntryStrategy)
+
+@pytest.mark.asyncio
+async def test_[strategy_name]_entry_conditions(config):
+    """Test [strategy_name] entry conditions."""
+    [strategy_name]_entry = [StrategyName]EntryStrategy(config)
+    
+    # Create test candle data
+    candle = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0,
+        'high': 101.0,
+        'low': 99.0,
+        'close': 100.5,
+        'bb_upper': 102.0,
+        'bb_lower': 98.0,
+        'bb_width': 0.001  # Add strategy-specific data
+    }
+    
+    mr_values = {
+        'mr_high': 102.0,
+        'mr_low': 98.0,
+        'is_valid': True
+    }
+    
+    # Test entry conditions
+    signal = await [strategy_name]_entry.check_entry_conditions(candle, mr_values)
+    
+    # Add assertions based on expected behavior
+    if signal:
+        assert signal.direction in [SignalDirection.LONG, SignalDirection.SHORT]
+        assert signal.type == SignalType.IMMEDIATE_BREAKOUT
+```
+
+#### Step 5.2: Add Integration Tests
+
+**File**: `python_strategies/mr_strategy/tests/test_backtest_engine.py`
+
+**Add backtest integration test**:
+```python
+@pytest.mark.asyncio
+async def test_[strategy_name]_entry_backtest(config, sample_data):
+    """Test backtest with [strategy_name] entry strategy."""
+    # Configure for [strategy_name] entry
+    config['entry_type'] = '[STRATEGY_NAME]_ENTRY'
+    engine = BacktestEngine(config)
+    
+    # Add strategy-specific data to sample_data
+    # sample_data = add_[strategy_name]_data(sample_data)
+    
+    # Run backtest
+    results = await engine.run_backtest(sample_data)
+    
+    # Verify results
+    assert results['status'] == 'success'
+    assert len(results['signals']) > 0
+    
+    # Check signal properties
+    signal = results['signals'][0]
+    assert signal.type == SignalType.IMMEDIATE_BREAKOUT  # or custom type
+    # Add other assertions
+```
+
+### Phase 6: Performance Metrics
+
+#### Step 6.1: Add Strategy-Specific Metrics
+
+**File**: `python_strategies/mr_strategy/backtest/metrics.py`
+
+**Add metrics class**:
+```python
+@dataclass
+class [StrategyName]Metrics:
+    """[Strategy name] specific performance metrics."""
+    [strategy_name]_detection_rate: float = 0.0
+    avg_[strategy_name]_duration: float = 0.0
+    successful_[strategy_name]_signals: int = 0
+    false_[strategy_name]_signals: int = 0
+    [strategy_name]_distribution: Dict[str, float] = None
+```
+
+#### Step 6.2: Update Performance Analyzer
+
+**Add calculation methods**:
+```python
+def calculate_[strategy_name]_metrics(self, trades: List[Dict]) -> [StrategyName]Metrics:
+    """Calculate [strategy_name] specific metrics."""
+    if not trades:
+        return [StrategyName]Metrics()
+    
+    df = pd.DataFrame(trades)
+    
+    # Filter trades for this strategy
+    strategy_trades = df[df['trade_type'] == '[STRATEGY_NAME]_ENTRY']
+    
+    # Calculate metrics
+    detection_rate = len(strategy_trades) / len(df) if len(df) > 0 else 0.0
+    avg_duration = strategy_trades['duration'].mean() if len(strategy_trades) > 0 else 0.0
+    
+    return [StrategyName]Metrics(
+        [strategy_name]_detection_rate=detection_rate,
+        avg_[strategy_name]_duration=avg_duration,
+        successful_[strategy_name]_signals=len(strategy_trades[strategy_trades['realized_pnl'] > 0]),
+        false_[strategy_name]_signals=len(strategy_trades[strategy_trades['realized_pnl'] <= 0])
+    )
+```
+
+### Phase 7: Documentation
+
+#### Step 7.1: Update Strategy Documentation
+
+**Add to README.md**:
+```markdown
+## [Strategy Name] Entry Strategy
+
+### Overview
+Brief description of the strategy and its purpose.
+
+### Entry Conditions
+- Condition 1: Description
+- Condition 2: Description
+- Condition 3: Description
+
+### Configuration Parameters
+- `[strategy_name]_threshold`: Description and default value
+- `[strategy_name]_period`: Description and default value
+- `[strategy_name]_std_dev`: Description and default value
+
+### Usage Example
+```python
+config = MRStrategyConfig(
+    entry_type="[STRATEGY_NAME]_ENTRY",
+    [strategy_name]_threshold=0.001,
+    [strategy_name]_period=20
+)
+```
+```
+
+#### Step 7.2: Update API Documentation
+
+**Add docstrings to all new methods and classes**
+
+## Implementation Guidelines
+
+### 1. Strategy Design Principles
+
+#### 1.1 Single Responsibility
+- Each strategy should have one clear purpose
+- Keep strategy logic focused and simple
+- Avoid mixing multiple entry conditions in one strategy
+
+#### 1.2 State Management
+- Always track trade state to prevent duplicate entries
+- Reset state properly when needed
+- Use the built-in state management from base class
+
+#### 1.3 Error Handling
+- Validate all input data before processing
+- Handle missing or invalid data gracefully
+- Log errors and warnings appropriately
+
+### 2. Code Quality Standards
+
+#### 2.1 Naming Conventions
+- Strategy class: `[StrategyName]EntryStrategy`
+- File name: `[strategy_name]_entry.py`
+- Entry type: `[STRATEGY_NAME]_ENTRY`
+- Configuration: `[strategy_name]_parameter`
+
+#### 2.2 Documentation
+- Add comprehensive docstrings to all methods
+- Include examples in documentation
+- Document all configuration parameters
+
+#### 2.3 Testing
+- Write unit tests for all strategy logic
+- Test edge cases and error conditions
+- Include integration tests with backtest engine
+
+### 3. Performance Considerations
+
+#### 3.1 Data Processing
+- Optimize indicator calculations for large datasets
+- Use vectorized operations when possible
+- Avoid loops in critical path
+
+#### 3.2 Memory Management
+- Clean up state variables properly
+- Avoid storing unnecessary data in memory
+- Use efficient data structures
+
+## Validation Checklist
+
+### Pre-Implementation
+- [ ] Strategy requirements clearly defined
+- [ ] Integration points identified
+- [ ] Data requirements specified
+- [ ] Risk parameters defined
+- [ ] State management plan created
+
+### Implementation
+- [ ] Entry strategy class created
+- [ ] Factory updated
+- [ ] Signal types added (if needed)
+- [ ] Trade types added (if needed)
+- [ ] Data processing integrated
+- [ ] Configuration extended
+- [ ] Unit tests written
+- [ ] Integration tests written
+- [ ] Performance metrics added
+- [ ] Documentation updated
+
+### Post-Implementation
+- [ ] All tests pass
+- [ ] Strategy integrates with existing pipeline
+- [ ] Performance metrics calculated correctly
+- [ ] Documentation is complete and accurate
+- [ ] Code follows existing patterns and conventions
+- [ ] No memory leaks or performance issues
+
+## Troubleshooting Guide
+
+### Common Issues
+
+#### Issue 1: Strategy not found in factory
+**Symptoms**: `ValueError: Unknown entry type: [STRATEGY_NAME]_ENTRY`
+**Solution**: Ensure strategy is added to `EntryStrategyFactory.create_strategy()`
+
+#### Issue 2: Missing data for strategy
+**Symptoms**: Strategy returns no signals
+**Solution**: Check that required indicators are calculated in `CandleProcessor`
+
+#### Issue 3: Configuration validation fails
+**Symptoms**: Backtest fails with configuration error
+**Solution**: Ensure all required parameters are added to `MRStrategyConfig`
+
+#### Issue 4: Tests fail
+**Symptoms**: Unit or integration tests fail
+**Solution**: Check test data includes required fields and strategy logic is correct
+
+#### Issue 5: Duplicate signals generated
+**Symptoms**: Multiple signals for same condition
+**Solution**: Check state management and `can_generate_signal()` logic
+
+### Debugging Tips
+
+1. **Enable Debug Logging**:
+   ```python
+   import logging
+   logging.getLogger('mr_strategy').setLevel(logging.DEBUG)
+   ```
+
+2. **Check Signal Generation**:
+   ```python
+   # Add debug prints in check_entry_conditions
+   logger.debug(f"Checking entry conditions: {candle}")
+   logger.debug(f"Strategy state: {self.state}")
+   ```
+
+3. **Validate Data Flow**:
+   ```python
+   # Check data at each step
+   logger.debug(f"Raw data: {data.head()}")
+   logger.debug(f"Processed data: {processed_data.head()}")
+   ```
+
+4. **Test Strategy in Isolation**:
+   ```python
+   # Create strategy instance and test manually
+   strategy = [StrategyName]EntryStrategy(config)
+   signal = await strategy.check_entry_conditions(test_candle, test_mr_values)
+   print(f"Generated signal: {signal}")
+   ```
+
+## Best Practices
+
+1. **Follow Existing Patterns**: Use the same structure as existing strategies
+2. **Maintain State Properly**: Always reset state in `reset_state()` method
+3. **Validate Inputs**: Check for required data before processing
+4. **Use Async/Await**: Follow the async pattern for `check_entry_conditions`
+5. **Add Comprehensive Tests**: Test both unit and integration scenarios
+6. **Document Everything**: Add clear docstrings and comments
+7. **Handle Edge Cases**: Consider market conditions and data quality issues
+8. **Performance Considerations**: Optimize calculations for large datasets
+9. **Error Handling**: Gracefully handle missing or invalid data
+10. **Logging**: Add appropriate debug and info logs
+
+## Example: BB Width Strategy Implementation
+
+### Strategy Requirements
+- **Entry**: When BB width contracts to ±0.1% of lowest BB width
+- **Entry Price**: BB upper band (buy), BB lower band (sell)
+- **Stop Loss**: BB lower band (buy), BB upper band (sell)
+- **Exit**: Use existing trade manager logic
+
+### Implementation Steps
+1. Create `BBWidthEntryStrategy` class
+2. Add BB indicators to data processor
+3. Update factory and configuration
+4. Add tests and metrics
+5. Update documentation
+
+This SOP ensures consistent, maintainable, and well-tested strategy implementations that seamlessly integrate with the existing backtesting framework. The modular design allows for easy extension while maintaining code quality and performance.

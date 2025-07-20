@@ -306,3 +306,34 @@ For issues and questions:
 - Review database connectivity and data availability
 - Verify command line parameters
 - Use `--verbose` flag for detailed debugging 
+
+
+-------------------------------------------------
+
+UPDATE 4th July 2025
+
+## Usage Examples
+
+### 1. Analyze and Update Database for All Instruments
+
+```bash
+python analyze_bb_width_intraday.py --update-database --lookback-days 30
+```
+
+### 2. Analyze Specific Symbols and Update Database
+
+```bash
+python analyze_bb_width_intraday.py --symbols RELIANCE TCS INFY --update-database --lookback-days 30
+```
+
+### 3. Update Database Only (Skip CSV Output)
+
+```bash
+python analyze_bb_width_intraday.py --symbols RELIANCE TCS --update-database --skip-csv-output
+```
+
+### 4. Show Current Database Status
+
+```bash
+python analyze_bb_width_intraday.py --show-db-summary
+```

@@ -1,0 +1,47 @@
+Issues that I have observed based on backtesting. 
+
+
+http://localhost:3000/backtest/run/single
+REQUEST
+{
+    "runner_config": {
+        "mode": "SINGLE",
+        "start_date": "2025-07-10T09:15:00+05:30",
+        "end_date": "2025-07-18T15:25:00+05:30",
+        "strategies": [
+            {
+                "type": "Range",
+                "params": {
+                    "range_type": "5MR",
+                    "entry_type": "BB_WIDTH_ENTRY",
+                    "entry_candle": "9:15",
+                    "sl_percentage": 0.2,
+                    "target_r": 4.0
+                }
+            }
+        ],
+        "initial_capital": 1000000.0,
+        "output_dir": "backtest_results"
+    },
+    "instrument_configs": [
+        {
+            "key": "NSE_EQ|INE301A01014",
+            "name": "RAYMOND",
+            "direction": "BULLISH"
+        }
+    ]
+}
+
+
+Problems
+1. Code is able to catch the right squeeze threshold. 
+2. I have written a logic where it will check for at least 3-5 counter of candles in squeeze threshold in order to consider it as a tradable range. 
+3. But once i debug to 3rd or 5th candle, the code is jumping to next possible squeeze. its not putting the position there. 
+4. Ideally if, atleast 3 candles are in squeeze then signal should be generated with entry at BB_UPPER level.
+5. Any candle having high above the entry level will be executed. 
+
+
+Solution
+1. Removed the self.squeeze_candle_count <= self.squeeze_duration_max) logic, this was not abrubtly breaking the squeeze conditions afterwards. 
+2. candle high above bb upper should be the trigger, not the close. 
+3. Increased sl from 0.2% to 0.5%

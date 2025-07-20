@@ -18,6 +18,7 @@ class DailyDataProcessor:
             'rsi_indicators': self._process_rsi_indicators,
             'atr_indicators': self._process_atr_indicators,
             'player_type': self._process_player_type,
+            'bb_indicators': self._process_bb_indicators,
         }
     
     def process(self, daily_df: pd.DataFrame) -> pd.DataFrame:
@@ -46,28 +47,19 @@ class DailyDataProcessor:
     
     def _process_ema_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """Calculate daily EMA indicators."""
-        df['DAILY_EMA_5'] = df['close'].ewm(span=5, adjust=False).mean()
-        df['DAILY_EMA_9'] = df['close'].ewm(span=9, adjust=False).mean()
-        df['DAILY_EMA_50'] = df['close'].ewm(span=50, adjust=False).mean()
+        df['DAILY_EMA_5'] = df['ema_5']
+        df['DAILY_EMA_9'] = df['ema_9']
+        df['DAILY_EMA_50'] = df['ema_50']
         return df
     
     def _process_rsi_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """Calculate daily RSI indicators."""
-        delta = df['close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-        rs = gain / loss
-        df['DAILY_RSI_14'] = 100 - (100 / (1 + rs))
+        df['DAILY_RSI_14'] = df['rsi']
         return df
     
     def _process_atr_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """Calculate daily ATR indicators."""
-        high_low = df['high'] - df['low']
-        high_close = np.abs(df['high'] - df['close'].shift())
-        low_close = np.abs(df['low'] - df['close'].shift())
-        ranges = pd.concat([high_low, high_close, low_close], axis=1)
-        true_range = np.max(ranges, axis=1)
-        df['DAILY_ATR_14'] = true_range.rolling(14).mean()
+        df['DAILY_ATR_14'] = df['atr']
         return df
     
     def _process_player_type(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -110,4 +102,13 @@ class DailyDataProcessor:
             return 'COILER'
         
         # df['player_type'] = df.apply(_determine_player_type, axis=1)
+        return df
+
+    def _process_bb_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate daily BB indicators."""
+        df['DAILY_BB_UPPER'] = df['bb_upper']
+        df['DAILY_BB_LOWER'] = df['bb_lower']
+        df['DAILY_BB_MIDDLE'] = df['bb_middle']
+        df['DAILY_BB_WIDTH'] = df['bb_width']
+        df['DAILY_LOWEST_BB_WIDTH'] = df['lowest_bb_width']
         return df

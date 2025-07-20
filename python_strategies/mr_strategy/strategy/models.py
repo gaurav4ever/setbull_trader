@@ -21,11 +21,13 @@ class SignalType(Enum):
     BREAKOUT_CONFIRMATION: Price moves beyond breakout threshold
     RETEST_ENTRY: Price retests MR level after confirmed breakout
     TWO_THIRTY_ENTRY: Entry at 2:30 PM based on specific conditions
+    BB_WIDTH_ENTRY: Entry based on Bollinger Bands width squeeze conditions
     """
     IMMEDIATE_BREAKOUT = "immediate_breakout"
     BREAKOUT_CONFIRMATION = "breakout_confirmation"
     RETEST_ENTRY = "retest_entry"
     TWO_THIRTY_ENTRY = "two_thirty_entry"
+    BB_WIDTH_ENTRY = "bb_width_entry"
 
 class SignalDirection(Enum):
     """

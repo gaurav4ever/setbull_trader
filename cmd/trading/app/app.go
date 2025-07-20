@@ -59,6 +59,9 @@ type App struct {
 	marketQuoteService      *service.MarketQuoteService
 	stockGroupService       *service.StockGroupService
 	groupExecutionService   *service.GroupExecutionService
+	alertService            *service.AlertService
+	bbWidthMonitorService   *service.BBWidthMonitorService
+	groupExecutionScheduler *service.GroupExecutionScheduler
 }
 
 // NewApp creates a new application
@@ -161,13 +164,23 @@ func NewApp() *App {
 	candleProcessingService := service.NewCandleProcessingService(upstoxAuthService, candleRepo, cfg.HistoricalData.BatchSize, "upstox_session")
 	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
 	batchFetchService := service.NewBatchFetchService(candleProcessingService, stockUniverseService, cfg.HistoricalData.MaxConcurrentRequests)
-	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService)
+	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService, utilityService)
 	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)
 	stockGroupService := service.NewStockGroupService(stockGroupRepo, orderExecutionService, stockService)
 	groupExecutionService := service.NewGroupExecutionService(stockGroupService, marketQuoteService, tradeParamsService, executionPlanService, orderExecutionService, cfg, stockUniverseService, technicalIndicatorService, candleAggService)
 	stockGroupHandler := rest.NewStockGroupHandler(stockGroupService, stockUniverseService, groupExecutionService)
+
+	// Initialize BB width monitoring services
+	alertService := service.NewAlertService(&cfg.BBWidthMonitoring)
+	bbWidthMonitorService := service.NewBBWidthMonitorService(
+		stockGroupService,
+		technicalIndicatorService,
+		alertService,
+		stockUniverseService,
+		&cfg.BBWidthMonitoring,
+	)
 
 	restServer := rest.NewServer(
 		orderService,
@@ -188,8 +201,8 @@ func NewApp() *App {
 		stockGroupHandler,
 	)
 
-	// Wire up the group execution scheduler
-	_ = service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService)
+	// Wire up the group execution scheduler with BB width monitoring
+	groupExecutionScheduler := service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService, bbWidthMonitorService)
 
 	return &App{
 		config:                  cfg,
@@ -221,6 +234,9 @@ func NewApp() *App {
 		marketQuoteService:      marketQuoteService,
 		stockGroupService:       stockGroupService,
 		groupExecutionService:   groupExecutionService,
+		alertService:            alertService,
+		bbWidthMonitorService:   bbWidthMonitorService,
+		groupExecutionScheduler: groupExecutionScheduler,
 	}
 }
 
@@ -251,7 +267,7 @@ func (a *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var enable1MinCandleIngestion = true
+	var enable1MinCandleIngestion = false
 
 	if enable1MinCandleIngestion {
 		// Start precise 1-min ingestion and aggregation loop
