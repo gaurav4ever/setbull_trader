@@ -528,6 +528,8 @@ func (s *TechnicalIndicatorService) CalculateBollingerBandsForRange(
 	estimatedLookbackDuration := time.Duration(period-1) * 24 * time.Hour // Simple estimation for 'day'
 	extendedStart := start.Add(-estimatedLookbackDuration)
 
+	log.Info("Calculating Bollinger Bands for %s, interval: %s, extendedStart: %s, end: %s", instrumentKey, interval, extendedStart, end)
+
 	candles, err := s.candleRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, interval, extendedStart, end)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get candles for BBands: %w", err)
