@@ -84,7 +84,7 @@ async def run_backtest(request: BacktestRequest):
     try:
         logger.info(f"Starting backtest with parameters: {request.dict()}")
         
-        # Fetch top 10 filtered stocks from the filter pipeline API
+        # 1. Fetch top 10 filtered stocks from the filter pipeline API
         async with httpx.AsyncClient() as client:
             response = await client.get("http://localhost:8083/api/v1/filter-pipeline/fetch/top-10")
             if response.status_code != 200:
@@ -96,13 +96,73 @@ async def run_backtest(request: BacktestRequest):
             
             # Extract instrument configs from filtered stocks
             instrument_configs = []
+            instrument_keys = []
             for stock in filtered_stocks.get("data", []):
                 instrument_configs.append({
                     "key": stock["instrument_key"],
                     "name": stock["symbol"],
                     "direction": "BULLISH"
                 })
+                instrument_keys.append(stock["instrument_key"])
             
+            logger.info(f"Fetched {len(instrument_keys)} stocks for data ingestion")
+            
+            # ENABLE_DATA_INGESTION = True  # Set to False to skip data ingestion
+            ENABLE_DATA_INGESTION = False
+            
+            if ENABLE_DATA_INGESTION:
+                # 2. Ingest 1min candle data for last 30 trading days with batch request of 4 days
+                from datetime import datetime, timedelta
+                import calendar
+                
+                # Calculate date range for last 30 trading days
+                end_date = datetime.now().date()
+                start_date = end_date - timedelta(days=45)  # Add buffer for weekends/holidays
+                
+                # Create batches of 4 days each
+                batch_size = 4
+                current_date = start_date
+                batch_count = 0
+                
+                while current_date <= end_date:
+                    batch_end_date = min(current_date + timedelta(days=batch_size-1), end_date)
+                    
+                    batch_request = {
+                        "instrumentKeys": instrument_keys,
+                        "fromDate": current_date.strftime("%Y-%m-%d"),
+                        "toDate": batch_end_date.strftime("%Y-%m-%d"),
+                        "interval": "1minute"
+                    }
+                    
+                    logger.info(f"Ingesting batch {batch_count + 1}: {current_date} to {batch_end_date}")
+                    
+                    try:
+                        batch_response = await client.post(
+                            "http://localhost:8083/api/v1/historical-data/batch-store",
+                            json=batch_request,
+                            timeout=300  # 5 minutes timeout for batch operations
+                        )
+                        
+                        if batch_response.status_code != 200:
+                            logger.warning(f"Batch {batch_count + 1} failed with status {batch_response.status_code}")
+                        else:
+                            batch_result = batch_response.json()
+                            if batch_result.get("success", False):
+                                logger.info(f"Batch {batch_count + 1} completed successfully")
+                            else:
+                                logger.warning(f"Batch {batch_count + 1} failed: {batch_result.get('message', 'Unknown error')}")
+                        
+                    except Exception as batch_error:
+                        logger.error(f"Error in batch {batch_count + 1}: {str(batch_error)}")
+                    
+                    current_date = batch_end_date + timedelta(days=1)
+                    batch_count += 1
+                
+                logger.info(f"Data ingestion completed for {len(instrument_keys)} stocks in {batch_count} batches")
+            else:
+                logger.info("Data ingestion skipped - ENABLE_DATA_INGESTION is False")
+            
+            # 3. Once data ingested then perform rest of the backtesting
             json_data = request.runner_config
             strategies = json_data["strategies"]
             # convert strategies to dictionary

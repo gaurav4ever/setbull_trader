@@ -1,0 +1,7 @@
+1. Insert daily data. 
+2. Filter stocks in pipeline
+3. ingest 1 min data for all top stocks. 
+4. Back test 1ST_ENTRY, 2_30_ENTRY and BB_WIDTH_ENTRY for each stocks. 
+5. Make data_analysis.csv
+6. Analyze trades
+7. Output top 5 for each entry type in /Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/output/backtest_analysis.txt
