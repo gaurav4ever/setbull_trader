@@ -100,11 +100,6 @@ async def run_backtest(request: BacktestRequest):
                 instrument_configs.append({
                     "key": stock["instrument_key"],
                     "name": stock["symbol"],
-                    "direction": "BEARISH"
-                })
-                instrument_configs.append({
-                    "key": stock["instrument_key"],
-                    "name": stock["symbol"],
                     "direction": "BULLISH"
                 })
             
