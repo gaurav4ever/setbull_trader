@@ -11,7 +11,7 @@ import (
 
 const (
 	LookbackPeriod   = 21  // Days to analyze
-	BullishThreshold = 5.0 // 5% threshold for bullish mamba
+	BullishThreshold = 3.0 // 5% threshold for bullish mamba
 	BearishThreshold = 3.0 // 3% threshold for bearish mamba
 )
 

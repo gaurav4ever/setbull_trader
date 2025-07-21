@@ -1,4 +1,4 @@
-from intraday_data_analysis import IntradayDataAnalysis
+from .intraday_data_analysis import IntradayDataAnalysis
 import pandas as pd
 import os
 
