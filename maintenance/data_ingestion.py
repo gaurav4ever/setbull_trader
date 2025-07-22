@@ -51,8 +51,8 @@ def create_request_json(instrument_keys: List[str]) -> str:
     """Create the request JSON with instrument keys."""
     request_data = {
         "instrumentKeys": instrument_keys,
-        "fromDate": "2025-07-01",
-        "toDate": "2025-07-18",
+        "fromDate": "2025-07-18",
+        "toDate": "2025-07-22",
         "interval": "1minute"
     }
     

@@ -49,12 +49,12 @@
 	function handleStockSelect(event) {
 		selectedStock = event.detail;
 
-		// Dispatch the event with the full stock object
-		dispatch('select', selectedStock);
+		// Dispatch the event with only the symbol string
+		dispatch('select', selectedStock.symbol);
 
 		// Call the callback if provided
 		if (onStockSelected && typeof onStockSelected === 'function') {
-			onStockSelected(selectedStock);
+			onStockSelected(selectedStock.symbol);
 		}
 
 		// Clear the selection for next use

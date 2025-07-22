@@ -1,5 +1,6 @@
 {
   "instrumentKeys": [
+    "NSE_EQ|INE08NE01025",
     "NSE_EQ|INE0R4L01018",
     "NSE_EQ|INE0LLY01014",
     "NSE_EQ|INE786A01032",
@@ -138,7 +139,7 @@
     "NSE_EQ|INE787D01026",
     "NSE_EQ|INE152M01016"
   ],
-  "fromDate": "2025-07-01",
-  "toDate": "2025-07-18",
+  "fromDate": "2025-07-18",
+  "toDate": "2025-07-22",
   "interval": "1minute"
 }

@@ -1,0 +1,28 @@
+# 7.5 Frontend Issues: Stock Selection & Parameter Save
+
+## 1. Stock Selection: Backend expects `symbol` as string, not object
+
+- **Symptom:**
+  - Error: `json: cannot unmarshal object into Go struct field Stock.symbol of type string`
+- **Root Cause:**
+  - The frontend sends the entire stock object to the backend, but the backend expects a string for the `symbol` field.
+- **Fix:**
+  - Update the code so that only the `symbol` string is sent in the API payload, not the whole object.
+  - In the parent component or API call, use `selectedStock.symbol` instead of `selectedStock`.
+
+## 2. Trading Parameter Save: "Stock ID is required"
+
+- **Symptom:**
+  - Error: `Stock ID is required`
+- **Root Cause:**
+  - The payload for saving trading parameters does not include the required `stockId` (or `securityId`).
+- **Fix:**
+  - Ensure the payload sent to `/api/v1/parameters` includes a valid `stockId` (and `stockSecurityId` if required).
+  - In the form or API call, set `stockId` and `stockSecurityId` from the selected stock and ensure they are not empty.
+
+---
+
+**Summary:**
+Both issues are due to mismatches between frontend payloads and backend expectations.
+- Always send primitive values (like `symbol` as string) if the backend expects them.
+- Always include required IDs in parameter save payloads.

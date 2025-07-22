@@ -1,0 +1,17 @@
+1. While ingesting live 1min data for the stocks for group, the code is not calculating the correct bb indicatorrs. 
+ - all bb columns are 0
+ - Reason is its not considering the previous 1min candles
+ - Preasummption is all the previous day data is present. 
+ - For this to happen, i need to have a single process mentioned in @0.1 kb file. 
+
+
+
+[0.189ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[BB Monitor] Found 1 BB_RANGE groups to monitor","time":"2025-07-21T09:35:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Monitoring 3 stocks in group d63c7112-2e10-443a-bb99-221fb9238e9e","time":"2025-07-21T09:35:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE703H01016, interval: 5minute, extendedStart: 2025-07-01 09:30:00 +0530 IST, end: 2025-07-21 09:35:00 +0530 IST","time":"2025-07-21T09:35:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE703H01016: failed to calculate BB width for NSE_EQ|INE703H01016: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:35:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE367G01038, interval: 5minute, extendedStart: 2025-07-01 09:30:00 +0530 IST, end: 2025-07-21 09:35:00 +0530 IST","time":"2025-07-21T09:35:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE367G01038: failed to calculate BB width for NSE_EQ|INE367G01038: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:35:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE08NE01025, interval: 5minute, extendedStart: 2025-07-01 09:30:00 +0530 IST, end: 2025-07-21 09:35:00 +0530 IST","time":"2025-07-21T09:35:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE08NE01025: failed to calculate BB width for NSE_EQ|INE08NE01025: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:35:08+05:30"}
