@@ -81,8 +81,6 @@ func (s *BBWidthMonitorService) MonitorBBRangeGroups(ctx context.Context, start,
 
 // monitorGroupStocks monitors all stocks in a BB_RANGE group for contracting patterns
 func (s *BBWidthMonitorService) monitorGroupStocks(ctx context.Context, group response.StockGroupResponse, start, end time.Time) error {
-	log.Info("[BB Monitor] Monitoring %d stocks in group %s", len(group.Stocks), group.ID)
-
 	for _, stock := range group.Stocks {
 		if stock.InstrumentKey == "" {
 			log.Warn("[BB Monitor] Skipping stock %s - no instrument key", stock.StockID)
