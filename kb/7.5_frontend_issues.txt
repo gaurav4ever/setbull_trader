@@ -26,3 +26,36 @@
 Both issues are due to mismatches between frontend payloads and backend expectations.
 - Always send primitive values (like `symbol` as string) if the backend expects them.
 - Always include required IDs in parameter save payloads.
+
+---
+
+## 3. Dhan API Order Placement: Use Correct Security ID (not Symbol)
+
+- **Symptom:**
+  - Dhan API returns error: `Missing required fields, bad values for parameters etc.` (errorCode: DH-906) when placing orders.
+  - Backend log shows: `Placing order with Dhan API using SecurityID: JAICORPLTD` (should be numeric, e.g., 5143).
+- **Root Cause:**
+  - The backend is sending the stock symbol as the Security ID to Dhan API, but Dhan expects the numeric Security ID.
+- **Implementation Plan:**
+  1. **Backend:**
+     - Trace the order placement logic (service and Dhan client adapter).
+     - Ensure the field mapped to Dhan's `security_id` is the numeric Security ID, not the symbol.
+     - Add logging to confirm the correct Security ID is being sent.
+  2. **Frontend:**
+     - Ensure the correct `securityId` is always sent and stored.
+     - **FIXED:** Added missing `stockSecurityId={stock.securityId}` prop to `TradingParameters` component in `StockCard.svelte`.
+  3. **Testing:**
+     - Place a test order and verify the backend log shows the numeric Security ID.
+     - Confirm Dhan API accepts the order (no DH-906 error).
+
+**Status: DEBUGGING**
+- Backend: Added SecurityID field to StockUniverse struct and updated order execution to use numeric SecurityID
+- Frontend: Fixed missing stockSecurityId prop in StockCard.svelte
+- Frontend: Fixed stock creation to use correct numeric Security ID instead of symbol
+  - Updated EnhancedStockSelector to dispatch full stock object instead of just symbol
+  - Updated +page.svelte handleStockSelected to use stock.securityId instead of symbol
+  - Added validation to ensure stock object has required properties (symbol, securityId)
+  - Added debugging logs to trace stock object data flow
+- Database: Verified that the stock record already has the correct SecurityID (5143)
+- Backend: Added debugging logs to trace where the SecurityID value is being lost
+- Both fixes ensure the correct numeric Security ID is sent to Dhan API instead of the symbol

@@ -47,8 +47,8 @@
 	function handleInitialStockSelect(event) {
 		const selectedStock = event.detail;
 
-		// Dispatch only the symbol string to the parent component
-		dispatch('stockSelected', selectedStock.symbol);
+		// Dispatch the full stock object to the parent component
+		dispatch('stockSelected', selectedStock);
 
 		// Clear the autocomplete field after selection
 		searchQuery = '';

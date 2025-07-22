@@ -266,6 +266,7 @@
 				<TradingParameters
 					stockId={stock.id}
 					stockSymbol={stock.symbol}
+					stockSecurityId={stock.securityId}
 					initialParameters={parameters}
 					on:saved={handleParametersSaved}
 				/>
