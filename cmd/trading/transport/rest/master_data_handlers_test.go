@@ -28,7 +28,7 @@ func (m *MockMasterDataService) StartProcess(ctx context.Context, req service.Ma
 	return args.Get(0).(*service.MasterDataResponse), args.Error(1)
 }
 
-func (m *MockMasterDataService) GetProcessStatus(ctx context.Context, processID int) (*service.ProcessStatusResponse, error) {
+func (m *MockMasterDataService) GetProcessStatus(ctx context.Context, processID int64) (*service.ProcessStatusResponse, error) {
 	args := m.Called(ctx, processID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

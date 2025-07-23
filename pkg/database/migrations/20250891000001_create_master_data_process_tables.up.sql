@@ -1,6 +1,6 @@
 -- Create master_data_process table
 CREATE TABLE IF NOT EXISTS master_data_process (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     process_date DATE NOT NULL,
     number_of_past_days INTEGER NOT NULL,
     status VARCHAR(20) NOT NULL CHECK (status IN ('RUNNING', 'COMPLETED', 'FAILED')),
@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS master_data_process (
 
 -- Create master_data_process_steps table
 CREATE TABLE IF NOT EXISTS master_data_process_steps (
-    id SERIAL PRIMARY KEY,
-    process_id INTEGER NOT NULL REFERENCES master_data_process(id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    process_id BIGINT NOT NULL REFERENCES master_data_process(id) ON DELETE CASCADE,
     step_number INTEGER NOT NULL CHECK (step_number IN (1, 2, 3)),
     step_name VARCHAR(50) NOT NULL CHECK (step_name IN ('daily_ingestion', 'filter_pipeline', 'minute_ingestion')),
     status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'RUNNING', 'COMPLETED', 'FAILED')),

@@ -61,7 +61,7 @@ func (h *MasterDataHandler) GetProcessStatus(w http.ResponseWriter, r *http.Requ
 	vars := mux.Vars(r)
 	processIDStr := vars["processId"]
 
-	processID, err := strconv.Atoi(processIDStr)
+	processID, err := strconv.ParseInt(processIDStr, 10, 64)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid process ID")
 		return

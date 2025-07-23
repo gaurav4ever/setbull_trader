@@ -15,7 +15,7 @@ type MasterDataService interface {
 	StartProcess(ctx context.Context, req MasterDataRequest) (*MasterDataResponse, error)
 
 	// GetProcessStatus retrieves the status of a process
-	GetProcessStatus(ctx context.Context, processID int) (*ProcessStatusResponse, error)
+	GetProcessStatus(ctx context.Context, processID int64) (*ProcessStatusResponse, error)
 
 	// GetProcessHistory retrieves recent process history
 	GetProcessHistory(ctx context.Context, limit int) ([]ProcessStatusResponse, error)
@@ -28,7 +28,7 @@ type MasterDataRequest struct {
 
 // MasterDataResponse represents the response from starting a process
 type MasterDataResponse struct {
-	ProcessID   int    `json:"processId"`
+	ProcessID   int64  `json:"processId"`
 	Status      string `json:"status"`
 	Message     string `json:"message"`
 	ProcessDate string `json:"processDate"`
@@ -36,7 +36,7 @@ type MasterDataResponse struct {
 
 // ProcessStatusResponse represents the status of a process with its steps
 type ProcessStatusResponse struct {
-	ProcessID   int                 `json:"processId"`
+	ProcessID   int64               `json:"processId"`
 	Status      string              `json:"status"`
 	Steps       []ProcessStepStatus `json:"steps"`
 	ProcessDate string              `json:"processDate"`
@@ -312,7 +312,7 @@ func (s *masterDataService) extractInstrumentKeys(stocks []domain.FilteredStockR
 }
 
 // GetProcessStatus retrieves the status of a process
-func (s *masterDataService) GetProcessStatus(ctx context.Context, processID int) (*ProcessStatusResponse, error) {
+func (s *masterDataService) GetProcessStatus(ctx context.Context, processID int64) (*ProcessStatusResponse, error) {
 	process, err := s.processRepo.GetByID(ctx, processID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get process: %w", err)

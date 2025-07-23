@@ -106,7 +106,7 @@ func (r *MasterDataProcessRepository) GetByDate(ctx context.Context, processDate
 }
 
 // GetByID retrieves a process by its ID
-func (r *MasterDataProcessRepository) GetByID(ctx context.Context, processID int) (*domain.MasterDataProcess, error) {
+func (r *MasterDataProcessRepository) GetByID(ctx context.Context, processID int64) (*domain.MasterDataProcess, error) {
 	var process domain.MasterDataProcess
 
 	err := r.db.WithContext(ctx).
@@ -125,7 +125,7 @@ func (r *MasterDataProcessRepository) GetByID(ctx context.Context, processID int
 }
 
 // UpdateStatus updates the status of a process
-func (r *MasterDataProcessRepository) UpdateStatus(ctx context.Context, processID int, status string) error {
+func (r *MasterDataProcessRepository) UpdateStatus(ctx context.Context, processID int64, status string) error {
 	updates := map[string]interface{}{
 		"status":     status,
 		"updated_at": time.Now(),
@@ -153,7 +153,7 @@ func (r *MasterDataProcessRepository) UpdateStatus(ctx context.Context, processI
 }
 
 // CompleteProcess marks a process as completed
-func (r *MasterDataProcessRepository) CompleteProcess(ctx context.Context, processID int) error {
+func (r *MasterDataProcessRepository) CompleteProcess(ctx context.Context, processID int64) error {
 	now := time.Now()
 
 	result := r.db.WithContext(ctx).
@@ -177,7 +177,7 @@ func (r *MasterDataProcessRepository) CompleteProcess(ctx context.Context, proce
 }
 
 // CreateStep creates a new step for a process
-func (r *MasterDataProcessRepository) CreateStep(ctx context.Context, processID int, stepNumber int, stepName string) error {
+func (r *MasterDataProcessRepository) CreateStep(ctx context.Context, processID int64, stepNumber int, stepName string) error {
 	step := &domain.MasterDataProcessStep{
 		ProcessID:  processID,
 		StepNumber: stepNumber,
@@ -194,7 +194,7 @@ func (r *MasterDataProcessRepository) CreateStep(ctx context.Context, processID 
 }
 
 // GetStep retrieves a step by process ID and step number
-func (r *MasterDataProcessRepository) GetStep(ctx context.Context, processID int, stepNumber int) (*domain.MasterDataProcessStep, error) {
+func (r *MasterDataProcessRepository) GetStep(ctx context.Context, processID int64, stepNumber int) (*domain.MasterDataProcessStep, error) {
 	var step domain.MasterDataProcessStep
 
 	err := r.db.WithContext(ctx).
@@ -212,7 +212,7 @@ func (r *MasterDataProcessRepository) GetStep(ctx context.Context, processID int
 }
 
 // UpdateStepStatus updates the status of a step
-func (r *MasterDataProcessRepository) UpdateStepStatus(ctx context.Context, processID int, stepNumber int, status string, errorMessage ...string) error {
+func (r *MasterDataProcessRepository) UpdateStepStatus(ctx context.Context, processID int64, stepNumber int, status string, errorMessage ...string) error {
 	updates := map[string]interface{}{
 		"status":     status,
 		"updated_at": time.Now(),

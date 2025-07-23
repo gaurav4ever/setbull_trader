@@ -6,7 +6,7 @@ import (
 
 // MasterDataProcess represents a master data ingestion process
 type MasterDataProcess struct {
-	ID               int        `gorm:"primaryKey;autoIncrement" json:"id"`
+	ID               int64      `gorm:"primaryKey;autoIncrement" json:"id"`
 	ProcessDate      time.Time  `gorm:"type:date;not null" json:"process_date"`
 	NumberOfPastDays int        `gorm:"type:int;not null" json:"number_of_past_days"`
 	Status           string     `gorm:"type:varchar(20);not null" json:"status"`
@@ -21,8 +21,8 @@ type MasterDataProcess struct {
 
 // MasterDataProcessStep represents a step within a master data process
 type MasterDataProcessStep struct {
-	ID           int        `gorm:"primaryKey;autoIncrement" json:"id"`
-	ProcessID    int        `gorm:"type:int;not null" json:"process_id"`
+	ID           int64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	ProcessID    int64      `gorm:"type:bigint;not null" json:"process_id"`
 	StepNumber   int        `gorm:"type:int;not null" json:"step_number"`
 	StepName     string     `gorm:"type:varchar(50);not null" json:"step_name"`
 	Status       string     `gorm:"type:varchar(20);not null" json:"status"`
