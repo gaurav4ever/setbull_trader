@@ -62,6 +62,8 @@ type App struct {
 	alertService            *service.AlertService
 	bbWidthMonitorService   *service.BBWidthMonitorService
 	groupExecutionScheduler *service.GroupExecutionScheduler
+	masterDataService       service.MasterDataService
+	masterDataHandler       *rest.MasterDataHandler
 }
 
 // NewApp creates a new application
@@ -183,6 +185,25 @@ func NewApp() *App {
 		&cfg.BBWidthMonitoring,
 	)
 
+	// Initialize master data service
+	masterDataProcessRepo := postgres.NewMasterDataProcessRepository(db)
+
+	// Create service adapters
+	dailyDataAdapter := service.NewDailyDataServiceAdapter(candleAggService, stockUniverseService)
+	filterPipelineAdapter := service.NewFilterPipelineServiceAdapter(stockFilterPipeline)
+	minuteDataAdapter := service.NewMinuteDataServiceAdapter(batchFetchService)
+
+	masterDataService := service.NewMasterDataService(
+		masterDataProcessRepo,
+		tradingCalendarService,
+		dailyDataAdapter,
+		filterPipelineAdapter,
+		minuteDataAdapter,
+	)
+
+	// Create master data handler
+	masterDataHandler := rest.NewMasterDataHandler(masterDataService)
+
 	restServer := rest.NewServer(
 		orderService,
 		stockService,
@@ -200,6 +221,7 @@ func NewApp() *App {
 		groupExecutionService,
 		stockGroupService,
 		stockGroupHandler,
+		masterDataHandler,
 	)
 
 	// Wire up the group execution scheduler with BB width monitoring
@@ -238,6 +260,8 @@ func NewApp() *App {
 		alertService:            alertService,
 		bbWidthMonitorService:   bbWidthMonitorService,
 		groupExecutionScheduler: groupExecutionScheduler,
+		masterDataService:       masterDataService,
+		masterDataHandler:       masterDataHandler,
 	}
 }
 

@@ -254,3 +254,36 @@ type FilteredStockRepository interface {
 	// GetTop10FilteredStocks retrieves the top 10 filtered stocks
 	GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error)
 }
+
+// MasterDataProcessRepository defines operations for managing master data processes
+type MasterDataProcessRepository interface {
+	// Create creates a new master data process
+	Create(ctx context.Context, processDate time.Time, numberOfPastDays int) (*domain.MasterDataProcess, error)
+
+	// GetByDate retrieves a process by its date
+	GetByDate(ctx context.Context, processDate time.Time) (*domain.MasterDataProcess, error)
+
+	// GetByID retrieves a process by its ID
+	GetByID(ctx context.Context, processID int) (*domain.MasterDataProcess, error)
+
+	// UpdateStatus updates the status of a process
+	UpdateStatus(ctx context.Context, processID int, status string) error
+
+	// CompleteProcess marks a process as completed
+	CompleteProcess(ctx context.Context, processID int) error
+
+	// CreateStep creates a new step for a process
+	CreateStep(ctx context.Context, processID int, stepNumber int, stepName string) error
+
+	// GetStep retrieves a step by process ID and step number
+	GetStep(ctx context.Context, processID int, stepNumber int) (*domain.MasterDataProcessStep, error)
+
+	// UpdateStepStatus updates the status of a step
+	UpdateStepStatus(ctx context.Context, processID int, stepNumber int, status string, errorMessage ...string) error
+
+	// GetFilteredStocks retrieves filtered stocks for a specific date
+	GetFilteredStocks(ctx context.Context, processDate time.Time) ([]domain.FilteredStockRecord, error)
+
+	// GetProcessHistory retrieves recent process history
+	GetProcessHistory(ctx context.Context, limit int) ([]domain.MasterDataProcess, error)
+}

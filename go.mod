@@ -25,6 +25,8 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
+require github.com/stretchr/objx v0.5.0 // indirect
+
 require (
 	github.com/cinar/indicator v1.3.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
