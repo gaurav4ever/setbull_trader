@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS stock_candle_data_5min; 

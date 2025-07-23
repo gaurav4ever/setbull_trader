@@ -165,6 +165,57 @@ type CandleRepository interface {
 	GetStocksWithExistingDailyCandles(ctx context.Context, startDate, endDate time.Time) ([]string, error)
 }
 
+// Candle5MinRepository defines operations for managing 5-minute candle data
+type Candle5MinRepository interface {
+	// Store stores a single 5-minute candle record
+	Store(ctx context.Context, candle *domain.Candle5Min) error
+
+	// StoreBatch stores multiple 5-minute candle records in a batch operation
+	StoreBatch(ctx context.Context, candles []domain.Candle5Min) (int, error)
+
+	// FindByInstrumentKey retrieves all 5-minute candles for a specific instrument
+	FindByInstrumentKey(ctx context.Context, instrumentKey string) ([]domain.Candle5Min, error)
+
+	// FindByInstrumentAndTimeRange retrieves 5-minute candles for an instrument within a time range
+	FindByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) ([]domain.Candle5Min, error)
+
+	// DeleteByInstrumentAndTimeRange deletes 5-minute candles for an instrument within a time range
+	DeleteByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// CountByInstrumentAndTimeRange counts 5-minute candles for an instrument within a time range
+	CountByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// DeleteOlderThan deletes 5-minute candles older than a specified time
+	DeleteOlderThan(ctx context.Context, olderThan time.Time) (int, error)
+
+	// GetLatestCandle retrieves the most recent 5-minute candle for a specific instrument
+	GetLatestCandle(ctx context.Context, instrumentKey string) (*domain.Candle5Min, error)
+
+	// GetEarliestCandle retrieves the oldest 5-minute candle for a specific instrument
+	GetEarliestCandle(ctx context.Context, instrumentKey string) (*domain.Candle5Min, error)
+
+	// GetCandleDateRange retrieves the earliest and latest timestamps for 5-minute candles of a specific instrument
+	GetCandleDateRange(ctx context.Context, instrumentKey string) (earliest, latest time.Time, exists bool, err error)
+
+	// GetNLatestCandles retrieves the N most recent 5-minute candles for a specific instrument
+	GetNLatestCandles(ctx context.Context, instrumentKey string, n int) ([]domain.Candle5Min, error)
+}
+
 // StockUniverseRepository defines the interface for stock universe operations
 type StockUniverseRepository interface {
 	Create(ctx context.Context, stock *domain.StockUniverse) (*domain.StockUniverse, error)

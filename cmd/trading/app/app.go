@@ -145,6 +145,7 @@ func NewApp() *App {
 	orderExecutionRepo := postgres.NewOrderExecutionRepository(db)
 	tokenRepo := upstox.NewTokenRepository(cacheManager)
 	candleRepo := postgres.NewCandleRepository(db)
+	candle5MinRepo := postgres.NewCandle5MinRepository(db)
 	stockUniverseRepo := postgres.NewStockUniverseRepository(db)
 	filteredStockRepo := postgres.NewFilteredStockRepository(db)
 	stockGroupRepo := postgres.NewStockGroupRepository(db)
@@ -161,10 +162,10 @@ func NewApp() *App {
 	utilityService := service.NewUtilityService(fibCalculator)
 	tradingCalendarService := service.NewTradingCalendarService(cfg.Trading.Market.ExcludeWeekends)
 	upstoxAuthService := upstox.NewAuthService(upstoxConfig, tokenRepo, cacheManager)
-	candleProcessingService := service.NewCandleProcessingService(upstoxAuthService, candleRepo, cfg.HistoricalData.BatchSize, "upstox_session")
+	candleProcessingService := service.NewCandleProcessingService(upstoxAuthService, candleRepo, candle5MinRepo, cfg.HistoricalData.BatchSize, "upstox_session")
 	stockUniverseService := service.NewStockUniverseService(stockUniverseRepo, upstoxParser, stockNormalizer, cfg.StockUniverse.FilePath)
 	batchFetchService := service.NewBatchFetchService(candleProcessingService, stockUniverseService, cfg.HistoricalData.MaxConcurrentRequests)
-	candleAggService := service.NewCandleAggregationService(candleRepo, batchFetchService, tradingCalendarService, utilityService)
+	candleAggService := service.NewCandleAggregationService(candleRepo, candle5MinRepo, batchFetchService, tradingCalendarService, utilityService)
 	technicalIndicatorService := service.NewTechnicalIndicatorService(candleRepo)
 	stockFilterPipeline := service.NewStockFilterPipeline(stockUniverseService, candleRepo, technicalIndicatorService, tradingCalendarService, filteredStockRepo, cfg)
 	marketQuoteService := service.NewMarketQuoteService(upstoxAuthService)
@@ -294,30 +295,77 @@ func (a *App) Run() error {
 
 				// Fetch all selected stocks
 				stocks, err := a.stockGroupService.FetchAllStocksFromAllGroups(ctx, a.stockUniverseService)
-				log.Info("Fetched %d stocks", len(stocks))
+				log.Info("[LIVE] Fetched %d stocks for 1-minute ingestion", len(stocks))
 				if err != nil {
-					log.Error("Failed to fetch selected stocks: %v", err)
+					log.Error("[LIVE] Failed to fetch selected stocks: %v", err)
 					continue
 				}
+
+				// Track which stocks need 5-minute aggregation
+				stocksNeeding5MinAgg := make([]string, 0)
+
 				for _, stock := range stocks {
 					if stock.InstrumentKey == "" {
+						log.Debug("[LIVE] Skipping stock with empty instrument key: %s", stock.Symbol)
 						continue
 					}
-					log.Info("Ingesting 1-min candle for %s", stock.InstrumentKey)
-					_, err := a.candleProcessingService.ProcessIntraDayCandles(ctx, stock.InstrumentKey, "1minute")
+
+					log.Debug("[LIVE] Ingesting 1-min candle for %s (%s)", stock.InstrumentKey, stock.Symbol)
+					recordCount, err := a.candleProcessingService.ProcessIntraDayCandles(ctx, stock.InstrumentKey, "1minute")
 					if err != nil {
-						log.Error("Failed to ingest 1-min candle for %s: %v", stock.InstrumentKey, err)
+						log.Error("[LIVE] Failed to ingest 1-min candle for %s: %v", stock.InstrumentKey, err)
+						continue
+					}
+
+					if recordCount > 0 {
+						log.Info("[LIVE] Successfully ingested %d 1-min candles for %s", recordCount, stock.InstrumentKey)
+
+						// Check if this stock needs 5-minute aggregation
+						latestCandle, err := a.candleProcessingService.GetLatestCandle(ctx, stock.InstrumentKey, "1minute")
+						if err != nil {
+							log.Error("[LIVE] Failed to get latest candle for %s: %v", stock.InstrumentKey, err)
+							continue
+						}
+
+						if latestCandle != nil && a.candleProcessingService.IsFiveMinBoundarySinceMarketOpen(latestCandle.Timestamp) {
+							log.Info("[LIVE] Stock %s needs 5-minute aggregation at %s", stock.InstrumentKey, latestCandle.Timestamp.Format("15:04"))
+							stocksNeeding5MinAgg = append(stocksNeeding5MinAgg, stock.InstrumentKey)
+						}
+					} else {
+						log.Debug("[LIVE] No new 1-min candles for %s", stock.InstrumentKey)
 					}
 				}
 
-				// Only aggregate and fire 5-min candle at correct 5-min boundaries since market open
+				// Trigger 5-minute aggregation for stocks that need it
+				if len(stocksNeeding5MinAgg) > 0 {
+					log.Info("[LIVE] Triggering 5-minute aggregation for %d stocks: %v", len(stocksNeeding5MinAgg), stocksNeeding5MinAgg)
+
+					for _, instrumentKey := range stocksNeeding5MinAgg {
+						latestCandle, err := a.candleProcessingService.GetLatestCandle(ctx, instrumentKey, "1minute")
+						if err != nil {
+							log.Error("[LIVE] Failed to get latest candle for 5-min aggregation for %s: %v", instrumentKey, err)
+							continue
+						}
+
+						if latestCandle != nil {
+							log.Info("[LIVE] Aggregating 5-min candles for %s at %s", instrumentKey, latestCandle.Timestamp.Format("15:04"))
+							if err := a.candleProcessingService.AggregateAndStore5MinCandles(ctx, instrumentKey, latestCandle.Timestamp); err != nil {
+								log.Error("[LIVE] Failed to aggregate 5-min candles for %s: %v", instrumentKey, err)
+							} else {
+								log.Info("[LIVE] Successfully aggregated and stored 5-min candles for %s", instrumentKey)
+							}
+						}
+					}
+				}
+
+				// Legacy 5-minute aggregation for backward compatibility
 				if isFiveMinBoundarySinceMarketOpen(nextMinute) {
 					end := nextMinute
 					start := end.Add(-5 * time.Minute)
-					log.Info("[5min AGG] Aggregating 5-min candle for all stocks for time range %s to %s", start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+					log.Info("[LIVE] Legacy 5-min aggregation for time range %s to %s", start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
 					err := a.stockGroupService.NotifyOnNew5Min(ctx, start, end)
 					if err != nil {
-						log.Error("[5min AGG] Failed to aggregate/fire 5-min candle for all stocks: %v", err)
+						log.Error("[LIVE] Failed to execute legacy 5-min aggregation: %v", err)
 					}
 				}
 

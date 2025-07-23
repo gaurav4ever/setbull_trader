@@ -356,5 +356,90 @@ This solution addresses all the identified issues while maintaining the existing
 
 The solution maintains the existing 5-minute candle close event system while fixing the underlying data availability and calculation issues. No 5-minute data storage required.
 
+-------------------------------------------------------------------------------------
+
+# PHASE 4: TESTING AND VALIDATION
+
+## End-to-End Test Cases for BB Width Monitoring Flow
+
+### Test Case 1: Normal Flow - Contracting Pattern Detected and Alert Triggered
+- **Setup:**
+  - Ingest 200+ 1-min candles for a stock (simulate real trading hours)
+  - Aggregate to 5-min candles in-memory
+  - Calculate indicators (BB, BB width, etc.)
+  - Provide a sequence of 5-min candles with BB width values: [2.5, 2.0, 1.7, 1.3, 1.1] (decreasing)
+  - Set lowest_min_bb_width in CSV to 1.0
+- **Action:**
+  - Call `ProcessBBWidth` with the latest 5-min candle and the last 5 BB width values
+- **Expected:**
+  - Pattern detection returns true (contracting)
+  - BB width is within ±0.10% of lowest_min_bb_width (1.0)
+  - Alert is triggered
+
+### Test Case 2: No Contracting Pattern (Flat or Increasing)
+- **Setup:**
+  - BB width values: [2.5, 2.6, 2.7, 2.8, 2.9] (increasing)
+- **Action:**
+  - Call `ProcessBBWidth`
+- **Expected:**
+  - No alert triggered
+
+### Test Case 3: Contracting Pattern but Outside Optimal Range
+- **Setup:**
+  - BB width values: [3.0, 2.5, 2.0, 1.8, 1.7] (decreasing)
+  - lowest_min_bb_width = 1.0
+- **Action:**
+  - Call `ProcessBBWidth`
+- **Expected:**
+  - Contracting pattern detected, but BB width not within optimal range
+  - No alert triggered
+
+### Test Case 4: Insufficient Historical Data
+- **Setup:**
+  - Only 2 BB width values available: [2.0, 1.8]
+- **Action:**
+  - Call `ProcessBBWidth`
+- **Expected:**
+  - No pattern detection (insufficient data)
+  - No alert triggered
+
+### Test Case 5: Invalid BB Width (Zero or Negative)
+- **Setup:**
+  - BB width value: 0.0 or -1.0
+- **Action:**
+  - Call `ProcessBBWidth`
+- **Expected:**
+  - No alert triggered
+
+### Test Case 6: Error in lowest_min_bb_width Lookup
+- **Setup:**
+  - CSV file missing or instrument key not found
+- **Action:**
+  - Call `ProcessBBWidth`
+- **Expected:**
+  - Error is logged, no alert triggered
+
+### Test Case 7: End-to-End Integration (Full Pipeline)
+- **Setup:**
+  - Simulate ingestion of 1-min candles for multiple stocks
+  - Aggregate to 5-min candles
+  - Calculate indicators
+  - For each 5-min close, call `ProcessBBWidth` with in-memory history
+- **Expected:**
+  - Alerts are triggered only for stocks with valid contracting patterns in optimal range
+  - No false positives/negatives
+
+---
+
+## Notes for Go Test Implementation
+- Use mocks for DB, CSV, and alerting where possible
+- For `candle_processing_service_test.go`: Test ingestion and indicator calculation with/without sufficient history
+- For `candle_aggregation_service_test.go`: Test correct 5-min aggregation and indicator mapping
+- For `bb_width_monitor_service_test.go`: Test `ProcessBBWidth` with various BB width histories and edge cases
+- Consider table-driven tests for pattern detection logic
+- Validate logs and alert invocations
+
+---
+
 
 

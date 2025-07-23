@@ -23,6 +23,9 @@ type BBWidthMonitorService struct {
 	alertService          *AlertService
 	universeService       *StockUniverseService
 	config                *config.BBWidthMonitoringConfig
+	// Add CandleAggregationService as a field if not present
+	// (Assume it's available as s.candleAggService)
+	candleAggService *CandleAggregationService
 }
 
 // NewBBWidthMonitorService creates a new BB width monitoring service
@@ -101,23 +104,33 @@ func (s *BBWidthMonitorService) monitorGroupStocks(ctx context.Context, group re
 func (s *BBWidthMonitorService) monitorStock(ctx context.Context, stock response.StockGroupStockDTO, start, end time.Time) error {
 	log.Debug("[BB Monitor] Monitoring stock %s (%s) for BB width patterns", stock.Symbol, stock.InstrumentKey)
 
-	// Calculate current BB width for the 5-minute candle
-	currentBBWidth, err := s.calculateBBWidth(ctx, stock.InstrumentKey, start, end)
+	// Use in-memory 5-min aggregation and direct BB width analysis
+	if s.candleAggService == nil {
+		return fmt.Errorf("candleAggService is not initialized in BBWidthMonitorService")
+	}
+
+	err := s.candleAggService.Aggregate5MinCandlesWithIndicators(
+		ctx,
+		stock.InstrumentKey,
+		start,
+		end,
+		func(ctx context.Context, instrumentKey string, candle domain.AggregatedCandle) {
+			// Prepare BB width history (simulate last 5 candles including this one)
+			// In a real implementation, you would maintain a rolling window in memory or fetch from a cache/service
+			// For now, fetch last 4 from DB and append this one
+			lookback := 4
+			bbWidthHistory, _ := s.getRecentBBWidthHistory(ctx, instrumentKey, lookback)
+			bbWidthHistory = append(bbWidthHistory, domain.IndicatorValue{
+				Timestamp: candle.Timestamp,
+				Value:     candle.BBWidth,
+			})
+			s.ProcessBBWidth(ctx, instrumentKey, candle, bbWidthHistory, stock)
+		},
+	)
 	if err != nil {
-		return fmt.Errorf("failed to calculate BB width for %s: %w", stock.InstrumentKey, err)
+		log.Error("[BB Monitor] Failed to aggregate and analyze 5-min candles for %s: %v", stock.InstrumentKey, err)
+		return err
 	}
-
-	if currentBBWidth <= 0 {
-		log.Debug("[BB Monitor] Invalid BB width for %s: %f", stock.InstrumentKey, currentBBWidth)
-		return nil
-	}
-
-	// Detect contracting pattern and check if within optimal range
-	err = s.detectContractingPattern(ctx, stock, currentBBWidth)
-	if err != nil {
-		return fmt.Errorf("failed to detect contracting pattern for %s: %w", stock.InstrumentKey, err)
-	}
-
 	return nil
 }
 
@@ -392,4 +405,47 @@ func (s *BBWidthMonitorService) isMarketHours() bool {
 	marketEnd := time.Date(ist.Year(), ist.Month(), ist.Day(), 15, 30, 0, 0, ist.Location())
 
 	return ist.After(marketStart) && ist.Before(marketEnd)
+}
+
+// ProcessBBWidth processes BB width directly from an aggregated 5-min candle
+func (s *BBWidthMonitorService) ProcessBBWidth(
+	ctx context.Context,
+	instrumentKey string,
+	candle domain.AggregatedCandle,
+	bbWidthHistory []domain.IndicatorValue, // pass recent BB width history (including this candle)
+	stockMeta response.StockGroupStockDTO, // pass stock meta for alerting
+) error {
+	bbWidth := candle.BBWidth
+	if bbWidth <= 0 {
+		log.Debug("[BB Monitor] Invalid BB width for %s: %f", instrumentKey, bbWidth)
+		return nil
+	}
+	// Pattern detection: use provided bbWidthHistory (should be sorted oldest to newest)
+	if len(bbWidthHistory) < 3 {
+		log.Debug("[BB Monitor] Insufficient BB width history for %s (need 3+, got %d)", instrumentKey, len(bbWidthHistory))
+		return nil
+	}
+	isContracting := s.isContractingPattern(bbWidthHistory)
+	if !isContracting {
+		log.Debug("[BB Monitor] No contracting pattern detected for %s", instrumentKey)
+		return nil
+	}
+	// Get lowest_min_bb_width from CSV (unchanged)
+	lowestMinBBWidth, err := s.getLowestMinBBWidth(ctx, instrumentKey)
+	if err != nil {
+		return fmt.Errorf("failed to get lowest min BB width: %w", err)
+	}
+	if lowestMinBBWidth <= 0 {
+		log.Debug("[BB Monitor] Invalid lowest min BB width for %s: %f", instrumentKey, lowestMinBBWidth)
+		return nil
+	}
+	minRange, maxRange := s.calculateBBWidthRange(lowestMinBBWidth)
+	if bbWidth >= minRange && bbWidth <= maxRange {
+		log.Info("[BB Monitor] BB Range Alert: %s - %d consecutive contracting candles in optimal range (BB width: %f, range: %f-%f, lowest: %f)",
+			instrumentKey, len(bbWidthHistory), bbWidth, minRange, maxRange, lowestMinBBWidth)
+		return s.triggerBBRangeAlert(ctx, stockMeta, bbWidth, lowestMinBBWidth, len(bbWidthHistory))
+	}
+	log.Debug("[BB Monitor] Contracting pattern detected for %s but outside optimal range (BB width: %f, range: %f-%f)",
+		instrumentKey, bbWidth, minRange, maxRange)
+	return nil
 }

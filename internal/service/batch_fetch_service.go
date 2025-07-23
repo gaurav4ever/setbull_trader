@@ -211,6 +211,9 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 	totalRecords := 0
 	currentDate := fromDate
 
+	log.Info("[BATCH] Starting batch processing for %s with interval %s from %s to %s",
+		instrumentKey, interval, fromDate.Format("2006-01-02"), toDate.Format("2006-01-02"))
+
 	// Process data in 4-day intervals
 	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
 		// Calculate the end date for this interval (4 days from current date)
@@ -225,7 +228,7 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 		fromDateStr := currentDate.Format("2006-01-02")
 		toDateStr := intervalEndDate.Format("2006-01-02")
 
-		log.Info("Processing interval for %s: %s to %s", instrumentKey, fromDateStr, toDateStr)
+		log.Info("[BATCH] Processing interval for %s: %s to %s", instrumentKey, fromDateStr, toDateStr)
 
 		// Process this interval
 		recordCount, err := s.candleService.ProcessHistoricalCandles(
@@ -233,11 +236,12 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 		)
 
 		if err != nil {
+			log.Error("[BATCH] Failed to process interval %s to %s for %s: %v", fromDateStr, toDateStr, instrumentKey, err)
 			return totalRecords, fmt.Errorf("failed to process interval %s to %s: %w", fromDateStr, toDateStr, err)
 		}
 
 		totalRecords += recordCount
-		log.Info("Successfully processed %d records for %s in interval %s to %s",
+		log.Info("[BATCH] Successfully processed %d records for %s in interval %s to %s",
 			recordCount, instrumentKey, fromDateStr, toDateStr)
 
 		// Move to the next interval (start from the day after the current interval end)
@@ -247,6 +251,27 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 		time.Sleep(100 * time.Millisecond)
 	}
 
+	// Trigger 5-minute aggregation for 1-minute data after all intervals are processed
+	log.Info("[BATCH] Checking conditions for 5-minute aggregation: interval=%s, totalRecords=%d", interval, totalRecords)
+	if interval == "1minute" && totalRecords > 0 {
+		log.Info("[BATCH] Triggering historical 5-minute aggregation for %s after processing all %d 1-minute records",
+			instrumentKey, totalRecords)
+
+		// For historical data, aggregate all 1-minute data to 5-minute data with full date range
+		log.Info("[BATCH] Calling AggregateAndStoreHistorical5MinCandles for %s with date range %s to %s",
+			instrumentKey, fromDate.Format("2006-01-02"), toDate.Format("2006-01-02"))
+
+		if err := s.candleService.AggregateAndStoreHistorical5MinCandles(ctx, instrumentKey, fromDate, toDate); err != nil {
+			log.Error("[BATCH] Failed to aggregate historical 5-minute candles for %s: %v", instrumentKey, err)
+			// Continue processing, don't fail the entire batch
+		} else {
+			log.Info("[BATCH] Successfully aggregated and stored historical 5-minute candles for %s", instrumentKey)
+		}
+	} else {
+		log.Info("[BATCH] Skipping 5-minute aggregation: interval=%s, totalRecords=%d", interval, totalRecords)
+	}
+
+	log.Info("[BATCH] Completed batch processing for %s: %d total records processed", instrumentKey, totalRecords)
 	return totalRecords, nil
 }
 

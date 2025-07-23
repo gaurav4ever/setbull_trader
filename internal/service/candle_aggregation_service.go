@@ -15,6 +15,7 @@ import (
 // CandleAggregationService provides operations for aggregating candles to different timeframes
 type CandleAggregationService struct {
 	candleRepo           repository.CandleRepository
+	candle5MinRepo       repository.Candle5MinRepository
 	batchFetchService    *BatchFetchService
 	tradingCalendar      *TradingCalendarService
 	utilityService       *UtilityService
@@ -31,12 +32,14 @@ type DateRangeSegment struct {
 // NewCandleAggregationService creates a new candle aggregation service
 func NewCandleAggregationService(
 	candleRepo repository.CandleRepository,
+	candle5MinRepo repository.Candle5MinRepository,
 	batchFetchService *BatchFetchService,
 	tradingCalendar *TradingCalendarService,
 	utilityService *UtilityService,
 ) *CandleAggregationService {
 	return &CandleAggregationService{
 		candleRepo:        candleRepo,
+		candle5MinRepo:    candle5MinRepo,
 		batchFetchService: batchFetchService,
 		tradingCalendar:   tradingCalendar,
 		utilityService:    utilityService,
@@ -650,105 +653,6 @@ func (s *CandleAggregationService) ProcessStockDailyCandles(
 	return result, nil
 }
 
-// // processDailyCandlesParallel processes stocks in parallel
-// func (s *Server) processDailyCandlesParallel(
-// 	ctx context.Context,
-// 	stocks []domain.StockUniverse,
-// 	endDate time.Time,
-// 	maxDays int,
-// ) *DailyCandles {
-// 	result := &DailyCandles{
-// 		TotalStocks:  len(stocks),
-// 		StockResults: make([]StockProcessResult, 0, len(stocks)),
-// 		StartTime:    time.Now(),
-// 	}
-
-// 	// Use a mutex to protect concurrent access to the result
-// 	var resultMutex sync.Mutex
-
-// 	// Use a wait group to wait for all goroutines to finish
-// 	var wg sync.WaitGroup
-
-// 	// Use a semaphore to limit concurrency
-// 	maxConcurrency := 5 // Adjust based on your system capabilities and API rate limits
-// 	semaphore := make(chan struct{}, maxConcurrency)
-
-// 	// Process each stock in parallel
-// 	for _, stock := range stocks {
-// 		wg.Add(1)
-
-// 		go func(stock domain.StockUniverse) {
-// 			defer wg.Done()
-
-// 			// Acquire semaphore slot
-// 			semaphore <- struct{}{}
-// 			defer func() { <-semaphore }()
-
-// 			stockStartTime := time.Now()
-
-// 			// Skip stocks without instrument key
-// 			if stock.InstrumentKey == "" {
-// 				log.Warn("Stock %s has no instrument key, skipping", stock.Symbol)
-
-// 				stockResult := StockProcessResult{
-// 					Symbol:        stock.Symbol,
-// 					InstrumentKey: "",
-// 					Status:        "failed",
-// 					Error:         "no instrument key",
-// 					Duration:      time.Since(stockStartTime).String(),
-// 				}
-
-// 				// Update result with mutex protection
-// 				resultMutex.Lock()
-// 				result.StockResults = append(result.StockResults, stockResult)
-// 				result.ProcessedStocks++
-// 				result.FailedStocks++
-// 				resultMutex.Unlock()
-
-// 				return
-// 			}
-
-// 			// Process the stock using the server's candleAggService
-// 			processResult, _ := s.candleAggService.ProcessStockDailyCandles(ctx, stock, endDate, maxDays)
-
-// 			// Convert service result to handler result
-// 			stockResult := StockProcessResult{
-// 				Symbol:           processResult.Symbol,
-// 				InstrumentKey:    processResult.InstrumentKey,
-// 				Status:           processResult.Status,
-// 				Message:          processResult.Message,
-// 				Error:            processResult.Error,
-// 				CandlesProcessed: processResult.CandlesProcessed,
-// 				Segments:         processResult.Segments,
-// 				SegmentDetails:   processResult.SegmentDetails,
-// 				Duration:         time.Since(stockStartTime).String(),
-// 			}
-
-// 			// Update result with mutex protection
-// 			resultMutex.Lock()
-// 			result.StockResults = append(result.StockResults, stockResult)
-// 			result.ProcessedStocks++
-
-// 			// Update counters based on status
-// 			switch processResult.Status {
-// 			case "success":
-// 				result.SuccessfulStocks++
-// 			case "skipped":
-// 				result.SkippedStocks++
-// 			case "failed":
-// 				result.FailedStocks++
-// 			}
-// 			resultMutex.Unlock()
-
-// 		}(stock)
-// 	}
-
-// 	// Wait for all goroutines to finish
-// 	wg.Wait()
-
-// 	return result
-// }
-
 // ProcessResult represents the result of processing a stock
 type ProcessResult struct {
 	Symbol           string          `json:"symbol"`
@@ -813,4 +717,229 @@ func handleNaN(value float64) float64 {
 		return 0.0
 	}
 	return value
+}
+
+// Aggregate 1-minute candles to 5-minute candles in-memory, calculate indicators, and trigger BB width monitoring
+func (s *CandleAggregationService) Aggregate5MinCandlesWithIndicators(
+	ctx context.Context,
+	instrumentKey string,
+	startTime, endTime time.Time,
+	bbWidthCallback func(ctx context.Context, instrumentKey string, candle domain.AggregatedCandle),
+) error {
+	// 1. Fetch all 1-minute candles for the time range
+	oneMinCandles, err := s.candleRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, "1minute", startTime, endTime)
+	if err != nil {
+		return fmt.Errorf("failed to fetch 1-min candles: %w", err)
+	}
+	if len(oneMinCandles) == 0 {
+		return fmt.Errorf("no 1-min candles found for aggregation")
+	}
+	// 2. Aggregate to 5-minute candles
+	fiveMinCandles := aggregateTo5Min(oneMinCandles)
+	if len(fiveMinCandles) == 0 {
+		return fmt.Errorf("aggregation to 5-min candles produced no results")
+	}
+	// Convert []AggregatedCandle to []Candle for indicator calculation
+	candleSlice := AggregatedCandlesToCandles(fiveMinCandles)
+	// 3. Calculate indicators on 5-minute data
+	indicatorService := NewTechnicalIndicatorService(s.candleRepo)
+	ma9 := indicatorService.CalculateSMA(candleSlice, 9)
+	bbUpper, bbMiddle, bbLower := indicatorService.CalculateBollingerBands(candleSlice, 20, 2.0)
+	bbWidth := indicatorService.CalculateBBWidth(bbUpper, bbLower, bbMiddle)
+	vwap := indicatorService.CalculateVWAP(candleSlice)
+	ema5 := indicatorService.CalculateEMAV2(candleSlice, 5)
+	ema9 := indicatorService.CalculateEMAV2(candleSlice, 9)
+	ema50 := indicatorService.CalculateEMAV2(candleSlice, 50)
+	atr := indicatorService.CalculateATRV2(candleSlice, 14)
+	rsi := indicatorService.CalculateRSIV2(candleSlice, 14)
+	// Map indicators by timestamp
+	ma9Map := make(map[time.Time]float64)
+	for _, v := range ma9 {
+		ma9Map[v.Timestamp] = v.Value
+	}
+	bbUpperMap := make(map[time.Time]float64)
+	bbMiddleMap := make(map[time.Time]float64)
+	bbLowerMap := make(map[time.Time]float64)
+	for i := range bbUpper {
+		bbUpperMap[bbUpper[i].Timestamp] = bbUpper[i].Value
+		bbMiddleMap[bbMiddle[i].Timestamp] = bbMiddle[i].Value
+		bbLowerMap[bbLower[i].Timestamp] = bbLower[i].Value
+	}
+	bbWidthMap := make(map[time.Time]float64)
+	for _, v := range bbWidth {
+		bbWidthMap[v.Timestamp] = v.Value
+	}
+	vwapMap := make(map[time.Time]float64)
+	for _, v := range vwap {
+		vwapMap[v.Timestamp] = v.Value
+	}
+	ema5Map := make(map[time.Time]float64)
+	for _, v := range ema5 {
+		ema5Map[v.Timestamp] = v.Value
+	}
+	ema9Map := make(map[time.Time]float64)
+	for _, v := range ema9 {
+		ema9Map[v.Timestamp] = v.Value
+	}
+	ema50Map := make(map[time.Time]float64)
+	for _, v := range ema50 {
+		ema50Map[v.Timestamp] = v.Value
+	}
+	atrMap := make(map[time.Time]float64)
+	for _, v := range atr {
+		atrMap[v.Timestamp] = v.Value
+	}
+	rsiMap := make(map[time.Time]float64)
+	for _, v := range rsi {
+		rsiMap[v.Timestamp] = v.Value
+	}
+	// 4. Enrich 5-min candles with indicators and trigger callback
+	for i := range fiveMinCandles {
+		ts := fiveMinCandles[i].Timestamp
+		if v, ok := ma9Map[ts]; ok {
+			fiveMinCandles[i].MA9 = v
+		}
+		if v, ok := bbUpperMap[ts]; ok {
+			fiveMinCandles[i].BBUpper = v
+		}
+		if v, ok := bbMiddleMap[ts]; ok {
+			fiveMinCandles[i].BBMiddle = v
+		}
+		if v, ok := bbLowerMap[ts]; ok {
+			fiveMinCandles[i].BBLower = v
+		}
+		if v, ok := bbWidthMap[ts]; ok {
+			fiveMinCandles[i].BBWidth = v
+		}
+		if v, ok := vwapMap[ts]; ok {
+			fiveMinCandles[i].VWAP = v
+		}
+		if v, ok := ema5Map[ts]; ok {
+			fiveMinCandles[i].EMA5 = v
+		}
+		if v, ok := ema9Map[ts]; ok {
+			fiveMinCandles[i].EMA9 = v
+		}
+		if v, ok := ema50Map[ts]; ok {
+			fiveMinCandles[i].EMA50 = v
+		}
+		if v, ok := atrMap[ts]; ok {
+			fiveMinCandles[i].ATR = v
+		}
+		if v, ok := rsiMap[ts]; ok {
+			fiveMinCandles[i].RSI = v
+		}
+		// Trigger BB width monitoring callback
+		if bbWidthCallback != nil {
+			bbWidthCallback(ctx, instrumentKey, fiveMinCandles[i])
+		}
+	}
+	return nil
+}
+
+// Helper: Aggregate 1-min candles to 5-min candles (OHLCV)
+func aggregateTo5Min(oneMinCandles []domain.Candle) []domain.AggregatedCandle {
+	if len(oneMinCandles) == 0 {
+		return nil
+	}
+	var result []domain.AggregatedCandle
+	var bucket []domain.Candle
+	var currentBucketStart time.Time
+	for _, c := range oneMinCandles {
+		bucketStart := c.Timestamp.Truncate(5 * time.Minute)
+		if currentBucketStart.IsZero() || !bucketStart.Equal(currentBucketStart) {
+			if len(bucket) > 0 {
+				result = append(result, aggregateBucketTo5Min(bucket))
+			}
+			bucket = bucket[:0]
+			currentBucketStart = bucketStart
+		}
+		bucket = append(bucket, c)
+	}
+	if len(bucket) > 0 {
+		result = append(result, aggregateBucketTo5Min(bucket))
+	}
+	return result
+}
+
+// Helper: Aggregate a bucket of 1-min candles to a single 5-min candle
+func aggregateBucketTo5Min(bucket []domain.Candle) domain.AggregatedCandle {
+	if len(bucket) == 0 {
+		return domain.AggregatedCandle{}
+	}
+	open := bucket[0].Open
+	high := bucket[0].High
+	low := bucket[0].Low
+	close := bucket[len(bucket)-1].Close
+	volume := int64(0)
+	openInterest := int64(0)
+	for _, c := range bucket {
+		if c.High > high {
+			high = c.High
+		}
+		if c.Low < low {
+			low = c.Low
+		}
+		volume += c.Volume
+		openInterest = c.OpenInterest // Use last open interest
+	}
+	return domain.AggregatedCandle{
+		InstrumentKey: bucket[0].InstrumentKey,
+		Timestamp:     bucket[0].Timestamp.Truncate(5 * time.Minute),
+		Open:          open,
+		High:          high,
+		Low:           low,
+		Close:         close,
+		Volume:        volume,
+		OpenInterest:  openInterest,
+		TimeInterval:  "5minute",
+	}
+}
+
+// Store5MinCandles stores 5-minute candles with indicators in the 5-minute repository
+func (s *CandleAggregationService) Store5MinCandles(ctx context.Context, candles []domain.AggregatedCandle) error {
+	if len(candles) == 0 {
+		return nil
+	}
+
+	// Convert AggregatedCandle to Candle5Min for storage
+	candlesForStorage := make([]domain.Candle5Min, len(candles))
+	for i, aggCandle := range candles {
+		candlesForStorage[i] = domain.Candle5Min{
+			InstrumentKey: aggCandle.InstrumentKey,
+			Timestamp:     aggCandle.Timestamp,
+			Open:          aggCandle.Open,
+			High:          aggCandle.High,
+			Low:           aggCandle.Low,
+			Close:         aggCandle.Close,
+			Volume:        aggCandle.Volume,
+			OpenInterest:  aggCandle.OpenInterest,
+			TimeInterval:  "5minute",
+			// Copy indicator values
+			BBUpper:                     aggCandle.BBUpper,
+			BBMiddle:                    aggCandle.BBMiddle,
+			BBLower:                     aggCandle.BBLower,
+			BBWidth:                     aggCandle.BBWidth,
+			BBWidthNormalized:           aggCandle.BBWidthNormalized,
+			BBWidthNormalizedPercentage: aggCandle.BBWidthNormalizedPercentage,
+			EMA5:                        aggCandle.EMA5,
+			EMA9:                        aggCandle.EMA9,
+			EMA20:                       aggCandle.EMA20,
+			EMA50:                       aggCandle.EMA50,
+			ATR:                         aggCandle.ATR,
+			RSI:                         aggCandle.RSI,
+			VWAP:                        aggCandle.VWAP,
+			MA9:                         aggCandle.MA9,
+			LowestBBWidth:               aggCandle.LowestBBWidth,
+		}
+	}
+
+	// Store 5-minute candles
+	_, err := s.candle5MinRepo.StoreBatch(ctx, candlesForStorage)
+	if err != nil {
+		return fmt.Errorf("failed to store 5-minute candles: %w", err)
+	}
+
+	log.Info("Stored %d 5-minute candles with indicators", len(candlesForStorage))
+	return nil
 }
