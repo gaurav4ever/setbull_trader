@@ -22,6 +22,19 @@ func NewMasterDataProcessRepository(db *gorm.DB) repository.MasterDataProcessRep
 
 // Create creates a new master data process
 func (r *MasterDataProcessRepository) Create(ctx context.Context, processDate time.Time, numberOfPastDays int) (*domain.MasterDataProcess, error) {
+	// Check if a process already exists for this date
+	var existingProcess domain.MasterDataProcess
+	err := r.db.WithContext(ctx).
+		Where("process_date = ? AND active = ?", processDate.Format("2006-01-02"), true).
+		First(&existingProcess).Error
+
+	if err == nil {
+		// Process already exists for this date
+		return &existingProcess, nil
+	} else if err != gorm.ErrRecordNotFound {
+		return nil, fmt.Errorf("failed to check for existing process: %w", err)
+	}
+
 	process := &domain.MasterDataProcess{
 		ProcessDate:      processDate,
 		NumberOfPastDays: numberOfPastDays,
