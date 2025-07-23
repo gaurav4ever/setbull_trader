@@ -149,7 +149,6 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/upstox/callback", s.HandleUpstoxCallback).Methods("GET")
 	api.HandleFunc("/upstox/historical/{instrument}/{interval}/{to_date}/{from_date}", s.GetHistoricalCandleDataWithRange).Methods("GET")
 	api.HandleFunc("/historical-data/batch-store", s.BatchStoreHistoricalData).Methods(http.MethodPost)
-	api.HandleFunc("/test-aggregation", s.TestHistoricalAggregation).Methods(http.MethodPost)
 
 	// Candle routes
 	api.HandleFunc("/candles/{instrument_key}/{timeframe}", s.GetCandles).Methods(http.MethodGet)
@@ -241,45 +240,6 @@ func (s *Server) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondSuccess(w, resp)
-}
-
-// TestHistoricalAggregation tests the historical 5-minute aggregation directly
-func (s *Server) TestHistoricalAggregation(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		InstrumentKey string `json:"instrumentKey"`
-		FromDate      string `json:"fromDate"`
-		ToDate        string `json:"toDate"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request format: "+err.Error())
-		return
-	}
-
-	// Parse dates
-	fromDate, err := time.Parse("2006-01-02", req.FromDate)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid fromDate format: "+err.Error())
-		return
-	}
-
-	toDate, err := time.Parse("2006-01-02", req.ToDate)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid toDate format: "+err.Error())
-		return
-	}
-
-	// Call the historical aggregation method directly
-	err = s.candleProcessingService.AggregateAndStoreHistorical5MinCandles(r.Context(), req.InstrumentKey, fromDate, toDate)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to aggregate historical data: "+err.Error())
-		return
-	}
-
-	respondSuccess(w, map[string]string{
-		"status":  "success",
-		"message": "Historical aggregation completed successfully",
-	})
 }
 
 // ModifyOrder handles order modification
