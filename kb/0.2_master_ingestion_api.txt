@@ -1,0 +1,357 @@
+# Master Data API - High Level Design (HLD) & Low Level Design (LLD)
+
+## High-Level Design (HLD)
+
+### Overview
+API 1 orchestrates a complete data ingestion pipeline with three sequential steps, each dependent on the previous step's completion. The system maintains process state tracking to enable resumable operations and prevent duplicate data ingestion.
+
+### Core Components
+
+1. **Process Orchestrator Service**
+   - Manages the overall workflow execution
+   - Handles process state tracking and recovery
+   - Coordinates between different pipeline steps
+
+2. **Process State Management**
+   - Database table to track process execution status
+   - Supports resumable operations from failed states
+   - Prevents duplicate data ingestion for the same day
+
+3. **Pipeline Steps**
+   - **Step 1**: Daily Data Ingestion (all stocks)
+   - **Step 2**: Filter Pipeline Execution
+   - **Step 3**: 1-minute Data Ingestion (filtered stocks only)
+
+### Data Flow
+```
+Request → Process Orchestrator → Step 1 → Step 2 → Step 3 → Response
+                ↓
+            State Tracking
+```
+
+### Key Design Principles
+- **Sequential Dependency**: Each step waits for previous step completion
+- **State Persistence**: Track process and step status in database
+- **Resumable Operations**: Can restart from failed step without re-ingesting data
+- **Idempotent**: Safe to retry failed processes
+- **Manual Trigger**: Frontend-triggered with progress monitoring
+
+### Business Requirements
+- **Date Handling**: Current day means the day where market data is latest (e.g., T1 day data when called at 4PM after 3:30PM market close)
+- **Trading Calendar**: Automatic weekend/holiday detection using existing trading calendar service
+- **Filter Pipeline**: Black box API - all stocks from filter-pipeline/run should be selected
+- **Data Consistency**: Each process step is dependent on the previous step's completion
+- **Error Handling**: Partial/incomplete data allowed, resume from failed state
+- **Performance**: Designed for high efficiency with large stock universes
+
+## Low-Level Design (LLD)
+
+### Database Schema
+
+```sql
+-- Process tracking table
+CREATE TABLE master_data_process (
+    id SERIAL PRIMARY KEY,
+    process_date DATE NOT NULL,
+    number_of_past_days INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL, -- 'RUNNING', 'COMPLETED', 'FAILED'
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    completed_at TIMESTAMP NULL
+);
+
+-- Step tracking table
+CREATE TABLE master_data_process_steps (
+    id SERIAL PRIMARY KEY,
+    process_id INTEGER REFERENCES master_data_process(id),
+    step_number INTEGER NOT NULL, -- 1, 2, 3
+    step_name VARCHAR(50) NOT NULL, -- 'daily_ingestion', 'filter_pipeline', 'minute_ingestion'
+    status VARCHAR(20) NOT NULL, -- 'PENDING', 'RUNNING', 'COMPLETED', 'FAILED'
+    error_message TEXT NULL,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### API Endpoint Design
+
+```go
+// Request
+type MasterDataRequest struct {
+    NumberOfPastDays int `json:"numberOfPastDays"`
+}
+
+// Response
+type MasterDataResponse struct {
+    ProcessID    int    `json:"processId"`
+    Status       string `json:"status"`
+    Message      string `json:"message"`
+    ProcessDate  string `json:"processDate"`
+}
+
+// Process Status Response
+type ProcessStatusResponse struct {
+    ProcessID    int                    `json:"processId"`
+    Status       string                 `json:"status"`
+    Steps        []ProcessStepStatus    `json:"steps"`
+    ProcessDate  string                 `json:"processDate"`
+    CreatedAt    string                 `json:"createdAt"`
+    CompletedAt  string                 `json:"completedAt,omitempty"`
+}
+
+type ProcessStepStatus struct {
+    StepNumber   int    `json:"stepNumber"`
+    StepName     string `json:"stepName"`
+    Status       string `json:"status"`
+    ErrorMessage string `json:"errorMessage,omitempty"`
+    StartedAt    string `json:"startedAt,omitempty"`
+    CompletedAt  string `json:"completedAt,omitempty"`
+}
+```
+
+### Service Architecture
+
+```go
+// Core service interface
+type MasterDataService interface {
+    StartProcess(ctx context.Context, req MasterDataRequest) (*MasterDataResponse, error)
+    GetProcessStatus(ctx context.Context, processID int) (*ProcessStatusResponse, error)
+    GetProcessHistory(ctx context.Context, limit int) ([]ProcessStatusResponse, error)
+}
+
+// Implementation structure
+type masterDataService struct {
+    processRepo    ProcessRepository
+    dailyService   DailyDataService
+    filterService  FilterPipelineService
+    minuteService  MinuteDataService
+    tradingCalendar TradingCalendarService
+    logger         log.Logger
+}
+```
+
+### Process Flow Logic
+
+```go
+func (s *masterDataService) StartProcess(ctx context.Context, req MasterDataRequest) (*MasterDataResponse, error) {
+    // 1. Determine target date based on numberOfPastDays
+    targetDate := s.tradingCalendar.GetTargetDate(req.NumberOfPastDays)
+    
+    // 2. Check if process already exists for this date
+    existingProcess := s.processRepo.GetByDate(targetDate)
+    if existingProcess != nil {
+        return s.resumeProcess(ctx, existingProcess)
+    }
+    
+    // 3. Create new process record
+    process := s.processRepo.Create(targetDate, req.NumberOfPastDays)
+    
+    // 4. Execute pipeline steps sequentially
+    return s.executePipeline(ctx, process)
+}
+
+func (s *masterDataService) executePipeline(ctx context.Context, process *Process) (*MasterDataResponse, error) {
+    steps := []PipelineStep{
+        {Number: 1, Name: "daily_ingestion", Handler: s.executeDailyIngestion},
+        {Number: 2, Name: "filter_pipeline", Handler: s.executeFilterPipeline},
+        {Number: 3, Name: "minute_ingestion", Handler: s.executeMinuteIngestion},
+    }
+    
+    for _, step := range steps {
+        if err := s.executeStep(ctx, process, step); err != nil {
+            return nil, err
+        }
+    }
+    
+    return s.completeProcess(process)
+}
+```
+
+### Error Handling Strategy
+
+```go
+func (s *masterDataService) executeStep(ctx context.Context, process *Process, step PipelineStep) error {
+    // 1. Check if step is already completed
+    stepRecord := s.processRepo.GetStep(process.ID, step.Number)
+    if stepRecord.Status == "COMPLETED" {
+        return nil // Skip already completed steps
+    }
+    
+    // 2. Mark step as running
+    s.processRepo.UpdateStepStatus(process.ID, step.Number, "RUNNING")
+    
+    // 3. Execute step with timeout
+    ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+    defer cancel()
+    
+    if err := step.Handler(ctx, process); err != nil {
+        s.processRepo.UpdateStepStatus(process.ID, step.Number, "FAILED", err.Error())
+        return err
+    }
+    
+    // 4. Mark step as completed
+    s.processRepo.UpdateStepStatus(process.ID, step.Number, "COMPLETED")
+    return nil
+}
+```
+
+### Step Implementation Details
+
+#### Step 1: Daily Data Ingestion
+```go
+func (s *masterDataService) executeDailyIngestion(ctx context.Context, process *Process) error {
+    // Call existing daily candles API
+    req := DailyCandlesRequest{Days: process.NumberOfPastDays}
+    return s.dailyService.InsertDailyCandles(ctx, req)
+}
+```
+
+#### Step 2: Filter Pipeline
+```go
+func (s *masterDataService) executeFilterPipeline(ctx context.Context, process *Process) error {
+    // Call existing filter pipeline API
+    return s.filterService.RunFilterPipeline(ctx)
+}
+```
+
+#### Step 3: Minute Data Ingestion
+```go
+func (s *masterDataService) executeMinuteIngestion(ctx context.Context, process *Process) error {
+    // 1. Fetch filtered stocks from database
+    filteredStocks := s.processRepo.GetFilteredStocks(process.ProcessDate)
+    
+    // 2. Extract instrument keys
+    instrumentKeys := s.extractInstrumentKeys(filteredStocks)
+    
+    // 3. Call batch store API for 1-minute data
+    req := BatchStoreRequest{
+        InstrumentKeys: instrumentKeys,
+        FromDate:       process.ProcessDate,
+        ToDate:         process.ProcessDate,
+        Interval:       "1minute",
+    }
+    
+    return s.minuteService.BatchStore(ctx, req)
+}
+```
+
+### Integration Points
+
+1. **Daily Data Service**: Existing `/api/v1/stocks/universe/daily-candles` endpoint
+2. **Filter Pipeline Service**: Existing `/api/v1/filter-pipeline/run` endpoint  
+3. **Minute Data Service**: Existing `/api/v1/historical-data/batch-store` endpoint
+4. **Trading Calendar Service**: Existing service for date calculations
+
+### API Endpoints
+
+```go
+// Main process endpoints
+POST   /api/v1/master-data/process/start
+GET    /api/v1/master-data/process/{processId}/status
+GET    /api/v1/master-data/process/history?limit=10
+
+// Request/Response examples
+POST /api/v1/master-data/process/start
+{
+    "numberOfPastDays": 0
+}
+
+Response:
+{
+    "processId": 123,
+    "status": "RUNNING",
+    "message": "Process started successfully",
+    "processDate": "2025-01-22"
+}
+
+GET /api/v1/master-data/process/123/status
+Response:
+{
+    "processId": 123,
+    "status": "RUNNING",
+    "processDate": "2025-01-22",
+    "createdAt": "2025-01-22T10:00:00Z",
+    "steps": [
+        {
+            "stepNumber": 1,
+            "stepName": "daily_ingestion",
+            "status": "COMPLETED",
+            "startedAt": "2025-01-22T10:00:05Z",
+            "completedAt": "2025-01-22T10:02:30Z"
+        },
+        {
+            "stepNumber": 2,
+            "stepName": "filter_pipeline",
+            "status": "RUNNING",
+            "startedAt": "2025-01-22T10:02:31Z"
+        },
+        {
+            "stepNumber": 3,
+            "stepName": "minute_ingestion",
+            "status": "PENDING"
+        }
+    ]
+}
+```
+
+### Repository Interface
+
+```go
+type ProcessRepository interface {
+    Create(processDate time.Time, numberOfPastDays int) (*Process, error)
+    GetByDate(processDate time.Time) (*Process, error)
+    GetByID(processID int) (*Process, error)
+    UpdateStatus(processID int, status string) error
+    CompleteProcess(processID int) error
+    
+    CreateStep(processID int, stepNumber int, stepName string) error
+    GetStep(processID int, stepNumber int) (*ProcessStep, error)
+    UpdateStepStatus(processID int, stepNumber int, status string, errorMessage ...string) error
+    
+    GetFilteredStocks(processDate time.Time) ([]FilteredStock, error)
+    GetProcessHistory(limit int) ([]Process, error)
+}
+```
+
+### Implementation Phases
+
+**Phase 1**: Database schema and repository layer
+- Create migration files for master_data_process and master_data_process_steps tables
+- Implement ProcessRepository interface
+- Add unit tests for repository layer
+
+**Phase 2**: Core service implementation with process orchestration
+- Implement MasterDataService interface
+- Add process flow logic and step execution
+- Integrate with existing trading calendar service
+
+**Phase 3**: API endpoints and integration with existing services
+- Create HTTP handlers for master data endpoints
+- Integrate with existing daily, filter, and minute data services
+- Add request/response validation
+
+**Phase 4**: Error handling and state management
+- Implement comprehensive error handling
+- Add process resumption logic
+- Add logging and monitoring
+
+**Phase 5**: Frontend integration endpoints
+- Add process status and history endpoints
+- Implement progress tracking for frontend display
+- Add process cancellation capability if needed
+
+### Testing Strategy
+
+1. **Unit Tests**: Repository layer, service methods, step handlers
+2. **Integration Tests**: Full pipeline execution with mocked external services
+3. **Error Scenario Tests**: Step failures, process resumption, duplicate execution
+4. **Performance Tests**: Large dataset handling, concurrent process execution
+
+### Monitoring and Observability
+
+1. **Process Metrics**: Success/failure rates, execution time per step
+2. **Data Quality**: Number of stocks processed, data completeness
+3. **Performance**: API response times, database query performance
+4. **Error Tracking**: Failed steps, error patterns, retry success rates

@@ -1,7 +1,140 @@
+
+API 1 - Master Data API, takes numberOfPastDays int as a body. If 0, Only do for current day. manage other API request accordingly. 
 1. Insert daily data. 
 2. Filter stocks in pipeline
-3. ingest 1 min data for all top stocks. 
+3. ingest 1 min data for all top stocks.
+    3.1 From the database, fetch the All Top stocks for the current filteration date
+    3.2 Fetch stock symbol and instrument key
+    3.3 then make the batch-store API which inserts data for 1min candle for stock. make sure instrumentKeys have all the filtered stock for today.
+
+API 2 - Master backtest API
+1. From the database, fetch the All Top stocks for the current filteration date
 4. Back test 1ST_ENTRY, 2_30_ENTRY and BB_WIDTH_ENTRY for each stocks. 
 5. Make data_analysis.csv
 6. Analyze trades
 7. Output top 5 for each entry type in /Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/output/backtest_analysis.txt
+
+
+This API inserts daily data for all stocks. So, if 
+curl --location 'http://localhost:8083/api/v1/stocks/universe/daily-candles' \
+--header 'Content-Type: application/json' \
+--data '{
+    "days": 10
+}'
+
+
+This API do the filteration process based on Daily candles of the stock
+curl --location --request POST 'http://localhost:8083/api/v1/filter-pipeline/run' \
+--header 'Content-Type: application/json'
+
+
+This API inserts the 1min data into the DATABASE
+curl --location 'http://localhost:8083/api/v1/historical-data/batch-store' \
+--header 'Content-Type: application/json' \
+--data '{
+  "instrumentKeys": [
+    "NSE_EQ|INE669X01024"
+  ],
+  "fromDate": "2025-07-22",
+  "toDate": "2025-07-24",
+  "interval": "1minute"
+}'
+
+--------------------------------------------------
+
+
+AI 
+
+# API Integration Clarification Requirements
+
+This document outlines clarification questions and considerations necessary for implementing two APIs: **Master Data API** (API 1) and **Master Backtest API** (API 2).
+
+## 1. Date Handling
+
+- **What exactly defines "current day" when `numberOfPastDays` is 0?**
+    - Should "current day" default to the most recent trading day with data, or always use today's calendar date?
+    ANSWER: Current day means, the day where market data is latest. For example. Indian markets are 9:15AM-3:30PM
+    1. Let's assume T1 as the current day with market closed at 3:30PM and now its 4PM. I run this API with numberOfPastDays 0 means fetch the T1 day data. 
+    2. Now, on next day T2 before 9:15AM also, i can execute the whole process. Here numberOfPastDays 0 means fetch the T1 day data only. 
+- **Weekend and Holiday Handling**
+    - Should the system automatically detect and skip weekends and non-trading holidays? YES, there is a go method present somewhere in the code :)
+    - If so, how should this logic be managed and are there integrations with a trading calendar? /Users/gauravsharma/setbull_projects/setbull_trader/internal/service/trading_calendar_service.go
+
+
+## 2. Filter Pipeline Logic
+
+- **Criteria for Top Stocks**
+    - What specific criteria (e.g., volume, volatility, price movement) determine which stocks are considered "top stocks"? 
+    ANSWER - Consider it as a black box API. We just need to build aggregations of multiple APIs.
+           - filter-pipeline/run API is 
+- **Limit on Top Stocks**
+    - Is there a maximum number of stocks that the filter pipeline should select? If so, what is this limit?
+    - All stocks from the API should be selected
+
+
+## 3. Data Consistency
+
+- **Pipeline Order and Data Integrity**
+    - Should API 1 always complete daily data insertion for all stocks before running the filter pipeline?
+    ANSWER - 100% yes. Each process is dependent on other.
+- **Failure Handling in Pipeline**
+    - What process should be followed if the filter pipeline fails after daily data insertion: retry, rollback, or continue with partial data?
+    ANSWER - Each step is a step of a overall master data ingestion process. So, its better tomake a table to record whenever this process was run
+    - process_id and step_id integer should be recorded and stored. 
+    - When every step's API call is compelted, mark the step completed, otherwise pending. Add more states. 
+    - If a steps fails. and process is ran again on the same day, it should start from the FAILED state to make it success and move on. 
+    - Reason is every steps, ingest the data, we don't want to ingest the data again and again and call APIs. 
+
+
+
+## 4. Error Handling
+
+- **API Step Failure**
+    - If any individual step in either API fails, should the full process roll back to maintain data consistency, or should partial/incomplete data be allowed?
+    ANSWER - partial/incomplete data allowed. 
+- **No Stock Passes Filter**
+    - How should the APIs behave when the filter pipeline returns zero qualifying stocks? (e.g., skip subsequent steps, log errors, notify users?)
+    - The next API will take care of those cases. No need to over validate it 
+
+
+## 5. Backtest Strategy Details
+
+- **Strategy Implementation**
+    - Are all three entry strategies (`1ST_ENTRY`, `2_30_ENTRY`, `BB_WIDTH_ENTRY`) already implemented and tested in the Python strategy codebase? YES
+- **Result Persistence**
+    - Should the results of backtests be saved to the database, stored only as output files, or both?
+    ANSWER - Results are saved in /Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/backtest_results/daily_trades.csv
+
+
+## 6. API Dependencies and Workflow
+
+- **API Sequencing**
+    - Should API 2 (Backtesting) run *automatically* after API 1 (Data Ingestion), or are these processes designed to operate independently? 
+    ANSWER - NO
+- **Expected Workflow**
+    - What is the desired or required sequence of API calls for end-to-end processing: single pipeline, manual trigger, or on-demand?
+    - Manual trigger. Will expose the this Master data ingestion API to frontend and make a page for trigger and its process logs and progress. 
+
+## 8. Performance Considerations
+
+- **Large Dataset Handling**
+    - Should the APIs be designed for high efficiency/scalability in handling large stock universes and high-frequency data? YES
+- **Timeouts**
+    - Are there specific timeout requirements for potentially long-running operations to avoid system hang or resource exhaustion? NO
+
+
+## Table: Clarification Summary
+
+| Area | Key Questions/Considerations |
+| :-- | :-- |
+| Date Handling | Define "current day", handle weekends/holidays automatically? |
+| Filter Logic | What criteria? Max limit for top stocks? |
+| Data Consistency | Complete step 1 before step 2? Rollback or continue if filter fails? |
+| Error Handling | Rollback on step failure? Handle no qualifying stocks? |
+| Strategy Details | Are all strategies implemented? Results stored in database or files only? |
+| API Dependencies | Automatic workflow or independent calls? Standard sequence for a full run? |
+| Output Format | Required schema and metrics for output files? |
+| Performance | Large dataset handling? Timeout requirements? |
+
+**Please provide clarification on these points to ensure an accurate and robust implementation plan.**
+
