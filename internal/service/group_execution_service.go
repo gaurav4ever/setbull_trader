@@ -392,7 +392,7 @@ func (s *GroupExecutionService) ExecuteGroup(ctx context.Context, groupID string
 }
 
 func parseBackTestAnalysisFile(stocks []response.StockGroupStockDTO) (map[string]StockBackTestAnalysis, error) {
-	filePath := "/Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv"
+	filePath := "/Users/gauravsharma/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv"
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err

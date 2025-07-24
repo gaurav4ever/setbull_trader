@@ -1,0 +1,58 @@
+{"level":"warning","msg":"Insufficient candles (1) for indicator calculation for NSE_EQ|INE08NE01025, need at least 20","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles without indicators for NSE_EQ|INE08NE01025","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 5 1-min candles for NSE_EQ|INE08NE01025","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[LIVE] Legacy 5-min aggregation for time range 2025-07-24T09:15:00+05:30 to 2025-07-24T09:20:00+05:30","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"Notifying listeners of new 5-min candles from 2025-07-24T09:15:00+05:30 to 2025-07-24T09:20:00+05:30","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-24T09:20:08.79047+05:30 | Intended: 2025-07-24T09:20:08+05:30 | Drift: 790ms","time":"2025-07-24T09:20:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 790ms","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Received 5-min candle close event from 2025-07-24T09:15:00+05:30 to 2025-07-24T09:20:00+05:30","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:15 (candle: 2025-07-24 09:15:00 +0530 IST)","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY","time":"2025-07-24T09:20:08+05:30"}
+{"level":"error","msg":"failed to parse backtest analysis file: open /Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv: no such file or directory","time":"2025-07-24T09:20:08+05:30"}
+{"level":"error","msg":"[Scheduler] Group execution failed for group 89e05511-65dc-4a6a-b29d-2245c65959d1: failed to parse backtest analysis file: open /Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv: no such file or directory","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering BB width monitoring for BB_RANGE groups (candle: 2025-07-24 09:15:00 +0530 IST)","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Starting BB width monitoring for BB_RANGE groups from 2025-07-24T09:15:00+05:30 to 2025-07-24T09:20:00+05:30","time":"2025-07-24T09:20:08+05:30"}
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.175ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.285ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.176ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.174ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.267ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/24 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.345ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[BB Monitor] Found 1 BB_RANGE groups to monitor","time":"2025-07-24T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE703H01016: candleAggService is not initialized in BBWidthMonitorService","time":"2025-07-24T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE367G01038: candleAggService is not initialized in BBWidthMonitorService","time":"2025-07-24T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE08NE01025: candleAggService is not initialized in BBWidthMonitorService","time":"2025-07-24T09:20:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"[LIVE] Fetched 8 stocks for 1-minute ingestion","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE395N01027 at 09:15","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.312538 for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE395N01027 at 09:15","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 6 1-min candles for NSE_EQ|INE395N01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"[LIVE] Stock NSE_EQ|INE395N01027 needs 5-minute aggregation at 09:20","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE070D01027","time":"2025-07-24T09:21:08+05:30"}
+{"level":"info","msg":"Trigg
