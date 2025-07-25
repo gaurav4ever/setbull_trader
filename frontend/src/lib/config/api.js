@@ -14,6 +14,14 @@ export const ENDPOINTS = {
     TRADE_HISTORY_WITH_PARAMS: (fromDate, toDate, page) =>
         `/trades/history?fromDate=${fromDate}&toDate=${toDate}&page=${page}`,
 
+    // BBW Dashboard endpoints
+    BBW_STOCKS: '/bbw/stocks',
+    BBW_STOCK_HISTORY: (symbol) => `/bbw/stocks/${symbol}/history`,
+    BBW_ALERTS_ACTIVE: '/bbw/alerts/active',
+    BBW_ALERTS_CONFIGURE: '/bbw/alerts/configure',
+    BBW_STATISTICS: '/bbw/statistics',
+    BBW_DASHBOARD_DATA: '/bbw/dashboard-data',
+
     // Health check endpoint
     HEALTH: '/health'
 };

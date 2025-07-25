@@ -103,8 +103,50 @@ export const tradeApi = {
     }
 };
 
+// BBW Dashboard API functions
+export const bbwApi = {
+    // Get all BBW dashboard data
+    getDashboardData: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_DASHBOARD_DATA));
+    },
+
+    // Get BBW data for specific stock
+    getStockBBWData: async (instrumentKey) => {
+        return request(apiUrl(ENDPOINTS.BBW_STOCKS) + `?instrument_key=${instrumentKey}`);
+    },
+
+    // Get BBW history for a stock
+    getStockHistory: async (symbol, timeframe = '1d', startDate, endDate) => {
+        const params = new URLSearchParams();
+        if (timeframe) params.append('timeframe', timeframe);
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        
+        return request(apiUrl(ENDPOINTS.BBW_STOCK_HISTORY(symbol)) + `?${params.toString()}`);
+    },
+
+    // Get active alerts
+    getActiveAlerts: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERTS_ACTIVE));
+    },
+
+    // Configure alerts
+    configureAlerts: async (config) => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERTS_CONFIGURE), {
+            method: 'POST',
+            body: JSON.stringify(config)
+        });
+    },
+
+    // Get BBW statistics
+    getStatistics: async (timeframe = '1d') => {
+        return request(apiUrl(ENDPOINTS.BBW_STATISTICS) + `?timeframe=${timeframe}`);
+    }
+};
+
 export default {
     order: orderApi,
     trade: tradeApi,
+    bbw: bbwApi,
     checkConnection: checkApiConnectivity
 };
