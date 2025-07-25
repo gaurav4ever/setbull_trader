@@ -11,7 +11,7 @@ import (
 
 func TestNewBBWidthMonitorService(t *testing.T) {
 	// Test service creation
-	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil)
+	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil, nil)
 	if service == nil {
 		t.Fatal("Expected BBWidthMonitorService to be created")
 	}
@@ -25,6 +25,7 @@ func TestBBWidthMonitorService_MonitorBBRangeGroups_NoGroups(t *testing.T) {
 		nil, // alert service
 		nil, // universe service
 		nil, // config
+		nil, // candle aggregation service
 	)
 
 	if service == nil {
@@ -36,7 +37,7 @@ func TestBBWidthMonitorService_MonitorBBRangeGroups_NoGroups(t *testing.T) {
 }
 
 func TestBBWidthMonitorService_MonitorGroupStocks_EmptyGroup(t *testing.T) {
-	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil)
+	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil, nil)
 
 	ctx := context.Background()
 	start := time.Now()
@@ -57,7 +58,7 @@ func TestBBWidthMonitorService_MonitorGroupStocks_EmptyGroup(t *testing.T) {
 }
 
 func TestBBWidthMonitorService_IsContractingPattern(t *testing.T) {
-	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil)
+	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil, nil)
 
 	tests := []struct {
 		name     string
@@ -120,7 +121,7 @@ func TestBBWidthMonitorService_IsContractingPattern(t *testing.T) {
 }
 
 func TestBBWidthMonitorService_CalculateBBWidthRange(t *testing.T) {
-	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil)
+	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil, nil)
 
 	tests := []struct {
 		name             string
@@ -161,7 +162,7 @@ func TestBBWidthMonitorService_Integration_ContractingPatternDetection(t *testin
 	// This test verifies the integration of contracting pattern detection
 	// without requiring actual database connections
 
-	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil)
+	service := NewBBWidthMonitorService(nil, nil, nil, nil, nil, nil)
 
 	// Test contracting pattern detection
 	contractingValues := []domain.IndicatorValue{

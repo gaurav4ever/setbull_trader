@@ -35,6 +35,7 @@ func NewBBWidthMonitorService(
 	alertService *AlertService,
 	universeService *StockUniverseService,
 	cfg *config.BBWidthMonitoringConfig,
+	candleAggService *CandleAggregationService,
 ) *BBWidthMonitorService {
 	return &BBWidthMonitorService{
 		stockGroupService:     stockGroupService,
@@ -42,6 +43,7 @@ func NewBBWidthMonitorService(
 		alertService:          alertService,
 		universeService:       universeService,
 		config:                cfg,
+		candleAggService:      candleAggService,
 	}
 }
 
@@ -52,7 +54,7 @@ func (s *BBWidthMonitorService) MonitorBBRangeGroups(ctx context.Context, start,
 
 	// Check if we're within market hours (9:15 AM - 3:30 PM IST)
 	if !s.isMarketHours() {
-		log.Debug("[BB Monitor] Outside market hours, skipping BB width monitoring")
+		log.Info("[BB Monitor] Outside market hours, skipping BB width monitoring")
 		return nil
 	}
 

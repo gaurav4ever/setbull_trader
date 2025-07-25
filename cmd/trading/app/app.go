@@ -183,6 +183,7 @@ func NewApp() *App {
 		alertService,
 		stockUniverseService,
 		&cfg.BBWidthMonitoring,
+		candleAggService,
 	)
 
 	// Initialize master data service

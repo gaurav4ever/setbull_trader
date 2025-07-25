@@ -1,0 +1,149 @@
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"[LIVE] Fetched 8 stocks for 1-minute ingestion","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE395N01027 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.516666 for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE395N01027 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE395N01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE070D01027 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.314096 for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE070D01027 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE070D01027","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE391J01032 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.450861 for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE391J01032 at 09:15","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE391J01032","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:08+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE438K01021 at 09:15","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 1.339569 for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE438K01021 at 09:15","time":"2025-07-25T15:37:09+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE438K01021","time":"2025-07-25T15:37:09+05:30"}
+
+2025/07/25 15:37:10 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/candle_repository.go:270 SLOW SQL >= 200ms
+[1516.350ms] [rows:1] SELECT * FROM `stock_candle_data` WHERE instrument_key = 'NSE_EQ|INE438K01021' AND time_interval = '1minute' ORDER BY timestamp DESC,`stock_candle_data`.`id` LIMIT 1
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE324A01032 at 09:15","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.219636 for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE324A01032 at 09:15","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE324A01032","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:10+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE703H01016 at 09:15","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 2.628992 for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE703H01016 at 09:15","time":"2025-07-25T15:37:11+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE703H01016","time":"2025-07-25T15:37:11+05:30"}
+
+2025/07/25 15:37:12 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/candle_repository.go:270 SLOW SQL >= 200ms
+[1527.875ms] [rows:1] SELECT * FROM `stock_candle_data` WHERE instrument_key = 'NSE_EQ|INE703H01016' AND time_interval = '1minute' ORDER BY timestamp DESC,`stock_candle_data`.`id` LIMIT 1
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE367G01038 at 09:15","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.617126 for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE367G01038 at 09:15","time":"2025-07-25T15:37:12+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE367G01038","time":"2025-07-25T15:37:12+05:30"}
+
+2025/07/25 15:37:14 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/candle_repository.go:270 SLOW SQL >= 200ms
+[1506.054ms] [rows:1] SELECT * FROM `stock_candle_data` WHERE instrument_key = 'NSE_EQ|INE367G01038' AND time_interval = '1minute' ORDER BY timestamp DESC,`stock_candle_data`.`id` LIMIT 1
+{"level":"info","msg":"Total candles: 375 for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Triggering 5-minute aggregation for NSE_EQ|INE08NE01025 at 09:15","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Fetched 375 historical candles and 1 current candles for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Aggregated 376 1-minute candles to 76 5-minute candles for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Converted 76 aggregated candles to domain.Candle format for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated BB: upper=76, middle=76, lower=76 for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated BB Width: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated BB Width Normalized Percentage: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated EMAs: ema5=76, ema9=76, ema20=76, ema50=76 for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated ATR: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated RSI: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated VWAP: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated MA9: 76 values for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Calculated lowest BB width: 0.538427 for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"Stored 1 5-minute candles with indicators for NSE_EQ|INE08NE01025 at 09:15","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"[LIVE] Successfully ingested 375 1-min candles for NSE_EQ|INE08NE01025","time":"2025-07-25T15:37:14+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-25T15:37:14.432889+05:30 | Intended: 2025-07-25T15:37:08+05:30 | Drift: 6432ms","time":"2025-07-25T15:37:14+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 6432ms","time":"2025-07-25T15:37:14+05:30"}
