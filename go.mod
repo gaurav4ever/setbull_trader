@@ -36,7 +36,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-gota/gota v0.12.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	gonum.org/v1/gonum v0.14.0 // indirect
+	gonum.org/v1/gonum v0.14.0
 )
 
 require (
