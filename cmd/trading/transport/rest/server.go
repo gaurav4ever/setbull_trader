@@ -91,6 +91,10 @@ func NewServer(
 
 // setupRoutes sets up the routes for the API server
 func (s *Server) setupRoutes() {
+	// Apply middleware to the main router
+	s.router.Use(s.corsMiddleware)
+	s.router.Use(s.loggingMiddleware)
+
 	// API v1 router
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
@@ -190,6 +194,10 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/bbw/alerts/history", s.bbwDashboardHandler.ClearAlertHistory).Methods(http.MethodDelete)
 	api.HandleFunc("/bbw/alerts/configure", s.bbwDashboardHandler.ConfigureAlerts).Methods(http.MethodPost)
 	api.HandleFunc("/bbw/stocks/{symbol}/history", s.bbwDashboardHandler.GetStockBBWHistory).Methods(http.MethodGet)
+
+	// NEW: BBW Dashboard routes for latest available day data (outside market hours)
+	api.HandleFunc("/bbw/latest-day-data", s.bbwDashboardHandler.GetLatestAvailableDayData).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/market-status", s.bbwDashboardHandler.GetMarketStatus).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface

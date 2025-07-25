@@ -110,6 +110,16 @@ export const bbwApi = {
         return request(apiUrl(ENDPOINTS.BBW_DASHBOARD_DATA));
     },
 
+    // NEW: Get latest available day data (regardless of market hours)
+    getLatestAvailableDayData: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_LATEST_DAY_DATA));
+    },
+
+    // NEW: Get market status and last data timestamp
+    getMarketStatus: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_MARKET_STATUS));
+    },
+
     // Get BBW data for specific stock
     getStockBBWData: async (instrumentKey) => {
         return request(apiUrl(ENDPOINTS.BBW_STOCKS) + `?instrument_key=${instrumentKey}`);
@@ -123,6 +133,11 @@ export const bbwApi = {
         if (endDate) params.append('end_date', endDate);
         
         return request(apiUrl(ENDPOINTS.BBW_STOCK_HISTORY(symbol)) + `?${params.toString()}`);
+    },
+
+    // NEW: Get stock BBW history with days parameter
+    getStockBBWHistory: async (instrumentKey, days = 7) => {
+        return request(apiUrl(ENDPOINTS.BBW_STOCK_HISTORY(instrumentKey)) + `?days=${days}`);
     },
 
     // Get active alerts

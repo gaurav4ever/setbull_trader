@@ -24,6 +24,12 @@
     
     // Apply filters to alert history
     function applyFilters() {
+        // Ensure alertHistory is an array
+        if (!Array.isArray(alertHistory)) {
+            filteredAlerts = [];
+            return;
+        }
+        
         filteredAlerts = alertHistory.filter(alert => {
             // Filter by alert type
             if (filterType && alert.AlertType !== filterType) {
@@ -113,7 +119,7 @@
             <!-- Header -->
             <div class="flex items-center justify-between p-6 border-b">
                 <h3 class="text-lg font-semibold text-gray-900">
-                    Alert History ({alertHistory.length} alerts)
+                    Alert History ({Array.isArray(alertHistory) ? alertHistory.length : 0} alerts)
                 </h3>
                 <button 
                     type="button" 
@@ -259,7 +265,7 @@
             <!-- Footer -->
             <div class="p-4 border-t bg-gray-50">
                 <div class="flex items-center justify-between text-sm text-gray-600">
-                    <span>Showing {filteredAlerts.length} of {alertHistory.length} alerts</span>
+                    <span>Showing {filteredAlerts.length} of {Array.isArray(alertHistory) ? alertHistory.length : 0} alerts</span>
                     <button
                         type="button"
                         on:click={() => dispatch('close')}

@@ -19,7 +19,10 @@
         websocketConnected,
         lastUpdate,
         marketHours,
-        currentTime
+        currentTime,
+        marketStatus,
+        lastDataTimestamp,
+        lastDataAgeMinutes
     } = store);
     
     // Subscribe to derived stores with safe fallbacks
@@ -137,6 +140,15 @@
                             Market: {marketHours ? 'OPEN' : 'CLOSED'}
                         </span>
                     </div>
+                    
+                    {#if !marketHours && lastDataAgeMinutes >= 0}
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <span class="text-sm font-medium text-yellow-700">
+                                Last Data: {lastDataAgeMinutes} min ago
+                            </span>
+                        </div>
+                    {/if}
                     
                     <div class="flex items-center space-x-2">
                         <div class="w-3 h-3 rounded-full {websocketConnected ? 'bg-green-500' : 'bg-red-500'}"></div>

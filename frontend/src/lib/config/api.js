@@ -22,6 +22,10 @@ export const ENDPOINTS = {
     BBW_ALERT_HISTORY: '/bbw/alerts/history',
     BBW_STATISTICS: '/bbw/statistics',
     BBW_DASHBOARD_DATA: '/bbw/dashboard-data',
+    
+    // NEW: BBW Dashboard endpoints for latest available day data (outside market hours)
+    BBW_LATEST_DAY_DATA: '/bbw/latest-day-data',
+    BBW_MARKET_STATUS: '/bbw/market-status',
 
     // Health check endpoint
     HEALTH: '/health'

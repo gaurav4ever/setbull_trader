@@ -455,75 +455,152 @@ func (h *BBWDashboardHandler) GetDashboardStats(w http.ResponseWriter, r *http.R
 	})
 }
 
-// GetStockBBWHistory returns historical BBW data for a stock
-func (h *BBWDashboardHandler) GetStockBBWHistory(w http.ResponseWriter, r *http.Request) {
-	instrumentKey := r.URL.Query().Get("instrument_key")
-	timeframe := r.URL.Query().Get("timeframe")
-	if timeframe == "" {
-		timeframe = "1d" // default to 1 day
+// GetLatestAvailableDayData returns the most recent available BBW data for all monitored stocks
+// regardless of market hours - useful for dashboard access outside trading hours
+func (h *BBWDashboardHandler) GetLatestAvailableDayData(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get the latest available day data
+	dashboardData, err := h.bbwDashboardService.GetLatestAvailableDayData(ctx)
+	if err != nil {
+		log.Error("[BBW Handler] Failed to get latest available day data: %v", err)
+		http.Error(w, "Failed to get latest available day data", http.StatusInternalServerError)
+		return
 	}
 
-	if instrumentKey == "" {
-		log.BBWWarn("api_handler", "missing_instrument_key", "Missing instrument_key parameter for history", map[string]interface{}{
-			"remote_addr": r.RemoteAddr,
-			"timeframe":   timeframe,
+	// Convert to response format
+	var response []map[string]interface{}
+	for _, data := range dashboardData {
+		response = append(response, map[string]interface{}{
+			"symbol":                     data.Symbol,
+			"instrument_key":             data.InstrumentKey,
+			"current_bb_width":           data.CurrentBBWidth,
+			"historical_min_bb_width":    data.HistoricalMinBBWidth,
+			"distance_from_min_percent":  data.DistanceFromMinPercent,
+			"contracting_sequence_count": data.ContractingSequenceCount,
+			"bb_width_trend":             data.BBWidthTrend,
+			"alert_triggered":            data.AlertTriggered,
+			"alert_triggered_at":         data.AlertTriggeredAt,
+			"alert_type":                 data.AlertType,
+			"alert_message":              data.AlertMessage,
+			"pattern_strength":           data.PatternStrength,
+			"timestamp":                  data.Timestamp,
+			"last_updated":               data.LastUpdated,
 		})
+	}
+
+	// Return JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data":    response,
+		"count":   len(response),
+		"message": "Latest available day data retrieved successfully",
+	})
+}
+
+// GetStockBBWHistory returns historical BBW data for a specific stock
+func (h *BBWDashboardHandler) GetStockBBWHistory(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get query parameters
+	instrumentKey := r.URL.Query().Get("instrument_key")
+	if instrumentKey == "" {
 		http.Error(w, "instrument_key parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	log.BBWInfo("api_handler", "get_stock_history", "Stock BBW history request received", map[string]interface{}{
-		"remote_addr":    r.RemoteAddr,
-		"instrument_key": instrumentKey,
-		"timeframe":      timeframe,
-	})
-
-	// Placeholder implementation - return sample data
-	// TODO: Implement actual database query for historical BBW data
-	history := []map[string]interface{}{
-		{
-			"timestamp": time.Now().Add(-5 * time.Minute),
-			"bb_width":  0.0234,
-			"close":     150.25,
-		},
-		{
-			"timestamp": time.Now().Add(-10 * time.Minute),
-			"bb_width":  0.0241,
-			"close":     150.10,
-		},
-		{
-			"timestamp": time.Now().Add(-15 * time.Minute),
-			"bb_width":  0.0256,
-			"close":     149.95,
-		},
+	// Parse days parameter (default to 7 days)
+	daysStr := r.URL.Query().Get("days")
+	days := 7 // default
+	if daysStr != "" {
+		if parsedDays, err := strconv.Atoi(daysStr); err == nil && parsedDays > 0 {
+			days = parsedDays
+		}
 	}
 
-	response := map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"instrument_key": instrumentKey,
-			"timeframe":      timeframe,
-			"history":        history,
-		},
-		"timestamp": time.Now(),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.BBWError("api_handler", "encode_history_response", "Failed to encode stock history response", err, map[string]interface{}{
-			"remote_addr":    r.RemoteAddr,
-			"instrument_key": instrumentKey,
-			"timeframe":      timeframe,
-		})
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	// Get historical data
+	historicalData, err := h.bbwDashboardService.GetStockBBWHistory(ctx, instrumentKey, days)
+	if err != nil {
+		log.Error("[BBW Handler] Failed to get stock BBW history for %s: %v", instrumentKey, err)
+		http.Error(w, "Failed to get stock BBW history", http.StatusInternalServerError)
 		return
 	}
 
-	log.BBWInfo("api_handler", "stock_history_sent", "Stock BBW history sent successfully", map[string]interface{}{
-		"remote_addr":    r.RemoteAddr,
+	// Convert to response format
+	var response []map[string]interface{}
+	for _, data := range historicalData {
+		response = append(response, map[string]interface{}{
+			"symbol":                     data.Symbol,
+			"instrument_key":             data.InstrumentKey,
+			"current_bb_width":           data.CurrentBBWidth,
+			"historical_min_bb_width":    data.HistoricalMinBBWidth,
+			"distance_from_min_percent":  data.DistanceFromMinPercent,
+			"contracting_sequence_count": data.ContractingSequenceCount,
+			"bb_width_trend":             data.BBWidthTrend,
+			"alert_triggered":            data.AlertTriggered,
+			"alert_triggered_at":         data.AlertTriggeredAt,
+			"alert_type":                 data.AlertType,
+			"alert_message":              data.AlertMessage,
+			"pattern_strength":           data.PatternStrength,
+			"timestamp":                  data.Timestamp,
+			"last_updated":               data.LastUpdated,
+		})
+	}
+
+	// Return JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success":        true,
+		"data":           response,
+		"count":          len(response),
 		"instrument_key": instrumentKey,
-		"timeframe":      timeframe,
-		"data_points":    len(history),
+		"days":           days,
+		"message":        "Stock BBW history retrieved successfully",
+	})
+}
+
+// GetMarketStatus returns current market status and last available data timestamp
+func (h *BBWDashboardHandler) GetMarketStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Check if market is currently open
+	isMarketOpen := h.bbwDashboardService.IsMarketHours()
+
+	// Get current time in IST
+	now := time.Now()
+	ist := now.UTC().Add(5*time.Hour + 30*time.Minute)
+
+	// Get the latest available data timestamp
+	latestData, err := h.bbwDashboardService.GetLatestAvailableDayData(ctx)
+	var lastDataTimestamp *time.Time
+	if err == nil && len(latestData) > 0 {
+		// Find the most recent timestamp
+		for _, data := range latestData {
+			if lastDataTimestamp == nil || data.Timestamp.After(*lastDataTimestamp) {
+				lastDataTimestamp = &data.Timestamp
+			}
+		}
+	}
+
+	// Return market status
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"data": map[string]interface{}{
+			"market_open":         isMarketOpen,
+			"current_time":        ist.Format("2006-01-02 15:04:05"),
+			"current_time_ist":    ist.Format("15:04:05"),
+			"market_hours":        "09:15 - 15:30 IST",
+			"last_data_timestamp": lastDataTimestamp,
+			"last_data_age_minutes": func() int {
+				if lastDataTimestamp == nil {
+					return -1
+				}
+				return int(time.Since(*lastDataTimestamp).Minutes())
+			}(),
+		},
+		"message": "Market status retrieved successfully",
 	})
 }
 

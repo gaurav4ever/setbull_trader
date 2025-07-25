@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import bbwWebSocketService from '../services/bbwWebSocketService.js';
 import { bbwApi } from '../services/apiService.js';
 
@@ -26,7 +26,12 @@ function createBBWDashboardStore() {
         
         // Market status
         marketHours: false,
-        currentTime: new Date()
+        currentTime: new Date(),
+        
+        // NEW: Market status and latest data info
+        marketStatus: null,
+        lastDataTimestamp: null,
+        lastDataAgeMinutes: -1
     });
 
     // Derived stores for filtered and sorted data
@@ -118,20 +123,26 @@ function createBBWDashboardStore() {
             update(state => ({ ...state, loading: true, error: null }));
             
             try {
-                // Connect WebSocket
-                bbwWebSocketService.connect();
+                // Load market status first
+                await actions.loadMarketStatus();
                 
                 // Load initial data
                 await actions.loadDashboardData();
                 await actions.loadStatistics();
                 await actions.loadActiveAlerts();
                 
-                // Setup WebSocket listeners
-                bbwWebSocketService.addEventListener('connected', actions.handleWebSocketConnected);
-                bbwWebSocketService.addEventListener('disconnected', actions.handleWebSocketDisconnected);
-                bbwWebSocketService.addEventListener('bbw_update', actions.handleBBWUpdate);
-                bbwWebSocketService.addEventListener('alert_triggered', actions.handleAlertTriggered);
-                bbwWebSocketService.addEventListener('market_status', actions.handleMarketStatus);
+                // Connect WebSocket only during market hours
+                const currentState = get({ subscribe });
+                if (currentState.marketHours) {
+                    bbwWebSocketService.connect();
+                    
+                    // Setup WebSocket listeners
+                    bbwWebSocketService.addEventListener('connected', actions.handleWebSocketConnected);
+                    bbwWebSocketService.addEventListener('disconnected', actions.handleWebSocketDisconnected);
+                    bbwWebSocketService.addEventListener('bbw_update', actions.handleBBWUpdate);
+                    bbwWebSocketService.addEventListener('alert_triggered', actions.handleAlertTriggered);
+                    bbwWebSocketService.addEventListener('market_status', actions.handleMarketStatus);
+                }
                 
                 update(state => ({ ...state, loading: false }));
             } catch (error) {
@@ -147,10 +158,19 @@ function createBBWDashboardStore() {
         // Load dashboard data
         async loadDashboardData() {
             try {
-                const data = await bbwApi.getDashboardData();
+                // Try to get real-time data first (during market hours)
+                let data;
+                try {
+                    data = await bbwApi.getDashboardData();
+                } catch (error) {
+                    console.log('Real-time data not available, trying latest available day data...');
+                    // If real-time data fails, try to get latest available day data
+                    data = await bbwApi.getLatestAvailableDayData();
+                }
+                
                 update(state => ({ 
                     ...state, 
-                    stocks: data.stocks || [],
+                    stocks: data.data || [],
                     lastUpdate: new Date()
                 }));
             } catch (error) {
@@ -172,10 +192,31 @@ function createBBWDashboardStore() {
         // Load active alerts
         async loadActiveAlerts() {
             try {
-                const alerts = await bbwApi.getActiveAlerts();
-                update(state => ({ ...state, alerts: alerts || [] }));
+                const response = await bbwApi.getActiveAlerts();
+                const alerts = Array.isArray(response.data) ? response.data : [];
+                update(state => ({ ...state, alerts }));
             } catch (error) {
                 console.error('Failed to load active alerts:', error);
+                // Ensure alerts is always an array even on error
+                update(state => ({ ...state, alerts: [] }));
+            }
+        },
+
+        // NEW: Load market status
+        async loadMarketStatus() {
+            try {
+                const response = await bbwApi.getMarketStatus();
+                if (response.success) {
+                    update(state => ({
+                        ...state,
+                        marketStatus: response.data,
+                        marketHours: response.data.market_open,
+                        lastDataTimestamp: response.data.last_data_timestamp,
+                        lastDataAgeMinutes: response.data.last_data_age_minutes
+                    }));
+                }
+            } catch (error) {
+                console.error('Failed to load market status:', error);
             }
         },
 
@@ -237,11 +278,14 @@ function createBBWDashboardStore() {
                 // Add to alerts list
                 const newAlert = {
                     id: Date.now(),
-                    instrument_key: data.instrument_key,
-                    symbol: data.symbol,
-                    bb_width: data.current_bb_width,
-                    triggered_at: new Date().toISOString(),
-                    type: data.alert_type || 'threshold'
+                    Symbol: data.symbol,
+                    BBWidth: data.current_bb_width,
+                    LowestMinBBWidth: data.historical_min_bb_width || 0,
+                    PatternLength: data.contracting_sequence_count || 0,
+                    AlertType: data.alert_type || 'threshold',
+                    Timestamp: new Date(),
+                    GroupID: data.instrument_key,
+                    Message: `BB Width alert triggered for ${data.symbol} at ${data.current_bb_width?.toFixed(4)}`
                 };
                 
                 return { 
@@ -288,10 +332,13 @@ function createBBWDashboardStore() {
         // Refresh alerts
         async refreshAlerts() {
             try {
-                const alerts = await bbwApi.getAlertHistory();
+                const response = await bbwApi.getAlertHistory();
+                const alerts = Array.isArray(response.data) ? response.data : [];
                 update(state => ({ ...state, alerts }));
             } catch (error) {
                 console.error('Failed to refresh alerts:', error);
+                // Ensure alerts is always an array even on error
+                update(state => ({ ...state, alerts: [] }));
             }
         },
 

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
 	"setbull_trader/pkg/log"
 )
@@ -654,4 +655,141 @@ func (s *BBWDashboardService) SetContractingLookback(lookback int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.contractingLookback = lookback
+}
+
+// GetLatestAvailableDayData retrieves the most recent available BBW data for all monitored stocks
+// regardless of market hours - useful for dashboard access outside trading hours
+func (s *BBWDashboardService) GetLatestAvailableDayData(ctx context.Context) ([]*BBWDashboardData, error) {
+	log.Info("[BBW Dashboard] Getting latest available day data for all monitored stocks")
+
+	// Get all BB_RANGE groups
+	groups, err := s.stockGroupService.GetGroupsByEntryType(ctx, "BB_RANGE", s.universeService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch BB_RANGE groups: %w", err)
+	}
+
+	if len(groups) == 0 {
+		log.Info("[BBW Dashboard] No BB_RANGE groups found")
+		return []*BBWDashboardData{}, nil
+	}
+
+	var allStockData []*BBWDashboardData
+
+	// Process each group's stocks
+	for _, group := range groups {
+		for _, stock := range group.Stocks {
+			if stock.InstrumentKey == "" {
+				continue
+			}
+
+			// Get the latest available 5-minute candle data
+			stockData, err := s.getLatestStockBBWData(ctx, stock)
+			if err != nil {
+				log.Error("[BBW Dashboard] Failed to get latest data for %s: %v", stock.Symbol, err)
+				continue
+			}
+
+			allStockData = append(allStockData, stockData)
+		}
+	}
+
+	log.Info("[BBW Dashboard] Retrieved latest data for %d stocks", len(allStockData))
+	return allStockData, nil
+}
+
+// getLatestStockBBWData gets the most recent BBW data for a single stock
+func (s *BBWDashboardService) getLatestStockBBWData(ctx context.Context, stock response.StockGroupStockDTO) (*BBWDashboardData, error) {
+	// Get the latest 5-minute candle (last 24 hours to ensure we get today's data)
+	endTime := time.Now()
+	startTime := endTime.AddDate(0, 0, -1) // Last 24 hours
+
+	candles, err := s.candleAggService.Get5MinCandles(ctx, stock.InstrumentKey, startTime, endTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get 5-minute candles: %w", err)
+	}
+
+	if len(candles) == 0 {
+		return nil, fmt.Errorf("no 5-minute candles found")
+	}
+
+	// Get the latest candle
+	latestCandle := candles[len(candles)-1]
+
+	// Convert to domain.StockUniverse for processing
+	stockUniverse := domain.StockUniverse{
+		InstrumentKey: stock.InstrumentKey,
+		Symbol:        stock.Symbol,
+	}
+
+	// Process the stock BBW data using existing method
+	stockData, err := s.processStockBBW(ctx, stockUniverse, latestCandle.Timestamp, latestCandle.Timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process BBW data: %w", err)
+	}
+
+	return stockData, nil
+}
+
+// GetStockBBWHistory retrieves historical BBW data for a specific stock
+func (s *BBWDashboardService) GetStockBBWHistory(ctx context.Context, instrumentKey string, days int) ([]*BBWDashboardData, error) {
+	if days <= 0 {
+		days = 7 // Default to 7 days
+	}
+
+	endTime := time.Now()
+	startTime := endTime.AddDate(0, 0, -days)
+
+	candles, err := s.candleAggService.Get5MinCandles(ctx, instrumentKey, startTime, endTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get historical candles: %w", err)
+	}
+
+	var historicalData []*BBWDashboardData
+
+	// Get stock metadata
+	stock, err := s.getStockMetadata(ctx, instrumentKey)
+	if err != nil {
+		log.Warn("[BBW Dashboard] Failed to get stock metadata for %s: %v", instrumentKey, err)
+		// Continue with basic data
+		stock = response.StockGroupStockDTO{
+			InstrumentKey: instrumentKey,
+			Symbol:        instrumentKey,
+		}
+	}
+
+	// Convert to domain.StockUniverse for processing
+	stockUniverse := domain.StockUniverse{
+		InstrumentKey: stock.InstrumentKey,
+		Symbol:        stock.Symbol,
+	}
+
+	// Process each candle
+	for _, candle := range candles {
+		stockData, err := s.processStockBBW(ctx, stockUniverse, candle.Timestamp, candle.Timestamp)
+		if err != nil {
+			log.Error("[BBW Dashboard] Failed to process historical data for %s: %v", stock.Symbol, err)
+			continue
+		}
+		historicalData = append(historicalData, stockData)
+	}
+
+	return historicalData, nil
+}
+
+// getStockMetadata retrieves stock metadata from groups
+func (s *BBWDashboardService) getStockMetadata(ctx context.Context, instrumentKey string) (response.StockGroupStockDTO, error) {
+	groups, err := s.stockGroupService.GetGroupsByEntryType(ctx, "BB_RANGE", s.universeService)
+	if err != nil {
+		return response.StockGroupStockDTO{}, err
+	}
+
+	for _, group := range groups {
+		for _, stock := range group.Stocks {
+			if stock.InstrumentKey == instrumentKey {
+				return stock, nil
+			}
+		}
+	}
+
+	return response.StockGroupStockDTO{}, fmt.Errorf("stock not found in BB_RANGE groups")
 }
