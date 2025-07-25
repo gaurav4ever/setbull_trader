@@ -1,0 +1,1 @@
+# Python strategies package for trading analysis 

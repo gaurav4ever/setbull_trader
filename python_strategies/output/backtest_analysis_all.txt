@@ -1,0 +1,531 @@
+
+=== 1st Entry: Top Performing Stocks (min 5 trades) ===
+          name direction    trend  total_trades  winning_trades  avg_pnl  win_rate  total_pnl
+0   JAICORPLTD     SHORT  BEARISH            43            23.0  1726.22     53.49   74227.54
+1       APOLLO      LONG  BULLISH             8             5.0  1835.21     62.50   14681.70
+2        KITEX     SHORT  BULLISH             5             4.0  2739.43     80.00   13697.17
+3      RAILTEL      LONG  BULLISH             5             3.0  2737.35     60.00   13686.76
+4       FUSION      LONG  BULLISH             7             4.0  1836.45     57.14   12855.16
+5      APTECHT     SHORT  BEARISH            15            10.0   149.30     66.67    2239.45
+6      NIFTY50     SHORT  BEARISH            28            15.0    51.44     53.57    1440.44
+7   SANGHVIMOV      LONG  BULLISH             7             5.0   194.96     71.43    1364.72
+8   UMAEXPORTS      LONG  BEARISH             5             3.0   258.67     60.00    1293.36
+9   SHAREINDIA     SHORT  BEARISH            17             9.0    68.19     52.94    1159.23
+10     TFCILTD     SHORT  BEARISH            11             7.0    80.11     63.64     881.21
+11  JISLJALEQS      LONG  BEARISH             6             4.0   123.20     66.67     739.17
+12  TRITURBINE     SHORT  BEARISH             8             5.0    91.77     62.50     734.18
+13     CARRARO     SHORT  BEARISH            11             6.0    59.68     54.55     656.48
+14        FACT      LONG  BULLISH             5             3.0    25.01     60.00     125.04
+15  ASIANPAINT     SHORT  BEARISH             9             5.0    13.23     55.56     119.11
+16  QUADFUTURE      LONG  BEARISH             7             4.0   -10.73     57.14     -75.14
+
+=== 2:30 Entry: Top Performing Stocks (min 5 trades) ===
+           name direction    trend  total_trades  winning_trades  avg_pnl  win_rate  total_pnl
+0    KALAMANDIR     SHORT  BEARISH            27            15.0    86.00     55.56    2322.10
+1        JTLIND     SHORT  BEARISH            21            11.0   108.78     52.38    2284.43
+2    SWANENERGY     SHORT  BEARISH            38            23.0    59.36     60.53    2255.58
+3    JAICORPLTD     SHORT  BEARISH            40            25.0    49.19     62.50    1967.48
+4      FIRSTCRY      LONG  BEARISH            22            13.0    87.96     59.09    1935.16
+5        TVSSCS     SHORT  BEARISH            35            23.0    49.07     65.71    1717.49
+6      PARADEEP      LONG  BEARISH            10             6.0   109.50     60.00    1095.04
+7      SURYODAY     SHORT  BULLISH             9             8.0   119.34     88.89    1074.08
+8         EMBDL     SHORT  BEARISH            23            14.0    45.49     60.87    1046.28
+9      PARADEEP     SHORT  BEARISH            19            12.0    49.21     63.16     935.05
+10         FACT      LONG  BULLISH             5             5.0   182.20    100.00     911.00
+11      STLTECH     SHORT  BEARISH            22            13.0    41.35     59.09     909.77
+12     FIRSTCRY     SHORT  BEARISH            24            13.0    37.74     54.17     905.77
+13    INOXGREEN     SHORT  BULLISH             8             6.0   111.66     75.00     893.30
+14   TIMETECHNO     SHORT  BEARISH            11             8.0    81.05     72.73     891.55
+15          KRN     SHORT  BEARISH            12            10.0    73.55     83.33     882.56
+16      CARRARO     SHORT  BULLISH             7             5.0   122.61     71.43     858.30
+17      TFCILTD     SHORT  BEARISH            14             9.0    56.94     64.29     797.16
+18   UMAEXPORTS     SHORT  BEARISH            16            10.0    48.66     62.50     778.59
+19   STYLEBAAZA     SHORT  BULLISH             7             5.0   104.14     71.43     728.98
+20          KEC     SHORT  BEARISH             9             7.0    80.44     77.78     724.00
+21       ZAGGLE     SHORT  BULLISH             5             3.0   144.45     60.00     722.23
+22          RBA      LONG  BULLISH             6             4.0   117.25     66.67     703.52
+23     PARADEEP     SHORT  BULLISH            12             7.0    54.27     58.33     651.24
+24  BAJAJFINSRV      LONG  BULLISH             5             5.0   123.06    100.00     615.29
+25    SARLAPOLY     SHORT  BULLISH             9             5.0    67.37     55.56     606.30
+26   TRANSRAILL     SHORT  BEARISH             7             5.0    78.45     71.43     549.13
+27       ZAGGLE      LONG  BULLISH             7             5.0    77.04     71.43     539.29
+28         ICIL     SHORT  BULLISH             6             4.0    87.81     66.67     526.85
+29      CARRARO     SHORT  BEARISH            27            14.0    19.28     51.85     520.52
+30          ACC     SHORT  BEARISH             7             5.0    71.62     71.43     501.32
+31        EMBDL     SHORT  BULLISH            11             6.0    43.52     54.55     478.72
+32       POLICY      LONG  BULLISH             9             5.0    51.97     55.56     467.72
+33   QUADFUTURE     SHORT  BEARISH             8             5.0    52.45     62.50     419.59
+34   QUADFUTURE     SHORT  BULLISH             8             6.0    50.48     75.00     403.87
+35     NORTHARC     SHORT  BULLISH            13             7.0    30.01     53.85     390.17
+36     AEROFLEX     SHORT  BEARISH             8             5.0    48.62     62.50     388.92
+37       JTLIND      LONG  BULLISH             7             5.0    54.50     71.43     381.47
+38      APTECHT     SHORT  BULLISH             5             3.0    74.60     60.00     372.98
+39         EMIL     SHORT  BULLISH             7             4.0    51.10     57.14     357.72
+40       GARUDA     SHORT  BEARISH             7             5.0    48.29     71.43     338.06
+41          BLS     SHORT  BEARISH             5             4.0    66.12     80.00     330.60
+42       POLICY     SHORT  BULLISH             5             3.0    65.43     60.00     327.17
+43        KITEX      LONG  BEARISH             7             4.0    45.20     57.14     316.41
+44  BAJAJFINSRV     SHORT  BULLISH             7             5.0    41.62     71.43     291.35
+45       AUBANK      LONG  BULLISH             5             3.0    44.58     60.00     222.91
+46     SURYODAY      LONG  BULLISH             5             4.0    40.50     80.00     202.52
+47          ACC      LONG  BULLISH             5             3.0    35.57     60.00     177.85
+48        EMBDL      LONG  BULLISH             5             3.0    33.70     60.00     168.52
+49        KITEX      LONG  BULLISH             5             3.0    26.40     60.00     132.00
+50   ASIANPAINT      LONG  BULLISH            13             8.0     9.61     61.54     124.88
+51     GPTINFRA     SHORT  BULLISH             7             5.0    16.07     71.43     112.49
+
+=== Top Performing Stocks by EntryTimeString (min 5 trades) ===
+--- EntryTimeString: 1st_entry ---
+      name trade_type direction   trend  total_trades  winning_trades  avg_pnl  win_rate  total_pnl
+     KITEX  1st_entry     SHORT BULLISH             5             4.0  2739.43     80.00   13697.17
+   RAILTEL  1st_entry      LONG BULLISH             5             3.0  2737.35     60.00   13686.76
+    TVSSCS  1st_entry     SHORT BULLISH             5             2.0  2448.85     40.00   12244.25
+    FUSION  1st_entry      LONG BULLISH             7             4.0  1836.45     57.14   12855.16
+    APOLLO  1st_entry      LONG BULLISH             8             5.0  1835.21     62.50   14681.70
+JAICORPLTD  1st_entry     SHORT BEARISH            43            23.0  1726.22     53.49   74227.54
+     EMBDL  1st_entry      LONG BULLISH             6             1.0  1526.07     16.67    9156.44
+ PREMEXPLN  1st_entry      LONG BULLISH            11             2.0  1363.89     18.18   15002.82
+      SJVN  1st_entry      LONG BULLISH             5             2.0  1240.28     40.00    6201.42
+  PRECWIRE  1st_entry      LONG BULLISH             8             4.0  1219.42     50.00    9755.36
+    ELECON  1st_entry      LONG BULLISH             8             4.0  1192.58     50.00    9540.61
+    FUSION  1st_entry     SHORT BULLISH            11             4.0  1138.39     36.36   12522.30
+NAVKARCORP  1st_entry      LONG BULLISH             8             3.0  1052.35     37.50    8418.81
+     SUVEN  1st_entry      LONG BULLISH             8             2.0   995.71     25.00    7965.64
+    SWIGGY  1st_entry     SHORT BEARISH            11             4.0   917.45     36.36   10092.00
+ JINDWORLD  1st_entry     SHORT BEARISH             6             3.0   883.98     50.00    5303.89
+    VIPIND  1st_entry      LONG BULLISH             8             4.0   851.83     50.00    6814.65
+   TEXRAIL  1st_entry      LONG BULLISH            10             3.0   819.99     30.00    8199.85
+CAMLINFINE  1st_entry      LONG BULLISH            13             5.0   806.63     38.46   10486.18
+      PGEL  1st_entry     SHORT BEARISH            10             5.0   746.93     50.00    7469.33
+WALCHANNAG  1st_entry      LONG BULLISH            10             4.0   745.35     40.00    7453.53
+    FUSION  1st_entry     SHORT BEARISH            25             7.0   738.08     28.00   18451.96
+   RKFORGE  1st_entry      LONG BEARISH             6             2.0   699.80     33.33    4198.79
+     EMBDL  1st_entry     SHORT BEARISH            25             9.0   650.29     36.00   16257.35
+  DCXINDIA  1st_entry     SHORT BULLISH             6             1.0   625.98     16.67    3755.87
+    TAJGVK  1st_entry     SHORT BEARISH             7             2.0   606.68     28.57    4246.73
+ JAIBALAJI  1st_entry     SHORT BEARISH             8             3.0   573.50     37.50    4588.00
+ INOXGREEN  1st_entry     SHORT BEARISH            25            11.0   545.09     44.00   13627.13
+  KHAICHEM  1st_entry      LONG BULLISH             7             1.0   534.06     14.29    3738.40
+      ABDL  1st_entry      LONG BULLISH             5             2.0   514.38     40.00    2571.90
+JAICORPLTD  1st_entry      LONG BEARISH            22             8.0   462.66     36.36   10178.59
+WALCHANNAG  1st_entry      LONG BEARISH            15             6.0   460.68     40.00    6910.17
+     EMBDL  1st_entry     SHORT BULLISH            11             4.0   430.36     36.36    4733.94
+   STLTECH  1st_entry     SHORT BEARISH            20             6.0   426.66     30.00    8533.21
+  KHAICHEM  1st_entry     SHORT BULLISH             5             1.0   407.14     20.00    2035.68
+   MIDHANI  1st_entry      LONG BULLISH             6             1.0   395.16     16.67    2370.93
+   RKFORGE  1st_entry     SHORT BEARISH            13             5.0   394.12     38.46    5123.60
+    JTLIND  1st_entry     SHORT BEARISH            11             1.0   390.33      9.09    4293.65
+   NIFTY50  1st_entry     SHORT BULLISH            19             8.0   376.82     42.11    7159.50
+ IDEAFORGE  1st_entry      LONG BULLISH             5             1.0   371.60     20.00    1857.98
+ BANKNIFTY  1st_entry     SHORT BULLISH            18             6.0   313.54     33.33    5643.64
+     KITEX  1st_entry     SHORT BEARISH            13             4.0   303.25     30.77    3942.29
+   NIFTY50  1st_entry      LONG BEARISH            20             8.0   294.08     40.00    5881.66
+KALAMANDIR  1st_entry      LONG BEARISH            23             5.0   293.90     21.74    6759.71
+ BANKNIFTY  1st_entry      LONG BULLISH            19             5.0   286.81     26.32    5449.42
+WALCHANNAG  1st_entry     SHORT BEARISH            19             5.0   284.26     26.32    5400.90
+ JINDALSAW  1st_entry      LONG BEARISH             9             1.0   270.22     11.11    2432.02
+UMAEXPORTS  1st_entry      LONG BEARISH             5             3.0   258.67     60.00    1293.36
+   TFCILTD  1st_entry      LONG BULLISH             6             1.0   250.20     16.67    1501.18
+       KRN  1st_entry     SHORT BEARISH            13             6.0   245.25     46.15    3188.31
+       KRN  1st_entry      LONG BEARISH             9             3.0   205.82     33.33    1852.36
+KALAMANDIR  1st_entry     SHORT BEARISH            29             7.0   205.36     24.14    5955.34
+MADRASFERT  1st_entry      LONG BULLISH             6             1.0   205.22     16.67    1231.30
+SANGHVIMOV  1st_entry      LONG BULLISH             7             5.0   194.96     71.43    1364.72
+   APTECHT  1st_entry     SHORT BEARISH            15            10.0   149.30     66.67    2239.45
+AARTIPHARM  1st_entry      LONG BULLISH             6             1.0   133.51     16.67     801.03
+MANGCHEFER  1st_entry      LONG BULLISH            10             4.0   127.52     40.00    1275.19
+JISLJALEQS  1st_entry      LONG BEARISH             6             4.0   123.20     66.67     739.17
+STYLEBAAZA  1st_entry     SHORT BULLISH             6             2.0   122.47     33.33     734.83
+    ZAGGLE  1st_entry      LONG BEARISH             8             4.0   122.39     50.00     979.10
+ INOXGREEN  1st_entry     SHORT BULLISH            13             2.0   114.65     15.38    1490.39
+     KITEX  1st_entry      LONG BEARISH            14             2.0    95.67     14.29    1339.32
+TRITURBINE  1st_entry     SHORT BEARISH             8             5.0    91.77     62.50     734.18
+TRITURBINE  1st_entry      LONG BEARISH             6             3.0    88.68     50.00     532.08
+      BBOX  1st_entry      LONG BULLISH             5             2.0    83.55     40.00     417.76
+   TFCILTD  1st_entry     SHORT BEARISH            11             7.0    80.11     63.64     881.21
+  ANANTRAJ  1st_entry     SHORT BEARISH            12             5.0    79.40     41.67     952.82
+ INOXGREEN  1st_entry      LONG BULLISH            15             3.0    77.63     20.00    1164.45
+ BANKNIFTY  1st_entry      LONG BEARISH            18             3.0    77.46     16.67    1394.26
+   HUBTOWN  1st_entry     SHORT BULLISH             7             2.0    71.65     28.57     501.56
+       TBZ  1st_entry     SHORT BEARISH             8             4.0    70.77     50.00     566.18
+   TFCILTD  1st_entry      LONG BEARISH             7             2.0    69.69     28.57     487.80
+SHAREINDIA  1st_entry     SHORT BEARISH            17             9.0    68.19     52.94    1159.23
+HERITGFOOD  1st_entry      LONG BULLISH             7             2.0    67.54     28.57     472.75
+TIMETECHNO  1st_entry      LONG BEARISH             5             1.0    66.04     20.00     330.18
+    RALLIS  1st_entry     SHORT BULLISH            10             2.0    63.10     20.00     631.01
+    TVSSCS  1st_entry     SHORT BEARISH            21            10.0    61.95     47.62    1301.04
+   CARRARO  1st_entry     SHORT BEARISH            11             6.0    59.68     54.55     656.48
+       TBZ  1st_entry     SHORT BULLISH             5             1.0    59.53     20.00     297.65
+    MARINE  1st_entry     SHORT BULLISH             8             2.0    55.84     25.00     446.68
+   NIFTY50  1st_entry     SHORT BEARISH            28            15.0    51.44     53.57    1440.44
+  ANANTRAJ  1st_entry      LONG BEARISH             7             3.0    47.79     42.86     334.51
+  CROMPTON  1st_entry     SHORT BEARISH             6             2.0    42.37     33.33     254.24
+    ZAGGLE  1st_entry     SHORT BEARISH            18             5.0    40.63     27.78     731.38
+ SPORTKING  1st_entry     SHORT BULLISH             5             2.0    38.73     40.00     193.64
+   FINPIPE  1st_entry      LONG BULLISH             6             1.0    33.52     16.67     201.13
+   STLTECH  1st_entry      LONG BEARISH            16             5.0    28.64     31.25     458.29
+      FACT  1st_entry      LONG BULLISH             5             3.0    25.01     60.00     125.04
+UMAEXPORTS  1st_entry     SHORT BEARISH             9             2.0    22.57     22.22     203.15
+  FIRSTCRY  1st_entry     SHORT BEARISH            16             4.0    20.39     25.00     326.21
+       TBZ  1st_entry      LONG BEARISH             9             3.0    19.49     33.33     175.39
+SWANENERGY  1st_entry      LONG BULLISH             5             1.0    19.17     20.00      95.85
+   CARRARO  1st_entry      LONG BEARISH            11             2.0    16.74     18.18     184.18
+SWANENERGY  1st_entry      LONG BEARISH            18             3.0    16.48     16.67     296.67
+  NORTHARC  1st_entry      LONG BULLISH             7             1.0    14.72     14.29     103.04
+   DIACABS  1st_entry     SHORT BULLISH             6             2.0    13.98     33.33      83.88
+      ICIL  1st_entry     SHORT BULLISH             6             2.0    13.83     33.33      82.98
+ASIANPAINT  1st_entry     SHORT BEARISH             9             5.0    13.23     55.56     119.11
+  PARADEEP  1st_entry     SHORT BULLISH             5             1.0    12.84     20.00      64.22
+       BLS  1st_entry     SHORT BEARISH             5             1.0    12.23     20.00      61.16
+   DIACABS  1st_entry      LONG BULLISH             6             1.0    10.79     16.67      64.71
+HERITGFOOD  1st_entry     SHORT BULLISH             7             2.0     8.37     28.57      58.59
+ BANKNIFTY  1st_entry     SHORT BEARISH            25             8.0     3.49     32.00      87.34
+ SMCGLOBAL  1st_entry      LONG BULLISH             6             3.0     0.76     50.00       4.55
+  PARADEEP  1st_entry      LONG BULLISH             9             3.0    -1.65     33.33     -14.86
+  FIRSTCRY  1st_entry      LONG BEARISH             8             3.0    -2.00     37.50     -16.01
+   NIFTY50  1st_entry      LONG BULLISH            16             5.0    -2.35     31.25     -37.62
+MANGCHEFER  1st_entry     SHORT BULLISH             5             2.0    -4.91     40.00     -24.55
+ASIANPAINT  1st_entry      LONG BULLISH             9             3.0    -5.29     33.33     -47.63
+   APTECHT  1st_entry      LONG BEARISH            11             4.0    -8.62     36.36     -94.80
+ASIANPAINT  1st_entry     SHORT BULLISH             6             1.0    -9.39     16.67     -56.36
+  AEROFLEX  1st_entry      LONG BEARISH             5             1.0    -9.60     20.00     -48.00
+QUADFUTURE  1st_entry      LONG BEARISH             7             4.0   -10.73     57.14     -75.14
+SWANENERGY  1st_entry     SHORT BEARISH            15             1.0   -17.63      6.67    -264.41
+   APTECHT  1st_entry     SHORT BULLISH             5             1.0   -29.70     20.00    -148.48
+       RBA  1st_entry     SHORT BULLISH             5             1.0   -29.96     20.00    -149.82
+  GRAPHITE  1st_entry     SHORT BULLISH             5             2.0   -30.39     40.00    -151.93
+    AUBANK  1st_entry     SHORT BULLISH             5             1.0   -31.16     20.00    -155.78
+   TFCILTD  1st_entry     SHORT BULLISH             6             1.0   -33.20     16.67    -199.22
+  PARADEEP  1st_entry      LONG BEARISH             6             0.0   -33.30      0.00    -199.82
+  GPTINFRA  1st_entry     SHORT BULLISH             7             1.0   -35.64     14.29    -249.45
+ LLOYDSENT  1st_entry      LONG BULLISH             8             1.0   -37.43     12.50    -299.46
+SHAREINDIA  1st_entry      LONG BEARISH             9             1.0   -37.76     11.11    -339.84
+ LLOYDSENT  1st_entry     SHORT BULLISH             5             0.0   -40.02      0.00    -200.08
+  PARADEEP  1st_entry     SHORT BEARISH             6             1.0   -40.64     16.67    -243.82
+    PFOCUS  1st_entry     SHORT BULLISH             7             1.0   -42.71     14.29    -298.95
+    PFOCUS  1st_entry      LONG BULLISH             7             0.0   -42.87      0.00    -300.06
+    TVSSCS  1st_entry      LONG BEARISH            18             5.0   -43.13     27.78    -776.26
+   NACLIND  1st_entry      LONG BULLISH             8             1.0   -43.48     12.50    -347.80
+ OSWALAGRO  1st_entry      LONG BULLISH             8             1.0   -43.68     12.50    -349.42
+SANGHVIMOV  1st_entry     SHORT BULLISH             5             0.0   -49.97      0.00    -249.87
+   GOLDIAM  1st_entry     SHORT BEARISH             6             0.0   -50.00      0.00    -299.98
+ SMCGLOBAL  1st_entry     SHORT BULLISH             5             0.0   -50.16      0.00    -250.81
+     EMBDL  1st_entry      LONG BEARISH            18             6.0   -52.93     33.33    -952.78
+ JINDALSAW  1st_entry     SHORT BEARISH             9             4.0   -84.71     44.44    -762.41
+    VIPIND  1st_entry     SHORT BULLISH             6             1.0  -100.43     16.67    -602.55
+    TVSSCS  1st_entry      LONG BULLISH             6             1.0  -110.61     16.67    -663.67
+KALAMANDIR  1st_entry      LONG BULLISH             5             2.0  -112.87     40.00    -564.34
+ INOXGREEN  1st_entry      LONG BEARISH            16             3.0  -119.89     18.75   -1918.19
+    JTLIND  1st_entry     SHORT BULLISH             7             2.0  -135.45     28.57    -948.15
+CAMLINFINE  1st_entry     SHORT BULLISH             8             1.0  -149.35     12.50   -1194.79
+    JTLIND  1st_entry      LONG BEARISH             8             1.0  -153.80     12.50   -1230.43
+WALCHANNAG  1st_entry     SHORT BULLISH            13             3.0  -175.99     23.08   -2287.93
+     KITEX  1st_entry      LONG BULLISH             5             2.0  -197.74     40.00    -988.69
+ IDEAFORGE  1st_entry     SHORT BULLISH             9             1.0  -234.02     11.11   -2106.22
+      ELIN  1st_entry      LONG BULLISH             5             1.0  -243.36     20.00   -1216.82
+  IIFLCAPS  1st_entry     SHORT BULLISH             5             1.0  -295.98     20.00   -1479.92
+   SANDUMA  1st_entry     SHORT BULLISH             5             0.0  -300.45      0.00   -1502.27
+   PROTEAN  1st_entry      LONG BEARISH             6             0.0  -332.31      0.00   -1993.84
+     YATRA  1st_entry      LONG BULLISH             6             0.0  -333.29      0.00   -1999.76
+QUADFUTURE  1st_entry     SHORT BULLISH             6             1.0  -333.84     16.67   -2003.02
+     QUESS  1st_entry     SHORT BEARISH             9             1.0  -343.89     11.11   -3095.03
+  MARKSANS  1st_entry     SHORT BULLISH             8             0.0  -375.24      0.00   -3001.92
+    FUSION  1st_entry      LONG BEARISH             9             2.0  -384.31     22.22   -3458.81
+     CUPID  1st_entry     SHORT BULLISH             5             1.0  -396.20     20.00   -1980.99
+KALAMANDIR  1st_entry     SHORT BULLISH             5             1.0  -398.81     20.00   -1994.06
+     QUESS  1st_entry      LONG BEARISH             5             0.0  -399.97      0.00   -1999.83
+   MIDHANI  1st_entry     SHORT BULLISH             5             0.0  -400.11      0.00   -2000.57
+ PREMEXPLN  1st_entry     SHORT BULLISH             6             1.0  -415.33     16.67   -2491.98
+      SDBL  1st_entry     SHORT BULLISH             7             1.0  -427.78     14.29   -2994.49
+MOTILALOFS  1st_entry      LONG BULLISH             9             1.0  -443.91     11.11   -3995.18
+  IIFLCAPS  1st_entry      LONG BULLISH             9             0.0  -444.32      0.00   -3998.88
+INDSWFTLAB  1st_entry     SHORT BEARISH             5             0.0  -497.27      0.00   -2486.35
+QUADFUTURE  1st_entry      LONG BULLISH             5             0.0  -499.88      0.00   -2499.42
+   VINCOFE  1st_entry     SHORT BULLISH             6             0.0  -499.95      0.00   -2999.68
+   RAILTEL  1st_entry     SHORT BULLISH             5             0.0  -499.97      0.00   -2499.83
+NAVKARCORP  1st_entry     SHORT BULLISH             6             0.0  -500.01      0.00   -3000.07
+MOREPENLAB  1st_entry     SHORT BULLISH             5             0.0  -500.03      0.00   -2500.13
+
+--- EntryTimeString: 2_30_entry ---
+       name trade_type direction   trend  total_trades  winning_trades  avg_pnl  win_rate  total_pnl
+       FACT 2_30_entry      LONG BULLISH             5             5.0   182.20    100.00     911.00
+ SANGHVIMOV 2_30_entry      LONG BULLISH             6             3.0   154.77     50.00     928.62
+     ZAGGLE 2_30_entry     SHORT BULLISH             5             3.0   144.45     60.00     722.23
+    GOLDIAM 2_30_entry      LONG BEARISH             8             4.0   127.16     50.00    1017.27
+BAJAJFINSRV 2_30_entry      LONG BULLISH             5             5.0   123.06    100.00     615.29
+    CARRARO 2_30_entry     SHORT BULLISH             7             5.0   122.61     71.43     858.30
+   SURYODAY 2_30_entry     SHORT BULLISH             9             8.0   119.34     88.89    1074.08
+        RBA 2_30_entry      LONG BULLISH             6             4.0   117.25     66.67     703.52
+  INOXGREEN 2_30_entry     SHORT BULLISH             8             6.0   111.66     75.00     893.30
+   PARADEEP 2_30_entry      LONG BEARISH            10             6.0   109.50     60.00    1095.04
+     JTLIND 2_30_entry     SHORT BEARISH            21            11.0   108.78     52.38    2284.43
+  OSWALAGRO 2_30_entry     SHORT BULLISH            16             8.0   104.39     50.00    1670.28
+ STYLEBAAZA 2_30_entry     SHORT BULLISH             7             5.0   104.14     71.43     728.98
+ JISLJALEQS 2_30_entry      LONG BULLISH             7             3.0   103.77     42.86     726.39
+     TAJGVK 2_30_entry      LONG BEARISH             5             2.0    97.42     40.00     487.12
+   FIRSTCRY 2_30_entry      LONG BEARISH            22            13.0    87.96     59.09    1935.16
+       ICIL 2_30_entry     SHORT BULLISH             6             4.0    87.81     66.67     526.85
+ KALAMANDIR 2_30_entry     SHORT BEARISH            27            15.0    86.00     55.56    2322.10
+   PARADEEP 2_30_entry      LONG BULLISH            16             6.0    81.63     37.50    1306.13
+ TIMETECHNO 2_30_entry     SHORT BEARISH            11             8.0    81.05     72.73     891.55
+        KEC 2_30_entry     SHORT BEARISH             9             7.0    80.44     77.78     724.00
+ UMAEXPORTS 2_30_entry      LONG BEARISH            14             6.0    79.34     42.86    1110.71
+ TRANSRAILL 2_30_entry     SHORT BEARISH             7             5.0    78.45     71.43     549.13
+     ZAGGLE 2_30_entry      LONG BULLISH             7             5.0    77.04     71.43     539.29
+BALAKRISHNA 2_30_entry      LONG BEARISH             5             2.0    75.69     40.00     378.47
+    APTECHT 2_30_entry     SHORT BULLISH             5             3.0    74.60     60.00     372.98
+        KRN 2_30_entry     SHORT BEARISH            12            10.0    73.55     83.33     882.56
+ JISLJALEQS 2_30_entry     SHORT BEARISH             8             4.0    73.03     50.00     584.26
+        ACC 2_30_entry     SHORT BEARISH             7             5.0    71.62     71.43     501.32
+     FUSION 2_30_entry     SHORT BULLISH             8             3.0    68.30     37.50     546.43
+  SARLAPOLY 2_30_entry     SHORT BULLISH             9             5.0    67.37     55.56     606.30
+        BLS 2_30_entry     SHORT BEARISH             5             4.0    66.12     80.00     330.60
+     POLICY 2_30_entry     SHORT BULLISH             5             3.0    65.43     60.00     327.17
+    TFCILTD 2_30_entry     SHORT BULLISH            12             6.0    62.78     50.00     753.32
+   ANANTRAJ 2_30_entry      LONG BEARISH            25            10.0    60.29     40.00    1507.27
+ REMSONSIND 2_30_entry      LONG BULLISH             5             2.0    59.72     40.00     298.59
+ SWANENERGY 2_30_entry     SHORT BEARISH            38            23.0    59.36     60.53    2255.58
+    TFCILTD 2_30_entry     SHORT BEARISH            14             9.0    56.94     64.29     797.16
+     JTLIND 2_30_entry      LONG BULLISH             7             5.0    54.50     71.43     381.47
+   PARADEEP 2_30_entry     SHORT BULLISH            12             7.0    54.27     58.33     651.24
+        TBZ 2_30_entry     SHORT BEARISH            22            11.0    53.04     50.00    1166.94
+ QUADFUTURE 2_30_entry     SHORT BEARISH             8             5.0    52.45     62.50     419.59
+     POLICY 2_30_entry      LONG BULLISH             9             5.0    51.97     55.56     467.72
+       EMIL 2_30_entry     SHORT BULLISH             7             4.0    51.10     57.14     357.72
+ QUADFUTURE 2_30_entry     SHORT BULLISH             8             6.0    50.48     75.00     403.87
+   PARADEEP 2_30_entry     SHORT BEARISH            19            12.0    49.21     63.16     935.05
+ JAICORPLTD 2_30_entry     SHORT BEARISH            40            25.0    49.19     62.50    1967.48
+     TVSSCS 2_30_entry     SHORT BEARISH            35            23.0    49.07     65.71    1717.49
+ SWANENERGY 2_30_entry     SHORT BULLISH             6             3.0    49.04     50.00     294.22
+ UMAEXPORTS 2_30_entry     SHORT BEARISH            16            10.0    48.66     62.50     778.59
+   AEROFLEX 2_30_entry     SHORT BEARISH             8             5.0    48.62     62.50     388.92
+     GARUDA 2_30_entry     SHORT BEARISH             7             5.0    48.29     71.43     338.06
+     ZAGGLE 2_30_entry      LONG BEARISH            23             9.0    46.56     39.13    1070.96
+    TFCILTD 2_30_entry      LONG BEARISH            19             6.0    45.95     31.58     873.02
+    GOLDIAM 2_30_entry     SHORT BEARISH            10             5.0    45.56     50.00     455.64
+      EMBDL 2_30_entry     SHORT BEARISH            23            14.0    45.49     60.87    1046.28
+      KITEX 2_30_entry      LONG BEARISH             7             4.0    45.20     57.14     316.41
+     AUBANK 2_30_entry      LONG BULLISH             5             3.0    44.58     60.00     222.91
+        TBZ 2_30_entry     SHORT BULLISH             7             3.0    44.30     42.86     310.13
+  LLOYDSENT 2_30_entry      LONG BULLISH             5             2.0    43.79     40.00     218.94
+      EMBDL 2_30_entry     SHORT BULLISH            11             6.0    43.52     54.55     478.72
+ BALAJITELE 2_30_entry     SHORT BULLISH             7             2.0    42.79     28.57     299.50
+BAJAJFINSRV 2_30_entry     SHORT BULLISH             7             5.0    41.62     71.43     291.35
+    STLTECH 2_30_entry     SHORT BEARISH            22            13.0    41.35     59.09     909.77
+   SURYODAY 2_30_entry      LONG BULLISH             5             4.0    40.50     80.00     202.52
+   FIRSTCRY 2_30_entry     SHORT BEARISH            24            13.0    37.74     54.17     905.77
+      EMBDL 2_30_entry      LONG BEARISH            20             9.0    36.00     45.00     719.92
+        ACC 2_30_entry      LONG BULLISH             5             3.0    35.57     60.00     177.85
+    APTECHT 2_30_entry      LONG BEARISH            21             9.0    35.56     42.86     746.84
+ TRITURBINE 2_30_entry      LONG BEARISH            18             8.0    35.12     44.44     632.16
+  OSWALAGRO 2_30_entry      LONG BULLISH             5             2.0    34.74     40.00     173.68
+      EMBDL 2_30_entry      LONG BULLISH             5             3.0    33.70     60.00     168.52
+   ANANTRAJ 2_30_entry     SHORT BEARISH            25            12.0    33.46     48.00     836.51
+        RCF 2_30_entry     SHORT BULLISH             7             2.0    31.68     28.57     221.79
+   NORTHARC 2_30_entry     SHORT BULLISH            13             7.0    30.01     53.85     390.17
+   MINDTECK 2_30_entry     SHORT BULLISH             5             1.0    29.67     20.00     148.35
+  ELECTCAST 2_30_entry     SHORT BEARISH             9             4.0    28.76     44.44     258.84
+     JTLIND 2_30_entry      LONG BEARISH            14             6.0    28.11     42.86     393.57
+    APTECHT 2_30_entry     SHORT BEARISH            18             9.0    27.20     50.00     489.59
+   CROMPTON 2_30_entry      LONG BEARISH             7             3.0    26.54     42.86     185.75
+     ASHOKA 2_30_entry     SHORT BEARISH            11             5.0    26.47     45.45     291.18
+      KITEX 2_30_entry      LONG BULLISH             5             3.0    26.40     60.00     132.00
+       BBOX 2_30_entry     SHORT BULLISH             7             3.0    25.25     42.86     176.76
+ UMAEXPORTS 2_30_entry     SHORT BULLISH             5             1.0    25.17     20.00     125.86
+ SANGHVIMOV 2_30_entry     SHORT BULLISH            10             4.0    25.12     40.00     251.18
+  ICICIBANK 2_30_entry      LONG BULLISH             9             3.0    24.76     33.33     222.80
+ SHAREINDIA 2_30_entry     SHORT BEARISH            30            15.0    24.71     50.00     741.32
+    TFCILTD 2_30_entry      LONG BULLISH            16             8.0    24.62     50.00     393.96
+ JAICORPLTD 2_30_entry      LONG BEARISH            16             5.0    23.29     31.25     372.67
+ SHAREINDIA 2_30_entry      LONG BEARISH            34            12.0    23.23     35.29     789.69
+    APTECHT 2_30_entry      LONG BULLISH            10             3.0    20.64     30.00     206.41
+    CARRARO 2_30_entry     SHORT BEARISH            27            14.0    19.28     51.85     520.52
+ KALAMANDIR 2_30_entry     SHORT BULLISH             5             2.0    18.82     40.00      94.10
+       ICIL 2_30_entry      LONG BULLISH            10             3.0    17.62     30.00     176.19
+   GPTINFRA 2_30_entry      LONG BULLISH            11             4.0    17.60     36.36     193.60
+   GPTINFRA 2_30_entry     SHORT BULLISH             7             5.0    16.07     71.43     112.49
+  OSWALAGRO 2_30_entry      LONG BEARISH             5             1.0    13.24     20.00      66.19
+    CARRARO 2_30_entry      LONG BEARISH            21             8.0    12.64     38.10     265.39
+ TRITURBINE 2_30_entry     SHORT BEARISH            28            11.0    12.40     39.29     347.31
+     TVSSCS 2_30_entry      LONG BEARISH            33             9.0    11.94     27.27     393.93
+ ASIANPAINT 2_30_entry     SHORT BEARISH            12             6.0    10.42     50.00     124.99
+ ASIANPAINT 2_30_entry      LONG BULLISH            13             8.0     9.61     61.54     124.88
+ ASIANPAINT 2_30_entry     SHORT BULLISH            12             6.0     9.27     50.00     111.19
+  ELECTCAST 2_30_entry      LONG BEARISH             6             2.0     7.98     33.33      47.87
+ SWANENERGY 2_30_entry      LONG BEARISH            23             7.0     6.63     30.43     152.55
+ TRANSRAILL 2_30_entry     SHORT BULLISH             5             2.0     6.55     40.00      32.73
+   AEROFLEX 2_30_entry      LONG BEARISH             6             3.0     5.24     50.00      31.42
+ MANGCHEFER 2_30_entry     SHORT BULLISH            15             6.0     4.29     40.00      64.31
+   MINDTECK 2_30_entry     SHORT BEARISH             8             4.0     3.05     50.00      24.38
+     ZAGGLE 2_30_entry     SHORT BEARISH            16             6.0     1.60     37.50      25.63
+        EPL 2_30_entry     SHORT BEARISH             9             4.0     0.52     44.44       4.70
+ ASIANPAINT 2_30_entry      LONG BEARISH            15             7.0     0.37     46.67       5.58
+     FUSION 2_30_entry      LONG BEARISH             5             2.0    -0.03     40.00      -0.17
+   CROMPTON 2_30_entry     SHORT BEARISH             8             3.0    -0.31     37.50      -2.50
+        KEC 2_30_entry      LONG BEARISH             7             3.0    -0.57     42.86      -3.99
+     MARINE 2_30_entry      LONG BULLISH             8             2.0    -0.60     25.00      -4.83
+    STLTECH 2_30_entry      LONG BEARISH            12             5.0    -2.13     41.67     -25.58
+      KITEX 2_30_entry     SHORT BEARISH            16             5.0    -3.57     31.25     -57.11
+        IGL 2_30_entry      LONG BEARISH             6             2.0    -5.98     33.33     -35.87
+    RKFORGE 2_30_entry     SHORT BEARISH             8             4.0    -7.23     50.00     -57.81
+  SARLAPOLY 2_30_entry      LONG BULLISH             6             2.0    -7.67     33.33     -46.03
+ STYLEBAAZA 2_30_entry      LONG BULLISH            11             2.0    -8.31     18.18     -91.46
+ MANGCHEFER 2_30_entry      LONG BULLISH             8             2.0    -8.48     25.00     -67.83
+ TRANSRAILL 2_30_entry      LONG BEARISH             5             2.0    -9.55     40.00     -47.76
+  INOXGREEN 2_30_entry      LONG BULLISH             8             3.0    -9.69     37.50     -77.55
+    NACLIND 2_30_entry     SHORT BULLISH            10             3.0   -10.49     30.00    -104.93
+ TIMETECHNO 2_30_entry      LONG BEARISH             7             2.0   -11.56     28.57     -80.91
+        ACC 2_30_entry      LONG BEARISH             5             1.0   -13.59     20.00     -67.95
+BALAKRISHNA 2_30_entry     SHORT BEARISH             5             1.0   -14.44     20.00     -72.19
+       FACT 2_30_entry     SHORT BULLISH             5             1.0   -16.85     20.00     -84.26
+    RKFORGE 2_30_entry      LONG BEARISH            13             4.0   -16.98     30.77    -220.79
+ UMAEXPORTS 2_30_entry      LONG BULLISH             6             1.0   -17.73     16.67    -106.39
+ KALAMANDIR 2_30_entry      LONG BEARISH            27             4.0   -21.70     14.81    -585.94
+  OSWALAGRO 2_30_entry     SHORT BEARISH             9             1.0   -22.33     11.11    -200.98
+        TBZ 2_30_entry      LONG BEARISH            10             2.0   -23.38     20.00    -233.79
+        TBZ 2_30_entry      LONG BULLISH            11             3.0   -24.23     27.27    -266.52
+ SWANENERGY 2_30_entry      LONG BULLISH             5             1.0   -30.47     20.00    -152.33
+        KRN 2_30_entry      LONG BEARISH             9             2.0   -33.04     22.22    -297.37
+  SPORTKING 2_30_entry      LONG BULLISH             9             2.0   -34.77     22.22    -312.94
+   ANANTRAJ 2_30_entry      LONG BULLISH             5             0.0   -36.44      0.00    -182.21
+        BLS 2_30_entry      LONG BEARISH             6             1.0   -38.36     16.67    -230.18
+     AUBANK 2_30_entry     SHORT BULLISH             6             0.0   -41.08      0.00    -246.45
+   ANANTRAJ 2_30_entry     SHORT BULLISH             6             1.0   -41.72     16.67    -250.33
+       EMIL 2_30_entry      LONG BULLISH             7             0.0   -49.99      0.00    -349.95
+    NACLIND 2_30_entry      LONG BEARISH             5             0.0   -51.73      0.00    -258.64
+
+--- EntryTimeString: bb_width_entry ---
+      name     trade_type direction   trend  total_trades  winning_trades  avg_pnl  win_rate  total_pnl
+   TNPETRO bb_width_entry      LONG BULLISH             5             2.0   697.49     40.00    3487.45
+   KUANTUM bb_width_entry      LONG BULLISH            10             3.0   273.64     30.00    2736.37
+     MUFIN bb_width_entry      LONG BULLISH            30             3.0   194.55     10.00    5836.40
+      KIMS bb_width_entry      LONG BULLISH            29            10.0   166.57     34.48    4830.66
+  RELIGARE bb_width_entry      LONG BULLISH             5             2.0   159.42     40.00     797.11
+KAJARIACER bb_width_entry      LONG BULLISH            14             5.0   142.26     35.71    1991.57
+KARURVYSYA bb_width_entry      LONG BULLISH            10             5.0   138.27     50.00    1382.65
+     SOBHA bb_width_entry      LONG BULLISH            14             3.0   123.08     21.43    1723.11
+    RELAXO bb_width_entry      LONG BULLISH            27             9.0    36.07     33.33     973.83
+ DELHIVERY bb_width_entry      LONG BULLISH            25             9.0    29.68     36.00     741.91
+RADHIKAJWE bb_width_entry      LONG BULLISH             8             3.0    23.66     37.50     189.31
+LLOYDSENGG bb_width_entry      LONG BULLISH            19             3.0    17.56     15.79     333.55
+    QPOWER bb_width_entry      LONG BULLISH            25             5.0    12.64     20.00     316.10
+     IXIGO bb_width_entry      LONG BULLISH            16             6.0     1.07     37.50      17.19
+     PAYTM bb_width_entry      LONG BULLISH             6             2.0    -4.72     33.33     -28.34
+     SYRMA bb_width_entry      LONG BULLISH            12             5.0   -24.28     41.67    -291.40
+ PARAGMILK bb_width_entry      LONG BULLISH            10             3.0   -26.01     30.00    -260.06
+    PFOCUS bb_width_entry      LONG BULLISH            18             3.0   -26.54     16.67    -477.67
+  AEROFLEX bb_width_entry      LONG BULLISH            11             2.0   -29.72     18.18    -326.89
+KALYANKJIL bb_width_entry      LONG BULLISH             5             2.0   -37.49     40.00    -187.44
+    CAMPUS bb_width_entry      LONG BULLISH            14             4.0   -40.52     28.57    -567.34
+   FILATEX bb_width_entry      LONG BULLISH            18             4.0   -48.18     22.22    -867.23
+  EVEREADY bb_width_entry      LONG BULLISH            16             5.0   -52.41     31.25    -838.59
+      ABDL bb_width_entry      LONG BULLISH             6             2.0   -58.09     33.33    -348.52
+SWANENERGY bb_width_entry      LONG BULLISH            14             4.0   -72.59     28.57   -1016.30
+    VIPIND bb_width_entry      LONG BULLISH            16             5.0   -73.69     31.25   -1179.10
+    JGCHEM bb_width_entry      LONG BULLISH            16             4.0   -92.37     25.00   -1477.96
+ NETWORK18 bb_width_entry      LONG BULLISH            14             3.0  -119.71     21.43   -1675.89
+    ARKADE bb_width_entry      LONG BULLISH            14             4.0  -128.75     28.57   -1802.43
+CHENNPETRO bb_width_entry      LONG BULLISH            13             4.0  -130.75     30.77   -1699.75
+   LTFOODS bb_width_entry      LONG BULLISH            25             3.0  -141.35     12.00   -3533.63
+    RALLIS bb_width_entry      LONG BULLISH            18             5.0  -143.02     27.78   -2574.41
+       VMM bb_width_entry      LONG BULLISH            26             8.0  -147.98     30.77   -3847.51
+  SUMICHEM bb_width_entry      LONG BULLISH            24             6.0  -151.76     25.00   -3642.34
+ PATANJALI bb_width_entry      LONG BULLISH             9             3.0  -162.35     33.33   -1461.19
+ECOSMOBLTY bb_width_entry      LONG BULLISH            12             2.0  -162.76     16.67   -1953.07
+       PNB bb_width_entry      LONG BULLISH            31             7.0  -164.55     22.58   -5100.90
+   RAYMOND bb_width_entry      LONG BEARISH             9             2.0  -181.82     22.22   -1636.34
+LAURUSLABS bb_width_entry      LONG BULLISH            18             5.0  -187.80     27.78   -3380.44
+HARIOMPIPE bb_width_entry      LONG BULLISH            13             2.0  -187.90     15.38   -2442.74
+   VINCOFE bb_width_entry      LONG BULLISH            10             4.0  -204.14     40.00   -2041.36
+   ABSLAMC bb_width_entry      LONG BULLISH            23             6.0  -208.11     26.09   -4786.45
+  BLISSGVS bb_width_entry      LONG BULLISH            29             2.0  -208.46      6.90   -6045.27
+   DIACABS bb_width_entry      LONG BULLISH            10             2.0  -209.31     20.00   -2093.11
+DATAMATICS bb_width_entry      LONG BULLISH            12             2.0  -213.37     16.67   -2560.43
+    UTIAMC bb_width_entry      LONG BULLISH            16             4.0  -214.82     25.00   -3437.14
+ JKLAKSHMI bb_width_entry      LONG BULLISH            32             5.0  -221.76     15.63   -7096.21
+      IIFL bb_width_entry      LONG BULLISH             9             2.0  -222.46     22.22   -2002.14
+ASHAPURMIN bb_width_entry      LONG BULLISH            12             2.0  -224.08     16.67   -2689.01
+  USHAMART bb_width_entry      LONG BULLISH             9             1.0  -227.02     11.11   -2043.14
+ SPORTKING bb_width_entry      LONG BULLISH            30             3.0  -229.67     10.00   -6890.24
+NATCOPHARM bb_width_entry      LONG BULLISH            15             4.0  -233.76     26.67   -3506.45
+   MANKIND bb_width_entry      LONG BULLISH            14             1.0  -234.19      7.14   -3278.63
+JUBLINGREA bb_width_entry      LONG BULLISH            22             3.0  -241.34     13.64   -5309.41
+ MUTHOOTMF bb_width_entry      LONG BULLISH            13             3.0  -242.12     23.08   -3147.53
+TRANSRAILL bb_width_entry      LONG BULLISH            21             3.0  -247.55     14.29   -5198.63
+   FEDFINA bb_width_entry      LONG BULLISH            27             5.0  -256.50     18.52   -6925.37
+  NOVAAGRI bb_width_entry      LONG BULLISH            18             4.0  -269.23     22.22   -4846.22
+ASAHIINDIA bb_width_entry      LONG BULLISH            23             3.0  -281.24     13.04   -6468.55
+   TFCILTD bb_width_entry      LONG BULLISH            15             1.0  -281.34      6.67   -4220.16
+AARTIDRUGS bb_width_entry      LONG BULLISH            32             3.0  -284.10      9.38   -9091.25
+ 20MICRONS bb_width_entry      LONG BULLISH            25             4.0  -284.35     16.00   -7108.70
+   HUBTOWN bb_width_entry      LONG BULLISH            28             3.0  -296.18     10.71   -8293.10
+TIMETECHNO bb_width_entry      LONG BULLISH            23             4.0  -301.00     17.39   -6922.91
+  MARATHON bb_width_entry      LONG BULLISH            28             2.0  -305.87      7.14   -8564.36
+     SENCO bb_width_entry      LONG BULLISH            11             2.0  -308.46     18.18   -3393.09
+       PEL bb_width_entry      LONG BULLISH            21             3.0  -310.65     14.29   -6523.57
+  KPIGREEN bb_width_entry      LONG BULLISH            16             2.0  -312.10     12.50   -4993.54
+GMRAIRPORT bb_width_entry      LONG BULLISH            14             2.0  -316.74     14.29   -4434.31
+       MOL bb_width_entry      LONG BULLISH            24             3.0  -318.74     12.50   -7649.73
+TIRUMALCHM bb_width_entry      LONG BULLISH            28             2.0  -325.33      7.14   -9109.19
+   SAKSOFT bb_width_entry      LONG BULLISH            25             4.0  -328.19     16.00   -8204.75
+NAVKARCORP bb_width_entry      LONG BULLISH             8             2.0  -336.53     25.00   -2692.26
+    MAMATA bb_width_entry      LONG BULLISH            20             3.0  -342.52     15.00   -6850.39
+     FLAIR bb_width_entry      LONG BULLISH            35             1.0  -347.22      2.86  -12152.75
+    GARUDA bb_width_entry      LONG BULLISH            12             1.0  -351.05      8.33   -4212.61
+ BORORENEW bb_width_entry      LONG BULLISH            32             4.0  -359.12     12.50  -11491.87
+THOMASCOOK bb_width_entry      LONG BULLISH            30             1.0  -371.51      3.33  -11145.35
+ EDELWEISS bb_width_entry      LONG BULLISH            14             2.0  -374.27     14.29   -5239.74
+      EIEL bb_width_entry      LONG BULLISH            27             3.0  -374.72     11.11  -10117.34
+    NAZARA bb_width_entry      LONG BULLISH            16             1.0  -374.95      6.25   -5999.15
+      TEGA bb_width_entry      LONG BULLISH             6             1.0  -390.29     16.67   -2341.74
+      CGCL bb_width_entry      LONG BULLISH             6             0.0  -390.53      0.00   -2343.18
+KALAMANDIR bb_width_entry      LONG BULLISH            31             2.0  -391.71      6.45  -12142.88
+    MCLOUD bb_width_entry      LONG BULLISH            12             0.0  -392.49      0.00   -4709.86
+       HPL bb_width_entry      LONG BULLISH            10             1.0  -394.08     10.00   -3940.76
+  BAJAJCON bb_width_entry      LONG BULLISH            26             2.0  -394.34      7.69  -10252.78
+  NORTHARC bb_width_entry      LONG BULLISH            16             1.0  -401.08      6.25   -6417.28
+  SPANDANA bb_width_entry      LONG BULLISH            11             1.0  -419.26      9.09   -4611.91
+ARVINDFASN bb_width_entry      LONG BULLISH            33             1.0  -424.59      3.03  -14011.53
+     DENTA bb_width_entry      LONG BULLISH            13             1.0  -428.37      7.69   -5568.84
+      KRBL bb_width_entry      LONG BULLISH            33             3.0  -435.21      9.09  -14361.81
+  VASCONEQ bb_width_entry      LONG BULLISH            35             2.0  -436.54      5.71  -15278.78
+MANALIPETC bb_width_entry      LONG BULLISH            28             3.0  -441.09     10.71  -12350.61
+     CUPID bb_width_entry      LONG BULLISH            34             1.0  -449.12      2.94  -15270.03
+     SAMHI bb_width_entry      LONG BULLISH             9             0.0  -459.52      0.00   -4135.66
+ SPMLINFRA bb_width_entry      LONG BULLISH             7             0.0  -500.03      0.00   -3500.24
+ANANDRATHI bb_width_entry      LONG BULLISH            14             0.0  -500.10      0.00   -7001.41
+
+================================================================================
+COMPREHENSIVE BB WIDTH BACKTESTING ANALYSIS
+================================================================================
+
+1. MOST PROFITABLE STOCKS (by Total Profit Amount):
+--------------------------------------------------
+1. JAICORPLTD      ₹211,689.54 (537 trades, 36.1% win rate)
+2. FUSION          ₹104,087.40 (384 trades, 29.2% win rate)
+3. WALCHANNAG      ₹ 98,844.65 (359 trades, 29.3% win rate)
+4. NIFTY50         ₹ 50,327.29 (527 trades, 40.6% win rate)
+5. INOXGREEN       ₹ 48,188.47 (507 trades, 29.2% win rate)
+
+2. MOST PROFITABLE STOCKS (by Number of Winning Trades):
+-------------------------------------------------------
+4. NIFTY50         214.0 winning trades (527 total, ₹  50,327 profit)
+1. JAICORPLTD      194.0 winning trades (537 total, ₹ 211,690 profit)
+11. BANKNIFTY       191.0 winning trades (527 total, ₹  35,543 profit)
+6. KALAMANDIR      171.0 winning trades (606 total, ₹  47,199 profit)
+8. EMBDL           162.0 winning trades (477 total, ₹  45,509 profit)
+
+3. MOST TRADED STOCKS (by Number of Trades):
+---------------------------------------------
+6. KALAMANDIR      606 trades (₹  47,199 profit, 28.2% win rate)
+1. JAICORPLTD      537 trades (₹ 211,690 profit, 36.1% win rate)
+4. NIFTY50         527 trades (₹  50,327 profit, 40.6% win rate)
+11. BANKNIFTY       527 trades (₹  35,543 profit, 36.2% win rate)
+5. INOXGREEN       507 trades (₹  48,188 profit, 29.2% win rate)
+
+OVERALL SUMMARY:
+Total PnL: ₹893,856.40
+Total Trades: 12089
+Win Rate: 31.6%
+Best Stock: JAICORPLTD
+================================================================================

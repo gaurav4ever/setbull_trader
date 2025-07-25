@@ -806,8 +806,8 @@ func (s *TechnicalIndicatorService) CalculateBBWidth(bbUpper, bbLower, bbMiddle 
 		bbWidth := upper - lower
 
 		// Log the calculation for debugging
-		log.Info("BB Width calculation: upper=%f, lower=%f, middle=%f, bbWidth=%f for timestamp %v",
-			upper, lower, middle, bbWidth, bbUpper[i].Timestamp)
+		// log.Info("BB Width calculation: upper=%f, lower=%f, middle=%f, bbWidth=%f for timestamp %v",
+		// 	upper, lower, middle, bbWidth, bbUpper[i].Timestamp)
 
 		// Validate the calculated value is reasonable
 		if math.IsNaN(bbWidth) || math.IsInf(bbWidth, 0) || bbWidth < 0 {

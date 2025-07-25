@@ -1,0 +1,663 @@
+{"level":"info","msg":"BB Width calculation: upper=106.901829, lower=105.851171, middle=106.376500, bbWidth=1.050659 for timestamp 2025-06-05 12:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.907959, lower=105.832041, middle=106.370000, bbWidth=1.075918 for timestamp 2025-06-05 12:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.907436, lower=105.821564, middle=106.364500, bbWidth=1.085871 for timestamp 2025-06-05 12:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.892135, lower=105.805865, middle=106.349000, bbWidth=1.086271 for timestamp 2025-06-05 12:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.870138, lower=105.792862, middle=106.331500, bbWidth=1.077276 for timestamp 2025-06-05 11:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.859599, lower=105.785401, middle=106.322500, bbWidth=1.074197 for timestamp 2025-06-05 11:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.857281, lower=105.778719, middle=106.318000, bbWidth=1.078562 for timestamp 2025-06-05 11:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.858144, lower=105.779856, middle=106.319000, bbWidth=1.078288 for timestamp 2025-06-05 11:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.972143, lower=105.721857, middle=106.347000, bbWidth=1.250286 for timestamp 2025-06-05 11:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.998539, lower=105.712461, middle=106.355500, bbWidth=1.286078 for timestamp 2025-06-05 11:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.993102, lower=105.713898, middle=106.353500, bbWidth=1.279204 for timestamp 2025-06-05 11:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.997792, lower=105.713208, middle=106.355500, bbWidth=1.284584 for timestamp 2025-06-05 11:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.987047, lower=105.714953, middle=106.351000, bbWidth=1.272094 for timestamp 2025-06-05 11:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.975254, lower=105.717746, middle=106.346500, bbWidth=1.257507 for timestamp 2025-06-05 11:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.957061, lower=105.703939, middle=106.330500, bbWidth=1.253122 for timestamp 2025-06-05 11:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.927638, lower=105.697362, middle=106.312500, bbWidth=1.230276 for timestamp 2025-06-05 11:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.910280, lower=105.643720, middle=106.277000, bbWidth=1.266561 for timestamp 2025-06-05 10:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.038922, lower=105.424078, middle=106.231500, bbWidth=1.614845 for timestamp 2025-06-05 10:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.111063, lower=105.285937, middle=106.198500, bbWidth=1.825126 for timestamp 2025-06-05 10:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.229731, lower=105.071269, middle=106.150500, bbWidth=2.158461 for timestamp 2025-06-05 10:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.288939, lower=104.909061, middle=106.099000, bbWidth=2.379879 for timestamp 2025-06-05 10:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.329470, lower=104.763530, middle=106.046500, bbWidth=2.565939 for timestamp 2025-06-05 10:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.350874, lower=104.618126, middle=105.984500, bbWidth=2.732749 for timestamp 2025-06-05 10:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.349452, lower=104.502548, middle=105.926000, bbWidth=2.846904 for timestamp 2025-06-05 10:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.327856, lower=104.423144, middle=105.875500, bbWidth=2.904713 for timestamp 2025-06-05 10:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.300940, lower=104.325060, middle=105.813000, bbWidth=2.975879 for timestamp 2025-06-05 10:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.270604, lower=104.231396, middle=105.751000, bbWidth=3.039208 for timestamp 2025-06-05 10:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.213492, lower=104.164508, middle=105.689000, bbWidth=3.048984 for timestamp 2025-06-05 10:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.998233, lower=104.181767, middle=105.590000, bbWidth=2.816466 for timestamp 2025-06-05 09:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.821210, lower=104.183790, middle=105.502500, bbWidth=2.637419 for timestamp 2025-06-05 09:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.653340, lower=104.196660, middle=105.425000, bbWidth=2.456681 for timestamp 2025-06-05 09:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.462737, lower=104.228263, middle=105.345500, bbWidth=2.234474 for timestamp 2025-06-05 09:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.253145, lower=104.292855, middle=105.273000, bbWidth=1.960290 for timestamp 2025-06-05 09:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.982710, lower=104.412290, middle=105.197500, bbWidth=1.570420 for timestamp 2025-06-05 09:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.779175, lower=104.505825, middle=105.142500, bbWidth=1.273350 for timestamp 2025-06-05 09:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.471985, lower=104.684015, middle=105.078000, bbWidth=0.787970 for timestamp 2025-06-05 09:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.218287, lower=104.869713, middle=105.044000, bbWidth=0.348574 for timestamp 2025-06-05 09:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.213269, lower=104.856731, middle=105.035000, bbWidth=0.356539 for timestamp 2025-06-04 15:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.200831, lower=104.863169, middle=105.032000, bbWidth=0.337663 for timestamp 2025-06-04 15:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.186553, lower=104.902447, middle=105.044500, bbWidth=0.284106 for timestamp 2025-06-04 15:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.186745, lower=104.901255, middle=105.044000, bbWidth=0.285489 for timestamp 2025-06-04 15:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.198092, lower=104.903908, middle=105.051000, bbWidth=0.294184 for timestamp 2025-06-04 15:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.206451, lower=104.915549, middle=105.061000, bbWidth=0.290902 for timestamp 2025-06-04 15:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.212398, lower=104.918602, middle=105.065500, bbWidth=0.293796 for timestamp 2025-06-04 14:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.193753, lower=104.918247, middle=105.056000, bbWidth=0.275507 for timestamp 2025-06-04 14:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.196227, lower=104.910773, middle=105.053500, bbWidth=0.285454 for timestamp 2025-06-04 14:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.194710, lower=104.919290, middle=105.057000, bbWidth=0.275420 for timestamp 2025-06-04 14:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.193054, lower=104.914946, middle=105.054000, bbWidth=0.278108 for timestamp 2025-06-04 14:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.193054, lower=104.914946, middle=105.054000, bbWidth=0.278108 for timestamp 2025-06-04 14:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.194188, lower=104.917812, middle=105.056000, bbWidth=0.276377 for timestamp 2025-06-04 14:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.255580, lower=104.884420, middle=105.070000, bbWidth=0.371160 for timestamp 2025-06-04 14:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.331356, lower=104.851644, middle=105.091500, bbWidth=0.479712 for timestamp 2025-06-04 14:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.363059, lower=104.843941, middle=105.103500, bbWidth=0.519118 for timestamp 2025-06-04 14:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.371458, lower=104.849542, middle=105.110500, bbWidth=0.521916 for timestamp 2025-06-04 14:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.380454, lower=104.851546, middle=105.116000, bbWidth=0.528908 for timestamp 2025-06-04 14:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.390068, lower=104.871932, middle=105.131000, bbWidth=0.518135 for timestamp 2025-06-04 13:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.397975, lower=104.871025, middle=105.134500, bbWidth=0.526950 for timestamp 2025-06-04 13:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.389876, lower=104.895124, middle=105.142500, bbWidth=0.494752 for timestamp 2025-06-04 13:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.388391, lower=104.889609, middle=105.139000, bbWidth=0.498783 for timestamp 2025-06-04 13:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.391791, lower=104.876209, middle=105.134000, bbWidth=0.515581 for timestamp 2025-06-04 13:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.389121, lower=104.887879, middle=105.138500, bbWidth=0.501242 for timestamp 2025-06-04 13:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.388381, lower=104.876619, middle=105.132500, bbWidth=0.511762 for timestamp 2025-06-04 13:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.386805, lower=104.875195, middle=105.131000, bbWidth=0.511609 for timestamp 2025-06-04 13:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.387256, lower=104.875744, middle=105.131500, bbWidth=0.511511 for timestamp 2025-06-04 13:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.414096, lower=104.883904, middle=105.149000, bbWidth=0.530192 for timestamp 2025-06-04 13:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.413202, lower=104.885798, middle=105.149500, bbWidth=0.527405 for timestamp 2025-06-04 13:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.415708, lower=104.878292, middle=105.147000, bbWidth=0.537416 for timestamp 2025-06-04 13:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.413960, lower=104.885040, middle=105.149500, bbWidth=0.528920 for timestamp 2025-06-04 12:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.416386, lower=104.874614, middle=105.145500, bbWidth=0.541771 for timestamp 2025-06-04 12:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.426835, lower=104.848165, middle=105.137500, bbWidth=0.578671 for timestamp 2025-06-04 12:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.399244, lower=104.844756, middle=105.122000, bbWidth=0.554487 for timestamp 2025-06-04 12:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.358091, lower=104.866909, middle=105.112500, bbWidth=0.491182 for timestamp 2025-06-04 12:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.327887, lower=104.875113, middle=105.101500, bbWidth=0.452774 for timestamp 2025-06-04 12:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.323417, lower=104.875583, middle=105.099500, bbWidth=0.447835 for timestamp 2025-06-04 12:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.310596, lower=104.873404, middle=105.092000, bbWidth=0.437191 for timestamp 2025-06-04 12:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.293210, lower=104.878790, middle=105.086000, bbWidth=0.414420 for timestamp 2025-06-04 12:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.271816, lower=104.885184, middle=105.078500, bbWidth=0.386632 for timestamp 2025-06-04 12:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.270774, lower=104.884226, middle=105.077500, bbWidth=0.386549 for timestamp 2025-06-04 12:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.271384, lower=104.873616, middle=105.072500, bbWidth=0.397769 for timestamp 2025-06-04 12:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.277865, lower=104.884135, middle=105.081000, bbWidth=0.393731 for timestamp 2025-06-04 11:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.277010, lower=104.876990, middle=105.077000, bbWidth=0.400020 for timestamp 2025-06-04 11:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.277636, lower=104.873364, middle=105.075500, bbWidth=0.404272 for timestamp 2025-06-04 11:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.273343, lower=104.864657, middle=105.069000, bbWidth=0.408686 for timestamp 2025-06-04 11:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.275672, lower=104.836328, middle=105.056000, bbWidth=0.439345 for timestamp 2025-06-04 11:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.300050, lower=104.728950, middle=105.014500, bbWidth=0.571101 for timestamp 2025-06-04 11:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.452661, lower=104.492339, middle=104.972500, bbWidth=0.960323 for timestamp 2025-06-04 11:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.478085, lower=104.411915, middle=104.945000, bbWidth=1.066171 for timestamp 2025-06-04 11:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.510321, lower=104.403679, middle=104.957000, bbWidth=1.106642 for timestamp 2025-06-04 11:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.504624, lower=104.384376, middle=104.944500, bbWidth=1.120248 for timestamp 2025-06-04 11:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.509309, lower=104.349691, middle=104.929500, bbWidth=1.159619 for timestamp 2025-06-04 11:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.509831, lower=104.296169, middle=104.903000, bbWidth=1.213662 for timestamp 2025-06-04 11:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.549842, lower=104.277158, middle=104.913500, bbWidth=1.272684 for timestamp 2025-06-04 10:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.613385, lower=104.252615, middle=104.933000, bbWidth=1.360770 for timestamp 2025-06-04 10:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.679666, lower=104.226334, middle=104.953000, bbWidth=1.453333 for timestamp 2025-06-04 10:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.852367, lower=104.145633, middle=104.999000, bbWidth=1.706735 for timestamp 2025-06-04 10:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=105.976241, lower=104.098759, middle=105.037500, bbWidth=1.877482 for timestamp 2025-06-04 10:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.078424, lower=104.071576, middle=105.075000, bbWidth=2.006848 for timestamp 2025-06-04 10:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.196550, lower=104.043450, middle=105.120000, bbWidth=2.153100 for timestamp 2025-06-04 10:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.378522, lower=103.995478, middle=105.187000, bbWidth=2.383043 for timestamp 2025-06-04 10:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.554883, lower=103.945117, middle=105.250000, bbWidth=2.609766 for timestamp 2025-06-04 10:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.749928, lower=103.908072, middle=105.329000, bbWidth=2.841856 for timestamp 2025-06-04 10:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.899766, lower=103.907234, middle=105.403500, bbWidth=2.992531 for timestamp 2025-06-04 10:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.042703, lower=103.919297, middle=105.481000, bbWidth=3.123406 for timestamp 2025-06-04 10:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.144870, lower=103.972130, middle=105.558500, bbWidth=3.172741 for timestamp 2025-06-04 09:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.209948, lower=104.099052, middle=105.654500, bbWidth=3.110896 for timestamp 2025-06-04 09:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.170248, lower=104.352752, middle=105.761500, bbWidth=2.817496 for timestamp 2025-06-04 09:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.135514, lower=104.567486, middle=105.851500, bbWidth=2.568027 for timestamp 2025-06-04 09:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.168093, lower=104.629907, middle=105.899000, bbWidth=2.538185 for timestamp 2025-06-04 09:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.133415, lower=104.812585, middle=105.973000, bbWidth=2.320831 for timestamp 2025-06-04 09:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.071018, lower=105.070982, middle=106.071000, bbWidth=2.000036 for timestamp 2025-06-04 09:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.877587, lower=105.462413, middle=106.170000, bbWidth=1.415175 for timestamp 2025-06-04 09:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.848812, lower=105.586188, middle=106.217500, bbWidth=1.262624 for timestamp 2025-06-04 09:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.797919, lower=105.723081, middle=106.260500, bbWidth=1.074838 for timestamp 2025-06-03 15:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.723260, lower=105.867740, middle=106.295500, bbWidth=0.855521 for timestamp 2025-06-03 15:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.721389, lower=105.871611, middle=106.296500, bbWidth=0.849779 for timestamp 2025-06-03 15:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.724195, lower=105.866805, middle=106.295500, bbWidth=0.857389 for timestamp 2025-06-03 15:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.710206, lower=105.890794, middle=106.300500, bbWidth=0.819412 for timestamp 2025-06-03 15:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.724767, lower=105.865233, middle=106.295000, bbWidth=0.859535 for timestamp 2025-06-03 15:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.757840, lower=105.776160, middle=106.267000, bbWidth=0.981680 for timestamp 2025-06-03 14:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.764933, lower=105.706067, middle=106.235500, bbWidth=1.058865 for timestamp 2025-06-03 14:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.726750, lower=105.674250, middle=106.200500, bbWidth=1.052500 for timestamp 2025-06-03 14:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.694287, lower=105.654713, middle=106.174500, bbWidth=1.039575 for timestamp 2025-06-03 14:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.649877, lower=105.665123, middle=106.157500, bbWidth=0.984754 for timestamp 2025-06-03 14:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.648329, lower=105.665671, middle=106.157000, bbWidth=0.982658 for timestamp 2025-06-03 14:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.688195, lower=105.645805, middle=106.167000, bbWidth=1.042390 for timestamp 2025-06-03 14:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.798240, lower=105.594760, middle=106.196500, bbWidth=1.203480 for timestamp 2025-06-03 14:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.892886, lower=105.561114, middle=106.227000, bbWidth=1.331772 for timestamp 2025-06-03 14:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=106.987277, lower=105.531723, middle=106.259500, bbWidth=1.455554 for timestamp 2025-06-03 14:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.033789, lower=105.531211, middle=106.282500, bbWidth=1.502578 for timestamp 2025-06-03 14:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.041661, lower=105.529339, middle=106.285500, bbWidth=1.512321 for timestamp 2025-06-03 14:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.069863, lower=105.523137, middle=106.296500, bbWidth=1.546727 for timestamp 2025-06-03 13:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.157963, lower=105.495037, middle=106.326500, bbWidth=1.662926 for timestamp 2025-06-03 13:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.231355, lower=105.481645, middle=106.356500, bbWidth=1.749710 for timestamp 2025-06-03 13:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.255693, lower=105.494307, middle=106.375000, bbWidth=1.761386 for timestamp 2025-06-03 13:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.264939, lower=105.535061, middle=106.400000, bbWidth=1.729879 for timestamp 2025-06-03 13:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.307526, lower=105.594474, middle=106.451000, bbWidth=1.713051 for timestamp 2025-06-03 13:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.351433, lower=105.650567, middle=106.501000, bbWidth=1.700866 for timestamp 2025-06-03 13:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.366685, lower=105.739315, middle=106.553000, bbWidth=1.627371 for timestamp 2025-06-03 13:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.353388, lower=105.871612, middle=106.612500, bbWidth=1.481776 for timestamp 2025-06-03 13:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.312154, lower=106.024846, middle=106.668500, bbWidth=1.287309 for timestamp 2025-06-03 13:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.330718, lower=106.148282, middle=106.739500, bbWidth=1.182436 for timestamp 2025-06-03 13:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.290972, lower=106.304028, middle=106.797500, bbWidth=0.986945 for timestamp 2025-06-03 13:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.297226, lower=106.401774, middle=106.849500, bbWidth=0.895453 for timestamp 2025-06-03 12:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.269800, lower=106.463200, middle=106.866500, bbWidth=0.806600 for timestamp 2025-06-03 12:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.289445, lower=106.488555, middle=106.889000, bbWidth=0.800890 for timestamp 2025-06-03 12:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.506495, lower=106.367505, middle=106.937000, bbWidth=1.138989 for timestamp 2025-06-03 12:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.759565, lower=106.239435, middle=106.999500, bbWidth=1.520130 for timestamp 2025-06-03 12:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=107.961577, lower=106.159423, middle=107.060500, bbWidth=1.802153 for timestamp 2025-06-03 12:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.116428, lower=106.143572, middle=107.130000, bbWidth=1.972856 for timestamp 2025-06-03 12:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.248961, lower=106.160039, middle=107.204500, bbWidth=2.088922 for timestamp 2025-06-03 12:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.397632, lower=106.168368, middle=107.283000, bbWidth=2.229264 for timestamp 2025-06-03 12:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.589939, lower=106.129061, middle=107.359500, bbWidth=2.460877 for timestamp 2025-06-03 12:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.833868, lower=106.077132, middle=107.455500, bbWidth=2.756736 for timestamp 2025-06-03 12:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=108.983150, lower=106.135850, middle=107.559500, bbWidth=2.847300 for timestamp 2025-06-03 12:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.145588, lower=106.220412, middle=107.683000, bbWidth=2.925176 for timestamp 2025-06-03 11:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.286628, lower=106.277372, middle=107.782000, bbWidth=3.009255 for timestamp 2025-06-03 11:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.402908, lower=106.353092, middle=107.878000, bbWidth=3.049816 for timestamp 2025-06-03 11:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.463588, lower=106.472412, middle=107.968000, bbWidth=2.991176 for timestamp 2025-06-03 11:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.627739, lower=106.552261, middle=108.090000, bbWidth=3.075477 for timestamp 2025-06-03 11:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.706105, lower=106.699895, middle=108.203000, bbWidth=3.006210 for timestamp 2025-06-03 11:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.802684, lower=106.794316, middle=108.298500, bbWidth=3.008369 for timestamp 2025-06-03 11:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.871374, lower=106.944626, middle=108.408000, bbWidth=2.926748 for timestamp 2025-06-03 11:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.964365, lower=107.082635, middle=108.523500, bbWidth=2.881729 for timestamp 2025-06-03 11:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.967664, lower=107.382336, middle=108.675000, bbWidth=2.585328 for timestamp 2025-06-03 11:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.836727, lower=107.695273, middle=108.766000, bbWidth=2.141454 for timestamp 2025-06-03 11:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.788433, lower=107.811567, middle=108.800000, bbWidth=1.976866 for timestamp 2025-06-03 11:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.780095, lower=107.906905, middle=108.843500, bbWidth=1.873191 for timestamp 2025-06-03 10:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.752438, lower=107.978562, middle=108.865500, bbWidth=1.773876 for timestamp 2025-06-03 10:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.762112, lower=108.095888, middle=108.929000, bbWidth=1.666224 for timestamp 2025-06-03 10:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.724973, lower=108.233027, middle=108.979000, bbWidth=1.491946 for timestamp 2025-06-03 10:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.704734, lower=108.349266, middle=109.027000, bbWidth=1.355469 for timestamp 2025-06-03 10:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.696840, lower=108.418160, middle=109.057500, bbWidth=1.278679 for timestamp 2025-06-03 10:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.696953, lower=108.425047, middle=109.061000, bbWidth=1.271906 for timestamp 2025-06-03 10:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.690113, lower=108.456887, middle=109.073500, bbWidth=1.233225 for timestamp 2025-06-03 10:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.690743, lower=108.459257, middle=109.075000, bbWidth=1.231487 for timestamp 2025-06-03 10:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.691122, lower=108.469878, middle=109.080500, bbWidth=1.221244 for timestamp 2025-06-03 10:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.690556, lower=108.475444, middle=109.083000, bbWidth=1.215112 for timestamp 2025-06-03 10:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.680905, lower=108.510095, middle=109.095500, bbWidth=1.170810 for timestamp 2025-06-03 10:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.648244, lower=108.504756, middle=109.076500, bbWidth=1.143488 for timestamp 2025-06-03 09:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.639824, lower=108.497176, middle=109.068500, bbWidth=1.142648 for timestamp 2025-06-03 09:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.626246, lower=108.489754, middle=109.058000, bbWidth=1.136493 for timestamp 2025-06-03 09:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.597602, lower=108.480398, middle=109.039000, bbWidth=1.117204 for timestamp 2025-06-03 09:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.518106, lower=108.503894, middle=109.011000, bbWidth=1.014211 for timestamp 2025-06-03 09:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.332519, lower=108.601481, middle=108.967000, bbWidth=0.731038 for timestamp 2025-06-03 09:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.332357, lower=108.600643, middle=108.966500, bbWidth=0.731713 for timestamp 2025-06-03 09:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.286850, lower=108.693150, middle=108.990000, bbWidth=0.593700 for timestamp 2025-06-03 09:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.286364, lower=108.683636, middle=108.985000, bbWidth=0.602727 for timestamp 2025-06-03 09:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.236791, lower=108.777209, middle=109.007000, bbWidth=0.459582 for timestamp 2025-06-02 15:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.159121, lower=108.805879, middle=108.982500, bbWidth=0.353242 for timestamp 2025-06-02 15:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.141793, lower=108.808207, middle=108.975000, bbWidth=0.333587 for timestamp 2025-06-02 15:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.082395, lower=108.831605, middle=108.957000, bbWidth=0.250791 for timestamp 2025-06-02 15:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.043213, lower=108.854787, middle=108.949000, bbWidth=0.188425 for timestamp 2025-06-02 15:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.045046, lower=108.855954, middle=108.950500, bbWidth=0.189093 for timestamp 2025-06-02 15:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.055193, lower=108.853807, middle=108.954500, bbWidth=0.201385 for timestamp 2025-06-02 14:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.055193, lower=108.853807, middle=108.954500, bbWidth=0.201385 for timestamp 2025-06-02 14:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.065551, lower=108.849449, middle=108.957500, bbWidth=0.216102 for timestamp 2025-06-02 14:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.121069, lower=108.821931, middle=108.971500, bbWidth=0.299139 for timestamp 2025-06-02 14:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.302625, lower=108.702375, middle=109.002500, bbWidth=0.600250 for timestamp 2025-06-02 14:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.391700, lower=108.661300, middle=109.026500, bbWidth=0.730400 for timestamp 2025-06-02 14:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.405216, lower=108.664784, middle=109.035000, bbWidth=0.740432 for timestamp 2025-06-02 14:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.428859, lower=108.666141, middle=109.047500, bbWidth=0.762719 for timestamp 2025-06-02 14:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.465623, lower=108.670377, middle=109.068000, bbWidth=0.795246 for timestamp 2025-06-02 14:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.496655, lower=108.673345, middle=109.085000, bbWidth=0.823310 for timestamp 2025-06-02 14:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.497815, lower=108.692185, middle=109.095000, bbWidth=0.805630 for timestamp 2025-06-02 14:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.495442, lower=108.705558, middle=109.100500, bbWidth=0.789884 for timestamp 2025-06-02 14:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.499001, lower=108.717999, middle=109.108500, bbWidth=0.781002 for timestamp 2025-06-02 13:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.494967, lower=108.745033, middle=109.120000, bbWidth=0.749933 for timestamp 2025-06-02 13:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.494891, lower=108.750109, middle=109.122500, bbWidth=0.744782 for timestamp 2025-06-02 13:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.486442, lower=108.778558, middle=109.132500, bbWidth=0.707884 for timestamp 2025-06-02 13:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.495201, lower=108.798799, middle=109.147000, bbWidth=0.696402 for timestamp 2025-06-02 13:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.498684, lower=108.792316, middle=109.145500, bbWidth=0.706368 for timestamp 2025-06-02 13:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.503786, lower=108.779214, middle=109.141500, bbWidth=0.724572 for timestamp 2025-06-02 13:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.505349, lower=108.774651, middle=109.140000, bbWidth=0.730698 for timestamp 2025-06-02 13:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.506492, lower=108.768508, middle=109.137500, bbWidth=0.737984 for timestamp 2025-06-02 13:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.537686, lower=108.705314, middle=109.121500, bbWidth=0.832373 for timestamp 2025-06-02 13:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.545168, lower=108.712832, middle=109.129000, bbWidth=0.832336 for timestamp 2025-06-02 13:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.539869, lower=108.689131, middle=109.114500, bbWidth=0.850739 for timestamp 2025-06-02 13:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.458758, lower=108.715242, middle=109.087000, bbWidth=0.743516 for timestamp 2025-06-02 12:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.389724, lower=108.738276, middle=109.064000, bbWidth=0.651448 for timestamp 2025-06-02 12:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.378381, lower=108.730619, middle=109.054500, bbWidth=0.647762 for timestamp 2025-06-02 12:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.353369, lower=108.726631, middle=109.040000, bbWidth=0.626738 for timestamp 2025-06-02 12:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.307243, lower=108.743757, middle=109.025500, bbWidth=0.563486 for timestamp 2025-06-02 12:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.287679, lower=108.755321, middle=109.021500, bbWidth=0.532357 for timestamp 2025-06-02 12:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.311553, lower=108.746447, middle=109.029000, bbWidth=0.565105 for timestamp 2025-06-02 12:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.360986, lower=108.731014, middle=109.046000, bbWidth=0.629971 for timestamp 2025-06-02 12:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.424432, lower=108.700568, middle=109.062500, bbWidth=0.723865 for timestamp 2025-06-02 12:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.437993, lower=108.700007, middle=109.069000, bbWidth=0.737986 for timestamp 2025-06-02 12:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.474447, lower=108.694553, middle=109.084500, bbWidth=0.779895 for timestamp 2025-06-02 12:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.524875, lower=108.683125, middle=109.104000, bbWidth=0.841751 for timestamp 2025-06-02 12:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.523704, lower=108.683296, middle=109.103500, bbWidth=0.840407 for timestamp 2025-06-02 11:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.523704, lower=108.683296, middle=109.103500, bbWidth=0.840407 for timestamp 2025-06-02 11:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.521212, lower=108.695788, middle=109.108500, bbWidth=0.825424 for timestamp 2025-06-02 11:45:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.524655, lower=108.713345, middle=109.119000, bbWidth=0.811310 for timestamp 2025-06-02 11:40:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.528243, lower=108.726757, middle=109.127500, bbWidth=0.801486 for timestamp 2025-06-02 11:35:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.492926, lower=108.800074, middle=109.146500, bbWidth=0.692852 for timestamp 2025-06-02 11:30:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.489719, lower=108.778281, middle=109.134000, bbWidth=0.711438 for timestamp 2025-06-02 11:25:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.506412, lower=108.804588, middle=109.155500, bbWidth=0.701823 for timestamp 2025-06-02 11:20:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.529895, lower=108.755105, middle=109.142500, bbWidth=0.774790 for timestamp 2025-06-02 11:15:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.545000, lower=108.717000, middle=109.131000, bbWidth=0.828000 for timestamp 2025-06-02 11:10:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.567782, lower=108.666218, middle=109.117000, bbWidth=0.901563 for timestamp 2025-06-02 11:05:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.638948, lower=108.537052, middle=109.088000, bbWidth=1.101897 for timestamp 2025-06-02 11:00:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.740113, lower=108.340887, middle=109.040500, bbWidth=1.399227 for timestamp 2025-06-02 10:55:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"BB Width calculation: upper=109.718140, lower=108.326860, middle=109.022500, bbWidth=1.391280 for timestamp 2025-06-02 10:50:00 +0530 IST","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"Indicator calculation complete - BB Upper: 2625 values, BB Middle: 2625 values, BB Width: 2625 values, BB Width Normalized: 2625 values, BB Width Normalized Percentage: 2625 values","time":"2025-07-21T07:51:46+05:30"}
+{"level":"info","msg":"Returning 2625 candles with indicators (requested range: 2025-06-01T09:15:00+05:30 to 2025-07-18T15:25:00+05:30)","time":"2025-07-21T07:51:49+05:30"}
+{"level":"info","msg":"Retrieving daily candles for NSE_EQ|INE532F01054 from 2025-04-12T09:15:00+05:30 to 2025-07-18T15:25:00+05:30","time":"2025-07-21T07:51:49+05:30"}
+{"level":"info","msg":"Retrieved 67 daily candles for instrument NSE_EQ|INE532F01054 from 2025-04-12 09:15:00","time":"2025-07-21T07:51:49+05:30"}
+
+
+
+^C{"level":"info","msg":"Shutting down server gracefully...","time":"2025-07-21T09:08:49+05:30"}
+^[[A                                                                                                                                              
+
+(setbull-py311)  ✘ gauravsharma@Gauravs-MacBook-Pro  ~/setbull_projects/setbull_trader   stock_selection ±  go run main.go 
+DEBUG: BB Width Monitoring Config - Enabled: true, MinCandles: 3, MaxCandles: 5
+{"level":"info","msg":"Application configuration loaded successfully.","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"####### STARTING SCHEMA MIGRATION #######","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"####### SCHEMA MIGRATION DONE #######","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Stock normalizer initialized with 3 default exclusion patterns","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Exclusion pattern 1: ^BANKNIFTY","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Exclusion pattern 2: ^FINNIFTY","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Exclusion pattern 3: -BE","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Starting HTTP server on port 8083","time":"2025-07-21T09:08:55+05:30"}
+{"level":"info","msg":"Starting precise 1-min candle ingestion and aggregation loop with offset 8s","time":"2025-07-21T09:08:55+05:30"}
+
+2025/07/21 09:09:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/stock_group_repository.go:41 SLOW SQL >= 200ms
+[219.397ms] [rows:3] SELECT * FROM `stock_groups`
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:09:08.851338+05:30 | Intended: 2025-07-21T09:09:08+05:30 | Drift: 851ms","time":"2025-07-21T09:09:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 851ms","time":"2025-07-21T09:09:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:10:08.532943+05:30 | Intended: 2025-07-21T09:10:08+05:30 | Drift: 532ms","time":"2025-07-21T09:10:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 532ms","time":"2025-07-21T09:10:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:11:08.507012+05:30 | Intended: 2025-07-21T09:11:08+05:30 | Drift: 507ms","time":"2025-07-21T09:11:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 507ms","time":"2025-07-21T09:11:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:12:07+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:12:07+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:12:07+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:12:08.509591+05:30 | Intended: 2025-07-21T09:12:08+05:30 | Drift: 509ms","time":"2025-07-21T09:12:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 509ms","time":"2025-07-21T09:12:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:13:08.501333+05:30 | Intended: 2025-07-21T09:13:08+05:30 | Drift: 501ms","time":"2025-07-21T09:13:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 501ms","time":"2025-07-21T09:13:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:14:08.506856+05:30 | Intended: 2025-07-21T09:14:08+05:30 | Drift: 506ms","time":"2025-07-21T09:14:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 506ms","time":"2025-07-21T09:14:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE395N01027","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE070D01027","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE391J01032","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE438K01021","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE324A01032","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE703H01016","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE367G01038","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Total candles: 0 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[5min AGG] Aggregating 5-min candle for all stocks for time range 2025-07-21T09:10:00+05:30 to 2025-07-21T09:15:00+05:30","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Notifying listeners of new 5-min candles from 2025-07-21T09:10:00+05:30 to 2025-07-21T09:15:00+05:30","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:15:08.703063+05:30 | Intended: 2025-07-21T09:15:08+05:30 | Drift: 703ms","time":"2025-07-21T09:15:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 703ms","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[Scheduler] Received 5-min candle close event from 2025-07-21T09:10:00+05:30 to 2025-07-21T09:15:00+05:30","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering BB width monitoring for BB_RANGE groups (candle: 2025-07-21 09:10:00 +0530 IST)","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Starting BB width monitoring for BB_RANGE groups from 2025-07-21T09:10:00+05:30 to 2025-07-21T09:15:00+05:30","time":"2025-07-21T09:15:08+05:30"}
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[9.198ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[21.174ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.648ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[1.167ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.358ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:15:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.369ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[BB Monitor] Found 1 BB_RANGE groups to monitor","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Monitoring 3 stocks in group d63c7112-2e10-443a-bb99-221fb9238e9e","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE703H01016, interval: 5minute, extendedStart: 2025-07-01 09:10:00 +0530 IST, end: 2025-07-21 09:15:00 +0530 IST","time":"2025-07-21T09:15:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE703H01016: failed to calculate BB width for NSE_EQ|INE703H01016: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE367G01038, interval: 5minute, extendedStart: 2025-07-01 09:10:00 +0530 IST, end: 2025-07-21 09:15:00 +0530 IST","time":"2025-07-21T09:15:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE367G01038: failed to calculate BB width for NSE_EQ|INE367G01038: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE08NE01025, interval: 5minute, extendedStart: 2025-07-01 09:10:00 +0530 IST, end: 2025-07-21 09:15:00 +0530 IST","time":"2025-07-21T09:15:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE08NE01025: failed to calculate BB width for NSE_EQ|INE08NE01025: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:15:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE395N01027","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE070D01027","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE391J01032","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE438K01021","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE324A01032","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE703H01016","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE367G01038","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:16:08.548678+05:30 | Intended: 2025-07-21T09:16:08+05:30 | Drift: 548ms","time":"2025-07-21T09:16:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 548ms","time":"2025-07-21T09:16:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE395N01027","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE070D01027","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE391J01032","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE438K01021","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE324A01032","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 1 for NSE_EQ|INE703H01016","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE367G01038","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:17:08.58633+05:30 | Intended: 2025-07-21T09:17:08+05:30 | Drift: 586ms","time":"2025-07-21T09:17:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 586ms","time":"2025-07-21T09:17:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE395N01027","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE070D01027","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE391J01032","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 2 for NSE_EQ|INE438K01021","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE324A01032","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE703H01016","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE367G01038","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Total candles: 3 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:18:08.86224+05:30 | Intended: 2025-07-21T09:18:08+05:30 | Drift: 862ms","time":"2025-07-21T09:18:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 862ms","time":"2025-07-21T09:18:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE395N01027","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE070D01027","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE391J01032","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE438K01021","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE324A01032","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE703H01016","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE367G01038","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Total candles: 4 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:19:08.555533+05:30 | Intended: 2025-07-21T09:19:08+05:30 | Drift: 555ms","time":"2025-07-21T09:19:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 555ms","time":"2025-07-21T09:19:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE395N01027","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE070D01027","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE391J01032","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE438K01021","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE324A01032","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE703H01016","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE367G01038","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Total candles: 5 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[5min AGG] Aggregating 5-min candle for all stocks for time range 2025-07-21T09:15:00+05:30 to 2025-07-21T09:20:00+05:30","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Notifying listeners of new 5-min candles from 2025-07-21T09:15:00+05:30 to 2025-07-21T09:20:00+05:30","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:20:08.583937+05:30 | Intended: 2025-07-21T09:20:08+05:30 | Drift: 583ms","time":"2025-07-21T09:20:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 583ms","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Received 5-min candle close event from 2025-07-21T09:15:00+05:30 to 2025-07-21T09:20:00+05:30","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering group execution for entry type 1ST_ENTRY at 09:15 (candle: 2025-07-21 09:15:00 +0530 IST)","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Executing group 89e05511-65dc-4a6a-b29d-2245c65959d1 for entryType=1ST_ENTRY","time":"2025-07-21T09:20:08+05:30"}
+{"level":"error","msg":"failed to parse backtest analysis file: open /Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv: no such file or directory","time":"2025-07-21T09:20:08+05:30"}
+{"level":"error","msg":"[Scheduler] Group execution failed for group 89e05511-65dc-4a6a-b29d-2245c65959d1: failed to parse backtest analysis file: open /Users/gaurav/setbull_projects/setbull_trader/python_strategies/backtest_results/strategy_results/backtest_analysis.csv: no such file or directory","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[Scheduler] Triggering BB width monitoring for BB_RANGE groups (candle: 2025-07-21 09:15:00 +0530 IST)","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Starting BB width monitoring for BB_RANGE groups from 2025-07-21T09:15:00+05:30 to 2025-07-21T09:20:00+05:30","time":"2025-07-21T09:20:08+05:30"}
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.566ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.345ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.288ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.436ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.286ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:20:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.351ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"[BB Monitor] Found 1 BB_RANGE groups to monitor","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"[BB Monitor] Monitoring 3 stocks in group d63c7112-2e10-443a-bb99-221fb9238e9e","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE703H01016, interval: 5minute, extendedStart: 2025-07-01 09:15:00 +0530 IST, end: 2025-07-21 09:20:00 +0530 IST","time":"2025-07-21T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE703H01016: failed to calculate BB width for NSE_EQ|INE703H01016: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE367G01038, interval: 5minute, extendedStart: 2025-07-01 09:15:00 +0530 IST, end: 2025-07-21 09:20:00 +0530 IST","time":"2025-07-21T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE367G01038: failed to calculate BB width for NSE_EQ|INE367G01038: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Calculating Bollinger Bands for NSE_EQ|INE08NE01025, interval: 5minute, extendedStart: 2025-07-01 09:15:00 +0530 IST, end: 2025-07-21 09:20:00 +0530 IST","time":"2025-07-21T09:20:08+05:30"}
+{"level":"error","msg":"[BB Monitor] Failed to monitor stock NSE_EQ|INE08NE01025: failed to calculate BB width for NSE_EQ|INE08NE01025: failed to calculate Bollinger Bands: not enough data to calculate BBands, need at least 20 candles, got 0","time":"2025-07-21T09:20:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE395N01027","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE070D01027","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE391J01032","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE438K01021","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE324A01032","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE703H01016","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE367G01038","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Total candles: 6 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:21:08.743216+05:30 | Intended: 2025-07-21T09:21:08+05:30 | Drift: 743ms","time":"2025-07-21T09:21:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 743ms","time":"2025-07-21T09:21:08+05:30"}
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:22:08+05:30"}
+
+2025/07/21 09:22:08 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/stock_universe_repository.go:105 SLOW SQL >= 200ms
+[269.406ms] [rows:1] SELECT * FROM `stock_universe` WHERE symbol = 'JAICORPLTD' ORDER BY `stock_universe`.`id` LIMIT 1
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE395N01027","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE070D01027","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE391J01032","time":"2025-07-21T09:22:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:22:09+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE438K01021","time":"2025-07-21T09:22:09+05:30"}
+
+2025/07/21 09:22:09 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/candle_repository.go:70 SLOW SQL >= 200ms
+[207.711ms] [rows:13] INSERT INTO `stock_candle_data` (`instrument_key`,`timestamp`,`open`,`high`,`low`,`close`,`volume`,`open_interest`,`time_interval`,`created_at`,`ma_9`,`bb_upper`,`bb_middle`,`bb_lower`,`vwap`,`ema_5`,`ema_9`,`ema_50`,`atr`,`rsi`,`bb_width`,`lowest_bb_width`) VALUES ('NSE_EQ|INE438K01021','2025-07-21 09:21:00',168.75,168.86,167.57,167.57,11629,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,167.57,168.2958984910837,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:20:00',168.75,168.98,168.55,168.8,19710,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.3435824372188,168.65884773662555,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:19:00',169.2,169.5,168.71,168.79,15815,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.49330661237647,168.58827160493829,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:18:00',168.52,169.4,168.4,169.2,15218,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.66573109728725,168.48740740740743,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:17:00',167.99,168.77,167.47,168.34,13519,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.60770631563693,168.13111111111112,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:16:00',168.1,168.31,167.51,167.86,21979,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.4397913558803,168.0266666666667,0,0,0,0,0,0),('NSE_EQ|INE438K01021','2025-07-21 09:15:00',168,168.66,168,168.11,16550,0,'1minute','2025-07-21 09:22:09.18',0,0,0,0,168.3920894948436,168.11,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE `open`=VALUES(`open`),`high`=VALUES(`high`),`low`=VALUES(`low`),`close`=VALUES(`close`),`volume`=VALUES(`volume`),`open_interest`=VALUES(`open_interest`),`ma_9`=VALUES(`ma_9`),`bb_upper`=VALUES(`bb_upper`),`bb_middle`=VALUES(`bb_middle`),`bb_lower`=VALUES(`bb_lower`),`vwap`=VALUES(`vwap`),`ema_5`=VALUES(`ema_5`),`ema_9`=VALUES(`ema_9`),`ema_50`=VALUES(`ema_50`),`atr`=VALUES(`atr`),`rsi`=VALUES(`rsi`),`bb_width`=VALUES(`bb_width`),`lowest_bb_width`=VALUES(`lowest_bb_width`)
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:22:09+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE324A01032","time":"2025-07-21T09:22:09+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:22:09+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE703H01016","time":"2025-07-21T09:22:09+05:30"}
+
+2025/07/21 09:22:10 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/candle_repository.go:70 SLOW SQL >= 200ms
+[651.403ms] [rows:13] INSERT INTO `stock_candle_data` (`instrument_key`,`timestamp`,`open`,`high`,`low`,`close`,`volume`,`open_interest`,`time_interval`,`created_at`,`ma_9`,`bb_upper`,`bb_middle`,`bb_lower`,`vwap`,`ema_5`,`ema_9`,`ema_50`,`atr`,`rsi`,`bb_width`,`lowest_bb_width`) VALUES ('NSE_EQ|INE703H01016','2025-07-21 09:21:00',297.3,297.75,296.5,296.5,3823,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,296.5,297.0555555555556,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:20:00',298.15,298.3,297.5,297.5,7469,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.16144172865745,297.33333333333337,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:19:00',296.95,298.45,296.95,297.75,5479,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.35372070836564,297.25000000000006,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:18:00',296.8,297.95,296.8,297,22722,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.1502101638265,297.00000000000006,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:17:00',297.75,298.35,297,297,7466,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.1263282863775,297.00000000000006,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:16:00',296.6,297.8,295.9,297.8,16375,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.3005060473048,297.00000000000006,0,0,0,0,0,0),('NSE_EQ|INE703H01016','2025-07-21 09:15:00',293.45,296.75,292.2,296.6,26996,0,'1minute','2025-07-21 09:22:09.741',0,0,0,0,297.09115299457545,296.6,0,0,0,0,0,0) ON DUPLICATE KEY UPDATE `open`=VALUES(`open`),`high`=VALUES(`high`),`low`=VALUES(`low`),`close`=VALUES(`close`),`volume`=VALUES(`volume`),`open_interest`=VALUES(`open_interest`),`ma_9`=VALUES(`ma_9`),`bb_upper`=VALUES(`bb_upper`),`bb_middle`=VALUES(`bb_middle`),`bb_lower`=VALUES(`bb_lower`),`vwap`=VALUES(`vwap`),`ema_5`=VALUES(`ema_5`),`ema_9`=VALUES(`ema_9`),`ema_50`=VALUES(`ema_50`),`atr`=VALUES(`atr`),`rsi`=VALUES(`rsi`),`bb_width`=VALUES(`bb_width`),`lowest_bb_width`=VALUES(`lowest_bb_width`)
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:22:10+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE367G01038","time":"2025-07-21T09:22:10+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:22:10+05:30"}
+{"level":"info","msg":"Total candles: 7 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:22:10+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:22:10.932603+05:30 | Intended: 2025-07-21T09:22:08+05:30 | Drift: 2932ms","time":"2025-07-21T09:22:10+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 2932ms","time":"2025-07-21T09:22:10+05:30"}
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.390ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.492ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '83707e1c-b1fa-4a5c-a4ae-d218d41d6f0e' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[0.356ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.376ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '140c3f04-a7f6-415f-b2af-6106b14ab86c' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/trade_parameters_repository.go:59 record not found
+[1.291ms] [rows:0] SELECT * FROM `trade_parameters` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY `trade_parameters`.`id` LIMIT 1
+
+2025/07/21 09:22:41 /Users/gauravsharma/setbull_projects/setbull_trader/internal/repository/postgres/execution_plan_repository.go:54 record not found
+[0.405ms] [rows:0] SELECT * FROM `execution_plans` WHERE stock_id = '0766f019-9347-4a61-8465-bec8341c0fc4' AND active = 1 ORDER BY created_at DESC,`execution_plans`.`id` LIMIT 1
+{"level":"info","msg":"Fetching 3 groups","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Fetched 8 stocks","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE395N01027","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE395N01027","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE070D01027","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE070D01027","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE391J01032","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE391J01032","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE438K01021","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE438K01021","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE324A01032","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE324A01032","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE703H01016","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE703H01016","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE367G01038","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE367G01038","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Ingesting 1-min candle for NSE_EQ|INE08NE01025","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"Total candles: 8 for NSE_EQ|INE08NE01025","time":"2025-07-21T09:23:08+05:30"}
+{"level":"info","msg":"[1min Ingestion Timing] Actual: 2025-07-21T09:23:08.732731+05:30 | Intended: 2025-07-21T09:23:08+05:30 | Drift: 732ms","time":"2025-07-21T09:23:08+05:30"}
+{"level":"warning","msg":"[1min Ingestion Timing] Drift exceeds 500ms: 732ms","time":"2025-07-21T09:23:08+05:30"}
+
+
+======================================================================================================================================================

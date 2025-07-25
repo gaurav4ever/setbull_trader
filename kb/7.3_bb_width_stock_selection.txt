@@ -1,0 +1,512 @@
+# Stock Filter Pipeline - Comprehensive Technical Documentation
+
+## Overview
+The Stock Filter Pipeline is a multi-stage filtering system designed to identify stocks with specific technical characteristics and momentum patterns. The pipeline processes stocks through sequential filters, each focusing on different aspects of technical analysis and price behavior.
+
+## Architecture
+
+### Core Components
+1. **StockFilterPipeline** - Main orchestrator
+2. **Individual Filters** - Basic, EMA, RSI, Mamba, Player Type
+3. **Sequence Analysis** - Pattern recognition and analysis
+4. **Metrics & Reporting** - Performance tracking and reporting
+5. **Data Storage** - Filtered results persistence
+
+### Pipeline Flow
+```
+Stock Universe → Basic Filter → EMA Filter → RSI Filter → Mamba Filter → Player Type Filter → Sequence Analysis → Storage
+```
+
+## Current Filter Implementation Details
+
+### 1. Basic Filter (`internal/service/basic_filter.go`)
+
+**Purpose**: Initial screening based on price and volume criteria
+
+**Parameters**:
+- `minPrice`: 50.0 (Minimum stock price)
+- `maxPrice`: 1000.0 (Maximum stock price)
+- `minVolume`: 400000 (Minimum average daily volume)
+
+**Logic**:
+```go
+// Data Requirements: Last 10 days of daily candles
+candles, err := f.candleRepo.GetNDailyCandlesByTimeframe(ctx, stock.InstrumentKey, "day", 10)
+
+// Volume Calculation: Average of last 10 days
+var totalVolume int64
+for _, candle := range candles {
+    totalVolume += candle.Volume
+}
+avgVolume := totalVolume / int64(len(candles))
+
+// Filter Criteria
+if lastCandle.Close >= f.minPrice &&
+   lastCandle.Close <= f.maxPrice &&
+   avgVolume >= f.minVolume {
+    // PASS
+}
+```
+
+**Output**: All stocks that pass are marked as both bullish and bearish (neutral at this stage)
+
+### 2. EMA Filter (`internal/service/ema_filter.go`)
+
+**Purpose**: Identify stocks with significant deviation from 50-day EMA
+
+**Parameters**:
+- `emaPeriod`: 50 (EMA calculation period)
+- `threshold`: 0.03 (3% deviation threshold)
+
+**Logic**:
+```go
+// Data Requirements: 50+10 days for EMA calculation
+startTime := f.tradingCalendar.SubtractTradingDays(endTime, f.emaPeriod+10)
+
+// EMA Calculation
+emaValues, err := f.technicalIndicators.CalculateEMA(
+    ctx, stock.Stock.InstrumentKey, f.emaPeriod, "day", startTime, endTime,
+)
+
+// Price Deviation Calculation
+priceDiff := (stock.ClosePrice - latestEMA) / latestEMA
+
+// Filter Criteria
+if priceDiff > f.threshold {
+    // BULLISH: Price >3% above EMA50
+} else if priceDiff < -f.threshold {
+    // BEARISH: Price >3% below EMA50
+} else {
+    // REJECTED: Within ±3% threshold
+}
+```
+
+**Output**: Stocks classified as bullish or bearish based on EMA deviation
+
+### 3. RSI Filter (`internal/service/rsi_filter.go`)
+
+**Purpose**: Filter based on Relative Strength Index momentum
+
+**Parameters**:
+- `rsiPeriod`: 14 (RSI calculation period)
+- `bullishThreshold`: 50.0 (Minimum RSI for bullish)
+- `bearishThreshold`: 55.0 (Maximum RSI for bearish)
+
+**Logic**:
+```go
+// Data Requirements: 14+10 days for RSI calculation
+startTime := f.tradingCalendar.SubtractTradingDays(endTime, f.rsiPeriod+10)
+
+// RSI Calculation
+rsiValues, err := f.technicalIndicators.CalculateRSI(
+    ctx, stock.Stock.InstrumentKey, f.rsiPeriod, "day", startTime, endTime,
+)
+
+// Filter Criteria
+if latestRSI >= f.bullishThreshold {
+    // BULLISH: RSI >= 50
+} else if latestRSI <= f.bearishThreshold {
+    // BEARISH: RSI <= 55
+} else {
+    // REJECTED: RSI between 55-50 (neutral zone)
+}
+```
+
+**Output**: Stocks classified based on RSI momentum levels
+
+### 4. Mamba Filter (`internal/service/mamba_filter.go`)
+
+**Purpose**: Identify stocks with significant momentum moves ("Mamba moves")
+
+**Parameters**:
+- `LookbackPeriod`: 21 (Days to analyze)
+- `MoveThresholdBullish`: 5.0 (5% threshold for bullish mamba)
+- `MoveThresholdBearish`: 3.0 (3% threshold for bearish mamba)
+- `MinSequenceLength`: 2 (Minimum consecutive mamba days)
+- `MaxGapDays`: 5 (Maximum gap between mamba sequences)
+- `MinMambaRatio`: 0.3 (Minimum ratio of mamba days to total days)
+
+**Logic**:
+```go
+// Mamba Move Detection
+movePercentage := ((candle.High - candle.Low) / candle.Low) * 100
+
+if movePercentage >= 5.0 && candle.Close > candle.Open {
+    // BULL-MAMBA: 5%+ move with bullish close
+} else if movePercentage >= 3.0 && candle.Close < candle.Open {
+    // BEAR-MAMBA: 3%+ move with bearish close
+}
+
+// Sequence Analysis
+sequences := d.buildMoveSequences(candles, trendAnalysis.Type, avgVolume)
+
+// Filter Criteria
+mambaRatio := float64(analysis.TotalMambaDays) / float64(totalDays)
+currentSeqMeetsLength := analysis.CurrentSequence.Length >= f.config.MinSequenceLength
+hasSignificantSequences := // Check for sequences >= MinSequenceLength
+hasAcceptableGaps := f.checkSequenceGaps(analysis)
+
+return mambaRatio >= f.config.MinMambaRatio &&
+       (currentSeqMeetsLength || hasSignificantSequences) &&
+       hasAcceptableGaps
+```
+
+**Output**: Stocks with significant momentum patterns and trend alignment
+
+### 5. Player Type Filter (`internal/service/player_type_filter.go`)
+
+**Purpose**: Classify stocks into three player types based on daily price behavior relative to previous day's range
+
+**Player Types**:
+1. **RUNNER**: Stocks that break significantly beyond previous day's range
+2. **COILER**: Stocks that trade within previous day's range (consolidation)
+3. **SPRINGBOARDER**: Stocks that break previous day's range but not significantly
+
+**Parameters**:
+- `bufferPercentage`: 0.03 (3% buffer for opening position classification)
+- `runnerThreshold`: 0.5 (50% of previous day's range for runner classification)
+- `timeframe`: "day" (Only applies to daily timeframe)
+
+**Logic**:
+```go
+// Data Requirements: Current day + Previous day daily candles
+currentCandle := candles[0]  // Most recent day
+prevCandle := candles[1]     // Previous day
+
+// Calculate previous day's mid-point and range
+prevDayMid := (prevCandle.High + prevCandle.Low) / 2
+prevDayRange := prevCandle.High - prevCandle.Low
+
+// Calculate buffer for opening position classification
+buffer := 0.03 * prevDayRange
+
+// Opening position flags
+OAH := currentCandle.Open > (prevDayMid + buffer)  // Open Above High
+OAL := currentCandle.Open < (prevDayMid - buffer)  // Open Below Low  
+OAM := currentCandle.Open >= (prevDayMid - buffer) && currentCandle.Open <= (prevDayMid + buffer) // Open At Mid
+
+// Player Type Classification
+if currentCandle.High > prevCandle.High + 0.5*prevDayRange ||
+   currentCandle.Low < prevCandle.Low - 0.5*prevDayRange {
+    playerType = "RUNNER"
+} else if currentCandle.High <= prevCandle.High &&
+          currentCandle.Low >= prevCandle.Low {
+    playerType = "COILER"
+} else if currentCandle.High > prevCandle.High ||
+          currentCandle.Low < prevCandle.Low {
+    playerType = "SPRINGBOARDER"
+} else {
+    playerType = "COILER"  // Default fallback
+}
+```
+
+**Classification Rules**:
+1. **RUNNER**: High > prevHigh + 50% of prevRange OR Low < prevLow - 50% of prevRange
+2. **COILER**: High ≤ prevHigh AND Low ≥ prevLow (trades within previous day's range)
+3. **SPRINGBOARDER**: High > prevHigh OR Low < prevLow (breaks range but not significantly)
+4. **Default**: COILER for edge cases
+
+**Opening Position Analysis**:
+- **OAH (Open Above High)**: Opens above previous day's mid-point + 3% buffer
+- **OAL (Open Below Low)**: Opens below previous day's mid-point - 3% buffer  
+- **OAM (Open At Mid)**: Opens within ±3% buffer of previous day's mid-point
+
+**Output**: Stocks classified into RUNNER, COILER, or SPRINGBOARDER categories
+
+## Sequence Analysis System
+
+### Core Components
+
+#### 1. Sequence Detector (`internal/service/sequence_detector.go`)
+- **Purpose**: Builds consecutive move sequences
+- **Input**: Daily candles, trend analysis
+- **Output**: Move sequences with type, length, strength
+
+#### 2. Sequence Analyzer (`internal/service/sequence_analyzer.go`)
+- **Purpose**: Advanced pattern analysis
+- **Metrics Calculated**:
+  - Sequence Quality (0-1 score)
+  - Continuity Score (gap analysis)
+  - Predictive Score (pattern repetition)
+  - Momentum Score (recent strength)
+  - Volume Profile (volume analysis)
+
+#### 3. Trend Detector
+- **Purpose**: Determines overall trend direction
+- **Methods**: EMA-based trend analysis
+- **Output**: Bullish/Bearish/Neutral trend
+
+### Sequence Analysis Data Structures
+
+```go
+type SequenceAnalysis struct {
+    Stock              StockUniverse
+    Trend              TrendAnalysis
+    MambaSequences     []int          // Lengths of mamba sequences
+    NonMambaSequences  []int          // Lengths of non-mamba sequences
+    AverageMambaLen    float64        // Average mamba sequence length
+    AverageNonMambaLen float64        // Average non-mamba sequence length
+    CurrentSequence    MoveSequence   // Current ongoing sequence
+    TotalMambaDays     int            // Total mamba days in lookback
+    TotalNonMambaDays  int            // Total non-mamba days in lookback
+    Sequences          []MoveSequence // All sequences
+}
+
+type MoveSequence struct {
+    Type      SequenceType  // MAMBA or NON_MAMBA
+    Length    int           // Number of consecutive days
+    StartDate time.Time
+    EndDate   time.Time
+    Moves     []DailyMove   // Individual day moves
+    Strength  float64       // Average move strength
+}
+```
+
+## Technical Indicators Integration
+
+### Available Indicators
+- **EMA**: Exponential Moving Average (9, 50 periods)
+- **RSI**: Relative Strength Index (14 period)
+- **ATR**: Average True Range (14 period)
+- **Bollinger Bands**: Upper, Middle, Lower bands
+- **BB Width**: Bollinger Band Width
+- **VWAP**: Volume Weighted Average Price
+- **Player Type**: RUNNER, COILER, SPRINGBOARDER classification
+- **Opening Position**: OAH, OAL, OAM classification
+
+### Calculation Methods
+```go
+// EMA Calculation
+emaValues, err := f.technicalIndicators.CalculateEMA(
+    ctx, instrumentKey, period, timeframe, startTime, endTime,
+)
+
+// RSI Calculation
+rsiValues, err := f.technicalIndicators.CalculateRSI(
+    ctx, instrumentKey, period, timeframe, startTime, endTime,
+)
+```
+
+## Performance Metrics & Monitoring
+
+### Pipeline Metrics
+```go
+type PipelineMetrics struct {
+    TotalStocks     int
+    BasicFilterPass int
+    EMAFilterPass   int
+    RSIFilterPass   int
+    MambaFilterPass int
+    PlayerTypeFilterPass int
+    BullishStocks   int
+    BearishStocks   int
+    ProcessingTime  time.Duration
+    FilterMetrics   map[string]*FilterMetric
+    SequenceMetrics map[string]domain.SequenceMetrics
+    StartTime       time.Time
+    EndTime         time.Time
+}
+
+type FilterMetric struct {
+    Processed  int
+    Passed     int
+    Failed     int
+    Bullish    int
+    Bearish    int
+    Duration   time.Duration
+    ErrorCount int
+}
+```
+
+### Logging & Reporting
+- **Detailed Logging**: Each filter logs processing results
+- **HTML Reports**: Generated with timestamp and detailed analysis
+- **Performance Tracking**: Processing time per filter
+- **Error Handling**: Graceful failure with detailed error context
+
+## Data Storage & Persistence
+
+### Filtered Stocks Table
+```sql
+CREATE TABLE `filtered_stocks` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `symbol` varchar(20) NOT NULL,
+  `instrument_key` varchar(50) NOT NULL,
+  `exchange_token` varchar(20) NOT NULL,
+  `trend` varchar(10) NOT NULL, -- BULLISH or BEARISH
+  `current_price` decimal(10,2) NOT NULL,
+  `mamba_count` int NOT NULL,
+  `bullish_mamba_count` int NOT NULL,
+  `bearish_mamba_count` int NOT NULL,
+  `avg_mamba_move` decimal(10,2) NOT NULL,
+  `avg_non_mamba_move` decimal(10,2) NOT NULL,
+  `mamba_series` json NOT NULL, -- Array of mamba moves
+  `non_mamba_series` json NOT NULL, -- Array of non-mamba moves
+  `player_type` varchar(20) DEFAULT NULL, -- RUNNER, COILER, SPRINGBOARDER
+  `opening_position` varchar(10) DEFAULT NULL, -- OAH, OAL, OAM
+  `prev_day_high` decimal(10,2) DEFAULT NULL,
+  `prev_day_low` decimal(10,2) DEFAULT NULL,
+  `prev_day_mid` decimal(10,2) DEFAULT NULL,
+  `filter_date` datetime NOT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_filtered_stocks_symbol_date` (`symbol`,`filter_date`),
+  KEY `idx_player_type` (`player_type`),
+  KEY `idx_opening_position` (`opening_position`)
+);
+```
+
+## Configuration Management
+
+### Filter Configuration Structure
+```go
+type FilterConfig struct {
+    BasicFilter struct {
+        MinPrice  float64
+        MaxPrice  float64
+        MinVolume int64
+    }
+    EMAFilter struct {
+        Period    int
+        Threshold float64
+    }
+    RSIFilter struct {
+        Period           int
+        BullishThreshold float64
+        BearishThreshold float64
+    }
+    MambaFilter struct {
+        LookbackPeriod    int
+        BullishThreshold  float64
+        BearishThreshold  float64
+        StrengthThreshold float64
+        MinPatternLength  int
+        MaxPatternLength  int
+    }
+    PlayerTypeFilter struct {
+        BufferPercentage  float64
+        RunnerThreshold   float64
+        Timeframe         string
+    }
+}
+```
+
+## API Integration
+
+### REST Endpoints
+- `POST /api/v1/filter-pipeline/run` - Execute full pipeline
+- `GET /api/v1/filter-pipeline/fetch/top-10` - Get top 10 filtered stocks
+
+### Request/Response Format
+```json
+// Request
+{
+  "instrumentKeys": ["NSE_EQ:RELIANCE", "NSE_EQ:TCS"] // Optional
+}
+
+// Response
+{
+  "status": "success",
+  "data": {
+    "bullishStocks": [...],
+    "bearishStocks": [...],
+    "metrics": {
+      "totalStocks": 1500,
+      "basicFilterPass": 450,
+      "emaFilterPass": 120,
+      "rsiFilterPass": 85,
+      "mambaFilterPass": 25,
+      "playerTypeFilterPass": 20,
+      "bullishStocks": 15,
+      "bearishStocks": 10,
+      "processingTime": "2.5s"
+    }
+  }
+}
+```
+
+## Error Handling & Resilience
+
+### Error Types
+1. **Data Errors**: Missing candle data, insufficient history
+2. **Calculation Errors**: Division by zero, invalid indicators
+3. **API Errors**: External service failures
+4. **Configuration Errors**: Invalid parameters
+
+### Recovery Mechanisms
+- **Graceful Degradation**: Continue processing other stocks on individual failures
+- **Retry Logic**: Exponential backoff for transient failures
+- **Circuit Breaker**: Prevent cascade failures
+- **Detailed Logging**: Comprehensive error context for debugging
+
+## Performance Optimization
+
+### Current Optimizations
+1. **Concurrent Processing**: Parallel stock processing within filters
+2. **Caching**: Technical indicator results caching
+3. **Batch Operations**: Database operations in batches
+4. **Connection Pooling**: Database and API connection reuse
+
+### Scalability Considerations
+- **Horizontal Scaling**: Stateless filter design
+- **Database Optimization**: Proper indexing on frequently queried fields
+- **Memory Management**: Efficient data structures and garbage collection
+- **Rate Limiting**: API call throttling to prevent overload
+
+## Future Enhancement Opportunities
+
+### Potential New Filters
+1. **Volume Filter**: Volume spike detection and analysis
+2. **Volatility Filter**: ATR-based volatility screening
+3. **Support/Resistance Filter**: Key level breakouts
+4. **Sector Filter**: Sector-specific momentum analysis
+5. **Market Cap Filter**: Size-based categorization
+6. **Player Type Distribution Filter**: Filter based on player type ratios over time
+7. **Opening Position Filter**: Filter based on OAH/OAL/OAM patterns
+
+### Advanced Analytics
+1. **Machine Learning Integration**: Pattern recognition using ML models
+2. **Sentiment Analysis**: News and social media sentiment
+3. **Correlation Analysis**: Inter-stock correlation patterns
+4. **Risk Metrics**: VaR, Sharpe ratio, maximum drawdown
+5. **Backtesting Integration**: Historical performance validation
+
+### Technical Improvements
+1. **Real-time Processing**: Streaming data processing
+2. **Microservices Architecture**: Service decomposition
+3. **Event-driven Architecture**: Asynchronous processing
+4. **Advanced Caching**: Redis-based distributed caching
+5. **Monitoring & Alerting**: Prometheus/Grafana integration
+
+## Testing Strategy
+
+### Unit Testing
+- Individual filter logic testing
+- Technical indicator calculation validation
+- Sequence analysis algorithm testing
+
+### Integration Testing
+- End-to-end pipeline testing
+- Database integration testing
+- API endpoint testing
+
+### Performance Testing
+- Load testing with large stock universes
+- Memory usage profiling
+- Database query optimization
+
+## Deployment & Operations
+
+### Environment Configuration
+- **Development**: Local testing with sample data
+- **Staging**: Production-like environment for validation
+- **Production**: Live trading environment
+
+### Monitoring Requirements
+- **Application Metrics**: Response times, error rates
+- **Business Metrics**: Filter pass rates, stock selection quality
+- **Infrastructure Metrics**: CPU, memory, disk usage
+- **Alerting**: Critical failure notifications
+
+This documentation provides a comprehensive understanding of the current filter pipeline implementation and serves as a foundation for adding new parameters and logic as required.

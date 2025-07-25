@@ -1,0 +1,708 @@
+{
+  "runner_config": {
+    "mode": "SINGLE",
+    "start_date": "2025-07-01T09:15:00+05:30",
+    "end_date": "2025-07-18T15:25:00+05:30",
+    "strategies": [
+      {
+        "type": "Range",
+        "params": {
+          "range_type": "5MR",
+          "entry_type": "BB_WIDTH_ENTRY",
+          "entry_candle": "9:15",
+          "sl_percentage": 0.5,
+          "target_r": 4.0
+        }
+      }
+    ],
+    "initial_capital": 1000000.0,
+    "output_dir": "backtest_results"
+  },
+  "instrument_configs": [
+    {
+      "key": "NSE_EQ|INE0R4L01018",
+      "name": "DENTA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0LLY01014",
+      "name": "EIEL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE786A01032",
+      "name": "JKLAKSHMI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE160A01022",
+      "name": "PNB",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE133E01013",
+      "name": "TI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE666D01022",
+      "name": "BORORENEW",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE301A01014",
+      "name": "RAYMOND",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE893I01013",
+      "name": "VASCONEQ",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE438K01021",
+      "name": "KALAMANDIR",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE146L01010",
+      "name": "KIRLOSENG",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE852O01025",
+      "name": "APTUS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0BY001018",
+      "name": "JUBLINGREA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE970X01018",
+      "name": "LEMONTREE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE947Q01028",
+      "name": "LAURUSLABS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0QRL01017",
+      "name": "ARKADE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE982J01020",
+      "name": "PAYTM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE242C01024",
+      "name": "ANANTRAJ",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE093R01011",
+      "name": "LLOYDSENGG",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE883F01010",
+      "name": "AADHARHFC",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE06HJ01020",
+      "name": "ECOSMOBLTY",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE376G01013",
+      "name": "BIOCON",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE987B01026",
+      "name": "NATCOPHARM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE767A01016",
+      "name": "AARTIDRUGS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE01EA01019",
+      "name": "VMM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE634S01028",
+      "name": "MANKIND",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE619A01035",
+      "name": "PATANJALI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE602W01027",
+      "name": "SENCO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE418L01021",
+      "name": "NAZARA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0MB501011",
+      "name": "JGCHEM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE622W01025",
+      "name": "ACMESOLAR",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE144J01027",
+      "name": "20MICRONS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE112L01020",
+      "name": "METROPOLIS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE542W01025",
+      "name": "KPIGREEN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE102B01014",
+      "name": "CHOICEIN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0HV901016",
+      "name": "IXIGO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE011K01018",
+      "name": "TEGA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE348A01023",
+      "name": "ASHAPURMIN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE703H01016",
+      "name": "HUBTOWN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE780C01023",
+      "name": "JMFINANCIL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE036D01028",
+      "name": "KARURVYSYA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE498Q01014",
+      "name": "VINCOFE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE583V01021",
+      "name": "RADHIKAJWE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0JO301016",
+      "name": "YATHARTH",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE258G01013",
+      "name": "SUMICHEM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE371A01025",
+      "name": "GRAPHITE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE439A01020",
+      "name": "ASAHIINDIA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE552Z01027",
+      "name": "ABDL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE885H01029",
+      "name": "SPORTKING",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE529I01021",
+      "name": "KUANTUM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE870H01013",
+      "name": "NETWORK18",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE180C01042",
+      "name": "CGCL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE192H01020",
+      "name": "GRMOVER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE850M01015",
+      "name": "NORTHARC",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0SII01026",
+      "name": "QPOWER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE02H701025",
+      "name": "NOVAAGRI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE789E01012",
+      "name": "JKPAPER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE785M01021",
+      "name": "PCJEWELLER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE278M01019",
+      "name": "NAVKARCORP",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE495B01038",
+      "name": "SUVEN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE671H01015",
+      "name": "SOBHA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE379A01028",
+      "name": "ITCHOTELS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE278Y01022",
+      "name": "CAMPUS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE367G01038",
+      "name": "PFOCUS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE776C01039",
+      "name": "GMRAIRPORT",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE068V01023",
+      "name": "GLAND",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE217B01036",
+      "name": "KAJARIACER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE937A01023",
+      "name": "SPMLINFRA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE024001021",
+      "name": "AEROFLEX",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE08KJ01020",
+      "name": "MUFIN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE967H01025",
+      "name": "KIMS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE495S01016",
+      "name": "HPL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE365B01017",
+      "name": "DATAMATICS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE148A01019",
+      "name": "TNPETRO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE933K01021",
+      "name": "BAJAJCON",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE404A01024",
+      "name": "ABSLAMC",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE128A01029",
+      "name": "EVEREADY",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE508G01029",
+      "name": "TIMETECHNO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE228A01035",
+      "name": "USHAMART",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE572J01011",
+      "name": "SPANDANA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE463V01026",
+      "name": "ANANDRATHI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE290S01011",
+      "name": "CARTRADE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE792Z01011",
+      "name": "SIRCA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE140A01024",
+      "name": "PEL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE001B01026",
+      "name": "KRBL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE416D01022",
+      "name": "BLISSGVS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE474Q01031",
+      "name": "MEDANTA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE486R01017",
+      "name": "GPTHEALTH",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE178A01016",
+      "name": "CHENNPETRO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE131B01039",
+      "name": "RELAXO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE989C01038",
+      "name": "DIACABS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE454P01035",
+      "name": "TRANSRAILL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE532F01054",
+      "name": "EDELWEISS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0HR601026",
+      "name": "DDEVPLSTIK",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0JVO01026",
+      "name": "GARUDA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE667G01023",
+      "name": "SAKSOFT",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0IQ001011",
+      "name": "VERANDA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE232A01011",
+      "name": "SHREDIGCEM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE613A01020",
+      "name": "RALLIS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE621H01010",
+      "name": "RELIGARE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE046W01019",
+      "name": "MUTHOOTMF",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0TO701015",
+      "name": "MAMATA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE054A01027",
+      "name": "VIPIND",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE201A01024",
+      "name": "MANALIPETC",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE094J01016",
+      "name": "UTIAMC",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE182D01020",
+      "name": "MARATHON",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE050E01027",
+      "name": "BALAMINES",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0RYC01010",
+      "name": "STALLION",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE509F01029",
+      "name": "CUPID",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0I7C01011",
+      "name": "LATENTVIEW",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE338A01024",
+      "name": "TIRUMALCHM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE935A01035",
+      "name": "GLENMARK",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE08U801020",
+      "name": "SAMHI",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE029A01011",
+      "name": "BPCL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE883N01014",
+      "name": "PARAGMILK",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0DYJ01015",
+      "name": "SYRMA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE955V01021",
+      "name": "ARVINDFASN",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE0CT101020",
+      "name": "MOL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE305A01015",
+      "name": "TFCILTD",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE816B01035",
+      "name": "FILATEX",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE818H01020",
+      "name": "LTFOODS",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE007N01010",
+      "name": "FEDFINA",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE499A01024",
+      "name": "DCMSHRIRAM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE00Y201027",
+      "name": "FLAIR",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE569C01020",
+      "name": "ORIENTCER",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE530B01024",
+      "name": "IIFL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE303R01014",
+      "name": "KALYANKJIL",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE922K01024",
+      "name": "INDIASHLTR",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE681B01017",
+      "name": "INDRAMEDCO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE00EV01017",
+      "name": "HARIOMPIPE",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE148O01028",
+      "name": "DELHIVERY",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE332A01027",
+      "name": "THOMASCOOK",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE331A01037",
+      "name": "RAMCOCEM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE472A01039",
+      "name": "BLUESTARCO",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE079A01024",
+      "name": "AMBUJACEM",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE665A01038",
+      "name": "SWANENERGY",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE787D01026",
+      "name": "BALKRISIND",
+      "direction": "BULLISH"
+    },
+    {
+      "key": "NSE_EQ|INE152M01016",
+      "name": "TRITURBINE",
+      "direction": "BULLISH"
+    }
+  ]
+}

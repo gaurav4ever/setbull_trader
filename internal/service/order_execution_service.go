@@ -60,6 +60,10 @@ func (s *OrderExecutionService) ExecuteOrdersForStock(ctx context.Context, stock
 		return nil, nil, errors.New("stock is not selected for trading")
 	}
 
+	// Debug: Log the stock details
+	log.Info("[OrderExecution] Retrieved stock: ID=%s, Symbol=%s, SecurityID=%s",
+		stock.ID, stock.Symbol, stock.SecurityID)
+
 	// Get the latest execution plan
 	plan, err := s.executionPlanRepo.GetByStockID(ctx, stockID)
 	if err != nil {
@@ -224,6 +228,9 @@ func (s *OrderExecutionService) executeOrders(
 			TriggerPrice:    triggerPrice,
 			Validity:        "DAY",
 		}
+
+		// Debug: Log the SecurityID being used
+		log.Info("[OrderExecution] Using SecurityID: %s for stock %s", stock.SecurityID, stock.Symbol)
 
 		// Log the order request details
 		log.Info("Placing order level: %s, price: %f, triggerPrice: %f, quantity: %d",

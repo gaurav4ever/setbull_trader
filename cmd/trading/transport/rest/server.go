@@ -38,6 +38,7 @@ type Server struct {
 	stockGroupHandler       *StockGroupHandler
 	groupExecutionService   *service.GroupExecutionService
 	stockGroupService       *service.StockGroupService
+	masterDataHandler       *MasterDataHandler
 }
 
 // NewServer creates a new REST API server
@@ -58,6 +59,7 @@ func NewServer(
 	groupExecutionService *service.GroupExecutionService,
 	stockGroupService *service.StockGroupService,
 	stockGroupHandler *StockGroupHandler,
+	masterDataHandler *MasterDataHandler,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -77,6 +79,7 @@ func NewServer(
 		marketQuoteService:      marketQuoteService,
 		groupExecutionService:   groupExecutionService,
 		stockGroupHandler:       stockGroupHandler,
+		masterDataHandler:       masterDataHandler,
 	}
 
 	s.setupRoutes()
@@ -168,6 +171,11 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/groups/{id}", s.stockGroupHandler.EditGroup).Methods(http.MethodPut)
 	api.HandleFunc("/groups/{id}", s.stockGroupHandler.DeleteGroup).Methods(http.MethodDelete)
 	api.HandleFunc("/groups/{id}/execute", s.stockGroupHandler.ExecuteGroup).Methods(http.MethodPost)
+
+	// Master data routes
+	api.HandleFunc("/master-data/process/start", s.masterDataHandler.StartProcess).Methods(http.MethodPost)
+	api.HandleFunc("/master-data/process/{processId}/status", s.masterDataHandler.GetProcessStatus).Methods(http.MethodGet)
+	api.HandleFunc("/master-data/process/history", s.masterDataHandler.GetProcessHistory).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface

@@ -22,6 +22,7 @@ type StockUniverse struct {
 	LastPrice      float64 `gorm:"column:last_price" json:"lastPrice"`                   // Last traded price
 	TickSize       float64 `gorm:"column:tick_size" json:"tickSize"`                     // Minimum price movement
 	LotSize        int     `gorm:"column:lot_size" json:"lotSize"`                       // Standard lot size for trading
+	SecurityID     string  `gorm:"column:security_id;size:20" json:"securityId"`         // Numeric Security ID for Dhan API
 	IsSelected     bool    `gorm:"column:is_selected;default:false" json:"isSelected"`   // Whether this stock is selected for trading
 	//Metadata       JSON      `gorm:"column:metadata;type:json" json:"metadata"`            // Additional metadata in JSON format
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"` // When the record was created

@@ -20,9 +20,9 @@ type BasicFilter struct {
 func NewBasicFilter(candleRepo repository.CandleRepository) *BasicFilter {
 	return &BasicFilter{
 		candleRepo: candleRepo,
-		minPrice:   50.0,
-		maxPrice:   1000.0,
-		minVolume:  400000,
+		minPrice:   20.0,
+		maxPrice:   1500.0,
+		minVolume:  300000,
 	}
 }
 

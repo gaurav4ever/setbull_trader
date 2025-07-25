@@ -132,9 +132,14 @@ func (p *StockFilterPipeline) RunPipeline(
 	log.Info("Retrieved %d stocks from universe (total: %d)", len(stocks), totalCount)
 
 	// Initialize filters
+
+	// Basic Filter - 50,1000 price, 400000 volume
 	basicFilter := NewBasicFilter(p.candleRepo)
+	// EMA Filter - 3% above 40EMA
 	emaFilter := NewEMAFilter(p.technicalIndicators, p.tradingCalendar)
+	// RSI Filter - 60 Good for bullish, 40 Good for bearish
 	rsiFilter := NewRSIFilter(p.technicalIndicators, p.tradingCalendar)
+	// Mamba Filter - 5% bullish, 3% bearish
 	mambaFilter := NewMambaFilter(p.candleRepo, p.config.MambaFilter, p.technicalIndicators, p.tradingCalendar)
 
 	p.filters = []domain.StockFilter{basicFilter, emaFilter, rsiFilter, mambaFilter}

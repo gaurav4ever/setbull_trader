@@ -1,0 +1,179 @@
+# 5-Minute Candle Data Aggregation and Storage Solution
+
+## Problem Statement
+Currently, only 1-minute and daily candle data are stored in `stock_candle_data` table. 5-minute candles are calculated in-memory but not persisted, making BB width history unavailable for pattern detection.
+
+## High-Level Design
+
+### 1. Database Schema
+- Create `stock_candle_data_5min` table with identical structure to `stock_candle_data`
+- Include all indicator columns (BB, BB width, EMA, RSI, etc.)
+- Use same indexing strategy as 1-minute table
+
+### 2. Aggregation Logic
+- Aggregate 1-minute candles to 5-minute candles using existing logic
+- Calculate all indicators on 5-minute aggregated data
+- Store complete 5-minute candles with indicators
+
+### 3. Ingestion Paths
+- **Batch Ingestion**: `BatchStoreHistoricalData` API (server.go)
+- **Live Ingestion**: 1-minute candle ingestion loop (app.go)
+- Both paths trigger 5-minute aggregation after 1-minute data storage
+
+## Low-Level Design
+
+### 1. Database Migration
+```sql
+CREATE TABLE stock_candle_data_5min (
+    id BIGSERIAL PRIMARY KEY,
+    instrument_key VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
+    open DECIMAL(10,2),
+    high DECIMAL(10,2),
+    low DECIMAL(10,2),
+    close DECIMAL(10,2),
+    volume BIGINT,
+    bb_upper DECIMAL(10,2),
+    bb_middle DECIMAL(10,2),
+    bb_lower DECIMAL(10,2),
+    bb_width DECIMAL(10,2),
+    bb_width_normalized DECIMAL(10,4),
+    bb_width_normalized_percentage DECIMAL(10,4),
+    ema_20 DECIMAL(10,2),
+    rsi_14 DECIMAL(10,2),
+    vwap DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active BOOLEAN DEFAULT TRUE
+);
+
+CREATE INDEX idx_stock_candle_data_5min_instrument_timestamp ON stock_candle_data_5min(instrument_key, timestamp);
+CREATE INDEX idx_stock_candle_data_5min_timestamp ON stock_candle_data_5min(timestamp);
+```
+
+### 2. Repository Layer
+- Create `Candle5MinRepository` interface and implementation
+- Methods: `Create`, `FindByInstrumentAndTimeRange`, `FindLatestByInstrument`
+- Use same patterns as existing `CandleRepository`
+
+### 3. Service Layer Integration
+
+#### CandleProcessingService Updates
+- Add `candle5MinRepo` dependency
+- Modify `ProcessIntraDayCandles` to trigger 5-minute aggregation
+- Add `aggregateAndStore5MinCandles` method
+
+#### CandleAggregationService Updates
+- Modify existing aggregation logic to store results
+- Add `Store5MinCandles` method
+- Ensure indicators are calculated before storage
+
+### 4. Aggregation Trigger Logic
+
+#### Indian Market Timing (9:15 AM - 3:30 PM)
+- 5-minute boundaries: 9:15, 9:20, 9:25, ..., 3:25, 3:30
+- Total: 75 5-minute candles per trading day
+- Aggregation window: 5 consecutive 1-minute candles
+
+#### Trigger Conditions
+- After each 1-minute candle ingestion
+- Check if current time is a 5-minute boundary
+- If yes, aggregate last 5 1-minute candles and store
+
+### 5. Implementation Flow
+
+#### Batch Ingestion Path (server.go)
+1. `BatchStoreHistoricalData` processes 1-minute data
+2. After storing 1-minute candles, check for 5-minute boundaries
+3. Trigger `aggregateAndStore5MinCandles` for affected instruments
+4. Store 5-minute candles with indicators
+
+#### Live Ingestion Path (app.go)
+1. 1-minute ingestion loop processes live data
+2. After each 1-minute candle storage, check 5-minute boundary
+3. If boundary reached, aggregate and store 5-minute candle
+4. Continue with next 1-minute cycle
+
+### 6. BB Width Monitoring Integration
+- `BBWidthMonitorService` fetches BB width history from `stock_candle_data_5min`
+- Use `FindByInstrumentAndTimeRange` to get recent 5-minute candles
+- Extract BB width values for pattern detection
+- No more in-memory history management needed
+
+## Implementation Phases
+
+### Phase 1: Database and Repository ✅ COMPLETED
+- ✅ Create migration for `stock_candle_data_5min` table
+  - Created `20250101000000_create_stock_candle_data_5min.up.sql` with all required columns
+  - Created `20250101000000_create_stock_candle_data_5min.down.sql` for rollback
+  - Includes all indicator columns: BB, BB width, BB width normalized, EMA, RSI, VWAP, etc.
+  - Proper indexing and unique constraints
+- ✅ Implement `Candle5MinRepository` interface and implementation
+  - Added interface to `internal/repository/interfaces.go`
+  - Created `internal/repository/postgres/candle_5min_repository.go` with full implementation
+  - Follows same patterns as existing `CandleRepository`
+  - Methods: Store, StoreBatch, FindByInstrumentKey, FindByInstrumentAndTimeRange, etc.
+- ✅ Add repository to service dependencies
+  - Added `candle5MinRepo` to app.go dependency injection
+  - Ready for use in Phase 2 services
+
+### Phase 2: Aggregation Logic ✅ COMPLETED
+- ✅ Update `CandleProcessingService` with 5-minute storage logic
+  - Added `candle5MinRepo` dependency to service struct
+  - Added `IsFiveMinBoundarySinceMarketOpen` method for Indian market timing (9:15, 9:20, 9:25, etc.)
+  - Added `AggregateAndStore5MinCandles` method to aggregate and store 5-minute candles
+  - Updated `ProcessIntraDayCandles` to trigger 5-minute aggregation at boundaries
+- ✅ Modify `CandleAggregationService` to store results
+  - Added `candle5MinRepo` dependency to service struct
+  - Added `Store5MinCandles` method to store 5-minute candles with indicators
+  - Updated constructor to accept 5-minute repository
+- ✅ Implement boundary detection logic
+  - 5-minute boundaries: 9:15, 9:20, 9:25, ..., 3:25, 3:30 (75 periods per trading day)
+  - Automatic triggering after 1-minute candle storage
+  - Proper aggregation of 5 consecutive 1-minute candles
+  - Indicator calculation and storage in 5-minute table
+
+### Phase 3: Integration ✅ COMPLETED
+- ✅ Update batch ingestion path in `BatchStoreHistoricalData`
+  - Enhanced `processInstrumentWithIntervals` method in `BatchFetchService`
+  - Added comprehensive debug logs with `[BATCH]` prefix for easy tracking
+  - Automatic 5-minute aggregation after processing 1-minute data
+  - Proper error handling to prevent batch failures
+  - Boundary detection using `IsFiveMinBoundarySinceMarketOpen`
+- ✅ Update live ingestion path in app.go loop
+  - Enhanced live ingestion loop with detailed debug logs (`[LIVE]` prefix)
+  - Individual stock tracking for 5-minute aggregation needs
+  - Real-time boundary detection and aggregation triggering
+  - Maintained backward compatibility with legacy 5-minute aggregation
+  - Added public methods: `GetLatestCandle`, `IsFiveMinBoundarySinceMarketOpen`, `AggregateAndStore5MinCandles`
+- ✅ Comprehensive debug logging and error handling
+  - Added structured logging with prefixes: `[BATCH]`, `[LIVE]`
+  - Detailed error messages for troubleshooting
+  - Graceful error handling to prevent system failures
+  - Performance tracking and timing accuracy monitoring
+
+### Phase 4: Separate Domain Entities ✅ COMPLETED
+- ✅ Create separate domain entities for different tables
+  - `Candle` struct for `stock_candle_data` (1-minute data) - no BB width normalized fields
+  - `Candle5Min` struct for `stock_candle_data_5min` (5-minute data) - includes BB width normalized fields
+  - Clear separation of concerns and type safety
+- ✅ Update repository interfaces and implementations
+  - Updated `Candle5MinRepository` interface to use `domain.Candle5Min`
+  - Updated repository implementation to handle the new type
+  - Proper type conversion in service layer
+- ✅ Update service layer for type safety
+  - Updated `CandleProcessingService.AggregateAndStore5MinCandles` to use `Candle5Min`
+  - Updated `CandleAggregationService.Store5MinCandles` to use `Candle5Min`
+  - Added `EMA20` field to `AggregatedCandle` struct for consistency
+
+### Phase 5: BB Width Monitoring
+- Update `BBWidthMonitorService` to use 5-minute table
+- Remove in-memory history management
+- Test pattern detection with persisted data
+
+## Benefits
+- Persistent 5-minute candle data with indicators
+- Reliable BB width history for pattern detection
+- Consistent data across restarts
+- Historical analysis capabilities
+- No memory limitations for BB width history

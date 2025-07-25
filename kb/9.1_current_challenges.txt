@@ -1,0 +1,10 @@
+	1. Most of the time, I get losses in 1st entry. Simply means I was wrong technically. 
+		a. But was not wrong overall. Price did goes to my direction after removing me. 
+		b. Here, I can observe that if a bearish stock already touched the MR high in Intraday then my expectation of it going down immediately comes at risk.  
+			i. This is my new risk. I need to asses and change my decisions immediately. 
+			ii. So I need a automated scalable way of doing it. 
+	2. When I get loss in 1st Entry or not get any entry overall. I should be triggered on the expectation of the market behavior based on previous backtesting. 
+		a. That means, switching to BB width based trading
+		b. Or trading at best available average level for that stock's trend. 
+	3. So, at any point of time, I should have knowledge of what exactly to do objectively. 
+On my best backtested stocks, if I follow this for 1month, I will improve 1000x. 

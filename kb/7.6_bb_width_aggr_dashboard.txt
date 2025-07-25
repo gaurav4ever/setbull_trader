@@ -1,0 +1,12 @@
+so based on the data and whenever I am putting the candles, I am also marking the Bollinger
+band with upper lower and middle band and then calculating the weight and I'm checking with the lowest BP which of that stock whatever they sold is Steve in saved in the in the DB
+I would required on every five minute close. I would require a different table to store those five minute candles and add some additional columns and parameters to the table so that I can track the Bollinger band with more on multiple stocks at the same time.
+
+
+The data should be stored in a such a way that a full fledge dashboard can be made on it where I can see the list of stocks currently going towards their threshold. The lowest baby wait for that stop the dashboard shoes should show the list of stocks and as soon as a five minute candle is close it should before
+Auto updated and dal. Stockley should be updated. Basically at any point of time, I should see a list of stocks in the descending order of the number of candles which are currently inside the test fold range.
+
+
+
+So the above requirement or very abstract a very on high-level on the business requirement. I want you to write the product requirement details to make this feature bank in future and then the front and dashboard already that is present in the front-end code base. 
+What is the product requirement and the user level requirements are clear then only we will start the technical design and implementation of it.

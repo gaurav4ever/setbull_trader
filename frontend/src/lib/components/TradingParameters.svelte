@@ -135,6 +135,10 @@
 		try {
 			const payload = {
 				...formData,
+				riskAmount: formData.riskAmount !== '' ? Number(formData.riskAmount) : 0,
+				startingPrice: formData.startingPrice !== '' ? Number(formData.startingPrice) : '',
+				stopLossPercentage: formData.stopLossPercentage !== '' ? Number(formData.stopLossPercentage) : '',
+				stockId: stockId || formData.stockId || '',
 				stockSecurityId: stockSecurityId || formData.stockSecurityId || ''
 			};
 

@@ -165,6 +165,57 @@ type CandleRepository interface {
 	GetStocksWithExistingDailyCandles(ctx context.Context, startDate, endDate time.Time) ([]string, error)
 }
 
+// Candle5MinRepository defines operations for managing 5-minute candle data
+type Candle5MinRepository interface {
+	// Store stores a single 5-minute candle record
+	Store(ctx context.Context, candle *domain.Candle5Min) error
+
+	// StoreBatch stores multiple 5-minute candle records in a batch operation
+	StoreBatch(ctx context.Context, candles []domain.Candle5Min) (int, error)
+
+	// FindByInstrumentKey retrieves all 5-minute candles for a specific instrument
+	FindByInstrumentKey(ctx context.Context, instrumentKey string) ([]domain.Candle5Min, error)
+
+	// FindByInstrumentAndTimeRange retrieves 5-minute candles for an instrument within a time range
+	FindByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) ([]domain.Candle5Min, error)
+
+	// DeleteByInstrumentAndTimeRange deletes 5-minute candles for an instrument within a time range
+	DeleteByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// CountByInstrumentAndTimeRange counts 5-minute candles for an instrument within a time range
+	CountByInstrumentAndTimeRange(
+		ctx context.Context,
+		instrumentKey string,
+		fromTime,
+		toTime time.Time,
+	) (int, error)
+
+	// DeleteOlderThan deletes 5-minute candles older than a specified time
+	DeleteOlderThan(ctx context.Context, olderThan time.Time) (int, error)
+
+	// GetLatestCandle retrieves the most recent 5-minute candle for a specific instrument
+	GetLatestCandle(ctx context.Context, instrumentKey string) (*domain.Candle5Min, error)
+
+	// GetEarliestCandle retrieves the oldest 5-minute candle for a specific instrument
+	GetEarliestCandle(ctx context.Context, instrumentKey string) (*domain.Candle5Min, error)
+
+	// GetCandleDateRange retrieves the earliest and latest timestamps for 5-minute candles of a specific instrument
+	GetCandleDateRange(ctx context.Context, instrumentKey string) (earliest, latest time.Time, exists bool, err error)
+
+	// GetNLatestCandles retrieves the N most recent 5-minute candles for a specific instrument
+	GetNLatestCandles(ctx context.Context, instrumentKey string, n int) ([]domain.Candle5Min, error)
+}
+
 // StockUniverseRepository defines the interface for stock universe operations
 type StockUniverseRepository interface {
 	Create(ctx context.Context, stock *domain.StockUniverse) (*domain.StockUniverse, error)
@@ -202,4 +253,37 @@ type FilteredStockRepository interface {
 
 	// GetTop10FilteredStocks retrieves the top 10 filtered stocks
 	GetTop10FilteredStocks(ctx context.Context) ([]domain.FilteredStockRecord, error)
+}
+
+// MasterDataProcessRepository defines operations for managing master data processes
+type MasterDataProcessRepository interface {
+	// Create creates a new master data process
+	Create(ctx context.Context, processDate time.Time, numberOfPastDays int) (*domain.MasterDataProcess, error)
+
+	// GetByDate retrieves a process by its date
+	GetByDate(ctx context.Context, processDate time.Time) (*domain.MasterDataProcess, error)
+
+	// GetByID retrieves a process by its ID
+	GetByID(ctx context.Context, processID int64) (*domain.MasterDataProcess, error)
+
+	// UpdateStatus updates the status of a process
+	UpdateStatus(ctx context.Context, processID int64, status string) error
+
+	// CompleteProcess marks a process as completed
+	CompleteProcess(ctx context.Context, processID int64) error
+
+	// CreateStep creates a new step for a process
+	CreateStep(ctx context.Context, processID int64, stepNumber int, stepName string) error
+
+	// GetStep retrieves a step by process ID and step number
+	GetStep(ctx context.Context, processID int64, stepNumber int) (*domain.MasterDataProcessStep, error)
+
+	// UpdateStepStatus updates the status of a step
+	UpdateStepStatus(ctx context.Context, processID int64, stepNumber int, status string, errorMessage ...string) error
+
+	// GetFilteredStocks retrieves filtered stocks for a specific date
+	GetFilteredStocks(ctx context.Context, processDate time.Time) ([]domain.FilteredStockRecord, error)
+
+	// GetProcessHistory retrieves recent process history
+	GetProcessHistory(ctx context.Context, limit int) ([]domain.MasterDataProcess, error)
 }

@@ -303,24 +303,39 @@
 
 	// Handle direct stock selection (new flow)
 	async function handleStockSelected(event: any) {
-		const stockId = event.detail;
-		if (!stockId) return;
-		if (selectedStocks.includes(stockId)) return;
+		const stock = event.detail; // This should be the full stock object, not just symbol
+		console.log('Received stock object:', stock); // Debug log
+		
+		if (!stock) {
+			console.error('No stock object received');
+			return;
+		}
+		
+		// Validate that the stock object has required properties
+		if (!stock.symbol || !stock.securityId) {
+			console.error('Invalid stock object - missing required properties:', stock);
+			error = 'Invalid stock data received';
+			return;
+		}
+		
+		if (selectedStocks.includes(stock.symbol)) return;
 		if (selectedStocks.length >= 5) return;
-		selectedStocks = [...selectedStocks, stockId];
+		selectedStocks = [...selectedStocks, stock.symbol];
 
 		// Show loading state
 		addingStock = true;
 		error = '';
 
 		try {
-			// Create the stock (without parameters for now)
+			// Create the stock with correct securityId
 			const stockData = {
-				symbol: stockId,
-				name: stockId,
-				securityId: stockId,
+				symbol: stock.symbol,
+				name: stock.name || stock.symbol,
+				securityId: stock.securityId, // Use the numeric Security ID from the stock object
 				isSelected: true
 			};
+
+			console.log('Sending stock data to backend:', stockData); // Debug log
 
 			const response = await createStock(stockData);
 
