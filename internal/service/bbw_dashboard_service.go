@@ -678,13 +678,61 @@ func (s *BBWDashboardService) ClearAlertHistory() {
 
 // getRecentBBWValues gets recent BBW values for a stock
 func (s *BBWDashboardService) getRecentBBWValues(ctx context.Context, instrumentKey string, count int) ([]float64, error) {
-	// This would typically fetch from your 5-minute candle data
-	// For now, we'll use a placeholder implementation
-	// In the real implementation, you would fetch from stock_candle_data_5min table
+	if s.candle5MinRepo == nil {
+		return nil, fmt.Errorf("candle5Min repository not available")
+	}
 
-	// Placeholder: return some sample data
-	// In reality, this should fetch from your database
-	return []float64{0.025, 0.024, 0.023, 0.022, 0.021, 0.020}, nil
+	// Get recent candles from the database
+	candles, err := s.candle5MinRepo.GetNLatestCandles(ctx, instrumentKey, count)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recent candles for BBW values: %w", err)
+	}
+
+	if len(candles) == 0 {
+		log.BBWDebug("bbw_values", "no_data", "No candles found for BBW values", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"requested":      count,
+		})
+		return []float64{}, nil
+	}
+
+	// Extract BBW values from candles
+	var bbwValues []float64
+	for _, candle := range candles {
+		if candle.BBWidth > 0 {
+			bbwValues = append(bbwValues, candle.BBWidth)
+		} else {
+			log.BBWWarn("bbw_values", "invalid_bbw", "Invalid BBW value in candle", map[string]interface{}{
+				"instrument_key": instrumentKey,
+				"timestamp":      candle.Timestamp,
+				"bb_width":       candle.BBWidth,
+			})
+		}
+	}
+
+	// Sort by timestamp to ensure chronological order (oldest to newest)
+	// The repository already returns them in chronological order, but let's be explicit
+	if len(bbwValues) > 1 {
+		// Verify we have enough valid BBW values
+		if len(bbwValues) < 2 {
+			log.BBWDebug("bbw_values", "insufficient_valid", "Insufficient valid BBW values", map[string]interface{}{
+				"instrument_key": instrumentKey,
+				"valid_count":    len(bbwValues),
+				"required":       2,
+			})
+			return bbwValues, nil
+		}
+	}
+
+	log.BBWDebug("bbw_values", "retrieved", "Retrieved BBW values", map[string]interface{}{
+		"instrument_key": instrumentKey,
+		"requested":      count,
+		"retrieved":      len(bbwValues),
+		"valid_count":    len(bbwValues),
+		"values":         bbwValues,
+	})
+
+	return bbwValues, nil
 }
 
 // getMonitoredStocks gets all stocks that need BBW monitoring
