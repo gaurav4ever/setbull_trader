@@ -10,25 +10,25 @@ import (
 type FeatureFlags struct {
 	// UseOptimizedAnalytics enables the new DataFrame + GoNum analytics engine
 	UseOptimizedAnalytics bool `json:"use_optimized_analytics"`
-	
+
 	// CacheEnabled enables the FastCache system for indicators
 	CacheEnabled bool `json:"cache_enabled"`
-	
+
 	// ConcurrencyEnabled enables worker pool for concurrent processing
 	ConcurrencyEnabled bool `json:"concurrency_enabled"`
-	
+
 	// RolloutPercentage controls what percentage of requests use the optimized system (0-100)
 	RolloutPercentage float64 `json:"rollout_percentage"`
-	
+
 	// EnableDetailedMetrics enables comprehensive performance monitoring
 	EnableDetailedMetrics bool `json:"enable_detailed_metrics"`
-	
+
 	// FallbackToV1OnError automatically falls back to V1 service on errors
 	FallbackToV1OnError bool `json:"fallback_to_v1_on_error"`
-	
+
 	// MaxCacheSize sets the maximum cache size in MB
 	MaxCacheSize int64 `json:"max_cache_size"`
-	
+
 	// WorkerPoolSize sets the number of concurrent workers
 	WorkerPoolSize int `json:"worker_pool_size"`
 }
@@ -36,40 +36,40 @@ type FeatureFlags struct {
 // DefaultFeatureFlags returns safe default values for production
 func DefaultFeatureFlags() *FeatureFlags {
 	return &FeatureFlags{
-		UseOptimizedAnalytics: false,     // Start disabled for safety
-		CacheEnabled:         true,       // Cache is stable
-		ConcurrencyEnabled:   true,       // Concurrency is stable
-		RolloutPercentage:    0.0,        // Start with 0% rollout
-		EnableDetailedMetrics: true,      // Always monitor in production
-		FallbackToV1OnError:  true,       // Always have fallback
-		MaxCacheSize:         512,        // 512 MB default cache size
-		WorkerPoolSize:       4,          // Conservative worker pool size
+		UseOptimizedAnalytics: false, // Start disabled for safety
+		CacheEnabled:          true,  // Cache is stable
+		ConcurrencyEnabled:    true,  // Concurrency is stable
+		RolloutPercentage:     0.0,   // Start with 0% rollout
+		EnableDetailedMetrics: true,  // Always monitor in production
+		FallbackToV1OnError:   true,  // Always have fallback
+		MaxCacheSize:          512,   // 512 MB default cache size
+		WorkerPoolSize:        4,     // Conservative worker pool size
 	}
 }
 
 // LoadFeatureFlagsFromEnv loads feature flags from environment variables
 func LoadFeatureFlagsFromEnv() *FeatureFlags {
 	flags := DefaultFeatureFlags()
-	
+
 	// Load from environment variables with fallbacks to defaults
 	if val := os.Getenv("USE_OPTIMIZED_ANALYTICS"); val != "" {
 		if enabled, err := strconv.ParseBool(val); err == nil {
 			flags.UseOptimizedAnalytics = enabled
 		}
 	}
-	
+
 	if val := os.Getenv("CACHE_ENABLED"); val != "" {
 		if enabled, err := strconv.ParseBool(val); err == nil {
 			flags.CacheEnabled = enabled
 		}
 	}
-	
+
 	if val := os.Getenv("CONCURRENCY_ENABLED"); val != "" {
 		if enabled, err := strconv.ParseBool(val); err == nil {
 			flags.ConcurrencyEnabled = enabled
 		}
 	}
-	
+
 	if val := os.Getenv("ROLLOUT_PERCENTAGE"); val != "" {
 		if percentage, err := strconv.ParseFloat(val, 64); err == nil {
 			if percentage >= 0 && percentage <= 100 {
@@ -77,31 +77,31 @@ func LoadFeatureFlagsFromEnv() *FeatureFlags {
 			}
 		}
 	}
-	
+
 	if val := os.Getenv("ENABLE_DETAILED_METRICS"); val != "" {
 		if enabled, err := strconv.ParseBool(val); err == nil {
 			flags.EnableDetailedMetrics = enabled
 		}
 	}
-	
+
 	if val := os.Getenv("FALLBACK_TO_V1_ON_ERROR"); val != "" {
 		if enabled, err := strconv.ParseBool(val); err == nil {
 			flags.FallbackToV1OnError = enabled
 		}
 	}
-	
+
 	if val := os.Getenv("MAX_CACHE_SIZE"); val != "" {
 		if size, err := strconv.ParseInt(val, 10, 64); err == nil && size > 0 {
 			flags.MaxCacheSize = size
 		}
 	}
-	
+
 	if val := os.Getenv("WORKER_POOL_SIZE"); val != "" {
 		if size, err := strconv.Atoi(val); err == nil && size > 0 {
 			flags.WorkerPoolSize = size
 		}
 	}
-	
+
 	return flags
 }
 
@@ -110,20 +110,20 @@ func (f *FeatureFlags) Validate() error {
 	if f.RolloutPercentage < 0 || f.RolloutPercentage > 100 {
 		return fmt.Errorf("rollout percentage must be between 0 and 100, got %f", f.RolloutPercentage)
 	}
-	
+
 	if f.MaxCacheSize <= 0 {
 		return fmt.Errorf("max cache size must be positive, got %d", f.MaxCacheSize)
 	}
-	
+
 	if f.WorkerPoolSize <= 0 {
 		return fmt.Errorf("worker pool size must be positive, got %d", f.WorkerPoolSize)
 	}
-	
+
 	// Safety check: don't allow 100% rollout without explicit confirmation
 	if f.RolloutPercentage == 100 && !f.FallbackToV1OnError {
 		return fmt.Errorf("100%% rollout requires fallback_to_v1_on_error to be enabled")
 	}
-	
+
 	return nil
 }
 
@@ -132,15 +132,15 @@ func (f *FeatureFlags) ShouldUseOptimizedAnalytics(requestID string) bool {
 	if !f.UseOptimizedAnalytics {
 		return false
 	}
-	
+
 	if f.RolloutPercentage == 0 {
 		return false
 	}
-	
+
 	if f.RolloutPercentage == 100 {
 		return true
 	}
-	
+
 	// Use hash of request ID to determine if this request should use optimized analytics
 	hash := simpleHash(requestID)
 	return (hash % 100) < int(f.RolloutPercentage)
@@ -168,9 +168,9 @@ func (f *FeatureFlags) LogConfiguration() string {
 
 // Production deployment phases
 const (
-	PhaseDisabled = 0.0   // 0% - All traffic uses V1
-	PhaseTesting  = 10.0  // 10% - Initial production testing
-	PhaseValidation = 50.0 // 50% - Broader validation
+	PhaseDisabled    = 0.0   // 0% - All traffic uses V1
+	PhaseTesting     = 10.0  // 10% - Initial production testing
+	PhaseValidation  = 50.0  // 50% - Broader validation
 	PhaseFullRollout = 100.0 // 100% - Full deployment
 )
 

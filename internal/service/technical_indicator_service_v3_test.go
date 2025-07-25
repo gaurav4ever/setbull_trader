@@ -74,6 +74,14 @@ func (m *MockCandleRepositoryV3) GetDailyCandlesByTimeframe(ctx context.Context,
 	return []domain.Candle{}, nil
 }
 
+func (m *MockCandleRepositoryV3) GetStocksWithExistingDailyCandles(ctx context.Context, startDate, endDate time.Time) ([]string, error) {
+	return []string{}, nil
+}
+
+func (m *MockCandleRepositoryV3) StoreAggregatedCandles(ctx context.Context, candles []domain.CandleData) error {
+	return nil
+}
+
 func TestTechnicalIndicatorServiceV3_New(t *testing.T) {
 	// Arrange
 	mockRepo := &MockCandleRepositoryV3{}

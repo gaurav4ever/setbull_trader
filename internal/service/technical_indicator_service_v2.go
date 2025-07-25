@@ -81,7 +81,7 @@ func (s *TechnicalIndicatorServiceV2) CalculateAllIndicators(
 	// Try to get from cache first, with calculator fallback
 	technicalIndicators, err := s.indicatorCache.GetOrCalculate(cacheKey, func() (*domain.TechnicalIndicators, error) {
 		return s.calculateIndicatorsWithFallback(ctx, instrumentKey, interval, start, end)
-	}, 5*time.Minute) // 5 minute TTL
+	}, 15*time.Minute) // 15 minute TTL
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate indicators: %w", err)

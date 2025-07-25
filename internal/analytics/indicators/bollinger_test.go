@@ -108,13 +108,13 @@ func TestBollingerCalculator_CalculateBollingerBandsCompatible(t *testing.T) {
 			continue
 		}
 		assert.Equal(t, fullResult.Upper[i].Value, upper[i].Value)
-		
+
 		if math.IsNaN(fullResult.Middle[i].Value) && math.IsNaN(middle[i].Value) {
 			// Both are NaN, which is expected for early periods
 			continue
 		}
 		assert.Equal(t, fullResult.Middle[i].Value, middle[i].Value)
-		
+
 		if math.IsNaN(fullResult.Lower[i].Value) && math.IsNaN(lower[i].Value) {
 			// Both are NaN, which is expected for early periods
 			continue
@@ -218,9 +218,9 @@ func TestBollingerCalculator_CalculateBBWidthNormalized(t *testing.T) {
 	require.Len(t, result, 3)
 
 	// Calculate expected widths
-	width1 := (110.0 - 90.0) / 100.0   // 0.2
-	width2 := (115.0 - 85.0) / 100.0   // 0.3
-	width3 := (120.0 - 80.0) / 100.0   // 0.4
+	width1 := (110.0 - 90.0) / 100.0 // 0.2
+	width2 := (115.0 - 85.0) / 100.0 // 0.3
+	width3 := (120.0 - 80.0) / 100.0 // 0.4
 
 	// Normalize: min = 0.2, max = 0.4, range = 0.2
 	expectedNorm1 := (width1 - 0.2) / 0.2 // 0.0
@@ -254,8 +254,8 @@ func TestBollingerCalculator_CalculateBBWidthPercentage(t *testing.T) {
 	require.Len(t, result, 2)
 
 	// Calculate expected percentages
-	width1 := (110.0 - 90.0) / 100.0 * 100  // 20%
-	width2 := (112.0 - 88.0) / 100.0 * 100  // 24%
+	width1 := (110.0 - 90.0) / 100.0 * 100 // 20%
+	width2 := (112.0 - 88.0) / 100.0 * 100 // 24%
 
 	assert.InDelta(t, width1, result[0].Value, 1e-10)
 	assert.InDelta(t, width2, result[1].Value, 1e-10)
@@ -289,7 +289,7 @@ func TestBollingerCalculator_GetBBSqueeze(t *testing.T) {
 
 	// Expected results:
 	// width1 = (105.0 - 95.0) / 100.0 = 0.1 > 0.08 → no squeeze
-	// width2 = (110.0 - 90.0) / 100.0 = 0.2 > 0.08 → no squeeze  
+	// width2 = (110.0 - 90.0) / 100.0 = 0.2 > 0.08 → no squeeze
 	// width3 = (103.0 - 97.0) / 100.0 = 0.06 <= 0.08 → squeeze
 
 	assert.Equal(t, 0.0, result[0].Value) // No squeeze

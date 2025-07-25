@@ -422,11 +422,11 @@ func TestAggregateGroup(t *testing.T) {
 
 	assert.Equal(t, "NSE_EQ|INE002A01018", result.InstrumentKey)
 	assert.Equal(t, intervalStart, result.Timestamp)
-	assert.Equal(t, 100.0, result.Open)   // First open
-	assert.Equal(t, 110.0, result.High)   // Highest high
-	assert.Equal(t, 96.0, result.Low)     // Lowest low
-	assert.Equal(t, 108.0, result.Close)  // Last close
-	assert.Equal(t, int64(3700), result.Volume) // Sum of volumes
+	assert.Equal(t, 100.0, result.Open)              // First open
+	assert.Equal(t, 110.0, result.High)              // Highest high
+	assert.Equal(t, 96.0, result.Low)                // Lowest low
+	assert.Equal(t, 108.0, result.Close)             // Last close
+	assert.Equal(t, int64(3700), result.Volume)      // Sum of volumes
 	assert.Equal(t, int64(185), result.OpenInterest) // Sum of open interest
 	assert.Equal(t, "5m", result.TimeInterval)
 }

@@ -451,7 +451,7 @@ func BenchmarkCalculator_ATR_1000Points(b *testing.B) {
 	high := make([]float64, 1000)
 	low := make([]float64, 1000)
 	close := make([]float64, 1000)
-	
+
 	for i := 0; i < 1000; i++ {
 		base := 100.0 + float64(i)*0.1
 		high[i] = base + 2.0
@@ -469,7 +469,7 @@ func BenchmarkCalculator_VWAP_1000Points(b *testing.B) {
 	calc := NewCalculator()
 	prices := make([]float64, 1000)
 	volumes := make([]float64, 1000)
-	
+
 	for i := 0; i < 1000; i++ {
 		prices[i] = 100.0 + float64(i)*0.1
 		volumes[i] = 1000.0 + float64(i)*10

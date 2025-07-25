@@ -12,41 +12,41 @@ import (
 // MetricsCollector aggregates performance metrics for production monitoring
 type MetricsCollector struct {
 	mu sync.RWMutex
-	
+
 	// Request metrics
-	TotalRequests     int64     `json:"total_requests"`
-	V1Requests        int64     `json:"v1_requests"`
-	V2Requests        int64     `json:"v2_requests"`
-	ErrorRequests     int64     `json:"error_requests"`
-	FallbackRequests  int64     `json:"fallback_requests"`
-	
+	TotalRequests    int64 `json:"total_requests"`
+	V1Requests       int64 `json:"v1_requests"`
+	V2Requests       int64 `json:"v2_requests"`
+	ErrorRequests    int64 `json:"error_requests"`
+	FallbackRequests int64 `json:"fallback_requests"`
+
 	// Performance metrics
-	AvgV1ResponseTime time.Duration `json:"avg_v1_response_time"`
-	AvgV2ResponseTime time.Duration `json:"avg_v2_response_time"`
+	AvgV1ResponseTime time.Duration   `json:"avg_v1_response_time"`
+	AvgV2ResponseTime time.Duration   `json:"avg_v2_response_time"`
 	V1ResponseTimes   []time.Duration `json:"-"` // Keep last 1000 samples
 	V2ResponseTimes   []time.Duration `json:"-"` // Keep last 1000 samples
-	
+
 	// Memory and resource metrics
-	V1MemoryUsage     int64   `json:"v1_memory_usage_mb"`
-	V2MemoryUsage     int64   `json:"v2_memory_usage_mb"`
-	CacheHitRate      float64 `json:"cache_hit_rate"`
-	CacheHits         int64   `json:"cache_hits"`
-	CacheMisses       int64   `json:"cache_misses"`
-	
+	V1MemoryUsage int64   `json:"v1_memory_usage_mb"`
+	V2MemoryUsage int64   `json:"v2_memory_usage_mb"`
+	CacheHitRate  float64 `json:"cache_hit_rate"`
+	CacheHits     int64   `json:"cache_hits"`
+	CacheMisses   int64   `json:"cache_misses"`
+
 	// Error tracking
-	ErrorsByType      map[string]int64  `json:"errors_by_type"`
-	LastErrors        []ErrorEvent      `json:"last_errors"`
-	
+	ErrorsByType map[string]int64 `json:"errors_by_type"`
+	LastErrors   []ErrorEvent     `json:"last_errors"`
+
 	// System metrics
-	CPUUsage          float64   `json:"cpu_usage_percent"`
-	MemoryUsage       float64   `json:"memory_usage_percent"`
-	GoroutineCount    int       `json:"goroutine_count"`
-	
+	CPUUsage       float64 `json:"cpu_usage_percent"`
+	MemoryUsage    float64 `json:"memory_usage_percent"`
+	GoroutineCount int     `json:"goroutine_count"`
+
 	// Alerting
-	alertThresholds   *AlertThresholds
-	alertCallbacks    []AlertCallback
-	
-	startTime         time.Time
+	alertThresholds *AlertThresholds
+	alertCallbacks  []AlertCallback
+
+	startTime time.Time
 }
 
 // ErrorEvent represents an error that occurred during processing
@@ -75,10 +75,10 @@ func NewMetricsCollector() *MetricsCollector {
 		ErrorsByType: make(map[string]int64),
 		LastErrors:   make([]ErrorEvent, 0, 100), // Keep last 100 errors
 		alertThresholds: &AlertThresholds{
-			ErrorRatePercent:    5.0,          // Alert if > 5% error rate
+			ErrorRatePercent:    5.0,             // Alert if > 5% error rate
 			ResponseTimeP95:     5 * time.Second, // Alert if P95 > 5 seconds
-			MemoryUsagePercent:  80.0,         // Alert if > 80% memory usage
-			CacheHitRatePercent: 70.0,         // Alert if < 70% cache hit rate
+			MemoryUsagePercent:  80.0,            // Alert if > 80% memory usage
+			CacheHitRatePercent: 70.0,            // Alert if < 70% cache hit rate
 		},
 		startTime: time.Now(),
 	}
@@ -88,9 +88,9 @@ func NewMetricsCollector() *MetricsCollector {
 func (m *MetricsCollector) RecordRequest(serviceType string, duration time.Duration, err error, requestID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.TotalRequests++
-	
+
 	if serviceType == "v1" {
 		m.V1Requests++
 		m.recordResponseTime(&m.V1ResponseTimes, duration)
@@ -100,12 +100,12 @@ func (m *MetricsCollector) RecordRequest(serviceType string, duration time.Durat
 		m.recordResponseTime(&m.V2ResponseTimes, duration)
 		m.AvgV2ResponseTime = m.calculateAverage(m.V2ResponseTimes)
 	}
-	
+
 	if err != nil {
 		m.ErrorRequests++
 		errorType := fmt.Sprintf("%T", err)
 		m.ErrorsByType[errorType]++
-		
+
 		// Record error event
 		errorEvent := ErrorEvent{
 			Timestamp:   time.Now(),
@@ -114,12 +114,12 @@ func (m *MetricsCollector) RecordRequest(serviceType string, duration time.Durat
 			ServiceType: serviceType,
 			RequestID:   requestID,
 		}
-		
+
 		m.LastErrors = append(m.LastErrors, errorEvent)
 		if len(m.LastErrors) > 100 {
 			m.LastErrors = m.LastErrors[1:]
 		}
-		
+
 		// Check for alert conditions
 		m.checkAlerts()
 	}
@@ -129,11 +129,11 @@ func (m *MetricsCollector) RecordRequest(serviceType string, duration time.Durat
 func (m *MetricsCollector) RecordFallback(requestID string, reason string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.FallbackRequests++
-	
+
 	log.Printf("FALLBACK: Request %s fell back to V1. Reason: %s", requestID, reason)
-	
+
 	// Record as a specific error type
 	m.ErrorsByType["fallback_to_v1"]++
 }
@@ -142,7 +142,7 @@ func (m *MetricsCollector) RecordFallback(requestID string, reason string) {
 func (m *MetricsCollector) RecordMemoryUsage(serviceType string, memoryMB int64) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if serviceType == "v1" {
 		m.V1MemoryUsage = memoryMB
 	} else if serviceType == "v2" {
@@ -154,13 +154,13 @@ func (m *MetricsCollector) RecordMemoryUsage(serviceType string, memoryMB int64)
 func (m *MetricsCollector) RecordCacheEvent(hit bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if hit {
 		m.CacheHits++
 	} else {
 		m.CacheMisses++
 	}
-	
+
 	total := m.CacheHits + m.CacheMisses
 	if total > 0 {
 		m.CacheHitRate = float64(m.CacheHits) / float64(total) * 100
@@ -171,15 +171,15 @@ func (m *MetricsCollector) RecordCacheEvent(hit bool) {
 func (m *MetricsCollector) UpdateSystemMetrics() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	// Get memory stats
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	
+
 	// Update system metrics
 	m.GoroutineCount = runtime.NumGoroutine()
 	m.MemoryUsage = float64(memStats.Alloc) / float64(memStats.Sys) * 100
-	
+
 	// CPU usage would require additional libraries in a real implementation
 	// For now, we'll simulate it or leave it for external monitoring
 }
@@ -188,20 +188,20 @@ func (m *MetricsCollector) UpdateSystemMetrics() {
 func (m *MetricsCollector) GetSnapshot() *MetricsCollector {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	// Create a copy
 	snapshot := &MetricsCollector{}
 	*snapshot = *m
-	
+
 	// Deep copy slices and maps
 	snapshot.ErrorsByType = make(map[string]int64)
 	for k, v := range m.ErrorsByType {
 		snapshot.ErrorsByType[k] = v
 	}
-	
+
 	snapshot.LastErrors = make([]ErrorEvent, len(m.LastErrors))
 	copy(snapshot.LastErrors, m.LastErrors)
-	
+
 	return snapshot
 }
 
@@ -209,11 +209,11 @@ func (m *MetricsCollector) GetSnapshot() *MetricsCollector {
 func (m *MetricsCollector) GetErrorRate() float64 {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	if m.TotalRequests == 0 {
 		return 0
 	}
-	
+
 	return float64(m.ErrorRequests) / float64(m.TotalRequests) * 100
 }
 
@@ -221,11 +221,11 @@ func (m *MetricsCollector) GetErrorRate() float64 {
 func (m *MetricsCollector) GetFallbackRate() float64 {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	if m.V2Requests == 0 {
 		return 0
 	}
-	
+
 	return float64(m.FallbackRequests) / float64(m.V2Requests) * 100
 }
 
@@ -238,7 +238,7 @@ func (m *MetricsCollector) GetUptime() time.Duration {
 func (m *MetricsCollector) AddAlertCallback(callback AlertCallback) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.alertCallbacks = append(m.alertCallbacks, callback)
 }
 
@@ -246,7 +246,7 @@ func (m *MetricsCollector) AddAlertCallback(callback AlertCallback) {
 func (m *MetricsCollector) SetAlertThresholds(thresholds *AlertThresholds) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.alertThresholds = thresholds
 }
 
@@ -255,18 +255,18 @@ func (m *MetricsCollector) checkAlerts() {
 	if m.alertThresholds == nil {
 		return
 	}
-	
+
 	// Check error rate
 	errorRate := m.GetErrorRate()
 	if errorRate > m.alertThresholds.ErrorRatePercent {
 		m.triggerAlert("HIGH_ERROR_RATE", fmt.Sprintf("Error rate %.2f%% exceeds threshold %.2f%%", errorRate, m.alertThresholds.ErrorRatePercent))
 	}
-	
+
 	// Check memory usage
 	if m.MemoryUsage > m.alertThresholds.MemoryUsagePercent {
 		m.triggerAlert("HIGH_MEMORY_USAGE", fmt.Sprintf("Memory usage %.2f%% exceeds threshold %.2f%%", m.MemoryUsage, m.alertThresholds.MemoryUsagePercent))
 	}
-	
+
 	// Check cache hit rate
 	if m.CacheHitRate < m.alertThresholds.CacheHitRatePercent && m.CacheHits+m.CacheMisses > 100 {
 		m.triggerAlert("LOW_CACHE_HIT_RATE", fmt.Sprintf("Cache hit rate %.2f%% below threshold %.2f%%", m.CacheHitRate, m.alertThresholds.CacheHitRatePercent))
@@ -293,12 +293,12 @@ func (m *MetricsCollector) calculateAverage(times []time.Duration) time.Duration
 	if len(times) == 0 {
 		return 0
 	}
-	
+
 	var total time.Duration
 	for _, t := range times {
 		total += t
 	}
-	
+
 	return total / time.Duration(len(times))
 }
 
@@ -306,7 +306,7 @@ func (m *MetricsCollector) calculateAverage(times []time.Duration) time.Duration
 func (m *MetricsCollector) StartPeriodicReporting(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -321,7 +321,7 @@ func (m *MetricsCollector) StartPeriodicReporting(ctx context.Context, interval 
 // logCurrentMetrics logs a summary of current metrics
 func (m *MetricsCollector) logCurrentMetrics() {
 	snapshot := m.GetSnapshot()
-	
+
 	log.Printf("METRICS SUMMARY: Total=%d, V1=%d, V2=%d, Errors=%d (%.2f%%), Fallbacks=%d (%.2f%%), Cache=%.1f%%, Memory=%.1fMB/%.1fMB, Uptime=%v",
 		snapshot.TotalRequests,
 		snapshot.V1Requests,
