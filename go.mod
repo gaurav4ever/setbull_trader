@@ -25,12 +25,18 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
-require github.com/stretchr/objx v0.5.0 // indirect
+require (
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
+)
 
 require (
+	github.com/VictoriaMetrics/fastcache v1.12.1
 	github.com/cinar/indicator v1.3.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-gota/gota v0.12.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gonum.org/v1/gonum v0.14.0 // indirect
 )
 
 require (
