@@ -8,22 +8,7 @@ import (
 	"setbull_trader/internal/domain"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-// MockCandleRepository for testing
-type MockCandleRepository struct {
-	mock.Mock
-}
-
-func (m *MockCandleRepository) FindByInstrumentAndTimeRange(
-	ctx context.Context,
-	instrumentKey, interval string,
-	start, end time.Time,
-) ([]domain.Candle, error) {
-	args := m.Called(ctx, instrumentKey, interval, start, end)
-	return args.Get(0).([]domain.Candle), args.Error(1)
-}
 
 // Test cache integration in TechnicalIndicatorServiceV2
 func TestTechnicalIndicatorServiceV2_CacheIntegration(t *testing.T) {

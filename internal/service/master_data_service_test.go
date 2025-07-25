@@ -111,6 +111,7 @@ func (m *MockMinuteDataService) BatchStore(ctx context.Context, instrumentKeys [
 	return args.Error(0)
 }
 
+// Test implementation for master data service
 func TestMasterDataService_StartProcess_NewProcess(t *testing.T) {
 	// Setup
 	mockRepo := &MockMasterDataProcessRepository{}
@@ -305,7 +306,7 @@ func TestMasterDataService_GetProcessStatus(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	processID := 123
+	processID := int64(123)
 
 	// Mock process
 	processDate := time.Date(2025, 1, 22, 0, 0, 0, 0, time.UTC)
