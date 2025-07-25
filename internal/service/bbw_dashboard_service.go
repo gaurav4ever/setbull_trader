@@ -9,6 +9,7 @@ import (
 
 	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
+	"setbull_trader/internal/repository"
 	"setbull_trader/pkg/log"
 )
 
@@ -38,7 +39,9 @@ type BBWDashboardService struct {
 	stockGroupService     *StockGroupService
 	universeService       *StockUniverseService
 	websocketHub          *WebSocketHub
-	alertService          *AlertService // NEW: Alert service integration
+	alertService          *AlertService                   // NEW: Alert service integration
+	utilityService        *UtilityService                 // NEW: Utility service for historical data
+	candle5MinRepo        repository.Candle5MinRepository // NEW: Direct repository access
 	mu                    sync.RWMutex
 	monitoredStocks       map[string]*BBWDashboardData
 	alertThreshold        float64      // 0.1% default
@@ -55,6 +58,8 @@ func NewBBWDashboardService(
 	universeService *StockUniverseService,
 	websocketHub *WebSocketHub,
 	alertService *AlertService, // NEW: Alert service parameter
+	utilityService *UtilityService, // NEW: Utility service parameter
+	candle5MinRepo repository.Candle5MinRepository, // NEW: Candle5Min repository parameter
 ) *BBWDashboardService {
 	return &BBWDashboardService{
 		candleAggService:      candleAggService,
@@ -62,7 +67,9 @@ func NewBBWDashboardService(
 		stockGroupService:     stockGroupService,
 		universeService:       universeService,
 		websocketHub:          websocketHub,
-		alertService:          alertService, // NEW: Store alert service
+		alertService:          alertService,   // NEW: Store alert service
+		utilityService:        utilityService, // NEW: Store utility service
+		candle5MinRepo:        candle5MinRepo, // NEW: Store candle5Min repository
 		monitoredStocks:       make(map[string]*BBWDashboardData),
 		alertThreshold:        0.1,                   // 0.1%
 		contractingLookback:   5,                     // 5 candles
@@ -196,8 +203,21 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 	// Calculate current BBW
 	currentBBW := bbwValues[len(bbwValues)-1]
 
-	// Calculate historical minimum BBW
-	historicalMinBBW := s.calculateHistoricalMinBBW(bbwValues)
+	// Get historical minimum BBW from CSV/database
+	historicalMinBBW, err := s.getHistoricalMinBBW(ctx, stock.InstrumentKey)
+	if err != nil {
+		log.BBWError("stock_processing", "historical_min", "Failed to get historical minimum BBW", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+		})
+		// Use recent minimum as fallback
+		historicalMinBBW = s.calculateRecentMinBBW(bbwValues)
+		log.BBWWarn("stock_processing", "fallback", "Using recent minimum as fallback", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"fallback_value": historicalMinBBW,
+		})
+	}
 
 	// Calculate distance from minimum
 	distanceFromMin := s.calculateDistanceFromMin(currentBBW, historicalMinBBW)
@@ -210,6 +230,16 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 
 	// Calculate candles in range count
 	candlesInRangeCount := s.calculateCandlesInRangeCount(ctx, stock.InstrumentKey, historicalMinBBW)
+
+	// Persist candles in range count to database
+	if err := s.updateCandlesInRangeCount(ctx, stock.InstrumentKey, candlesInRangeCount); err != nil {
+		log.BBWError("stock_processing", "persistence_failed", "Failed to persist candles in range count", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"count":          candlesInRangeCount,
+		})
+		// Continue processing even if persistence fails
+	}
 
 	// Check alert conditions and trigger alerts
 	alertTriggered, alertType, alertMessage, patternStrength := s.checkAdvancedAlertConditions(
@@ -255,8 +285,28 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 	return dashboardData, nil
 }
 
-// calculateHistoricalMinBBW calculates the historical minimum BBW value
-func (s *BBWDashboardService) calculateHistoricalMinBBW(bbwValues []float64) float64 {
+// getHistoricalMinBBW gets the historical minimum BBW from CSV/database
+func (s *BBWDashboardService) getHistoricalMinBBW(ctx context.Context, instrumentKey string) (float64, error) {
+	if s.utilityService == nil {
+		return 0, fmt.Errorf("utility service not available")
+	}
+
+	// Use existing utilityService method that reads from CSV
+	historicalMinBBW, err := s.utilityService.getLowestMinBBWidth(instrumentKey)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get historical minimum BBW: %w", err)
+	}
+
+	log.BBWDebug("historical_min", "retrieved", "Retrieved historical minimum BBW", map[string]interface{}{
+		"instrument_key":     instrumentKey,
+		"historical_min_bbw": historicalMinBBW,
+	})
+
+	return historicalMinBBW, nil
+}
+
+// calculateRecentMinBBW calculates the minimum BBW from recent data as fallback
+func (s *BBWDashboardService) calculateRecentMinBBW(bbwValues []float64) float64 {
 	if len(bbwValues) == 0 {
 		return 0
 	}
@@ -325,34 +375,57 @@ func (s *BBWDashboardService) calculateCandlesInRangeCount(ctx context.Context, 
 
 // getRecentCandles gets recent 5-minute candles for a stock
 func (s *BBWDashboardService) getRecentCandles(ctx context.Context, instrumentKey string, count int) ([]domain.Candle5Min, error) {
-	// Get recent candles from the 5-minute candle repository
-	endTime := time.Now()
-	startTime := endTime.Add(-time.Duration(count*5) * time.Minute) // 5 minutes per candle
+	if s.candle5MinRepo == nil {
+		return nil, fmt.Errorf("candle5Min repository not available")
+	}
 
-	candles, err := s.candleAggService.Get5MinCandles(ctx, instrumentKey, startTime, endTime)
+	// Use direct repository instead of aggregation service
+	candles, err := s.candle5MinRepo.GetNLatestCandles(ctx, instrumentKey, count)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get recent candles: %w", err)
 	}
 
-	// Convert AggregatedCandle to Candle5Min
-	var candle5MinList []domain.Candle5Min
+	// Validate BBW data before processing
 	for _, candle := range candles {
-		candle5Min := domain.Candle5Min{
-			InstrumentKey: candle.InstrumentKey,
-			Timestamp:     candle.Timestamp,
-			Open:          candle.Open,
-			High:          candle.High,
-			Low:           candle.Low,
-			Close:         candle.Close,
-			Volume:        candle.Volume,
-			OpenInterest:  candle.OpenInterest,
-			TimeInterval:  candle.TimeInterval,
-			BBWidth:       candle.BBWidth,
+		if candle.BBWidth <= 0 {
+			log.BBWWarn("candle_validation", "invalid_bbw", "Invalid BBW value", map[string]interface{}{
+				"instrument_key": instrumentKey,
+				"timestamp":      candle.Timestamp,
+				"bb_width":       candle.BBWidth,
+			})
 		}
-		candle5MinList = append(candle5MinList, candle5Min)
 	}
 
-	return candle5MinList, nil
+	log.BBWDebug("candles_retrieval", "success", "Retrieved recent candles", map[string]interface{}{
+		"instrument_key": instrumentKey,
+		"count":          len(candles),
+		"requested":      count,
+	})
+
+	return candles, nil
+}
+
+// updateCandlesInRangeCount updates the candles_in_range_count in the database
+func (s *BBWDashboardService) updateCandlesInRangeCount(ctx context.Context, instrumentKey string, count int) error {
+	if s.candle5MinRepo == nil {
+		return fmt.Errorf("candle5Min repository not available")
+	}
+
+	err := s.candle5MinRepo.UpdateCandlesInRangeCount(ctx, instrumentKey, count)
+	if err != nil {
+		log.BBWError("persistence", "update_failed", "Failed to update candles in range count", err, map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"count":          count,
+		})
+		return err
+	}
+
+	log.BBWDebug("persistence", "update_success", "Successfully updated candles in range count", map[string]interface{}{
+		"instrument_key": instrumentKey,
+		"count":          count,
+	})
+
+	return nil
 }
 
 // detectContractingPattern detects consecutive contracting candles

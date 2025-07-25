@@ -274,3 +274,22 @@ func (r *Candle5MinRepository) GetNLatestCandles(ctx context.Context, instrument
 
 	return candles, nil
 }
+
+// UpdateCandlesInRangeCount updates the candles_in_range_count for the latest candle of a specific instrument
+func (r *Candle5MinRepository) UpdateCandlesInRangeCount(ctx context.Context, instrumentKey string, count int) error {
+	result := r.db.WithContext(ctx).
+		Table("stock_candle_data_5min").
+		Where("instrument_key = ? AND timestamp = (SELECT MAX(timestamp) FROM stock_candle_data_5min WHERE instrument_key = ? AND active = ?)",
+			instrumentKey, instrumentKey, true).
+		Update("candles_in_range_count", count)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to update candles_in_range_count: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("no rows updated for instrument_key: %s", instrumentKey)
+	}
+
+	return nil
+}

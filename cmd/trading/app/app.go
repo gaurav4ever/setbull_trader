@@ -199,6 +199,8 @@ func NewApp() *App {
 		stockUniverseService,
 		websocketHub,
 		alertService,
+		utilityService, // NEW: Pass utility service for historical data
+		candle5MinRepo, // NEW: Pass candle5Min repository for direct data access
 	)
 
 	// Create a wrapper function to match the FiveMinCloseListener interface

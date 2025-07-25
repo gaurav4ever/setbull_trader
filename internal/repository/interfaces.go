@@ -214,6 +214,9 @@ type Candle5MinRepository interface {
 
 	// GetNLatestCandles retrieves the N most recent 5-minute candles for a specific instrument
 	GetNLatestCandles(ctx context.Context, instrumentKey string, n int) ([]domain.Candle5Min, error)
+
+	// UpdateCandlesInRangeCount updates the candles_in_range_count for the latest candle of a specific instrument
+	UpdateCandlesInRangeCount(ctx context.Context, instrumentKey string, count int) error
 }
 
 // StockUniverseRepository defines the interface for stock universe operations
