@@ -138,6 +138,23 @@ export const bbwApi = {
         });
     },
 
+    // Get alert history
+    getAlertHistory: async (limit = 50, alertType = '', symbol = '') => {
+        const params = new URLSearchParams();
+        if (limit) params.append('limit', limit.toString());
+        if (alertType) params.append('alert_type', alertType);
+        if (symbol) params.append('symbol', symbol);
+        
+        return request(apiUrl(ENDPOINTS.BBW_ALERT_HISTORY) + `?${params.toString()}`);
+    },
+
+    // Clear alert history
+    clearAlertHistory: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERT_HISTORY), {
+            method: 'DELETE'
+        });
+    },
+
     // Get BBW statistics
     getStatistics: async (timeframe = '1d') => {
         return request(apiUrl(ENDPOINTS.BBW_STATISTICS) + `?timeframe=${timeframe}`);

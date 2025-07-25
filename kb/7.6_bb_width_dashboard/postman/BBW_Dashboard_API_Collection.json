@@ -1,0 +1,395 @@
+{
+	"info": {
+		"_postman_id": "bbw-dashboard-api-collection",
+		"name": "BBW Dashboard API Collection",
+		"description": "Complete API collection for Bollinger Band Width Dashboard with real-time monitoring, alerting, and pattern detection capabilities.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "bbw-dashboard"
+	},
+	"item": [
+		{
+			"name": "Dashboard Data",
+			"item": [
+				{
+					"name": "Get Dashboard Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/dashboard-data",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"dashboard-data"
+							]
+						},
+						"description": "Retrieves all BBW dashboard data for monitored stocks with real-time BBW values, trends, and alert status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stock BBW Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/stocks?instrument_key={{instrument_key}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"stocks"
+							],
+							"query": [
+								{
+									"key": "instrument_key",
+									"value": "{{instrument_key}}",
+									"description": "Instrument key of the stock (e.g., NSE_EQ|INE002A01018)"
+								}
+							]
+						},
+						"description": "Retrieves BBW data for a specific stock by instrument key."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dashboard Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"stats"
+							]
+						},
+						"description": "Retrieves comprehensive dashboard statistics including stock counts, BBW ranges, and alert distributions."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Market Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"statistics"
+							]
+						},
+						"description": "Retrieves market-wide BBW statistics and distribution analysis."
+					},
+					"response": []
+				}
+			],
+			"description": "Core dashboard data retrieval endpoints for BBW monitoring."
+		},
+		{
+			"name": "Alert Management",
+			"item": [
+				{
+					"name": "Get Active Alerts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/alerts/active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"alerts",
+								"active"
+							]
+						},
+						"description": "Retrieves currently active BBW alerts across all monitored stocks."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alert History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/alerts/history?limit={{limit}}&alert_type={{alert_type}}&symbol={{symbol}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"alerts",
+								"history"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "{{limit}}",
+									"description": "Maximum number of alerts to return (default: 50)"
+								},
+								{
+									"key": "alert_type",
+									"value": "{{alert_type}}",
+									"description": "Filter by alert type (threshold, pattern, squeeze)"
+								},
+								{
+									"key": "symbol",
+									"value": "{{symbol}}",
+									"description": "Filter by stock symbol"
+								}
+							]
+						},
+						"description": "Retrieves alert history with optional filtering by type, symbol, and limit."
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Alert History",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/alerts/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"alerts",
+								"history"
+							]
+						},
+						"description": "Clears all alert history from memory."
+					},
+					"response": []
+				},
+				{
+					"name": "Configure Alerts",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"alert_threshold\": 0.1,\n  \"contracting_lookback\": 5,\n  \"enable_alerts\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/alerts/configure",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"alerts",
+								"configure"
+							]
+						},
+						"description": "Updates alert configuration including threshold, lookback period, and enable/disable settings."
+					},
+					"response": []
+				}
+			],
+			"description": "Alert management endpoints for configuring and monitoring BBW alerts."
+		},
+		{
+			"name": "Historical Data",
+			"item": [
+				{
+					"name": "Get Stock BBW History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bbw/stocks/{{symbol}}/history?timeframe={{timeframe}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"stocks",
+								"{{symbol}}",
+								"history"
+							],
+							"query": [
+								{
+									"key": "timeframe",
+									"value": "{{timeframe}}",
+									"description": "Timeframe for historical data (1d, 1w, 1m)"
+								}
+							]
+						},
+						"description": "Retrieves historical BBW data for a specific stock with configurable timeframe."
+					},
+					"response": []
+				}
+			],
+			"description": "Historical data endpoints for BBW analysis and backtesting."
+		},
+		{
+			"name": "WebSocket",
+			"item": [
+				{
+					"name": "WebSocket Connection",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://{{base_url}}/api/v1/bbw/live",
+							"protocol": "ws",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bbw",
+								"live"
+							]
+						},
+						"description": "WebSocket endpoint for real-time BBW updates and alert notifications."
+					},
+					"response": []
+				}
+			],
+			"description": "Real-time WebSocket endpoints for live BBW data and alerts."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8083",
+			"type": "string",
+			"description": "Base URL for the BBW Dashboard API"
+		},
+		{
+			"key": "instrument_key",
+			"value": "NSE_EQ|INE002A01018",
+			"type": "string",
+			"description": "Example instrument key for testing"
+		},
+		{
+			"key": "symbol",
+			"value": "RELIANCE",
+			"type": "string",
+			"description": "Example stock symbol for testing"
+		},
+		{
+			"key": "limit",
+			"value": "50",
+			"type": "string",
+			"description": "Default limit for pagination"
+		},
+		{
+			"key": "alert_type",
+			"value": "threshold",
+			"type": "string",
+			"description": "Example alert type for filtering"
+		},
+		{
+			"key": "timeframe",
+			"value": "1d",
+			"type": "string",
+			"description": "Default timeframe for historical data"
+		}
+	]
+} 

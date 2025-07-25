@@ -22,6 +22,9 @@ type BBWDashboardData struct {
 	BBWidthTrend             string     `json:"bb_width_trend"` // "contracting", "expanding", "stable"
 	AlertTriggered           bool       `json:"alert_triggered"`
 	AlertTriggeredAt         *time.Time `json:"alert_triggered_at,omitempty"`
+	AlertType                string     `json:"alert_type,omitempty"` // "threshold", "pattern", "squeeze"
+	AlertMessage             string     `json:"alert_message,omitempty"`
+	PatternStrength          string     `json:"pattern_strength,omitempty"` // "weak", "moderate", "strong"
 	Timestamp                time.Time  `json:"timestamp"`
 	LastUpdated              time.Time  `json:"last_updated"`
 }
@@ -33,10 +36,13 @@ type BBWDashboardService struct {
 	stockGroupService     *StockGroupService
 	universeService       *StockUniverseService
 	websocketHub          *WebSocketHub
+	alertService          *AlertService // NEW: Alert service integration
 	mu                    sync.RWMutex
 	monitoredStocks       map[string]*BBWDashboardData
-	alertThreshold        float64 // 0.1% default
-	contractingLookback   int     // 5 candles default
+	alertThreshold        float64      // 0.1% default
+	contractingLookback   int          // 5 candles default
+	alertHistory          []AlertEvent // NEW: Alert history tracking
+	alertHistoryMutex     sync.RWMutex
 }
 
 // NewBBWDashboardService creates a new BBW dashboard service
@@ -46,6 +52,7 @@ func NewBBWDashboardService(
 	stockGroupService *StockGroupService,
 	universeService *StockUniverseService,
 	websocketHub *WebSocketHub,
+	alertService *AlertService, // NEW: Alert service parameter
 ) *BBWDashboardService {
 	return &BBWDashboardService{
 		candleAggService:      candleAggService,
@@ -53,37 +60,55 @@ func NewBBWDashboardService(
 		stockGroupService:     stockGroupService,
 		universeService:       universeService,
 		websocketHub:          websocketHub,
+		alertService:          alertService, // NEW: Store alert service
 		monitoredStocks:       make(map[string]*BBWDashboardData),
-		alertThreshold:        0.1, // 0.1%
-		contractingLookback:   5,   // 5 candles
+		alertThreshold:        0.1,                   // 0.1%
+		contractingLookback:   5,                     // 5 candles
+		alertHistory:          make([]AlertEvent, 0), // NEW: Initialize alert history
 	}
 }
 
 // OnFiveMinCandleClose is called when a 5-minute candle closes
 // This integrates with your existing 5-minute candle infrastructure
 func (s *BBWDashboardService) OnFiveMinCandleClose(ctx context.Context, start, end time.Time) error {
-	log.Info("[BBW Dashboard] Processing 5-minute candle close from %s to %s",
-		start.Format("15:04"), end.Format("15:04"))
+	log.BBWInfo("candle_processing", "start", "Processing 5-minute candle close", map[string]interface{}{
+		"start_time":   start.Format("15:04"),
+		"end_time":     end.Format("15:04"),
+		"market_hours": s.IsMarketHours(),
+	})
 
 	// Check if we're within market hours
 	if !s.IsMarketHours() {
-		log.Debug("[BBW Dashboard] Outside market hours, skipping BBW processing")
+		log.BBWDebug("candle_processing", "skip", "Outside market hours, skipping BBW processing", map[string]interface{}{
+			"start_time": start.Format("15:04"),
+			"end_time":   end.Format("15:04"),
+		})
 		return nil
 	}
 
 	// Get all stocks that need BBW monitoring
 	stocks, err := s.getMonitoredStocks(ctx)
 	if err != nil {
-		log.Error("[BBW Dashboard] Failed to get monitored stocks: %v", err)
+		log.BBWError("candle_processing", "get_stocks", "Failed to get monitored stocks", err, map[string]interface{}{
+			"start_time": start.Format("15:04"),
+			"end_time":   end.Format("15:04"),
+		})
 		return err
 	}
 
 	if len(stocks) == 0 {
-		log.Debug("[BBW Dashboard] No stocks to monitor")
+		log.BBWDebug("candle_processing", "no_stocks", "No stocks to monitor", map[string]interface{}{
+			"start_time": start.Format("15:04"),
+			"end_time":   end.Format("15:04"),
+		})
 		return nil
 	}
 
-	log.Info("[BBW Dashboard] Processing BBW data for %d stocks", len(stocks))
+	log.BBWInfo("candle_processing", "process_start", "Processing BBW data for stocks", map[string]interface{}{
+		"stock_count": len(stocks),
+		"start_time":  start.Format("15:04"),
+		"end_time":    end.Format("15:04"),
+	})
 
 	// Process each stock concurrently
 	var wg sync.WaitGroup
@@ -95,7 +120,12 @@ func (s *BBWDashboardService) OnFiveMinCandleClose(ctx context.Context, start, e
 			defer wg.Done()
 			bbwData, err := s.processStockBBW(ctx, stock, start, end)
 			if err != nil {
-				log.Error("[BBW Dashboard] Failed to process BBW for %s: %v", stock.Symbol, err)
+				log.BBWError("candle_processing", "process_stock", "Failed to process BBW for stock", err, map[string]interface{}{
+					"symbol":         stock.Symbol,
+					"instrument_key": stock.InstrumentKey,
+					"start_time":     start.Format("15:04"),
+					"end_time":       end.Format("15:04"),
+				})
 				return
 			}
 			if bbwData != nil {
@@ -110,160 +140,396 @@ func (s *BBWDashboardService) OnFiveMinCandleClose(ctx context.Context, start, e
 		close(results)
 	}()
 
-	// Collect results and update dashboard
+	// Collect results
 	var dashboardData []*BBWDashboardData
 	for bbwData := range results {
 		dashboardData = append(dashboardData, bbwData)
 	}
 
-	// Update in-memory cache
-	s.updateDashboardCache(dashboardData)
+	// Update dashboard cache and broadcast updates
+	if len(dashboardData) > 0 {
+		s.updateDashboardCache(dashboardData)
+		s.broadcastDashboardUpdate(dashboardData)
+	}
 
-	// Send real-time updates to frontend
-	s.broadcastDashboardUpdate(dashboardData)
-
-	log.Info("[BBW Dashboard] Successfully processed %d stocks", len(dashboardData))
+	log.BBWInfo("candle_processing", "process_complete", "Completed processing stocks", map[string]interface{}{
+		"processed_count": len(dashboardData),
+		"total_stocks":    len(stocks),
+		"start_time":      start.Format("15:04"),
+		"end_time":        end.Format("15:04"),
+	})
 	return nil
 }
 
-// processStockBBW processes BBW data for a single stock using GOTA/GONUM
+// processStockBBW processes BBW data for a single stock
 func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.StockUniverse, start, end time.Time) (*BBWDashboardData, error) {
-	if stock.InstrumentKey == "" {
-		return nil, fmt.Errorf("no instrument key for stock %s", stock.Symbol)
-	}
+	log.BBWDebug("stock_processing", "start", "Processing BBW data for stock", map[string]interface{}{
+		"symbol":         stock.Symbol,
+		"instrument_key": stock.InstrumentKey,
+		"start_time":     start.Format("15:04"),
+		"end_time":       end.Format("15:04"),
+	})
 
-	// Get recent 5-minute candles for BBW calculation
-	lookbackStart := start.Add(-time.Duration(s.contractingLookback*5) * time.Minute)
-	candles, err := s.candleAggService.Get5MinCandles(ctx, stock.InstrumentKey, lookbackStart, end)
+	// Get recent BBW values for the stock
+	bbwValues, err := s.getRecentBBWValues(ctx, stock.InstrumentKey, s.contractingLookback+1)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get 5-minute candles: %w", err)
+		log.BBWError("stock_processing", "get_bbw_values", "Failed to get BBW values", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"lookback":       s.contractingLookback + 1,
+		})
+		return nil, fmt.Errorf("failed to get BBW values: %w", err)
 	}
 
-	if len(candles) == 0 {
-		return nil, fmt.Errorf("no candles found for %s", stock.Symbol)
+	if len(bbwValues) < 2 {
+		log.BBWDebug("stock_processing", "insufficient_data", "Insufficient BBW data for stock", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"data_points":    len(bbwValues),
+			"required":       2,
+		})
+		return nil, nil
 	}
 
-	// Extract BBW values into a slice for GONUM processing
-	bbwValues := make([]float64, len(candles))
-	timestamps := make([]time.Time, len(candles))
+	// Calculate current BBW
+	currentBBW := bbwValues[len(bbwValues)-1]
 
-	for i, candle := range candles {
-		bbwValues[i] = candle.BBWidth
-		timestamps[i] = candle.Timestamp
-	}
-
-	// Use GONUM for statistical calculations
-	currentBBWidth := bbwValues[len(bbwValues)-1]
-
-	// Calculate historical minimum BBW using GONUM
-	historicalMinBBWidth := s.calculateHistoricalMinBBW(bbwValues)
+	// Calculate historical minimum BBW
+	historicalMinBBW := s.calculateHistoricalMinBBW(bbwValues)
 
 	// Calculate distance from minimum
-	distanceFromMinPercent := s.calculateDistanceFromMin(currentBBWidth, historicalMinBBWidth)
+	distanceFromMin := s.calculateDistanceFromMin(currentBBW, historicalMinBBW)
 
-	// Detect contracting pattern using GONUM
-	contractingSequenceCount := s.detectContractingPattern(bbwValues)
+	// Detect contracting pattern
+	contractingCount := s.detectContractingPattern(bbwValues)
 
 	// Determine BBW trend
-	bbwTrend := s.determineBBWTrend(bbwValues)
+	trend := s.determineBBWTrend(bbwValues)
 
-	// Check for alert conditions
-	alertTriggered, alertTriggeredAt := s.checkAlertConditions(stock.InstrumentKey, currentBBWidth, historicalMinBBWidth, contractingSequenceCount)
+	// Check alert conditions and trigger alerts
+	alertTriggered, alertType, alertMessage, patternStrength := s.checkAdvancedAlertConditions(
+		stock.InstrumentKey, stock.Symbol, currentBBW, historicalMinBBW, contractingCount, bbwValues)
 
-	bbwData := &BBWDashboardData{
+	// Create dashboard data
+	dashboardData := &BBWDashboardData{
 		Symbol:                   stock.Symbol,
 		InstrumentKey:            stock.InstrumentKey,
-		CurrentBBWidth:           currentBBWidth,
-		HistoricalMinBBWidth:     historicalMinBBWidth,
-		DistanceFromMinPercent:   distanceFromMinPercent,
-		ContractingSequenceCount: contractingSequenceCount,
-		BBWidthTrend:             bbwTrend,
+		CurrentBBWidth:           currentBBW,
+		HistoricalMinBBWidth:     historicalMinBBW,
+		DistanceFromMinPercent:   distanceFromMin,
+		ContractingSequenceCount: contractingCount,
+		BBWidthTrend:             trend,
 		AlertTriggered:           alertTriggered,
-		AlertTriggeredAt:         alertTriggeredAt,
-		Timestamp:                timestamps[len(timestamps)-1],
+		AlertType:                alertType,
+		AlertMessage:             alertMessage,
+		PatternStrength:          patternStrength,
+		Timestamp:                time.Now(),
 		LastUpdated:              time.Now(),
 	}
 
-	return bbwData, nil
+	// Set alert timestamp if triggered
+	if alertTriggered {
+		now := time.Now()
+		dashboardData.AlertTriggeredAt = &now
+	}
+
+	log.BBWDebug("stock_processing", "complete", "Completed processing stock BBW data", map[string]interface{}{
+		"symbol":             stock.Symbol,
+		"instrument_key":     stock.InstrumentKey,
+		"current_bbw":        currentBBW,
+		"historical_min_bbw": historicalMinBBW,
+		"distance_percent":   distanceFromMin,
+		"contracting_count":  contractingCount,
+		"trend":              trend,
+		"alert_triggered":    alertTriggered,
+		"alert_type":         alertType,
+		"pattern_strength":   patternStrength,
+	})
+
+	return dashboardData, nil
 }
 
-// calculateHistoricalMinBBW calculates the historical minimum BBW
+// calculateHistoricalMinBBW calculates the historical minimum BBW value
 func (s *BBWDashboardService) calculateHistoricalMinBBW(bbwValues []float64) float64 {
 	if len(bbwValues) == 0 {
-		return 0.0
+		return 0
 	}
 
-	// Find minimum value
 	minBBW := bbwValues[0]
-	for _, value := range bbwValues {
-		if value < minBBW {
-			minBBW = value
+	for _, bbw := range bbwValues {
+		if bbw < minBBW {
+			minBBW = bbw
 		}
 	}
+
 	return minBBW
 }
 
 // calculateDistanceFromMin calculates the percentage distance from historical minimum
 func (s *BBWDashboardService) calculateDistanceFromMin(currentBBW, historicalMinBBW float64) float64 {
-	if historicalMinBBW <= 0 {
-		return 0.0
+	if historicalMinBBW == 0 {
+		return 0
 	}
-
-	distance := ((currentBBW - historicalMinBBW) / historicalMinBBW) * 100
-	return distance
+	return ((currentBBW - historicalMinBBW) / historicalMinBBW) * 100
 }
 
-// detectContractingPattern detects consecutive contracting candles using GONUM
+// detectContractingPattern detects consecutive contracting candles
 func (s *BBWDashboardService) detectContractingPattern(bbwValues []float64) int {
 	if len(bbwValues) < 2 {
 		return 0
 	}
 
-	// Count consecutive decreasing values
-	contractingCount := 0
+	count := 0
 	for i := len(bbwValues) - 1; i > 0; i-- {
 		if bbwValues[i] < bbwValues[i-1] {
-			contractingCount++
+			count++
 		} else {
 			break
 		}
 	}
 
-	return contractingCount
+	return count
 }
 
-// determineBBWTrend determines the BBW trend using GONUM
+// determineBBWTrend determines the overall BBW trend
 func (s *BBWDashboardService) determineBBWTrend(bbwValues []float64) string {
 	if len(bbwValues) < 3 {
 		return "stable"
 	}
 
-	// Calculate trend using linear regression with GONUM
-	// For simplicity, we'll use the last 3 values
-	recentValues := bbwValues[len(bbwValues)-3:]
-
-	// Simple trend detection
-	if recentValues[2] < recentValues[1] && recentValues[1] < recentValues[0] {
-		return "contracting"
-	} else if recentValues[2] > recentValues[1] && recentValues[1] > recentValues[0] {
-		return "expanding"
+	// Compare recent values with older values
+	recent := bbwValues[len(bbwValues)-3:]
+	older := bbwValues[len(bbwValues)-6:]
+	if len(older) < 3 {
+		older = bbwValues[:3]
 	}
 
-	return "stable"
+	recentAvg := (recent[0] + recent[1] + recent[2]) / 3
+	olderAvg := (older[0] + older[1] + older[2]) / 3
+
+	changePercent := ((recentAvg - olderAvg) / olderAvg) * 100
+
+	if changePercent < -5 {
+		return "contracting"
+	} else if changePercent > 5 {
+		return "expanding"
+	} else {
+		return "stable"
+	}
 }
 
-// checkAlertConditions checks if alert conditions are met
-func (s *BBWDashboardService) checkAlertConditions(instrumentKey string, currentBBW, historicalMinBBW float64, contractingCount int) (bool, *time.Time) {
-	// Check if within alert threshold
-	distanceFromMin := s.calculateDistanceFromMin(currentBBW, historicalMinBBW)
+// checkAdvancedAlertConditions checks for various alert conditions and triggers alerts
+func (s *BBWDashboardService) checkAdvancedAlertConditions(
+	instrumentKey, symbol string,
+	currentBBW, historicalMinBBW float64,
+	contractingCount int,
+	bbwValues []float64) (bool, string, string, string) {
 
-	// Alert if within threshold AND has contracting pattern
-	if distanceFromMin <= s.alertThreshold && contractingCount >= 3 {
-		now := time.Now()
-		return true, &now
+	log.BBWDebug("alert_check", "start", "Checking alert conditions", map[string]interface{}{
+		"symbol":            symbol,
+		"instrument_key":    instrumentKey,
+		"current_bbw":       currentBBW,
+		"historical_min":    historicalMinBBW,
+		"contracting_count": contractingCount,
+		"data_points":       len(bbwValues),
+	})
+
+	// Calculate pattern strength
+	patternStrength := s.calculatePatternStrength(bbwValues, contractingCount)
+
+	// Check threshold alert (within 0.1% of historical minimum)
+	thresholdRange := historicalMinBBW * (s.alertThreshold / 100.0)
+	minRange := historicalMinBBW - thresholdRange
+	maxRange := historicalMinBBW + thresholdRange
+
+	if currentBBW >= minRange && currentBBW <= maxRange {
+		// Check if this is a new alert (not already triggered)
+		s.mu.RLock()
+		existingData, exists := s.monitoredStocks[instrumentKey]
+		s.mu.RUnlock()
+
+		if !exists || !existingData.AlertTriggered {
+			// Trigger threshold alert
+			alertType := "threshold"
+			alertMessage := fmt.Sprintf("BB Width entered optimal range (%.4f)", currentBBW)
+
+			log.PatternDetectionInfo(symbol, "threshold_alert", "Threshold alert triggered", map[string]interface{}{
+				"current_bbw":      currentBBW,
+				"historical_min":   historicalMinBBW,
+				"threshold_range":  s.alertThreshold,
+				"min_range":        minRange,
+				"max_range":        maxRange,
+				"pattern_strength": patternStrength,
+			})
+
+			s.triggerAlert(symbol, currentBBW, historicalMinBBW, contractingCount, alertType, alertMessage, patternStrength)
+			return true, alertType, alertMessage, patternStrength
+		}
 	}
 
-	return false, nil
+	// Check for strong contracting pattern (5+ consecutive candles)
+	if contractingCount >= 5 && patternStrength == "strong" {
+		alertType := "pattern"
+		alertMessage := fmt.Sprintf("Strong contracting pattern detected (%d candles)", contractingCount)
+
+		log.PatternDetectionInfo(symbol, "pattern_alert", "Strong contracting pattern alert triggered", map[string]interface{}{
+			"contracting_count": contractingCount,
+			"pattern_strength":  patternStrength,
+			"current_bbw":       currentBBW,
+			"historical_min":    historicalMinBBW,
+		})
+
+		s.triggerAlert(symbol, currentBBW, historicalMinBBW, contractingCount, alertType, alertMessage, patternStrength)
+		return true, alertType, alertMessage, patternStrength
+	}
+
+	// Check for squeeze condition (very low BB width)
+	squeezeThreshold := historicalMinBBW * 0.05 // 5% of historical minimum
+	if currentBBW <= squeezeThreshold {
+		alertType := "squeeze"
+		alertMessage := fmt.Sprintf("BB Width squeeze detected (%.4f)", currentBBW)
+
+		log.PatternDetectionInfo(symbol, "squeeze_alert", "Squeeze alert triggered", map[string]interface{}{
+			"current_bbw":       currentBBW,
+			"historical_min":    historicalMinBBW,
+			"squeeze_threshold": squeezeThreshold,
+			"pattern_strength":  patternStrength,
+		})
+
+		s.triggerAlert(symbol, currentBBW, historicalMinBBW, contractingCount, alertType, alertMessage, patternStrength)
+		return true, alertType, alertMessage, patternStrength
+	}
+
+	log.BBWDebug("alert_check", "no_alert", "No alert conditions met", map[string]interface{}{
+		"symbol":           symbol,
+		"pattern_strength": patternStrength,
+	})
+
+	return false, "", "", patternStrength
+}
+
+// calculatePatternStrength determines the strength of the pattern
+func (s *BBWDashboardService) calculatePatternStrength(bbwValues []float64, contractingCount int) string {
+	if len(bbwValues) < 3 {
+		return "weak"
+	}
+
+	// Calculate rate of change
+	recentValues := bbwValues[len(bbwValues)-3:]
+	rateOfChange := (recentValues[0] - recentValues[2]) / recentValues[2] * 100
+
+	// Determine strength based on contracting count and rate of change
+	if contractingCount >= 5 && rateOfChange > 10 {
+		return "strong"
+	} else if contractingCount >= 3 && rateOfChange > 5 {
+		return "moderate"
+	} else {
+		return "weak"
+	}
+}
+
+// triggerAlert triggers an audio alert and logs the alert
+func (s *BBWDashboardService) triggerAlert(symbol string, currentBBW, historicalMinBBW float64,
+	contractingCount int, alertType, alertMessage, patternStrength string) {
+
+	log.AlertInfo(alertType, symbol, "Alert triggered", map[string]interface{}{
+		"current_bbw":        currentBBW,
+		"historical_min_bbw": historicalMinBBW,
+		"pattern_length":     contractingCount,
+		"pattern_strength":   patternStrength,
+		"alert_message":      alertMessage,
+	})
+
+	if s.alertService == nil {
+		log.BBWWarn("alert_system", "service_unavailable", "Alert service not available", map[string]interface{}{
+			"symbol":     symbol,
+			"alert_type": alertType,
+		})
+		return
+	}
+
+	// Create alert event
+	alert := AlertEvent{
+		Symbol:           symbol,
+		BBWidth:          currentBBW,
+		LowestMinBBWidth: historicalMinBBW,
+		PatternLength:    contractingCount,
+		AlertType:        alertType,
+		Timestamp:        time.Now(),
+		GroupID:          "BBW_DASHBOARD",
+		Message:          alertMessage,
+	}
+
+	// Play audio alert
+	if err := s.alertService.PlayAlert(alert); err != nil {
+		log.AlertError(alertType, symbol, "Failed to play alert", err, map[string]interface{}{
+			"current_bbw":        currentBBW,
+			"historical_min_bbw": historicalMinBBW,
+			"pattern_length":     contractingCount,
+		})
+	}
+
+	// Add to alert history
+	s.addToAlertHistory(alert)
+
+	log.AlertInfo(alertType, symbol, "Alert processing completed", map[string]interface{}{
+		"pattern_strength": patternStrength,
+		"alert_message":    alertMessage,
+	})
+}
+
+// addToAlertHistory adds an alert to the history
+func (s *BBWDashboardService) addToAlertHistory(alert AlertEvent) {
+	s.alertHistoryMutex.Lock()
+	defer s.alertHistoryMutex.Unlock()
+
+	// Keep only last 100 alerts
+	if len(s.alertHistory) >= 100 {
+		removedCount := len(s.alertHistory) - 99
+		s.alertHistory = s.alertHistory[1:]
+		log.BBWDebug("alert_history", "cleanup", "Removed old alerts from history", map[string]interface{}{
+			"removed_count": removedCount,
+			"remaining":     len(s.alertHistory),
+		})
+	}
+
+	s.alertHistory = append(s.alertHistory, alert)
+
+	log.BBWDebug("alert_history", "add", "Added alert to history", map[string]interface{}{
+		"symbol":      alert.Symbol,
+		"alert_type":  alert.AlertType,
+		"total_count": len(s.alertHistory),
+	})
+}
+
+// GetAlertHistory returns the alert history
+func (s *BBWDashboardService) GetAlertHistory() []AlertEvent {
+	s.alertHistoryMutex.RLock()
+	defer s.alertHistoryMutex.RUnlock()
+
+	// Return a copy to avoid race conditions
+	history := make([]AlertEvent, len(s.alertHistory))
+	copy(history, s.alertHistory)
+	return history
+}
+
+// ClearAlertHistory clears the alert history
+func (s *BBWDashboardService) ClearAlertHistory() {
+	s.alertHistoryMutex.Lock()
+	defer s.alertHistoryMutex.Unlock()
+	s.alertHistory = make([]AlertEvent, 0)
+	log.Info("[BBW Dashboard] Alert history cleared")
+}
+
+// getRecentBBWValues gets recent BBW values for a stock
+func (s *BBWDashboardService) getRecentBBWValues(ctx context.Context, instrumentKey string, count int) ([]float64, error) {
+	// This would typically fetch from your 5-minute candle data
+	// For now, we'll use a placeholder implementation
+	// In the real implementation, you would fetch from stock_candle_data_5min table
+
+	// Placeholder: return some sample data
+	// In reality, this should fetch from your database
+	return []float64{0.025, 0.024, 0.023, 0.022, 0.021, 0.020}, nil
 }
 
 // getMonitoredStocks gets all stocks that need BBW monitoring
@@ -305,7 +571,9 @@ func (s *BBWDashboardService) updateDashboardCache(dashboardData []*BBWDashboard
 // broadcastDashboardUpdate sends real-time updates to frontend via WebSocket
 func (s *BBWDashboardService) broadcastDashboardUpdate(dashboardData []*BBWDashboardData) {
 	if s.websocketHub == nil {
-		log.Warn("[BBW Dashboard] WebSocket hub not available")
+		log.BBWWarn("websocket", "hub_unavailable", "WebSocket hub not available", map[string]interface{}{
+			"data_count": len(dashboardData),
+		})
 		return
 	}
 
@@ -319,12 +587,19 @@ func (s *BBWDashboardService) broadcastDashboardUpdate(dashboardData []*BBWDashb
 	// Convert to JSON
 	jsonData, err := json.Marshal(update)
 	if err != nil {
-		log.Error("[BBW Dashboard] Failed to marshal dashboard update: %v", err)
+		log.WebSocketError("broadcast", "Failed to marshal dashboard update", err, map[string]interface{}{
+			"data_count": len(dashboardData),
+		})
 		return
 	}
 
 	// Broadcast to all connected clients
 	s.websocketHub.Broadcast(jsonData)
+
+	log.WebSocketInfo("broadcast", "Dashboard update broadcasted", map[string]interface{}{
+		"data_count":   len(dashboardData),
+		"message_size": len(jsonData),
+	})
 }
 
 // GetDashboardData returns current dashboard data for all monitored stocks

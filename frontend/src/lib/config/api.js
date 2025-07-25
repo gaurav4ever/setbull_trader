@@ -19,6 +19,7 @@ export const ENDPOINTS = {
     BBW_STOCK_HISTORY: (symbol) => `/bbw/stocks/${symbol}/history`,
     BBW_ALERTS_ACTIVE: '/bbw/alerts/active',
     BBW_ALERTS_CONFIGURE: '/bbw/alerts/configure',
+    BBW_ALERT_HISTORY: '/bbw/alerts/history',
     BBW_STATISTICS: '/bbw/statistics',
     BBW_DASHBOARD_DATA: '/bbw/dashboard-data',
 

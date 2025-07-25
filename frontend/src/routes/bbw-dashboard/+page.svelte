@@ -3,6 +3,8 @@
     import { onMount, onDestroy } from 'svelte';
     import { bbwDashboardStore } from '$lib/stores/bbwDashboardStore.js';
     import { formatNumber, formatCurrency } from '$lib/utils/formatting.js';
+    import BBWAlertConfig from '$lib/components/BBWAlertConfig.svelte';
+    import BBWAlertHistory from '$lib/components/BBWAlertHistory.svelte';
     
     // Subscribe to main store
     $: store = $bbwDashboardStore;
@@ -35,6 +37,15 @@
         hour12: false,
         timeZone: 'Asia/Kolkata'
     }) : '';
+    
+    // Alert configuration state
+    let showAlertConfig = false;
+    let showAlertHistory = false;
+    let currentAlertConfig = {
+        alertThreshold: 0.1,
+        contractingLookback: 5,
+        enableAlerts: true
+    };
     
     // Initialize dashboard on mount
     onMount(async () => {
@@ -197,6 +208,23 @@
                         <option value="symbol-asc">Symbol A-Z</option>
                         <option value="symbol-desc">Symbol Z-A</option>
                     </select>
+                    
+                    <!-- Alert Controls -->
+                    <button
+                        type="button"
+                        on:click={() => showAlertConfig = true}
+                        class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        Alert Settings
+                    </button>
+                    
+                    <button
+                        type="button"
+                        on:click={() => showAlertHistory = true}
+                        class="px-3 py-2 text-sm font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                        Alert History
+                    </button>
                 </div>
             </div>
         </div>
@@ -334,4 +362,26 @@
             </div>
         </div>
     {/if}
+    
+    <!-- Alert Configuration Modal -->
+    <BBWAlertConfig 
+        show={showAlertConfig}
+        currentConfig={currentAlertConfig}
+        on:close={() => showAlertConfig = false}
+        on:configUpdated={(event) => {
+            currentAlertConfig = event.detail;
+            showAlertConfig = false;
+        }}
+    />
+    
+    <!-- Alert History Modal -->
+    <BBWAlertHistory 
+        show={showAlertHistory}
+        alertHistory={store.alerts}
+        on:close={() => showAlertHistory = false}
+        on:historyCleared={() => {
+            // Refresh alert history
+            bbwDashboardStore.refreshAlerts();
+        }}
+    />
 </div> 
