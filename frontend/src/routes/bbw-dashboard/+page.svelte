@@ -22,9 +22,16 @@
         currentTime
     } = store);
     
-    // Subscribe to derived stores
-    $: filteredStocks = $bbwDashboardStore.filteredStocks;
-    $: stats = $bbwDashboardStore.dashboardStats;
+    // Subscribe to derived stores with safe fallbacks
+    $: filteredStocks = $bbwDashboardStore.filteredStocks || [];
+    $: stats = $bbwDashboardStore.dashboardStats || {
+        totalStocks: 0,
+        alertedStocks: 0,
+        contractingStocks: 0,
+        expandingStocks: 0,
+        stableStocks: 0,
+        avgBBW: '0.0000'
+    };
     
     // Format current time
     $: formattedTime = currentTime ? currentTime.toLocaleTimeString('en-IN', { 
@@ -49,7 +56,11 @@
     
     // Initialize dashboard on mount
     onMount(async () => {
-        await bbwDashboardStore.initialize();
+        try {
+            await bbwDashboardStore.initialize();
+        } catch (err) {
+            console.error('Failed to initialize BBW Dashboard:', err);
+        }
     });
     
     // Cleanup on destroy

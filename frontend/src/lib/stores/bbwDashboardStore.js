@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { writable, derived } from 'svelte/store';
 import bbwWebSocketService from '../services/bbwWebSocketService.js';
 import { bbwApi } from '../services/apiService.js';
@@ -281,6 +282,16 @@ function createBBWDashboardStore() {
             } catch (error) {
                 console.error('Failed to configure alerts:', error);
                 throw error;
+            }
+        },
+
+        // Refresh alerts
+        async refreshAlerts() {
+            try {
+                const alerts = await bbwApi.getAlertHistory();
+                update(state => ({ ...state, alerts }));
+            } catch (error) {
+                console.error('Failed to refresh alerts:', error);
             }
         },
 

@@ -64,6 +64,8 @@ type App struct {
 	groupExecutionScheduler *service.GroupExecutionScheduler
 	masterDataService       service.MasterDataService
 	masterDataHandler       *rest.MasterDataHandler
+	bbwDashboardService     *service.BBWDashboardService
+	websocketHub            *service.WebSocketHub
 }
 
 // NewApp creates a new application
@@ -186,6 +188,30 @@ func NewApp() *App {
 		candleAggService,
 	)
 
+	// Initialize WebSocket hub for BBW Dashboard
+	websocketHub := service.NewWebSocketHub()
+
+	// Initialize BBW Dashboard service
+	bbwDashboardService := service.NewBBWDashboardService(
+		candleAggService,
+		technicalIndicatorService,
+		stockGroupService,
+		stockUniverseService,
+		websocketHub,
+		alertService,
+	)
+
+	// Create a wrapper function to match the FiveMinCloseListener interface
+	bbwDashboardListener := func(start, end time.Time) {
+		ctx := context.Background()
+		if err := bbwDashboardService.OnFiveMinCandleClose(ctx, start, end); err != nil {
+			log.Error("BBW Dashboard 5-min candle processing failed: %v", err)
+		}
+	}
+
+	// Register BBW Dashboard service as a listener for 5-minute candle close events
+	stockGroupService.RegisterFiveMinCloseListener(bbwDashboardListener)
+
 	// Initialize master data service
 	masterDataProcessRepo := postgres.NewMasterDataProcessRepository(db)
 
@@ -205,6 +231,9 @@ func NewApp() *App {
 	// Create master data handler
 	masterDataHandler := rest.NewMasterDataHandler(masterDataService)
 
+	// Create BBW Dashboard handler
+	bbwDashboardHandler := rest.NewBBWDashboardHandler(bbwDashboardService)
+
 	restServer := rest.NewServer(
 		orderService,
 		stockService,
@@ -223,6 +252,7 @@ func NewApp() *App {
 		stockGroupService,
 		stockGroupHandler,
 		masterDataHandler,
+		bbwDashboardHandler,
 	)
 
 	// Wire up the group execution scheduler with BB width monitoring
@@ -263,6 +293,8 @@ func NewApp() *App {
 		groupExecutionScheduler: groupExecutionScheduler,
 		masterDataService:       masterDataService,
 		masterDataHandler:       masterDataHandler,
+		bbwDashboardService:     bbwDashboardService,
+		websocketHub:            websocketHub,
 	}
 }
 
@@ -293,7 +325,13 @@ func (a *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var enable1MinCandleIngestion = true
+	// Start WebSocket hub for BBW Dashboard
+	go func() {
+		log.Info("Starting WebSocket hub for BBW Dashboard")
+		a.websocketHub.Run()
+	}()
+
+	var enable1MinCandleIngestion = false
 
 	if enable1MinCandleIngestion {
 		// Start precise 1-min ingestion and aggregation loop
