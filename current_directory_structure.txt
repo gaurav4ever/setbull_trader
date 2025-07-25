@@ -41,6 +41,8 @@
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
 ├── current_schema.txt
+├── debug_sequence.go
+├── demo_v3_integration.go
 ├── dhan
 │   ├── all_in_one.txt
 │   ├── get_history_orders.txt
@@ -51,6 +53,32 @@
 ├── go.mod
 ├── go.sum
 ├── internal
+│   ├── analytics
+│   │   ├── cache
+│   │   │   ├── indicator_cache.go
+│   │   │   ├── indicator_cache_test.go
+│   │   │   ├── memory_pool.go
+│   │   │   └── memory_pool_test.go
+│   │   ├── concurrency
+│   │   │   ├── indicator_tasks.go
+│   │   │   ├── indicator_tasks_test.go
+│   │   │   ├── pipeline.go
+│   │   │   ├── worker_pool.go
+│   │   │   └── worker_pool_test.go
+│   │   ├── dataframe
+│   │   │   ├── adapter.go
+│   │   │   └── aggregator.go
+│   │   ├── indicators
+│   │   │   ├── bollinger.go
+│   │   │   ├── calculator.go
+│   │   │   ├── ema.go
+│   │   │   ├── rsi.go
+│   │   │   └── vwap_atr.go
+│   │   ├── processor.go
+│   │   ├── processor_test.go
+│   │   ├── sequence
+│   │   │   └── analyzer.go
+│   │   └── types.go
 │   ├── core
 │   │   ├── adapters
 │   │   │   └── client
@@ -117,6 +145,7 @@
 │   │   ├── bb_width_monitor_service.go
 │   │   ├── bb_width_monitor_service_test.go
 │   │   ├── candle_aggregation_service.go
+│   │   ├── candle_aggregation_service_v2.go
 │   │   ├── candle_processing_service.go
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
@@ -145,6 +174,8 @@
 │   │   ├── report_generator.go
 │   │   ├── rsi_filter.go
 │   │   ├── sequence_analyzer.go
+│   │   ├── sequence_analyzer_v2.go
+│   │   ├── sequence_analyzer_v2_test.go
 │   │   ├── sequence_detector.go
 │   │   ├── sequence_pattern_analyzer.go
 │   │   ├── stock_filter_pipeline.go
@@ -153,6 +184,11 @@
 │   │   ├── stock_universe_service.go
 │   │   ├── technical_indicator_service.go
 │   │   ├── technical_indicator_service_test.go
+│   │   ├── technical_indicator_service_v2.go
+│   │   ├── technical_indicator_service_v2_cache_integration_test.go
+│   │   ├── technical_indicator_service_v2_cache_test.go
+│   │   ├── technical_indicator_service_v2_test.go
+│   │   ├── technical_indicator_service_v3_test.go
 │   │   ├── trade_parameters_service.go
 │   │   ├── trading_calendar_service.go
 │   │   ├── trend_analyzer.go
@@ -187,6 +223,7 @@
 │   ├── 5.2_volatility_squeeze_system_architecture.md
 │   ├── 5.3_volatility_squeeze_code_walkthrough.md
 │   ├── 5.4_volatility_squeeze_intraday.txt
+│   ├── 5.5_phase3_week5_caching_implementation_summary.md
 │   ├── 6.1_live_bb_width_monitoring_alerts.md
 │   ├── 6.2_bb_width_backtesting.txt
 │   ├── 6.3_bb_width_backtesting_issues.txt
@@ -219,7 +256,13 @@
 │   ├── 7.6_bb_width_aggr_dashboard.txt
 │   ├── 7.6_bb_width_aggregation_dashboard_PRD.md
 │   ├── 8.1.1_awesome_go_analysis.md
+│   ├── 8.1.2_go_backend_optimization_implementation_plan.md
 │   ├── 8.1_go_backend_optimization.txt
+│   ├── 8.2_go_backend_optimization
+│   │   ├── PHASE_1_COMPLETE.md
+│   │   ├── PHASE_2_CANDLE_AGGREGATION_MIGRATION_COMPLETE.md
+│   │   ├── WEEK_3_GONUM_INTEGRATION_COMPLETE.md
+│   │   └── WEEK_4_ADVANCED_ANALYTICS_COMPLETE.md
 │   ├── 9.1.1_understanding_and_details.txt
 │   └── 9.1_current_challenges.txt
 ├── logs
@@ -310,4 +353,4 @@
     ├── 8_stock_universe_daily_candle.txt
     └── 9_filter_pipeline.txt
 
-49 directories, 262 files
+56 directories, 299 files

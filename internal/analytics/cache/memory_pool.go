@@ -6,7 +6,35 @@ import (
 	"github.com/go-gota/gota/dataframe"
 )
 
-// DataFramePool provides object pooling for DataFrames to reduce GC pressure
+// CandleDataFrame wraps a DataFrame with lifecycle management for pooling
+type CandleDataFrame struct {
+	DataFrame   dataframe.DataFrame
+	InUse       bool
+	ReleaseFunc func()
+}
+
+// Acquire marks the DataFrame as in use
+func (cdf *CandleDataFrame) Acquire() {
+	cdf.InUse = true
+}
+
+// Release marks the DataFrame as available and calls the release function if set
+func (cdf *CandleDataFrame) Release() {
+	if cdf.InUse && cdf.ReleaseFunc != nil {
+		cdf.ReleaseFunc()
+	}
+	cdf.InUse = false
+}
+
+// Reset clears the state for reuse in the pool
+func (cdf *CandleDataFrame) Reset() {
+	cdf.InUse = false
+	cdf.ReleaseFunc = nil
+	// Keep the DataFrame but reset to empty state
+	cdf.DataFrame = dataframe.New()
+}
+
+// DataFramePool provides object pooling for CandleDataFrames to reduce GC pressure
 type DataFramePool struct {
 	pool sync.Pool
 }
@@ -16,57 +44,27 @@ func NewDataFramePool() *DataFramePool {
 	return &DataFramePool{
 		pool: sync.Pool{
 			New: func() interface{} {
-				return dataframe.New()
+				return &CandleDataFrame{
+					DataFrame: dataframe.New(),
+					InUse:     false,
+				}
 			},
 		},
 	}
 }
 
-// Get retrieves a DataFrame from the pool
-func (p *DataFramePool) Get() dataframe.DataFrame {
-	return p.pool.Get().(dataframe.DataFrame)
+// Get retrieves a CandleDataFrame from the pool
+func (p *DataFramePool) Get() *CandleDataFrame {
+	cdf := p.pool.Get().(*CandleDataFrame)
+	cdf.Reset() // Ensure clean state
+	return cdf
 }
 
-// Put returns a DataFrame to the pool after clearing it
-func (p *DataFramePool) Put(df dataframe.DataFrame) {
-	// Clear the DataFrame before returning to pool
-	// Note: Gota doesn't have a direct clear method, so we create a new empty one
-	emptyDF := dataframe.New()
-	p.pool.Put(emptyDF)
-}
-
-// CanclesesDataFrame represents a reusable wrapper for candle data processing
-type CandleDataFrame struct {
-	df   dataframe.DataFrame
-	pool *DataFramePool
-}
-
-// NewCandleDataFrame creates a new candle DataFrame with pooling support
-func NewCandleDataFrame(pool *DataFramePool) *CandleDataFrame {
-	return &CandleDataFrame{
-		df:   pool.Get(),
-		pool: pool,
-	}
-}
-
-// LoadCandles loads candle data into the DataFrame
-func (cdf *CandleDataFrame) LoadCandles(candles interface{}) error {
-	// Load data using LoadStructs or similar method
-	df := dataframe.LoadStructs(candles)
-	cdf.df = df
-	return nil
-}
-
-// GetDataFrame returns the underlying DataFrame
-func (cdf *CandleDataFrame) GetDataFrame() dataframe.DataFrame {
-	return cdf.df
-}
-
-// Release returns the DataFrame to the pool
-func (cdf *CandleDataFrame) Release() {
-	if cdf.pool != nil {
-		cdf.pool.Put(cdf.df)
-		cdf.df = dataframe.New() // Reset to empty
+// Put returns a CandleDataFrame to the pool after resetting it
+func (p *DataFramePool) Put(cdf *CandleDataFrame) {
+	if cdf != nil {
+		cdf.Reset()
+		p.pool.Put(cdf)
 	}
 }
 
@@ -90,18 +88,26 @@ func (pp *ProcessingPool) GetDataFramePool() *DataFramePool {
 	return pp.dataFramePool
 }
 
-// GetPooledCandleDataFrame gets a pooled candle DataFrame
+// GetPooledCandleDataFrame gets a managed CandleDataFrame from the pool
 func (pp *ProcessingPool) GetPooledCandleDataFrame() *CandleDataFrame {
-	return NewCandleDataFrame(pp.GetDataFramePool())
+	candleDF := pp.dataFramePool.Get()
+
+	// Set up release function to return to pool
+	candleDF.ReleaseFunc = func() {
+		pp.dataFramePool.Put(candleDF)
+	}
+
+	candleDF.Acquire()
+	return candleDF
 }
 
 // Stats returns pool statistics
 func (pp *ProcessingPool) Stats() map[string]interface{} {
 	pp.mutex.RLock()
 	defer pp.mutex.RUnlock()
-	
+
 	return map[string]interface{}{
-		"dataframe_pool_active": "tracking not available in sync.Pool",
-		"pool_type":             "dataframe",
+		"dataframe_pool_active": 0, // Could be tracked if needed
+		"pool_type":             "memory_pool",
 	}
 }

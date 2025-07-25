@@ -21,13 +21,13 @@ type IndicatorCache struct {
 
 // CacheMetrics tracks cache performance
 type CacheMetrics struct {
-	CacheHits        int64
-	CacheMisses      int64
-	TotalRequests    int64
-	AverageLatency   time.Duration
-	CacheSize        int64
-	EvictionCount    int64
-	LastUpdated      time.Time
+	CacheHits      int64
+	CacheMisses    int64
+	TotalRequests  int64
+	AverageLatency time.Duration
+	CacheSize      int64
+	EvictionCount  int64
+	LastUpdated    time.Time
 }
 
 // CacheKey represents a cache key for indicators
@@ -72,7 +72,7 @@ func (ic *IndicatorCache) GetIndicators(key CacheKey) (*domain.TechnicalIndicato
 
 	cacheKeyStr := ic.generateKey(key)
 	cached := ic.cache.Get(nil, []byte(cacheKeyStr))
-	
+
 	if cached == nil {
 		ic.metrics.CacheMisses++
 		return nil, false
@@ -116,7 +116,7 @@ func (ic *IndicatorCache) SetIndicators(key CacheKey, indicators *domain.Technic
 
 	cacheKeyStr := ic.generateKey(key)
 	ic.cache.Set([]byte(cacheKeyStr), data)
-	
+
 	return nil
 }
 
@@ -131,7 +131,7 @@ func (ic *IndicatorCache) GetOrCalculate(key CacheKey, calculator func() (*domai
 	start := time.Now()
 	indicators, err := calculator()
 	computeTime := time.Since(start)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate indicators: %w", err)
 	}
@@ -153,7 +153,7 @@ func (ic *IndicatorCache) InvalidatePattern(symbol, timeframe string) int {
 	// FastCache doesn't support pattern deletion, so we'll track keys manually
 	// For now, we'll use a simple approach and clear the entire cache if needed
 	// In production, consider implementing a key tracking system
-	
+
 	return 0 // Returns number of invalidated entries
 }
 
@@ -165,7 +165,7 @@ func (ic *IndicatorCache) GetMetrics() CacheMetrics {
 	metrics := *ic.metrics
 	// FastCache doesn't expose detailed stats, so we track what we can
 	metrics.LastUpdated = time.Now()
-	
+
 	if metrics.TotalRequests > 0 {
 		// Calculate hit rate
 		hitRate := float64(metrics.CacheHits) / float64(metrics.TotalRequests)
@@ -190,7 +190,7 @@ func (ic *IndicatorCache) ResetMetrics() {
 func (ic *IndicatorCache) GetCacheInfo() map[string]interface{} {
 	ic.mutex.RLock()
 	defer ic.mutex.RUnlock()
-	
+
 	return map[string]interface{}{
 		"cache_hits":      ic.metrics.CacheHits,
 		"cache_misses":    ic.metrics.CacheMisses,
@@ -229,7 +229,7 @@ func (ic *IndicatorCache) generateKey(key CacheKey) string {
 // updateMetrics updates cache performance metrics
 func (ic *IndicatorCache) updateMetrics(latency time.Duration) {
 	ic.metrics.TotalRequests++
-	
+
 	// Update average latency using exponential moving average
 	alpha := 0.1
 	if ic.metrics.AverageLatency == 0 {
