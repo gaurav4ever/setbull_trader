@@ -179,8 +179,8 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 		"end_time":       end.Format("15:04"),
 	})
 
-	// Get recent BBW values for the stock
-	bbwValues, err := s.getRecentBBWValues(ctx, stock.InstrumentKey, s.contractingLookback+1)
+	// Get BBW values for the stock within the specified time range
+	bbwValues, err := s.getRecentBBWValuesInRange(ctx, stock.InstrumentKey, s.contractingLookback+1, start, end)
 	if err != nil {
 		log.BBWError("stock_processing", "get_bbw_values", "Failed to get BBW values", err, map[string]interface{}{
 			"symbol":         stock.Symbol,
@@ -189,6 +189,14 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 		})
 		return nil, fmt.Errorf("failed to get BBW values: %w", err)
 	}
+
+	log.BBWDebug("stock_processing", "bbw_values_retrieved", "Retrieved BBW values for processing", map[string]interface{}{
+		"symbol":         stock.Symbol,
+		"instrument_key": stock.InstrumentKey,
+		"data_points":    len(bbwValues),
+		"required":       2,
+		"values":         bbwValues,
+	})
 
 	if len(bbwValues) < 2 {
 		log.BBWDebug("stock_processing", "insufficient_data", "Insufficient BBW data for stock", map[string]interface{}{
@@ -201,6 +209,13 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 	}
 
 	// Calculate current BBW
+	if len(bbwValues) == 0 {
+		log.BBWError("stock_processing", "no_bbw_values", "No BBW values available", nil, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+		})
+		return nil, fmt.Errorf("no BBW values available")
+	}
 	currentBBW := bbwValues[len(bbwValues)-1]
 
 	// Get historical minimum BBW from CSV/database
@@ -259,7 +274,7 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 		AlertType:                alertType,
 		AlertMessage:             alertMessage,
 		PatternStrength:          patternStrength,
-		Timestamp:                time.Now(),
+		Timestamp:                end, // Use the end time (candle timestamp) instead of current time
 		LastUpdated:              time.Now(),
 	}
 
@@ -431,6 +446,10 @@ func (s *BBWDashboardService) updateCandlesInRangeCount(ctx context.Context, ins
 // detectContractingPattern detects consecutive contracting candles
 func (s *BBWDashboardService) detectContractingPattern(bbwValues []float64) int {
 	if len(bbwValues) < 2 {
+		log.BBWDebug("contracting_pattern", "insufficient_data", "Insufficient data for contracting pattern detection", map[string]interface{}{
+			"data_points": len(bbwValues),
+			"required":    2,
+		})
 		return 0
 	}
 
@@ -443,26 +462,69 @@ func (s *BBWDashboardService) detectContractingPattern(bbwValues []float64) int 
 		}
 	}
 
+	log.BBWDebug("contracting_pattern", "detection", "Contracting pattern detection completed", map[string]interface{}{
+		"contracting_count": count,
+		"data_points":       len(bbwValues),
+	})
+
 	return count
 }
 
 // determineBBWTrend determines the overall BBW trend
 func (s *BBWDashboardService) determineBBWTrend(bbwValues []float64) string {
-	if len(bbwValues) < 3 {
+	if len(bbwValues) < 6 {
+		log.BBWDebug("trend_determination", "insufficient_data", "Insufficient data for trend determination", map[string]interface{}{
+			"data_points": len(bbwValues),
+			"required":    6,
+		})
 		return "stable"
 	}
 
 	// Compare recent values with older values
 	recent := bbwValues[len(bbwValues)-3:]
-	older := bbwValues[len(bbwValues)-6:]
+
+	// Safely get older values, ensuring we don't go out of bounds
+	startIndex := len(bbwValues) - 6
+	if startIndex < 0 {
+		startIndex = 0
+		log.BBWWarn("trend_determination", "bounds_adjustment", "Adjusted start index to prevent out of bounds", map[string]interface{}{
+			"original_start": len(bbwValues) - 6,
+			"adjusted_start": startIndex,
+			"data_points":    len(bbwValues),
+		})
+	}
+	older := bbwValues[startIndex : len(bbwValues)-3]
+
+	// Ensure we have enough data for comparison
 	if len(older) < 3 {
-		older = bbwValues[:3]
+		log.BBWDebug("trend_determination", "insufficient_older_data", "Insufficient older data for trend comparison", map[string]interface{}{
+			"older_data_points": len(older),
+			"required":          3,
+			"total_data_points": len(bbwValues),
+		})
+		return "stable"
 	}
 
 	recentAvg := (recent[0] + recent[1] + recent[2]) / 3
 	olderAvg := (older[0] + older[1] + older[2]) / 3
 
-	changePercent := ((recentAvg - olderAvg) / olderAvg) * 100
+	var changePercent float64
+	if olderAvg != 0 {
+		changePercent = ((recentAvg - olderAvg) / olderAvg) * 100
+	} else {
+		log.BBWWarn("trend_determination", "division_by_zero", "Division by zero in trend calculation", map[string]interface{}{
+			"recent_avg": recentAvg,
+			"older_avg":  olderAvg,
+		})
+		changePercent = 0
+	}
+
+	log.BBWDebug("trend_determination", "calculation", "Trend calculation completed", map[string]interface{}{
+		"recent_avg":     recentAvg,
+		"older_avg":      olderAvg,
+		"change_percent": changePercent,
+		"data_points":    len(bbwValues),
+	})
 
 	if changePercent < -5 {
 		return "contracting"
@@ -566,12 +628,32 @@ func (s *BBWDashboardService) checkAdvancedAlertConditions(
 // calculatePatternStrength determines the strength of the pattern
 func (s *BBWDashboardService) calculatePatternStrength(bbwValues []float64, contractingCount int) string {
 	if len(bbwValues) < 3 {
+		log.BBWDebug("pattern_strength", "insufficient_data", "Insufficient data for pattern strength calculation", map[string]interface{}{
+			"data_points": len(bbwValues),
+			"required":    3,
+		})
 		return "weak"
 	}
 
 	// Calculate rate of change
 	recentValues := bbwValues[len(bbwValues)-3:]
-	rateOfChange := (recentValues[0] - recentValues[2]) / recentValues[2] * 100
+	// recentValues[0] is the most recent, recentValues[2] is the oldest in the 3-element slice
+	var rateOfChange float64
+	if recentValues[2] != 0 {
+		rateOfChange = (recentValues[2] - recentValues[0]) / recentValues[2] * 100
+	} else {
+		log.BBWWarn("pattern_strength", "division_by_zero", "Division by zero in rate of change calculation", map[string]interface{}{
+			"recent_values": recentValues,
+		})
+		rateOfChange = 0
+	}
+
+	log.BBWDebug("pattern_strength", "calculation", "Pattern strength calculation completed", map[string]interface{}{
+		"contracting_count": contractingCount,
+		"rate_of_change":    rateOfChange,
+		"recent_values":     recentValues,
+		"data_points":       len(bbwValues),
+	})
 
 	// Determine strength based on contracting count and rate of change
 	if contractingCount >= 5 && rateOfChange > 10 {
@@ -678,14 +760,47 @@ func (s *BBWDashboardService) ClearAlertHistory() {
 
 // getRecentBBWValues gets recent BBW values for a stock
 func (s *BBWDashboardService) getRecentBBWValues(ctx context.Context, instrumentKey string, count int) ([]float64, error) {
+	return s.getRecentBBWValuesInRange(ctx, instrumentKey, count, time.Time{}, time.Time{})
+}
+
+// getRecentBBWValuesInRange gets BBW values for a stock within a specific time range or recent candles if no range specified
+func (s *BBWDashboardService) getRecentBBWValuesInRange(ctx context.Context, instrumentKey string, count int, startTime, endTime time.Time) ([]float64, error) {
 	if s.candle5MinRepo == nil {
 		return nil, fmt.Errorf("candle5Min repository not available")
 	}
 
-	// Get recent candles from the database
-	candles, err := s.candle5MinRepo.GetNLatestCandles(ctx, instrumentKey, count)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get recent candles for BBW values: %w", err)
+	var candles []domain.Candle5Min
+	var err error
+
+	// If time range is specified, get candles within that range
+	if !startTime.IsZero() && !endTime.IsZero() {
+		// Calculate the time range to get enough candles for the lookback period
+		// We need to go back further to get enough candles for the contracting pattern analysis
+		lookbackStartTime := startTime.Add(-time.Duration(count*5) * time.Minute) // 5 minutes per candle
+
+		candles, err = s.candle5MinRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, lookbackStartTime, endTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get candles in time range for BBW values: %w", err)
+		}
+
+		log.BBWDebug("bbw_values", "time_range", "Getting BBW values from time range", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"start_time":     startTime.Format("15:04"),
+			"end_time":       endTime.Format("15:04"),
+			"lookback_start": lookbackStartTime.Format("15:04"),
+			"requested":      count,
+		})
+	} else {
+		// Get recent candles from the database (default behavior)
+		candles, err = s.candle5MinRepo.GetNLatestCandles(ctx, instrumentKey, count)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get recent candles for BBW values: %w", err)
+		}
+
+		log.BBWDebug("bbw_values", "recent", "Getting recent BBW values", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"requested":      count,
+		})
 	}
 
 	if len(candles) == 0 {
@@ -710,18 +825,31 @@ func (s *BBWDashboardService) getRecentBBWValues(ctx context.Context, instrument
 		}
 	}
 
-	// Sort by timestamp to ensure chronological order (oldest to newest)
-	// The repository already returns them in chronological order, but let's be explicit
-	if len(bbwValues) > 1 {
-		// Verify we have enough valid BBW values
-		if len(bbwValues) < 2 {
-			log.BBWDebug("bbw_values", "insufficient_valid", "Insufficient valid BBW values", map[string]interface{}{
-				"instrument_key": instrumentKey,
-				"valid_count":    len(bbwValues),
-				"required":       2,
-			})
-			return bbwValues, nil
-		}
+	// Ensure we have valid data and log the data points for debugging
+	if len(bbwValues) > 0 {
+		log.BBWDebug("bbw_values", "data_validation", "BBW values validation", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"total_candles":  len(candles),
+			"valid_bbw":      len(bbwValues),
+			"first_value":    bbwValues[0],
+			"last_value":     bbwValues[len(bbwValues)-1],
+			"all_values":     bbwValues,
+		})
+	} else {
+		log.BBWWarn("bbw_values", "no_valid_data", "No valid BBW values found", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"total_candles":  len(candles),
+		})
+	}
+
+	// Verify we have enough valid BBW values
+	if len(bbwValues) < 2 {
+		log.BBWDebug("bbw_values", "insufficient_valid", "Insufficient valid BBW values", map[string]interface{}{
+			"instrument_key": instrumentKey,
+			"valid_count":    len(bbwValues),
+			"required":       2,
+		})
+		return bbwValues, nil
 	}
 
 	log.BBWDebug("bbw_values", "retrieved", "Retrieved BBW values", map[string]interface{}{
@@ -941,7 +1069,8 @@ func (s *BBWDashboardService) GetStockBBWHistory(ctx context.Context, instrument
 	endTime := time.Now()
 	startTime := endTime.AddDate(0, 0, -days)
 
-	candles, err := s.candleAggService.Get5MinCandles(ctx, instrumentKey, startTime, endTime)
+	// Use the candle5MinRepo directly to get historical 5-minute candles with BBW data
+	candles, err := s.candle5MinRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, startTime, endTime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get historical candles: %w", err)
 	}
@@ -965,17 +1094,267 @@ func (s *BBWDashboardService) GetStockBBWHistory(ctx context.Context, instrument
 		Symbol:        stock.Symbol,
 	}
 
-	// Process each candle
-	for _, candle := range candles {
-		stockData, err := s.processStockBBW(ctx, stockUniverse, candle.Timestamp, candle.Timestamp)
+	// Process each candle with historical context
+	log.Info("[BBW Dashboard] Processing %d historical candles for %s", len(candles), stock.Symbol)
+	for i, candle := range candles {
+		if i < 5 || i > len(candles)-5 { // Log first 5 and last 5 candles
+			log.Info("[BBW Dashboard] Processing candle %d/%d: %s", i+1, len(candles), candle.Timestamp.Format("2006-01-02 15:04:05"))
+		}
+		stockData, err := s.processHistoricalStockBBWFromCandle5Min(ctx, stockUniverse, candle)
 		if err != nil {
 			log.Error("[BBW Dashboard] Failed to process historical data for %s: %v", stock.Symbol, err)
 			continue
 		}
-		historicalData = append(historicalData, stockData)
+		// Only append non-nil data
+		if stockData != nil {
+			historicalData = append(historicalData, stockData)
+		} else {
+			log.BBWDebug("historical_processing", "skip_nil", "Skipping nil data for candle", map[string]interface{}{
+				"symbol":         stock.Symbol,
+				"instrument_key": stock.InstrumentKey,
+				"candle_index":   i,
+				"timestamp":      candle.Timestamp.Format("2006-01-02 15:04:05"),
+			})
+		}
 	}
 
 	return historicalData, nil
+}
+
+// processHistoricalStockBBWFromCandle5Min processes BBW data for a specific historical Candle5Min
+func (s *BBWDashboardService) processHistoricalStockBBWFromCandle5Min(ctx context.Context, stock domain.StockUniverse, candle domain.Candle5Min) (*BBWDashboardData, error) {
+	log.BBWDebug("historical_processing", "start", "Processing historical BBW data for stock from Candle5Min", map[string]interface{}{
+		"symbol":         stock.Symbol,
+		"instrument_key": stock.InstrumentKey,
+		"candle_time":    candle.Timestamp.Format("15:04"),
+		"bb_width":       candle.BBWidth,
+	})
+
+	// For historical data, we need to get BBW values leading up to this specific candle
+	// Calculate the time range to get enough candles for the lookback period
+	lookbackStartTime := candle.Timestamp.Add(-time.Duration(s.contractingLookback*5) * time.Minute) // 5 minutes per candle
+
+	// Get BBW values for the stock within the historical time range
+	bbwValues, err := s.getRecentBBWValuesInRange(ctx, stock.InstrumentKey, s.contractingLookback+1, lookbackStartTime, candle.Timestamp)
+	if err != nil {
+		log.BBWError("historical_processing", "get_bbw_values", "Failed to get BBW values", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"lookback":       s.contractingLookback + 1,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+		})
+		return nil, fmt.Errorf("failed to get BBW values: %w", err)
+	}
+
+	if len(bbwValues) < 2 {
+		log.BBWDebug("historical_processing", "insufficient_data", "Insufficient BBW data for stock", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"data_points":    len(bbwValues),
+			"required":       2,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+		})
+		return nil, nil
+	}
+
+	// Use the BBW value from the actual candle in the database
+	currentBBW := candle.BBWidth
+
+	// Get historical minimum BBW from CSV/database
+	historicalMinBBW, err := s.getHistoricalMinBBW(ctx, stock.InstrumentKey)
+	if err != nil {
+		log.BBWError("historical_processing", "historical_min", "Failed to get historical minimum BBW", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+		})
+		// Use recent minimum as fallback
+		historicalMinBBW = s.calculateRecentMinBBW(bbwValues)
+		log.BBWWarn("historical_processing", "fallback", "Using recent minimum as fallback", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"fallback_value": historicalMinBBW,
+		})
+	}
+
+	// Calculate distance from minimum
+	distanceFromMin := s.calculateDistanceFromMin(currentBBW, historicalMinBBW)
+
+	// Detect contracting pattern
+	contractingCount := s.detectContractingPattern(bbwValues)
+
+	// Determine BBW trend
+	trend := s.determineBBWTrend(bbwValues)
+
+	// Calculate candles in range count (for historical data, we don't persist this)
+	candlesInRangeCount := s.calculateCandlesInRangeCount(ctx, stock.InstrumentKey, historicalMinBBW)
+
+	// Check alert conditions (for historical data, we don't trigger alerts)
+	alertTriggered, alertType, alertMessage, patternStrength := s.checkAdvancedAlertConditions(
+		stock.InstrumentKey, stock.Symbol, currentBBW, historicalMinBBW, contractingCount, bbwValues)
+
+	// Create dashboard data with the actual candle timestamp
+	dashboardData := &BBWDashboardData{
+		Symbol:                   stock.Symbol,
+		InstrumentKey:            stock.InstrumentKey,
+		CurrentBBWidth:           currentBBW,
+		HistoricalMinBBWidth:     historicalMinBBW,
+		DistanceFromMinPercent:   distanceFromMin,
+		ContractingSequenceCount: contractingCount,
+		CandlesInRangeCount:      candlesInRangeCount,
+		BBWidthTrend:             trend,
+		AlertTriggered:           alertTriggered,
+		AlertType:                alertType,
+		AlertMessage:             alertMessage,
+		PatternStrength:          patternStrength,
+		Timestamp:                candle.Timestamp, // Use the actual candle timestamp
+		LastUpdated:              time.Now(),
+	}
+
+	log.BBWDebug("historical_processing", "complete", "Completed processing historical stock BBW data from Candle5Min", map[string]interface{}{
+		"symbol":             stock.Symbol,
+		"instrument_key":     stock.InstrumentKey,
+		"current_bbw":        currentBBW,
+		"historical_min_bbw": historicalMinBBW,
+		"distance_percent":   distanceFromMin,
+		"contracting_count":  contractingCount,
+		"trend":              trend,
+		"candle_time":        candle.Timestamp.Format("15:04"),
+	})
+
+	return dashboardData, nil
+}
+
+// processHistoricalStockBBW processes BBW data for a specific historical candle
+func (s *BBWDashboardService) processHistoricalStockBBW(ctx context.Context, stock domain.StockUniverse, candle domain.AggregatedCandle) (*BBWDashboardData, error) {
+	log.BBWDebug("historical_processing", "start", "Processing historical BBW data for stock", map[string]interface{}{
+		"symbol":         stock.Symbol,
+		"instrument_key": stock.InstrumentKey,
+		"candle_time":    candle.Timestamp.Format("15:04"),
+	})
+
+	// For historical data, we need to get BBW values leading up to this specific candle
+	// Calculate the time range to get enough candles for the lookback period
+	lookbackStartTime := candle.Timestamp.Add(-time.Duration(s.contractingLookback*5) * time.Minute) // 5 minutes per candle
+
+	// Get BBW values for the stock within the historical time range
+	bbwValues, err := s.getRecentBBWValuesInRange(ctx, stock.InstrumentKey, s.contractingLookback+1, lookbackStartTime, candle.Timestamp)
+	if err != nil {
+		log.BBWError("historical_processing", "get_bbw_values", "Failed to get BBW values", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"lookback":       s.contractingLookback + 1,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+		})
+		return nil, fmt.Errorf("failed to get BBW values: %w", err)
+	}
+
+	if len(bbwValues) < 2 {
+		log.BBWDebug("historical_processing", "insufficient_data", "Insufficient BBW data for stock", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"data_points":    len(bbwValues),
+			"required":       2,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+		})
+		return nil, nil
+	}
+
+	// Get the actual BBW value from the database for this specific timestamp
+	// We need to get the 5-minute candle from the database to get the correct BBW value
+	actualCandle, err := s.candle5MinRepo.FindByInstrumentAndTimeRange(ctx, stock.InstrumentKey, candle.Timestamp, candle.Timestamp)
+	if err != nil {
+		log.BBWError("historical_processing", "get_actual_candle", "Failed to get actual candle from database", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+		})
+		return nil, fmt.Errorf("failed to get actual candle: %w", err)
+	}
+
+	// Use the BBW value from the actual candle in the database
+	var currentBBW float64
+	if len(actualCandle) > 0 {
+		currentBBW = actualCandle[0].BBWidth
+		log.BBWDebug("historical_processing", "found_actual_candle", "Found actual candle in database", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+			"bbw_value":      currentBBW,
+			"candles_found":  len(actualCandle),
+		})
+	} else {
+		// Fallback to the aggregated candle BBW if no actual candle found
+		currentBBW = candle.BBWidth
+		log.BBWWarn("historical_processing", "fallback_bbw", "Using aggregated candle BBW as fallback", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"candle_time":    candle.Timestamp.Format("15:04"),
+			"bbw_value":      currentBBW,
+		})
+	}
+
+	// Get historical minimum BBW from CSV/database
+	historicalMinBBW, err := s.getHistoricalMinBBW(ctx, stock.InstrumentKey)
+	if err != nil {
+		log.BBWError("historical_processing", "historical_min", "Failed to get historical minimum BBW", err, map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+		})
+		// Use recent minimum as fallback
+		historicalMinBBW = s.calculateRecentMinBBW(bbwValues)
+		log.BBWWarn("historical_processing", "fallback", "Using recent minimum as fallback", map[string]interface{}{
+			"symbol":         stock.Symbol,
+			"instrument_key": stock.InstrumentKey,
+			"fallback_value": historicalMinBBW,
+		})
+	}
+
+	// Calculate distance from minimum
+	distanceFromMin := s.calculateDistanceFromMin(currentBBW, historicalMinBBW)
+
+	// Detect contracting pattern
+	contractingCount := s.detectContractingPattern(bbwValues)
+
+	// Determine BBW trend
+	trend := s.determineBBWTrend(bbwValues)
+
+	// Calculate candles in range count (for historical data, we don't persist this)
+	candlesInRangeCount := s.calculateCandlesInRangeCount(ctx, stock.InstrumentKey, historicalMinBBW)
+
+	// Check alert conditions (for historical data, we don't trigger alerts)
+	alertTriggered, alertType, alertMessage, patternStrength := s.checkAdvancedAlertConditions(
+		stock.InstrumentKey, stock.Symbol, currentBBW, historicalMinBBW, contractingCount, bbwValues)
+
+	// Create dashboard data with the actual candle timestamp
+	dashboardData := &BBWDashboardData{
+		Symbol:                   stock.Symbol,
+		InstrumentKey:            stock.InstrumentKey,
+		CurrentBBWidth:           currentBBW,
+		HistoricalMinBBWidth:     historicalMinBBW,
+		DistanceFromMinPercent:   distanceFromMin,
+		ContractingSequenceCount: contractingCount,
+		CandlesInRangeCount:      candlesInRangeCount,
+		BBWidthTrend:             trend,
+		AlertTriggered:           alertTriggered,
+		AlertType:                alertType,
+		AlertMessage:             alertMessage,
+		PatternStrength:          patternStrength,
+		Timestamp:                candle.Timestamp, // Use the actual candle timestamp
+		LastUpdated:              time.Now(),
+	}
+
+	log.BBWDebug("historical_processing", "complete", "Completed processing historical stock BBW data", map[string]interface{}{
+		"symbol":             stock.Symbol,
+		"instrument_key":     stock.InstrumentKey,
+		"current_bbw":        currentBBW,
+		"historical_min_bbw": historicalMinBBW,
+		"distance_percent":   distanceFromMin,
+		"contracting_count":  contractingCount,
+		"trend":              trend,
+		"candle_time":        candle.Timestamp.Format("15:04"),
+	})
+
+	return dashboardData, nil
 }
 
 // getStockMetadata retrieves stock metadata from groups

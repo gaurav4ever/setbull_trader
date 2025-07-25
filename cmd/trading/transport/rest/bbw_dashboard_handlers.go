@@ -114,6 +114,12 @@ func (h *BBWDashboardHandler) GetActiveAlerts(w http.ResponseWriter, r *http.Req
 	var activeAlerts []*service.BBWDashboardData
 
 	for _, data := range allData {
+		// Skip nil data objects
+		if data == nil {
+			log.Warn("[BBW Handler] Skipping nil data object in active alerts calculation")
+			continue
+		}
+
 		if data.AlertTriggered {
 			activeAlerts = append(activeAlerts, data)
 		}
@@ -471,6 +477,12 @@ func (h *BBWDashboardHandler) GetLatestAvailableDayData(w http.ResponseWriter, r
 	// Convert to response format
 	var response []map[string]interface{}
 	for _, data := range dashboardData {
+		// Skip nil data objects
+		if data == nil {
+			log.Warn("[BBW Handler] Skipping nil data object in latest available day data")
+			continue
+		}
+
 		response = append(response, map[string]interface{}{
 			"symbol":                     data.Symbol,
 			"instrument_key":             data.InstrumentKey,
@@ -530,6 +542,12 @@ func (h *BBWDashboardHandler) GetStockBBWHistory(w http.ResponseWriter, r *http.
 	// Convert to response format
 	var response []map[string]interface{}
 	for _, data := range historicalData {
+		// Skip nil data objects
+		if data == nil {
+			log.Warn("[BBW Handler] Skipping nil data object in historical data")
+			continue
+		}
+
 		response = append(response, map[string]interface{}{
 			"symbol":                     data.Symbol,
 			"instrument_key":             data.InstrumentKey,
@@ -577,6 +595,11 @@ func (h *BBWDashboardHandler) GetMarketStatus(w http.ResponseWriter, r *http.Req
 	if err == nil && len(latestData) > 0 {
 		// Find the most recent timestamp
 		for _, data := range latestData {
+			// Skip nil data objects
+			if data == nil {
+				log.Warn("[BBW Handler] Skipping nil data object in market status calculation")
+				continue
+			}
 			if lastDataTimestamp == nil || data.Timestamp.After(*lastDataTimestamp) {
 				lastDataTimestamp = &data.Timestamp
 			}
@@ -618,28 +641,45 @@ func (h *BBWDashboardHandler) GetStatistics(w http.ResponseWriter, r *http.Reque
 	var trendDistribution map[string]int
 
 	if len(data) > 0 {
-		minBBW = data[0].CurrentBBWidth
-		maxBBW = data[0].CurrentBBWidth
-		alertDistribution = make(map[string]int)
-		trendDistribution = make(map[string]int)
-
+		// Find first non-nil item for initial values
+		var firstItem *service.BBWDashboardData
 		for _, item := range data {
-			// BBW range
-			if item.CurrentBBWidth < minBBW {
-				minBBW = item.CurrentBBWidth
+			if item != nil {
+				firstItem = item
+				break
 			}
-			if item.CurrentBBWidth > maxBBW {
-				maxBBW = item.CurrentBBWidth
-			}
-			totalBBW += item.CurrentBBWidth
+		}
 
-			// Alert distribution
-			if item.AlertTriggered {
-				alertDistribution[item.AlertType]++
-			}
+		if firstItem != nil {
+			minBBW = firstItem.CurrentBBWidth
+			maxBBW = firstItem.CurrentBBWidth
+			alertDistribution = make(map[string]int)
+			trendDistribution = make(map[string]int)
 
-			// Trend distribution
-			trendDistribution[item.BBWidthTrend]++
+			for _, item := range data {
+				// Skip nil items
+				if item == nil {
+					log.Warn("[BBW Handler] Skipping nil item in statistics calculation")
+					continue
+				}
+
+				// BBW range
+				if item.CurrentBBWidth < minBBW {
+					minBBW = item.CurrentBBWidth
+				}
+				if item.CurrentBBWidth > maxBBW {
+					maxBBW = item.CurrentBBWidth
+				}
+				totalBBW += item.CurrentBBWidth
+
+				// Alert distribution
+				if item.AlertTriggered {
+					alertDistribution[item.AlertType]++
+				}
+
+				// Trend distribution
+				trendDistribution[item.BBWidthTrend]++
+			}
 		}
 	}
 
