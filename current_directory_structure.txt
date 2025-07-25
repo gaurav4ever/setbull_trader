@@ -1,12 +1,21 @@
 .
-├── __pycache__
-│   └── volatility_squeeze_analyzer.cpython-311.pyc
+├── Dockerfile
+├── GOTA_GONUM_REFACTORING_ROI_DOCUMENT.md
+├── Learning
+│   ├── 1.1_scalping_every_hour.txt
+│   └── 1.2_my_position_sizing_techniques.txt
+├── Makefile
+├── README.md
 ├── analysis
 │   ├── 1.1_JAICORP.txt
 │   └── curl_requests
 │       └── 1.1_backtesting.txt
-├── application.dev.yaml
 ├── application.yaml
+├── assets
+│   ├── bb_expansion_alert.mp3
+│   ├── bb_range_alert.mp3
+│   └── bb_squeeze_alert.mp3
+├── batch_historical_data.sh
 ├── cmd
 │   └── trading
 │       ├── app
@@ -17,6 +26,8 @@
 │           └── rest
 │               ├── candle_handlers.go
 │               ├── execution_plan_handlers.go
+│               ├── master_data_handlers.go
+│               ├── master_data_handlers_test.go
 │               ├── order_execution_handlers.go
 │               ├── responses.go
 │               ├── server.go
@@ -26,13 +37,6 @@
 │               ├── trade_parameters_handlers.go
 │               ├── upstox_auth_handlers.go
 │               └── utility_handlers.go
-├── consolidated_code
-│   ├── config.txt
-│   ├── main.txt
-│   ├── models.txt
-│   ├── services.txt
-│   ├── transport.txt
-│   └── utils.txt
 ├── consolidated_code.sh
 ├── copy-stocks-file.sh
 ├── current_directory_structure.txt
@@ -44,15 +48,8 @@
 │   ├── post_order_api_doc.txt
 │   └── put_order_api_doc.txt
 ├── directory_tree.py
-├── Dockerfile
 ├── go.mod
 ├── go.sum
-├── GOALS
-│   ├── 1_next_2_weeks.txt
-│   ├── 2_next_2_week.txt
-│   ├── 3_next_2_weekts.txt
-│   ├── 4_2025_GOAL.md
-│   └── 5_next_week.txt
 ├── internal
 │   ├── core
 │   │   ├── adapters
@@ -60,7 +57,6 @@
 │   │   │       └── dhan
 │   │   │           ├── dhan_client.go
 │   │   │           └── models.go
-│   │   ├── constant
 │   │   ├── dto
 │   │   │   ├── request
 │   │   │   │   ├── market_quotes.go
@@ -82,6 +78,7 @@
 │   │   │   ├── 1.2_stock_group_functionality_v2.txt
 │   │   │   └── 1.3_stock_group_functionality.txt
 │   │   ├── mamba_types.go
+│   │   ├── master_data_process.go
 │   │   ├── models.go
 │   │   ├── sequence_metrics.go
 │   │   ├── stock_filter.go
@@ -91,10 +88,13 @@
 │   ├── repository
 │   │   ├── interfaces.go
 │   │   └── postgres
+│   │       ├── candle_5min_repository.go
 │   │       ├── candle_repository.go
 │   │       ├── execution_plan_repository.go
 │   │       ├── filtered_stock_repository.go
 │   │       ├── level_entry_repository.go
+│   │       ├── master_data_process_repository.go
+│   │       ├── master_data_process_repository_test.go
 │   │       ├── order_execution_repository.go
 │   │       ├── stock_group_repository.go
 │   │       ├── stock_repository.go
@@ -103,28 +103,38 @@
 │   ├── service
 │   │   ├── 19th_may_log.txt
 │   │   ├── 20th_may_log.txt
+│   │   ├── 21st_jul_2025_log.txt
 │   │   ├── 21st_may_log.txt
-│   │   ├── 22nd_may_log_consolidated.txt
 │   │   ├── 22nd_may_log.txt
+│   │   ├── 22nd_may_log_consolidated.txt
+│   │   ├── 24th_july_2025_log.txt
+│   │   ├── 25th_july_2025_log.txt
 │   │   ├── 26th_may_log.txt
+│   │   ├── alert_service.go
+│   │   ├── alert_service_test.go
 │   │   ├── basic_filter.go
 │   │   ├── batch_fetch_service.go
+│   │   ├── bb_width_monitor_service.go
+│   │   ├── bb_width_monitor_service_test.go
 │   │   ├── candle_aggregation_service.go
 │   │   ├── candle_processing_service.go
 │   │   ├── ema_filter.go
 │   │   ├── execution_plan_service.go
 │   │   ├── fibonacci_calculator.go
-│   │   ├── group_execution_scheduler_test.go
 │   │   ├── group_execution_scheduler.go
+│   │   ├── group_execution_scheduler_test.go
 │   │   ├── group_execution_service.go
 │   │   ├── kb
 │   │   │   ├── 1.1_sotck_agent_service.md
 │   │   │   └── 1.2_stock_agent_service.md
-│   │   ├── log_9_15.txt
-│   │   ├── log_915.txt
 │   │   ├── log1pm.txt
+│   │   ├── log_915.txt
+│   │   ├── log_9_15.txt
 │   │   ├── mamba_filter.go
 │   │   ├── market_quote_service.go
+│   │   ├── master_data_adapters.go
+│   │   ├── master_data_service.go
+│   │   ├── master_data_service_test.go
 │   │   ├── move_analyzer.go
 │   │   ├── normalizer
 │   │   │   └── stock_normalizer.go
@@ -142,6 +152,7 @@
 │   │   ├── stock_service.go
 │   │   ├── stock_universe_service.go
 │   │   ├── technical_indicator_service.go
+│   │   ├── technical_indicator_service_test.go
 │   │   ├── trade_parameters_service.go
 │   │   ├── trading_calendar_service.go
 │   │   ├── trend_analyzer.go
@@ -149,15 +160,19 @@
 │   │   ├── utility_service.go
 │   │   └── volatility_calculator.go
 │   └── trading
-│       ├── config
-│       │   └── config.go
-│       └── service
-│           └── query
+│       └── config
+│           └── config.go
 ├── kb
+│   ├── 0.1_all_in_one_process.txt
+│   ├── 0.2_master_ingestion_api.txt
 │   ├── 1.1_connecting_backtesting_pipline.txt
 │   ├── 1.2_scheduler_timing_accuracy.txt
 │   ├── 1.3_multiple_trades_per_stock_issue.txt
+│   ├── 1.4.1_morning_9_15_entry.txt
+│   ├── 1.4.2_evening_1pm_entry_strategy.txt
+│   ├── 1.4.3_bb_width_entry_strategy.txt
 │   ├── 1.4_backtesting_per_candle.txt
+│   ├── 1.4_python_backtesting_framework_understanding.txt
 │   ├── 2.1_VWAP_strategy_requirement.txt
 │   ├── 2.2_VWAP_technical_requirement.txt
 │   ├── 2.3_VWAP_learning.txt
@@ -171,17 +186,50 @@
 │   ├── 5.1_volatility_squeeze_strategy.txt
 │   ├── 5.2_volatility_squeeze_system_architecture.md
 │   ├── 5.3_volatility_squeeze_code_walkthrough.md
-│   └── 5.4_volatility_squeeze_intraday.txt
-├── Learning
-│   ├── 1.1_scalping_every_hour.txt
-│   └── 1.2_my_position_sizing_techniques.txt
+│   ├── 5.4_volatility_squeeze_intraday.txt
+│   ├── 6.1_live_bb_width_monitoring_alerts.md
+│   ├── 6.2_bb_width_backtesting.txt
+│   ├── 6.3_bb_width_backtesting_issues.txt
+│   ├── 6.4_bb_width_non_zero_cases.txt
+│   ├── 7.1_bb_width_delay_problem
+│   │   ├── 1.1_data_from_db.txt
+│   │   ├── 1.2_data_from_tradingview.txt
+│   │   ├── 1.3_data_from_db_5min.txt
+│   │   ├── 1.4_data_from_tradingview_5min.txt
+│   │   ├── 1.5_data_from_go_api_5min.txt
+│   │   ├── 1min_data_vs_5min_data_errors.txt
+│   │   ├── bb_calculation_trading_calendar_fix.md
+│   │   ├── data_ordering_uniformity_design.md
+│   │   ├── go_aggregation_analysis.md
+│   │   ├── go_vs_tradingview_5min_analysis.md
+│   │   ├── go_vs_tradingview_5min_comparison_after_three_bb_width.md
+│   │   ├── rca_summary_and_solution.md
+│   │   └── three_bb_width_calculations_implementation.md
+│   ├── 7.1_bb_width_delay_problem.md
+│   ├── 7.2.1_bb_width_backtesting_results.txt
+│   ├── 7.2_bb_width_backtesting_issues.txt
+│   ├── 7.3_bb_width_stock_selection.txt
+│   ├── 7.4.1_bb_width_5min_aggr_accuracy
+│   │   ├── 1.1_go_vs_tv_data_analysis.txt
+│   │   ├── db_log.txt
+│   │   └── tradingview_log.txt
+│   ├── 7.4.1_bb_width_stock_candle_data_5min_aggr.txt
+│   ├── 7.4_bb_width_live_trader_ingestion_issue.txt
+│   ├── 7.5_frontend_issues.txt
+│   ├── 7.6_bb_width_aggr_dashboard.txt
+│   ├── 7.6_bb_width_aggregation_dashboard_PRD.md
+│   ├── 8.1.1_awesome_go_analysis.md
+│   ├── 8.1_go_backend_optimization.txt
+│   ├── 9.1.1_understanding_and_details.txt
+│   └── 9.1_current_challenges.txt
 ├── logs
 │   ├── 4th_june_log.txt
 │   └── 5th_june_log.txt
 ├── main.go
-├── Makefile
 ├── nse_stocks.txt
 ├── nse_upstox.json
+├── output
+│   └── bb_width_analysis.csv
 ├── performance_analyzer.py
 ├── pkg
 │   ├── apperrors
@@ -218,26 +266,38 @@
 │   │   │   ├── 20250730191948_add_ema_atr_rsi_to_stock_candle_data.sql.down.sql
 │   │   │   ├── 20250730191948_add_ema_atr_rsi_to_stock_candle_data.sql.up.sql
 │   │   │   ├── 20250801000000_add_bb_width_to_stock_candle_data.down.sql
-│   │   │   └── 20250801000000_add_bb_width_to_stock_candle_data.up.sql
+│   │   │   ├── 20250801000000_add_bb_width_to_stock_candle_data.up.sql
+│   │   │   ├── 20250881000000_add_lowest_bb_width_to_stock_candle_data.down.sql
+│   │   │   ├── 20250881000000_add_lowest_bb_width_to_stock_candle_data.up.sql
+│   │   │   ├── 20250891000000_create_stock_candle_data_5min.down.sql
+│   │   │   ├── 20250891000000_create_stock_candle_data_5min.up.sql
+│   │   │   ├── 20250891000001_create_master_data_process_tables.down.sql
+│   │   │   └── 20250891000001_create_master_data_process_tables.up.sql
 │   │   └── queries
 │   │       ├── 1.1_query_all.txt
 │   │       ├── stock_candle_data_1day_aggregation.sql
-│   │       └── stock_candle_data_5min_aggregation.sql
+│   │       ├── stock_candle_data_5min_aggregation.sql
+│   │       ├── stock_candle_data_5min_aggregation_fixed.sql
+│   │       └── stock_candle_data_5min_aggregation_parameterized.sql
 │   ├── log
 │   │   └── log.go
 │   └── util
 │       └── stockparser
 │           └── nse_parser.go
-├── README.md
+├── reports
+│   ├── stock_report_20250408_090819.html
+│   ├── stock_report_20250408_090902.html
+│   ├── stock_report_20250409_085931.html
+│   └── stock_report_20250409_090018.html
 ├── strategies
 │   ├── 1st_entry_strategy.pine
 │   └── kb
-│       ├── 1_init.md
 │       ├── 1.1_design.md
 │       ├── 1.2_directory_structure_with_python.md
 │       ├── 1.3_phase_breakdown.md
 │       ├── 1.4_modelling.md
-│       └── 1.5_knowledge_graphy.md
+│       ├── 1.5_knowledge_graphy.md
+│       └── 1_init.md
 ├── trading_data.csv
 └── training
     ├── 1_execution_requirement.txt
@@ -250,4 +310,4 @@
     ├── 8_stock_universe_daily_candle.txt
     └── 9_filter_pipeline.txt
 
-50 directories, 201 files
+49 directories, 262 files

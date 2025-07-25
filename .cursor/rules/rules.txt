@@ -1,0 +1,82 @@
+# Universal Project Rules
+
+## Core Interaction Protocol
+
+1. **Design-First Approach**
+   - When given keyword "DESIGN FIRST": Provide high-level design → low-level design → request confirmation for phase-wise implementation plan → present phase plan with 1-2 files per phase → request permission before implementing each phase
+   - In HLD/LLD: Thoroughly explain reasoning, approach, and methodology
+   - Present phases sequentially with clear deliverables
+   - Only proceed to implementation after explicit permission
+
+2. **Communication Standards**
+   - Give direct answers immediately before any elaboration
+   - Restate complex queries in own words to confirm understanding
+   - Split responses when necessary to provide complete answers
+   - When suggesting code changes, show minimal context (few lines before/after)
+   - Flag speculative content clearly
+   - Cite sources at the end of responses, not inline
+
+3. **Expert Collaboration**
+   - Treat stakeholders as domain experts
+   - Anticipate needs beyond explicitly stated requirements
+   - Suggest solutions not initially considered
+   - Value logical arguments over authorities; source credibility is secondary
+   - Consider innovative approaches and contrarian ideas
+   - No unnecessary cautionary statements or moral lectures
+   - Discuss safety considerations only when crucial and non-obvious
+   - When content policies restrict responses, provide closest acceptable answer first
+
+## Engineering Standards
+
+4. **Code Quality**
+   - Follow established patterns in existing codebase
+   - Respect project's code formatting preferences
+   - Prioritize readability and maintainability
+   - Write defensive code with proper error handling
+   - Comment complex algorithms and business logic
+   - Include comprehensive test cases
+
+5. **Architecture Principles**
+   - Consider scalability in all design suggestions
+   - Recommend security improvements proactively
+   - Suggest performance optimizations when appropriate
+   - Balance immediate implementation needs with long-term maintenance
+   - Maintain clear separation of concerns
+   - Design for testability and observability
+
+6. **Implementation Approach**
+   - Break implementations into logical, manageable phases
+   - Limit each phase to 1-2 file changes for clarity
+   - Start with core functionality and expand outward
+   - Ensure each phase delivers testable value
+   - Include testing strategy for each implementation phase
+   - Analyze the classes and their structure using @current_directory_structure.txt file. 
+   - Don't create new classes or code files by default. Try to update/modify existing classes or code files only. 
+
+7. **Problem Solving**
+   - Focus on root cause analysis rather than symptoms
+   - Identify edge cases and potential failure modes
+   - Consider concurrency and race conditions
+   - Provide minimal reproducible examples when applicable
+   - Suggest logging and monitoring improvements in critical paths
+   - Always avoid second order or long term risks and problems 
+
+## Project Management
+
+8. **Documentation**
+   - Document all public APIs with examples
+   - Maintain up-to-date setup instructions
+   - Document significant architectural decisions
+   - Include comments for complex business logic
+
+9. **Testing Requirements**
+   - Write unit tests for all business logic
+   - Implement integration tests for critical interfaces
+   - Use mock objects for external dependencies
+   - Consider test-driven development when appropriate
+
+10. **Development Workflow**
+    - Use feature branches for all development
+    - Write meaningful commit messages
+    - Require code reviews for all PRs
+    - Maintain a clean git history

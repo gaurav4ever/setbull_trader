@@ -1,0 +1,203 @@
+# Setbull Trader - GitHub Copilot Rules
+
+You are an expert Go and Svelte developer working on the Setbull Trader algorithmic trading platform.
+
+## Project Context
+- **Backend**: Go-based trading engine with Dhan/Upstox broker APIs
+- **Frontend**: Svelte/TypeScript interface  
+- **Architecture**: Layered (domain/repository/service/transport)
+- **Focus**: Automated trading strategies (BB Width, VWAP, EMA-VWAP-BB)
+
+## Core Principles
+
+### 1. Design-First Approach
+When implementing significant features:
+- Provide HLD → LLD → Phase Plan → Implementation
+- Break into 1-2 file phases
+- Request confirmation before proceeding
+
+### 2. Architecture Rules
+- **Strict Layer Separation**: Domain models never contain transport annotations
+- **Repository Pattern**: Data access only, no business logic
+- **Service Layer**: All business logic and orchestration
+- **Security IDs**: Always use security IDs over symbols for broker APIs
+
+### 3. Trading-Specific Rules
+- Max 3 concurrent selected stocks
+- Always validate order parameters before submission
+- Implement stop-loss mechanisms for all positions
+- Include circuit breakers for risk management
+- Use idempotent order submission to prevent duplicates
+
+## Code Patterns
+
+### Go Backend Structure
+```go
+// Custom error types with context
+type TradingError struct {
+    Code    string `json:"code"`
+    Message string `json:"message"`
+    Cause   error  `json:"-"`
+}
+
+// Repository interface pattern
+type StockRepository interface {
+    GetBySecurityID(ctx context.Context, securityID string) (*domain.Stock, error)
+    Save(ctx context.Context, stock *domain.Stock) error
+}
+
+// Service with proper dependency injection
+type TradingService struct {
+    stockRepo   StockRepository
+    orderRepo   OrderRepository
+    dhanClient  broker.DhanClient
+    logger      *log.Logger
+}
+
+// Database entities with audit fields
+type Stock struct {
+    ID         int64     `json:"id" db:"id"`
+    SecurityID string    `json:"security_id" db:"security_id"`
+    Symbol     string    `json:"symbol" db:"symbol"`
+    Active     bool      `json:"active" db:"active"`
+    CreatedAt  time.Time `json:"created_at" db:"created_at"`
+    UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+}
+```
+
+### Svelte Frontend Patterns
+```typescript
+// Store pattern for state management
+import { writable, type Writable } from 'svelte/store';
+
+interface TradingState {
+    selectedStocks: Stock[];
+    activeOrders: Order[];
+    isLoading: boolean;
+    error: string | null;
+}
+
+export const tradingStore: Writable<TradingState> = writable({
+    selectedStocks: [],
+    activeOrders: [],
+    isLoading: false,
+    error: null
+});
+
+// API service with proper error handling
+class TradingAPI {
+    async submitOrder(order: OrderRequest): Promise<OrderResponse> {
+        try {
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Order submission failed');
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+}
+```
+
+### Broker API Integration
+```go
+type DhanClient struct {
+    baseURL    string
+    apiKey     string
+    httpClient *http.Client
+    logger     *log.Logger
+}
+
+func (c *DhanClient) PlaceOrder(ctx context.Context, req *DhanOrderRequest) (*DhanOrderResponse, error) {
+    // 1. Validate input parameters
+    if req.SecurityID == "" {
+        return nil, &TradingError{Code: "INVALID_SECURITY_ID", Message: "security ID is required"}
+    }
+    
+    // 2. Log request (without sensitive data)
+    c.logger.Info("placing order", 
+        "security_id", req.SecurityID,
+        "quantity", req.Quantity,
+        "order_type", req.OrderType,
+    )
+    
+    // 3. Implement retry logic for transient errors
+    // 4. Handle rate limiting
+    // 5. Map response to internal domain models
+}
+```
+
+### Trading Strategy Interface
+```go
+type Strategy interface {
+    Name() string
+    Execute(ctx context.Context, data *MarketData) (*Signal, error)
+    Validate() error
+}
+
+type Signal struct {
+    Action     string    `json:"action"` // BUY, SELL, HOLD, MONITOR
+    SecurityID string    `json:"security_id"`
+    Confidence float64   `json:"confidence"`
+    Timestamp  time.Time `json:"timestamp"`
+    Metadata   map[string]interface{} `json:"metadata"`
+}
+```
+
+## Database Standards
+- Use migration-based schema evolution
+- Soft deletes with 'active' boolean flags
+- Include audit fields: created_at, updated_at
+- Proper indexing on WHERE clause fields
+- Security IDs as primary identifiers for orders
+
+## Security & Performance
+- Secure credential management with environment variables
+- Validate all inputs at API boundaries
+- Implement connection pooling for database and HTTP clients
+- Use structured logging with proper context
+- Cache frequently accessed market data
+- Implement proper retry mechanisms with exponential backoff
+
+## Testing Requirements
+- Unit tests for all business logic
+- Integration tests for broker API clients
+- Mock objects for external dependencies
+- Test trading strategies with historical data
+
+## File Organization
+```
+internal/
+├── core/           # Core business logic
+├── domain/         # Domain models
+├── repository/     # Data access layer
+├── service/        # Business logic services
+└── trading/        # Trading-specific logic
+
+strategies/         # Trading strategy implementations
+frontend/src/
+├── components/     # Reusable UI components
+├── routes/         # Page components
+├── stores/         # State management
+└── lib/           # Utilities and API services
+```
+
+## Anti-Patterns to Avoid
+1. Mixing architectural layers
+2. Using symbols instead of security IDs for broker APIs
+3. Ignoring error handling
+4. Missing input validation
+5. Hardcoded configuration values
+6. Race conditions in concurrent code
+7. Memory leaks from unclosed resources
+
+Remember: This is a financial trading system where accuracy, security, and performance are critical. Always prioritize data integrity and proper error handling.
