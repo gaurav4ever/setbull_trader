@@ -71,6 +71,14 @@ type Candle5Min struct {
 	BBWidthNormalized           float64 `json:"bb_width_normalized" gorm:"column:bb_width_normalized"`
 	BBWidthNormalizedPercentage float64 `json:"bb_width_normalized_percentage" gorm:"column:bb_width_normalized_percentage"`
 	LowestBBWidth               float64 `json:"lowest_bb_width" gorm:"column:lowest_bb_width"`
+
+	// BBW Dashboard fields
+	DistanceFromMinPercent   float64    `json:"distance_from_min_percent" gorm:"column:distance_from_min_percent"`
+	ContractingSequenceCount int        `json:"contracting_sequence_count" gorm:"column:contracting_sequence_count"`
+	CandlesInRangeCount      int        `json:"candles_in_range_count" gorm:"column:candles_in_range_count"`
+	AlertTriggered           bool       `json:"alert_triggered" gorm:"column:alert_triggered"`
+	AlertTriggeredAt         *time.Time `json:"alert_triggered_at" gorm:"column:alert_triggered_at"`
+	Comment                  string     `json:"comment" gorm:"column:comment"`
 }
 
 // TableName returns the table name for the Candle5Min model

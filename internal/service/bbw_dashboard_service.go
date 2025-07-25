@@ -20,7 +20,8 @@ type BBWDashboardData struct {
 	HistoricalMinBBWidth     float64    `json:"historical_min_bb_width"`
 	DistanceFromMinPercent   float64    `json:"distance_from_min_percent"`
 	ContractingSequenceCount int        `json:"contracting_sequence_count"`
-	BBWidthTrend             string     `json:"bb_width_trend"` // "contracting", "expanding", "stable"
+	CandlesInRangeCount      int        `json:"candles_in_range_count"` // NEW: Number of consecutive candles in optimal range
+	BBWidthTrend             string     `json:"bb_width_trend"`         // "contracting", "expanding", "stable"
 	AlertTriggered           bool       `json:"alert_triggered"`
 	AlertTriggeredAt         *time.Time `json:"alert_triggered_at,omitempty"`
 	AlertType                string     `json:"alert_type,omitempty"` // "threshold", "pattern", "squeeze"
@@ -207,6 +208,9 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 	// Determine BBW trend
 	trend := s.determineBBWTrend(bbwValues)
 
+	// Calculate candles in range count
+	candlesInRangeCount := s.calculateCandlesInRangeCount(ctx, stock.InstrumentKey, historicalMinBBW)
+
 	// Check alert conditions and trigger alerts
 	alertTriggered, alertType, alertMessage, patternStrength := s.checkAdvancedAlertConditions(
 		stock.InstrumentKey, stock.Symbol, currentBBW, historicalMinBBW, contractingCount, bbwValues)
@@ -219,6 +223,7 @@ func (s *BBWDashboardService) processStockBBW(ctx context.Context, stock domain.
 		HistoricalMinBBWidth:     historicalMinBBW,
 		DistanceFromMinPercent:   distanceFromMin,
 		ContractingSequenceCount: contractingCount,
+		CandlesInRangeCount:      candlesInRangeCount,
 		BBWidthTrend:             trend,
 		AlertTriggered:           alertTriggered,
 		AlertType:                alertType,
@@ -272,6 +277,82 @@ func (s *BBWDashboardService) calculateDistanceFromMin(currentBBW, historicalMin
 		return 0
 	}
 	return ((currentBBW - historicalMinBBW) / historicalMinBBW) * 100
+}
+
+// calculateCandlesInRangeCount calculates the number of consecutive candles within optimal BBW range
+func (s *BBWDashboardService) calculateCandlesInRangeCount(ctx context.Context, instrumentKey string, historicalMinBBW float64) int {
+	if historicalMinBBW <= 0 {
+		return 0
+	}
+
+	// Calculate the optimal range (±0.1% of historical minimum)
+	rangeThreshold := historicalMinBBW * 0.001 // 0.1%
+	minRange := historicalMinBBW - rangeThreshold
+	maxRange := historicalMinBBW + rangeThreshold
+
+	// Get recent candles to check how many are in range
+	// We'll check the last 20 candles to find consecutive ones in range
+	recentCandles, err := s.getRecentCandles(ctx, instrumentKey, 20)
+	if err != nil {
+		log.BBWError("candles_in_range", "get_recent_candles", "Failed to get recent candles", err, map[string]interface{}{
+			"instrument_key": instrumentKey,
+		})
+		return 0
+	}
+
+	// Count consecutive candles in range (from most recent to oldest)
+	count := 0
+	for i := len(recentCandles) - 1; i >= 0; i-- {
+		candle := recentCandles[i]
+		if candle.BBWidth >= minRange && candle.BBWidth <= maxRange {
+			count++
+		} else {
+			// Break on first candle outside range
+			break
+		}
+	}
+
+	log.BBWDebug("candles_in_range", "calculated", "Calculated candles in range count", map[string]interface{}{
+		"instrument_key":     instrumentKey,
+		"historical_min_bbw": historicalMinBBW,
+		"min_range":          minRange,
+		"max_range":          maxRange,
+		"candles_in_range":   count,
+	})
+
+	return count
+}
+
+// getRecentCandles gets recent 5-minute candles for a stock
+func (s *BBWDashboardService) getRecentCandles(ctx context.Context, instrumentKey string, count int) ([]domain.Candle5Min, error) {
+	// Get recent candles from the 5-minute candle repository
+	endTime := time.Now()
+	startTime := endTime.Add(-time.Duration(count*5) * time.Minute) // 5 minutes per candle
+
+	candles, err := s.candleAggService.Get5MinCandles(ctx, instrumentKey, startTime, endTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recent candles: %w", err)
+	}
+
+	// Convert AggregatedCandle to Candle5Min
+	var candle5MinList []domain.Candle5Min
+	for _, candle := range candles {
+		candle5Min := domain.Candle5Min{
+			InstrumentKey: candle.InstrumentKey,
+			Timestamp:     candle.Timestamp,
+			Open:          candle.Open,
+			High:          candle.High,
+			Low:           candle.Low,
+			Close:         candle.Close,
+			Volume:        candle.Volume,
+			OpenInterest:  candle.OpenInterest,
+			TimeInterval:  candle.TimeInterval,
+			BBWidth:       candle.BBWidth,
+		}
+		candle5MinList = append(candle5MinList, candle5Min)
+	}
+
+	return candle5MinList, nil
 }
 
 // detectContractingPattern detects consecutive contracting candles

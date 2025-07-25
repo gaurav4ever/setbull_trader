@@ -228,6 +228,8 @@
                         <option value="distance_from_min_percent-desc">Distance ↓</option>
                         <option value="current_bb_width-asc">BBW ↑</option>
                         <option value="current_bb_width-desc">BBW ↓</option>
+                        <option value="candles_in_range_count-desc">In Range ↓</option>
+                        <option value="candles_in_range_count-asc">In Range ↑</option>
                         <option value="symbol-asc">Symbol A-Z</option>
                         <option value="symbol-desc">Symbol Z-A</option>
                     </select>
@@ -311,6 +313,9 @@
                                     Distance
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    In Range
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Alert
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -356,6 +361,12 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm {distanceColor}">
                                             {formatNumber(stock.distance_from_min_percent, 1)}%
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            {stock.candles_in_range_count || 0}
                                         </div>
                                     </td>
                                     
