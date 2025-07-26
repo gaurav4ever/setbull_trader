@@ -274,3 +274,41 @@ func (r *Candle5MinRepository) GetNLatestCandles(ctx context.Context, instrument
 
 	return candles, nil
 }
+
+// UpdateCandlesInRangeCount updates the candles_in_range_count for the latest candle of a specific instrument
+func (r *Candle5MinRepository) UpdateCandlesInRangeCount(ctx context.Context, instrumentKey string, count int) error {
+	// First, get the latest candle timestamp
+	var latestCandle domain.Candle5Min
+	result := r.db.WithContext(ctx).
+		Table("stock_candle_data_5min").
+		Where("instrument_key = ? AND active = ?", instrumentKey, true).
+		Order("timestamp DESC").
+		First(&latestCandle)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("no candles found for instrument_key: %s", instrumentKey)
+		}
+		return fmt.Errorf("failed to get latest candle: %w", result.Error)
+	}
+
+	// Now update the candles_in_range_count for the latest candle
+	updateResult := r.db.WithContext(ctx).
+		Table("stock_candle_data_5min").
+		Where("instrument_key = ? AND timestamp = ? AND active = ?",
+			instrumentKey, latestCandle.Timestamp, true).
+		Update("candles_in_range_count", count)
+
+	if updateResult.Error != nil {
+		return fmt.Errorf("failed to update candles_in_range_count: %w", updateResult.Error)
+	}
+
+	if updateResult.RowsAffected == 0 {
+		return fmt.Errorf("no rows updated for instrument_key: %s at timestamp: %v", instrumentKey, latestCandle.Timestamp)
+	}
+
+	log.Debug("Updated candles_in_range_count for %s: count=%d, timestamp=%v",
+		instrumentKey, count, latestCandle.Timestamp)
+
+	return nil
+}

@@ -151,6 +151,59 @@ type BBWidthMonitoringConfig struct {
 	} `yaml:"entry_types" json:"entry_types"`
 }
 
+// BBWDashboardConfig holds BBW Dashboard specific configuration
+type BBWDashboardConfig struct {
+	Logging struct {
+		Level      string `yaml:"level" json:"level"`
+		LogDir     string `yaml:"log_dir" json:"log_dir"`
+		MaxSize    int    `yaml:"max_size" json:"max_size"`       // MB
+		MaxBackups int    `yaml:"max_backups" json:"max_backups"` // Number of backup files
+		MaxAge     int    `yaml:"max_age" json:"max_age"`         // Days
+		Compress   bool   `yaml:"compress" json:"compress"`
+	} `yaml:"logging" json:"logging"`
+
+	Alerting struct {
+		DefaultThreshold     float64 `yaml:"default_threshold" json:"default_threshold"`
+		DefaultLookback      int     `yaml:"default_lookback" json:"default_lookback"`
+		EnableAudioAlerts    bool    `yaml:"enable_audio_alerts" json:"enable_audio_alerts"`
+		AlertCooldownMinutes int     `yaml:"alert_cooldown_minutes" json:"alert_cooldown_minutes"`
+		MaxAlertHistory      int     `yaml:"max_alert_history" json:"max_alert_history"`
+	} `yaml:"alerting" json:"alerting"`
+
+	Processing struct {
+		ConcurrentWorkers int `yaml:"concurrent_workers" json:"concurrent_workers"`
+		ProcessingTimeout int `yaml:"processing_timeout" json:"processing_timeout"` // seconds
+		DataRetentionDays int `yaml:"data_retention_days" json:"data_retention_days"`
+	} `yaml:"processing" json:"processing"`
+}
+
+// DefaultBBWDashboardConfig returns default BBW Dashboard configuration
+func DefaultBBWDashboardConfig() *BBWDashboardConfig {
+	config := &BBWDashboardConfig{}
+
+	// Default logging configuration
+	config.Logging.Level = "info"
+	config.Logging.LogDir = "logs"
+	config.Logging.MaxSize = 100   // 100MB
+	config.Logging.MaxBackups = 30 // 30 backup files
+	config.Logging.MaxAge = 30     // 30 days
+	config.Logging.Compress = true
+
+	// Default alerting configuration
+	config.Alerting.DefaultThreshold = 0.1 // 0.1%
+	config.Alerting.DefaultLookback = 5    // 5 candles
+	config.Alerting.EnableAudioAlerts = true
+	config.Alerting.AlertCooldownMinutes = 3
+	config.Alerting.MaxAlertHistory = 100
+
+	// Default processing configuration
+	config.Processing.ConcurrentWorkers = 10
+	config.Processing.ProcessingTimeout = 30  // 30 seconds
+	config.Processing.DataRetentionDays = 180 // 6 months
+
+	return config
+}
+
 // LoadConfig loads the application configuration from application.yaml
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("application.dev")

@@ -39,6 +39,7 @@ type Server struct {
 	groupExecutionService   *service.GroupExecutionService
 	stockGroupService       *service.StockGroupService
 	masterDataHandler       *MasterDataHandler
+	bbwDashboardHandler     *BBWDashboardHandler
 }
 
 // NewServer creates a new REST API server
@@ -60,6 +61,7 @@ func NewServer(
 	stockGroupService *service.StockGroupService,
 	stockGroupHandler *StockGroupHandler,
 	masterDataHandler *MasterDataHandler,
+	bbwDashboardHandler *BBWDashboardHandler,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -80,6 +82,7 @@ func NewServer(
 		groupExecutionService:   groupExecutionService,
 		stockGroupHandler:       stockGroupHandler,
 		masterDataHandler:       masterDataHandler,
+		bbwDashboardHandler:     bbwDashboardHandler,
 	}
 
 	s.setupRoutes()
@@ -88,6 +91,10 @@ func NewServer(
 
 // setupRoutes sets up the routes for the API server
 func (s *Server) setupRoutes() {
+	// Apply middleware to the main router
+	s.router.Use(s.corsMiddleware)
+	s.router.Use(s.loggingMiddleware)
+
 	// API v1 router
 	api := s.router.PathPrefix("/api/v1").Subrouter()
 
@@ -176,6 +183,21 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/master-data/process/start", s.masterDataHandler.StartProcess).Methods(http.MethodPost)
 	api.HandleFunc("/master-data/process/{processId}/status", s.masterDataHandler.GetProcessStatus).Methods(http.MethodGet)
 	api.HandleFunc("/master-data/process/history", s.masterDataHandler.GetProcessHistory).Methods(http.MethodGet)
+
+	// BBW Dashboard routes
+	api.HandleFunc("/bbw/dashboard-data", s.bbwDashboardHandler.GetDashboardData).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/stocks", s.bbwDashboardHandler.GetStockBBWData).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/stats", s.bbwDashboardHandler.GetDashboardStats).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/statistics", s.bbwDashboardHandler.GetStatistics).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/alerts/active", s.bbwDashboardHandler.GetActiveAlerts).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/alerts/history", s.bbwDashboardHandler.GetAlertHistory).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/alerts/history", s.bbwDashboardHandler.ClearAlertHistory).Methods(http.MethodDelete)
+	api.HandleFunc("/bbw/alerts/configure", s.bbwDashboardHandler.ConfigureAlerts).Methods(http.MethodPost)
+	api.HandleFunc("/bbw/stocks/{symbol}/history", s.bbwDashboardHandler.GetStockBBWHistory).Methods(http.MethodGet)
+
+	// NEW: BBW Dashboard routes for latest available day data (outside market hours)
+	api.HandleFunc("/bbw/latest-day-data", s.bbwDashboardHandler.GetLatestAvailableDayData).Methods(http.MethodGet)
+	api.HandleFunc("/bbw/market-status", s.bbwDashboardHandler.GetMarketStatus).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface

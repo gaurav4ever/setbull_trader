@@ -103,8 +103,82 @@ export const tradeApi = {
     }
 };
 
+// BBW Dashboard API functions
+export const bbwApi = {
+    // Get all BBW dashboard data
+    getDashboardData: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_DASHBOARD_DATA));
+    },
+
+    // NEW: Get latest available day data (regardless of market hours)
+    getLatestAvailableDayData: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_LATEST_DAY_DATA));
+    },
+
+    // NEW: Get market status and last data timestamp
+    getMarketStatus: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_MARKET_STATUS));
+    },
+
+    // Get BBW data for specific stock
+    getStockBBWData: async (instrumentKey) => {
+        return request(apiUrl(ENDPOINTS.BBW_STOCKS) + `?instrument_key=${instrumentKey}`);
+    },
+
+    // Get BBW history for a stock
+    getStockHistory: async (symbol, timeframe = '1d', startDate, endDate) => {
+        const params = new URLSearchParams();
+        if (timeframe) params.append('timeframe', timeframe);
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        
+        return request(apiUrl(ENDPOINTS.BBW_STOCK_HISTORY(symbol)) + `?${params.toString()}`);
+    },
+
+    // NEW: Get stock BBW history with days parameter
+    getStockBBWHistory: async (instrumentKey, days = 7) => {
+        return request(apiUrl(ENDPOINTS.BBW_STOCK_HISTORY(instrumentKey)) + `?days=${days}`);
+    },
+
+    // Get active alerts
+    getActiveAlerts: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERTS_ACTIVE));
+    },
+
+    // Configure alerts
+    configureAlerts: async (config) => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERTS_CONFIGURE), {
+            method: 'POST',
+            body: JSON.stringify(config)
+        });
+    },
+
+    // Get alert history
+    getAlertHistory: async (limit = 50, alertType = '', symbol = '') => {
+        const params = new URLSearchParams();
+        if (limit) params.append('limit', limit.toString());
+        if (alertType) params.append('alert_type', alertType);
+        if (symbol) params.append('symbol', symbol);
+        
+        return request(apiUrl(ENDPOINTS.BBW_ALERT_HISTORY) + `?${params.toString()}`);
+    },
+
+    // Clear alert history
+    clearAlertHistory: async () => {
+        return request(apiUrl(ENDPOINTS.BBW_ALERT_HISTORY), {
+            method: 'DELETE'
+        });
+    },
+
+    // Get BBW statistics
+    getStatistics: async (timeframe = '1d') => {
+        return request(apiUrl(ENDPOINTS.BBW_STATISTICS) + `?timeframe=${timeframe}`);
+    }
+};
+
 export default {
     order: orderApi,
     trade: tradeApi,
+    bbw: bbwApi,
     checkConnection: checkApiConnectivity
 };

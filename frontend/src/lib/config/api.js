@@ -14,6 +14,19 @@ export const ENDPOINTS = {
     TRADE_HISTORY_WITH_PARAMS: (fromDate, toDate, page) =>
         `/trades/history?fromDate=${fromDate}&toDate=${toDate}&page=${page}`,
 
+    // BBW Dashboard endpoints
+    BBW_STOCKS: '/bbw/stocks',
+    BBW_STOCK_HISTORY: (symbol) => `/bbw/stocks/${symbol}/history`,
+    BBW_ALERTS_ACTIVE: '/bbw/alerts/active',
+    BBW_ALERTS_CONFIGURE: '/bbw/alerts/configure',
+    BBW_ALERT_HISTORY: '/bbw/alerts/history',
+    BBW_STATISTICS: '/bbw/statistics',
+    BBW_DASHBOARD_DATA: '/bbw/dashboard-data',
+    
+    // NEW: BBW Dashboard endpoints for latest available day data (outside market hours)
+    BBW_LATEST_DAY_DATA: '/bbw/latest-day-data',
+    BBW_MARKET_STATUS: '/bbw/market-status',
+
     // Health check endpoint
     HEALTH: '/health'
 };

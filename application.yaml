@@ -3,6 +3,26 @@ server:
   read_timeout: 30
   write_timeout: 30
 
+# BBW Dashboard Configuration
+bbw_dashboard:
+  logging:
+    level: "info"           # Log level (debug, info, warn, error, fatal)
+    log_dir: "logs"         # Log directory
+    max_size: 100           # Maximum log file size in MB
+    max_backups: 30         # Number of backup files to keep
+    max_age: 30             # Maximum age of log files in days
+    compress: true          # Compress old log files
+  alerting:
+    default_threshold: 0.1      # Default alert threshold percentage
+    default_lookback: 5         # Default contracting lookback period
+    enable_audio_alerts: true   # Enable audio alerts
+    alert_cooldown_minutes: 3   # Alert cooldown period
+    max_alert_history: 100      # Maximum alert history entries
+  processing:
+    concurrent_workers: 10      # Number of concurrent processing workers
+    processing_timeout: 30      # Processing timeout in seconds
+    data_retention_days: 180    # Data retention period in days
+
 dhan:
   base_url: "https://api.dhan.co"
   access_token: "xyz"
