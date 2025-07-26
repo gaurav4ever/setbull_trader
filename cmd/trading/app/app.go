@@ -64,6 +64,9 @@ type App struct {
 	groupExecutionScheduler *service.GroupExecutionScheduler
 	masterDataService       service.MasterDataService
 	masterDataHandler       *rest.MasterDataHandler
+
+	// V2 Service Infrastructure
+	v2ServiceContainer *V2ServiceContainer
 }
 
 // NewApp creates a new application
@@ -228,6 +231,15 @@ func NewApp() *App {
 	// Wire up the group execution scheduler with BB width monitoring
 	groupExecutionScheduler := service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService, bbWidthMonitorService)
 
+	// Initialize V2 Service Container (Phase 1: Infrastructure Setup)
+	v2ServiceContainer, err := InitializeV2Services(cfg)
+	if err != nil {
+		log.Warn("Failed to initialize V2 services (Phase 1): %v - continuing with V1 services", err)
+		v2ServiceContainer = nil
+	} else {
+		log.Info("V2 service container initialized successfully (Phase 1)")
+	}
+
 	return &App{
 		config:                  cfg,
 		router:                  router,
@@ -263,6 +275,7 @@ func NewApp() *App {
 		groupExecutionScheduler: groupExecutionScheduler,
 		masterDataService:       masterDataService,
 		masterDataHandler:       masterDataHandler,
+		v2ServiceContainer:      v2ServiceContainer,
 	}
 }
 
@@ -418,6 +431,13 @@ func (a *App) Run() error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
+		// Shutdown V2 services first
+		if a.v2ServiceContainer != nil {
+			if err := a.v2ServiceContainer.Shutdown(ctx); err != nil {
+				log.Warn("Error shutting down V2 services: %v", err)
+			}
+		}
+
 		// Shutdown the server
 		if err := a.httpServer.Shutdown(ctx); err != nil {
 			a.httpServer.Close()
@@ -426,6 +446,28 @@ func (a *App) Run() error {
 	}
 
 	return nil
+}
+
+// GetV2ServiceStatus returns the status of V2 services for monitoring
+func (a *App) GetV2ServiceStatus() map[string]interface{} {
+	if a.v2ServiceContainer == nil {
+		return map[string]interface{}{
+			"enabled": false,
+			"status":  "V2 services not initialized",
+			"phase":   "Phase 1 - Infrastructure Setup",
+		}
+	}
+
+	status := a.v2ServiceContainer.GetStatus()
+
+	// Add service availability information
+	status["services"] = map[string]interface{}{
+		"technical_indicators": a.v2ServiceContainer.IsServiceV2Enabled("technical_indicators"),
+		"candle_aggregation":   a.v2ServiceContainer.IsServiceV2Enabled("candle_aggregation"),
+		"sequence_analyzer":    a.v2ServiceContainer.IsServiceV2Enabled("sequence_analyzer"),
+	}
+
+	return status
 }
 
 // requestLoggerMiddleware logs each request

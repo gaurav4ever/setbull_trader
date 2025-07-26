@@ -3,6 +3,63 @@ server:
   read_timeout: 30
   write_timeout: 30
 
+# Feature flags for V2 services - Phase 1: Start with all disabled
+features:
+  use_gonum_indicators: false      # TechnicalIndicatorServiceV2
+  use_sequence_analyzer_v2: false  # SequenceAnalyzerV2  
+  use_dataframe_aggregation: false # CandleAggregationServiceV2
+  enable_indicator_caching: false  # Indicator caching system
+  cache_ttl_minutes: 15           # Cache TTL in minutes
+  
+  # V2 Service Migration Flags - Phase 1: Infrastructure Setup Only
+  technical_indicators_v2: false  # Enable TechnicalIndicatorServiceV2
+  candle_aggregation_v2: false    # Enable CandleAggregationServiceV2
+  sequence_analyzer_v2: false     # Enable SequenceAnalyzerV2
+
+# Analytics configuration for V2 services
+analytics:
+  sequence_analysis:
+    min_sequence_length: 2
+    max_gap_length: 5
+    enable_pattern_detection: true
+  
+  indicator_cache:
+    max_memory_mb: 100
+    processing_pool_size: 4
+    enable_persistence: false
+    
+  aggregation_engine:
+    cache_size_mb: 256
+    max_memory_usage_mb: 512
+    worker_pool_size: 4
+    timeout_duration_seconds: 30
+    enable_caching: true
+    
+  # V2 Analytics Engine Configuration
+  worker_pool_size: 4              # Number of worker goroutines
+  max_concurrent_jobs: 8           # Maximum concurrent analytics jobs
+  cache_size: 1000                 # Cache size for analytics results
+  enable_optimizations: true       # Enable GoNum optimizations
+  metrics_enabled: true            # Enable metrics collection
+
+# Performance tuning configuration
+performance:
+  gonum_optimization:
+    enable_parallel_processing: true
+    batch_size: 1000
+    max_concurrent_calculations: 8
+  
+  cache_strategy:
+    policy: "lru"
+    eviction_interval: "5m"
+    compression: true
+    
+  dataframe_processing:
+    enable_vectorization: true
+    chunk_size: 5000
+    parallel_aggregation: true
+    memory_threshold_mb: 1024
+
 dhan:
   base_url: "https://api.dhan.co"
   access_token: "xyz"

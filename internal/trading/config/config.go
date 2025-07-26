@@ -14,6 +14,9 @@ import (
 // Config represents the application configuration
 type Config struct {
 	Server                             ServerConfig            `mapstructure:"server"`
+	Features                           FeaturesConfig          `mapstructure:"features" yaml:"features"`
+	Analytics                          AnalyticsConfig         `mapstructure:"analytics" yaml:"analytics"`
+	Performance                        PerformanceConfig       `mapstructure:"performance" yaml:"performance"`
 	Trading                            TradingConfig           `mapstructure:"trading" yaml:"trading"`
 	Dhan                               DhanConfig              `mapstructure:"dhan"`
 	Upstox                             UpstoxConfig            `mapstructure:"upstox"`
@@ -63,6 +66,72 @@ type Config struct {
 			CleanUpTTL time.Duration `yaml:"cleanupttl" json:"cleanupttl,omitempty"`
 		} `yaml:"inmem" json:"inmem,omitempty"`
 	}
+}
+
+// FeaturesConfig represents feature flags for V2 services
+type FeaturesConfig struct {
+	UseGoNumIndicators      bool `mapstructure:"use_gonum_indicators" yaml:"use_gonum_indicators"`
+	UseSequenceAnalyzerV2   bool `mapstructure:"use_sequence_analyzer_v2" yaml:"use_sequence_analyzer_v2"`
+	UseDataFrameAggregation bool `mapstructure:"use_dataframe_aggregation" yaml:"use_dataframe_aggregation"`
+	EnableIndicatorCaching  bool `mapstructure:"enable_indicator_caching" yaml:"enable_indicator_caching"`
+	CacheTTLMinutes         int  `mapstructure:"cache_ttl_minutes" yaml:"cache_ttl_minutes"`
+
+	// V2 Service Feature Flags for Migration
+	TechnicalIndicatorsV2 bool `mapstructure:"technical_indicators_v2" yaml:"technical_indicators_v2"`
+	CandleAggregationV2   bool `mapstructure:"candle_aggregation_v2" yaml:"candle_aggregation_v2"`
+	SequenceAnalyzerV2    bool `mapstructure:"sequence_analyzer_v2" yaml:"sequence_analyzer_v2"`
+}
+
+// AnalyticsConfig represents configuration for analytics engine
+type AnalyticsConfig struct {
+	SequenceAnalysis struct {
+		MinSequenceLength      int  `mapstructure:"min_sequence_length" yaml:"min_sequence_length"`
+		MaxGapLength           int  `mapstructure:"max_gap_length" yaml:"max_gap_length"`
+		EnablePatternDetection bool `mapstructure:"enable_pattern_detection" yaml:"enable_pattern_detection"`
+	} `mapstructure:"sequence_analysis" yaml:"sequence_analysis"`
+
+	IndicatorCache struct {
+		MaxMemoryMB        int  `mapstructure:"max_memory_mb" yaml:"max_memory_mb"`
+		ProcessingPoolSize int  `mapstructure:"processing_pool_size" yaml:"processing_pool_size"`
+		EnablePersistence  bool `mapstructure:"enable_persistence" yaml:"enable_persistence"`
+	} `mapstructure:"indicator_cache" yaml:"indicator_cache"`
+
+	AggregationEngine struct {
+		CacheSizeMB            int  `mapstructure:"cache_size_mb" yaml:"cache_size_mb"`
+		MaxMemoryUsageMB       int  `mapstructure:"max_memory_usage_mb" yaml:"max_memory_usage_mb"`
+		WorkerPoolSize         int  `mapstructure:"worker_pool_size" yaml:"worker_pool_size"`
+		TimeoutDurationSeconds int  `mapstructure:"timeout_duration_seconds" yaml:"timeout_duration_seconds"`
+		EnableCaching          bool `mapstructure:"enable_caching" yaml:"enable_caching"`
+	} `mapstructure:"aggregation_engine" yaml:"aggregation_engine"`
+
+	// V2 Analytics Engine Configuration
+	WorkerPoolSize      int  `mapstructure:"worker_pool_size" yaml:"worker_pool_size"`
+	MaxConcurrentJobs   int  `mapstructure:"max_concurrent_jobs" yaml:"max_concurrent_jobs"`
+	CacheSize           int  `mapstructure:"cache_size" yaml:"cache_size"`
+	EnableOptimizations bool `mapstructure:"enable_optimizations" yaml:"enable_optimizations"`
+	MetricsEnabled      bool `mapstructure:"metrics_enabled" yaml:"metrics_enabled"`
+}
+
+// PerformanceConfig represents performance tuning configuration
+type PerformanceConfig struct {
+	GoNumOptimization struct {
+		EnableParallelProcessing  bool `mapstructure:"enable_parallel_processing" yaml:"enable_parallel_processing"`
+		BatchSize                 int  `mapstructure:"batch_size" yaml:"batch_size"`
+		MaxConcurrentCalculations int  `mapstructure:"max_concurrent_calculations" yaml:"max_concurrent_calculations"`
+	} `mapstructure:"gonum_optimization" yaml:"gonum_optimization"`
+
+	CacheStrategy struct {
+		Policy           string `mapstructure:"policy" yaml:"policy"`
+		EvictionInterval string `mapstructure:"eviction_interval" yaml:"eviction_interval"`
+		Compression      bool   `mapstructure:"compression" yaml:"compression"`
+	} `mapstructure:"cache_strategy" yaml:"cache_strategy"`
+
+	DataFrameProcessing struct {
+		EnableVectorization bool `mapstructure:"enable_vectorization" yaml:"enable_vectorization"`
+		ChunkSize           int  `mapstructure:"chunk_size" yaml:"chunk_size"`
+		ParallelAggregation bool `mapstructure:"parallel_aggregation" yaml:"parallel_aggregation"`
+		MemoryThresholdMB   int  `mapstructure:"memory_threshold_mb" yaml:"memory_threshold_mb"`
+	} `mapstructure:"dataframe_processing" yaml:"dataframe_processing"`
 }
 
 type MarketConfig struct {
@@ -178,6 +247,9 @@ func LoadConfig() (*Config, error) {
 	// Set default values BEFORE validation
 	setDefaultHistoricalDataConfig(&config)
 	setDefaultBBWidthMonitoringConfig(&config)
+	setDefaultFeaturesConfig(&config)
+	setDefaultAnalyticsConfig(&config)
+	setDefaultPerformanceConfig(&config)
 
 	// Validate BB Width Monitoring configuration AFTER setting defaults
 	if err := config.ValidateBBWidthMonitoringConfig(); err != nil {
@@ -377,4 +449,64 @@ func (c *Config) ValidateBBWidthMonitoringConfig() error {
 	}
 
 	return nil
+}
+
+// setDefaultFeaturesConfig sets default values for feature flags
+func setDefaultFeaturesConfig(config *Config) {
+	if config.Features == (FeaturesConfig{}) {
+		config.Features = FeaturesConfig{
+			UseGoNumIndicators:      false, // Start with V1 services
+			UseSequenceAnalyzerV2:   false,
+			UseDataFrameAggregation: false,
+			EnableIndicatorCaching:  false,
+			CacheTTLMinutes:         15,
+		}
+	}
+}
+
+// setDefaultAnalyticsConfig sets default values for analytics configuration
+func setDefaultAnalyticsConfig(config *Config) {
+	if config.Analytics == (AnalyticsConfig{}) {
+		config.Analytics = AnalyticsConfig{}
+
+		// Set sequence analysis defaults
+		config.Analytics.SequenceAnalysis.MinSequenceLength = 2
+		config.Analytics.SequenceAnalysis.MaxGapLength = 5
+		config.Analytics.SequenceAnalysis.EnablePatternDetection = true
+
+		// Set indicator cache defaults
+		config.Analytics.IndicatorCache.MaxMemoryMB = 100
+		config.Analytics.IndicatorCache.ProcessingPoolSize = 4
+		config.Analytics.IndicatorCache.EnablePersistence = false
+
+		// Set aggregation engine defaults
+		config.Analytics.AggregationEngine.CacheSizeMB = 256
+		config.Analytics.AggregationEngine.MaxMemoryUsageMB = 512
+		config.Analytics.AggregationEngine.WorkerPoolSize = 4
+		config.Analytics.AggregationEngine.TimeoutDurationSeconds = 30
+		config.Analytics.AggregationEngine.EnableCaching = true
+	}
+}
+
+// setDefaultPerformanceConfig sets default values for performance configuration
+func setDefaultPerformanceConfig(config *Config) {
+	if config.Performance == (PerformanceConfig{}) {
+		config.Performance = PerformanceConfig{}
+
+		// Set GoNum optimization defaults
+		config.Performance.GoNumOptimization.EnableParallelProcessing = true
+		config.Performance.GoNumOptimization.BatchSize = 1000
+		config.Performance.GoNumOptimization.MaxConcurrentCalculations = 8
+
+		// Set cache strategy defaults
+		config.Performance.CacheStrategy.Policy = "lru"
+		config.Performance.CacheStrategy.EvictionInterval = "5m"
+		config.Performance.CacheStrategy.Compression = true
+
+		// Set DataFrame processing defaults
+		config.Performance.DataFrameProcessing.EnableVectorization = true
+		config.Performance.DataFrameProcessing.ChunkSize = 5000
+		config.Performance.DataFrameProcessing.ParallelAggregation = true
+		config.Performance.DataFrameProcessing.MemoryThresholdMB = 1024
+	}
 }
