@@ -21,6 +21,7 @@ type TechnicalIndicatorServiceInterface interface {
 // CandleAggregationServiceInterface defines the common interface for V1 and V2 services
 type CandleAggregationServiceInterface interface {
 	Get5MinCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
+	Get5MinCandlesWithIndicators(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
 	GetDailyCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error)
 	Aggregate5MinCandlesWithIndicators(ctx context.Context, instrumentKey string, start, end time.Time, callback func(ctx context.Context, instrumentKey string, candle domain.AggregatedCandle)) error
 	GetMultiTimeframeCandles(ctx context.Context, instrumentKey string, timeframes []string, start, end time.Time) (map[string][]domain.AggregatedCandle, error)
@@ -105,6 +106,13 @@ func (w *CandleAggregationServiceWrapper) Get5MinCandles(ctx context.Context, in
 		return w.v2Service.Get5MinCandles(ctx, instrumentKey, start, end)
 	}
 	return w.v1Service.Get5MinCandles(ctx, instrumentKey, start, end)
+}
+
+func (w *CandleAggregationServiceWrapper) Get5MinCandlesWithIndicators(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error) {
+	if w.useV2 && w.v2Service != nil {
+		return w.v2Service.Get5MinCandlesWithIndicators(ctx, instrumentKey, start, end)
+	}
+	return w.v1Service.Get5MinCandlesWithIndicators(ctx, instrumentKey, start, end)
 }
 
 func (w *CandleAggregationServiceWrapper) GetDailyCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error) {

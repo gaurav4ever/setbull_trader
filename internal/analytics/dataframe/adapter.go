@@ -10,13 +10,33 @@ import (
 	"github.com/go-gota/gota/series"
 )
 
+// TimestampContext defines the source context of timestamps for proper handling
+type TimestampContext int
+
+const (
+	TimestampFromDatabase  TimestampContext = iota // IST - No conversion needed
+	TimestampFromExternal                          // Unknown - May need conversion
+	TimestampFromGenerated                         // Local - Convert to IST
+	TimestampForAlignment                          // Special - Alignment logic
+)
+
 // CandleDataFrame wraps gota DataFrame for candle data operations
 type CandleDataFrame struct {
-	df dataframe.DataFrame
+	df       dataframe.DataFrame
+	interval string
 }
 
-// NewCandleDataFrame creates a new CandleDataFrame from candles
-func NewCandleDataFrame(candles []domain.Candle) *CandleDataFrame {
+// NewCandleDataFrame creates a new CandleDataFrame from candles (backward compatible)
+func NewCandleDataFrame(candles []domain.Candle, timeZoneConversion bool) *CandleDataFrame {
+	context := TimestampFromDatabase // Safe default - assume database source
+	if timeZoneConversion {
+		context = TimestampFromExternal // Legacy behavior for external sources
+	}
+	return NewCandleDataFrameWithContext(candles, context)
+}
+
+// NewCandleDataFrameWithContext creates a new CandleDataFrame with explicit timestamp context
+func NewCandleDataFrameWithContext(candles []domain.Candle, context TimestampContext) *CandleDataFrame {
 	if len(candles) == 0 {
 		// Return empty DataFrame
 		df := dataframe.New()
@@ -32,9 +52,39 @@ func NewCandleDataFrame(candles []domain.Candle) *CandleDataFrame {
 	closes := make([]float64, len(candles))
 	volumes := make([]float64, len(candles))
 
+	// IST location for timezone operations
+	ist, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		// Fallback to fixed zone if loading fails
+		ist = time.FixedZone("IST", 5*3600+30*60)
+	}
+
 	for i, candle := range candles {
 		symbols[i] = candle.InstrumentKey
-		timestamps[i] = candle.Timestamp.Format("2006-01-02T15:04:05")
+
+		// Handle timestamps based on context
+		switch context {
+		case TimestampFromDatabase:
+			// Database timestamps are already in IST - preserve as-is
+			timestamps[i] = candle.Timestamp.Format("2006-01-02T15:04:05")
+		case TimestampFromExternal:
+			// External timestamps may need conversion to IST
+			timestamps[i] = candle.Timestamp.In(ist).Format("2006-01-02T15:04:05")
+		case TimestampFromGenerated:
+			// Generated timestamps should be converted to IST
+			timestamps[i] = candle.Timestamp.In(ist).Format("2006-01-02T15:04:05")
+		case TimestampForAlignment:
+			// Alignment preserves timezone but may adjust time values
+			if isIST(candle.Timestamp) {
+				timestamps[i] = candle.Timestamp.Format("2006-01-02T15:04:05")
+			} else {
+				timestamps[i] = candle.Timestamp.In(ist).Format("2006-01-02T15:04:05")
+			}
+		default:
+			// Default to database behavior (safe)
+			timestamps[i] = candle.Timestamp.Format("2006-01-02T15:04:05")
+		}
+
 		opens[i] = candle.Open
 		highs[i] = candle.High
 		lows[i] = candle.Low
@@ -56,6 +106,11 @@ func NewCandleDataFrame(candles []domain.Candle) *CandleDataFrame {
 	return &CandleDataFrame{df: df}
 }
 
+// SetInterval sets the time interval for the DataFrame
+func (c *CandleDataFrame) SetInterval(interval string) {
+	c.interval = interval
+}
+
 // DataFrame returns the underlying gota DataFrame
 func (c *CandleDataFrame) DataFrame() dataframe.DataFrame {
 	return c.df
@@ -75,10 +130,17 @@ func (c *CandleDataFrame) GetTimestamps() []time.Time {
 	timestampCol := c.df.Col("Timestamp")
 	timestamps := make([]time.Time, timestampCol.Len())
 
+	// Get IST location for proper timezone assignment
+	ist, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		ist = time.FixedZone("IST", 5*3600+30*60)
+	}
+
 	for i := 0; i < timestampCol.Len(); i++ {
 		timeStr := timestampCol.Elem(i).String()
 		if t, err := time.Parse("2006-01-02T15:04:05", timeStr); err == nil {
-			timestamps[i] = t
+			// Assume parsed time is in IST and assign proper location
+			timestamps[i] = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), ist)
 		}
 	}
 
@@ -208,9 +270,39 @@ func (c *CandleDataFrame) ToAggregatedCandles() []domain.AggregatedCandle {
 			Close:         closes[i],
 			Volume:        int64(volumes[i]),
 			OpenInterest:  0,
-			TimeInterval:  "",
+			TimeInterval:  c.interval,
 		}
 	}
 
 	return result
+}
+
+// isIST checks if a timestamp is already in IST timezone
+func isIST(t time.Time) bool {
+	location := t.Location()
+	if location == nil {
+		return false
+	}
+
+	// Check if location name contains IST indicators
+	locationName := location.String()
+	return locationName == "Asia/Kolkata" ||
+		locationName == "IST" ||
+		locationName == "Local" && isLocalIST() ||
+		(locationName != "UTC" && hasISTOffset(t))
+}
+
+// isLocalIST checks if local timezone is IST (for systems running in India)
+func isLocalIST() bool {
+	now := time.Now()
+	_, offset := now.Zone()
+	// IST is UTC+5:30 = 19800 seconds
+	return offset == 19800
+}
+
+// hasISTOffset checks if the timestamp has IST offset (+05:30)
+func hasISTOffset(t time.Time) bool {
+	_, offset := t.Zone()
+	// IST is UTC+5:30 = 19800 seconds
+	return offset == 19800
 }

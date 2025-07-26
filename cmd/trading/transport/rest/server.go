@@ -3,12 +3,14 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
 	"setbull_trader/internal/core/adapters/client/upstox"
 	"setbull_trader/internal/core/dto/request"
 	"setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/core/service/orders"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/service"
+	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/apperrors"
 	"setbull_trader/pkg/log"
 	"strconv"
@@ -39,6 +41,10 @@ type Server struct {
 	groupExecutionService   *service.GroupExecutionService
 	stockGroupService       *service.StockGroupService
 	masterDataHandler       *MasterDataHandler
+
+	// V2 Service Integration - Phase 2
+	config             *config.Config
+	v2ServiceContainer interface{} // V2ServiceContainer interface
 }
 
 // NewServer creates a new REST API server
@@ -60,6 +66,7 @@ func NewServer(
 	stockGroupService *service.StockGroupService,
 	stockGroupHandler *StockGroupHandler,
 	masterDataHandler *MasterDataHandler,
+	config *config.Config,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -80,6 +87,7 @@ func NewServer(
 		groupExecutionService:   groupExecutionService,
 		stockGroupHandler:       stockGroupHandler,
 		masterDataHandler:       masterDataHandler,
+		config:                  config,
 	}
 
 	s.setupRoutes()
@@ -552,14 +560,17 @@ func (s *Server) GetCandles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Process the request based on timeframe
+	// Process the request based on timeframe using V2 service if enabled
 	var candles interface{}
+
+	// Get the appropriate service (V2 if enabled, V1 as fallback)
+	candleService := s.getCandleAggregationService()
 
 	switch timeframe {
 	case "5minute":
-		candles, err = s.candleAggService.Get5MinCandles(r.Context(), instrumentKey, start, end)
+		candles, err = candleService.Get5MinCandlesWithIndicators(r.Context(), instrumentKey, start, end)
 	case "day":
-		candles, err = s.candleAggService.GetDailyCandles(r.Context(), instrumentKey, start, end)
+		candles, err = candleService.GetDailyCandles(r.Context(), instrumentKey, start, end)
 	default:
 		respondWithError(w, http.StatusBadRequest, "Unsupported timeframe")
 		return
@@ -604,8 +615,9 @@ func (s *Server) GetMultiTimeframeCandles(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Get multi-timeframe candles
-	candles, err := s.candleAggService.GetMultiTimeframeCandles(
+	// Get multi-timeframe candles using V2 service if enabled
+	candleService := s.getCandleAggregationService()
+	candles, err := candleService.GetMultiTimeframeCandles(
 		r.Context(),
 		instrumentKey,
 		request.Timeframes,
@@ -753,4 +765,34 @@ func (s *Server) PostMarketIntradayQuotes(w http.ResponseWriter, r *http.Request
 
 	resp := s.marketQuoteService.GetIntradayQuotes(r.Context(), userID, req.InstrumentKeys, req.Interval)
 	respondSuccess(w, resp)
+}
+
+// SetV2Services injects V2 services into the server for enhanced functionality
+// This method is called after the server is created to enable V2 service integration
+func (s *Server) SetV2Services(v2Container interface{}) {
+	s.v2ServiceContainer = v2Container
+	log.Info("V2 services injected into REST server - handlers will use V2 services based on feature flags")
+}
+
+// Helper method to get V2 candle aggregation service if enabled
+func (s *Server) getCandleAggregationService() service.CandleAggregationServiceInterface {
+	// Check if V2 feature flag is enabled and V2 container is available
+	if s.config != nil && s.config.Features.CandleAggregationV2 && s.v2ServiceContainer != nil {
+		// Use reflection to get the CandleAggregationWrapper from the container
+		containerValue := reflect.ValueOf(s.v2ServiceContainer)
+		if containerValue.Kind() == reflect.Ptr {
+			containerValue = containerValue.Elem()
+		}
+
+		if wrapperField := containerValue.FieldByName("CandleAggregationWrapper"); wrapperField.IsValid() {
+			if wrapper, ok := wrapperField.Interface().(service.CandleAggregationServiceInterface); ok {
+				log.Debug("Using CandleAggregationServiceV2 (enhanced DataFrame processing)")
+				return wrapper
+			}
+		}
+	}
+
+	// Fallback to V1 service - create adapter wrapper
+	log.Debug("Using CandleAggregationService V1 (fallback)")
+	return service.NewV1CandleAggregationServiceAdapter(s.candleAggService)
 }

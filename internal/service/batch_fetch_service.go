@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"setbull_trader/internal/domain"
+	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/log"
 )
 
@@ -18,6 +19,10 @@ type BatchFetchService struct {
 	defaultFromDate      string
 	defaultToDate        string
 	defaultInterval      string
+
+	// V2 Service Integration
+	candleAggregationV2 CandleAggregationServiceInterface
+	config              *config.Config
 }
 
 // NewBatchFetchService creates a new batch fetch service
@@ -42,7 +47,17 @@ func NewBatchFetchService(
 		defaultFromDate:      defaultFromDate,
 		defaultToDate:        defaultToDate,
 		defaultInterval:      "1minute",
+		// V2 services will be injected later via SetV2Services
+		candleAggregationV2: nil,
+		config:              nil,
 	}
+}
+
+// SetV2Services injects V2 services and config for enhanced processing capabilities
+func (s *BatchFetchService) SetV2Services(candleAggregationV2 CandleAggregationServiceInterface, config *config.Config) {
+	s.candleAggregationV2 = candleAggregationV2
+	s.config = config
+	log.Info("V2 services injected into BatchFetchService - enhanced DataFrame processing enabled")
 }
 
 // ProcessBatchRequest processes a batch request to fetch and store historical data
@@ -211,8 +226,14 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 	totalRecords := 0
 	currentDate := fromDate
 
-	log.Info("[BATCH] Starting batch processing for %s with interval %s from %s to %s",
-		instrumentKey, interval, fromDate.Format("2006-01-02"), toDate.Format("2006-01-02"))
+	// Log V2 integration status
+	v2Status := "V1"
+	if s.isV2AggregationEnabled() {
+		v2Status = "V2 DataFrame"
+	}
+
+	log.Info("[BATCH] Starting batch processing for %s with interval %s from %s to %s (Aggregation: %s)",
+		instrumentKey, interval, fromDate.Format("2006-01-02"), toDate.Format("2006-01-02"), v2Status)
 
 	// Process data in 4-day intervals
 	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
@@ -263,8 +284,8 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 				log.Info("[BATCH] Processing 5-minute aggregation for %s from %s to %s (found %d candles)",
 					instrumentKey, startTime.Format("2006-01-02 15:04"), endTime.Format("2006-01-02 15:04"), len(processedCandles))
 
-				// Aggregate ALL 5-minute boundaries within the processed time range
-				if err := s.candleService.AggregateAndStore5MinCandlesForRange(ctx, instrumentKey, startTime, endTime); err != nil {
+				// Use V2 DataFrame-based aggregation if available, otherwise fallback to V1
+				if err := s.processAggregation(ctx, instrumentKey, startTime, endTime); err != nil {
 					log.Error("[BATCH] Failed to aggregate 5-minute candles for %s: %v", instrumentKey, err)
 					// Continue processing, don't fail the entire batch
 				} else {
@@ -286,6 +307,66 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 
 	log.Info("[BATCH] Completed batch processing for %s: %d total records processed", instrumentKey, totalRecords)
 	return totalRecords, nil
+}
+
+// processAggregation handles 5-minute aggregation using V2 services when available, with V1 fallback
+func (s *BatchFetchService) processAggregation(ctx context.Context, instrumentKey string, startTime, endTime time.Time) error {
+	// Check if V2 candle aggregation service is available and enabled
+	if s.isV2AggregationEnabled() {
+		log.Info("[BATCH] Using V2 DataFrame-based aggregation for %s", instrumentKey)
+
+		// Use V2 service with DataFrame processing and automatic indicator calculation
+		if candleAggV2, ok := s.candleAggregationV2.(*CandleAggregationServiceV2); ok {
+			err := candleAggV2.Aggregate5MinCandlesWithIndicators(ctx, instrumentKey, startTime, endTime, nil)
+			if err != nil {
+				log.Error("[BATCH] V2 aggregation failed for %s, falling back to V1: %v", instrumentKey, err)
+				// Fallback to V1 aggregation
+				return s.candleService.AggregateAndStore5MinCandlesForRange(ctx, instrumentKey, startTime, endTime)
+			}
+			log.Info("[BATCH] V2 DataFrame aggregation with indicators completed successfully for %s", instrumentKey)
+			return nil
+		} else {
+			// Interface doesn't support V2 specific methods, use interface method
+			log.Info("[BATCH] Using V2 interface aggregation for %s", instrumentKey)
+			err := s.candleAggregationV2.Aggregate5MinCandlesWithIndicators(ctx, instrumentKey, startTime, endTime, nil)
+			if err != nil {
+				log.Error("[BATCH] V2 interface aggregation failed for %s, falling back to V1: %v", instrumentKey, err)
+				return s.candleService.AggregateAndStore5MinCandlesForRange(ctx, instrumentKey, startTime, endTime)
+			}
+			return nil
+		}
+	}
+
+	// Fallback to V1 aggregation (original implementation)
+	log.Info("[BATCH] Using V1 aggregation for %s (V2 not available)", instrumentKey)
+	return s.candleService.AggregateAndStore5MinCandlesForRange(ctx, instrumentKey, startTime, endTime)
+}
+
+// isV2AggregationEnabled checks if V2 candle aggregation should be used
+func (s *BatchFetchService) isV2AggregationEnabled() bool {
+	return s.candleAggregationV2 != nil &&
+		s.config != nil &&
+		s.config.Features.CandleAggregationV2
+}
+
+// GetV2Status returns the current V2 integration status for monitoring
+func (s *BatchFetchService) GetV2Status() map[string]interface{} {
+	status := map[string]interface{}{
+		"v2_services_available":  s.candleAggregationV2 != nil,
+		"config_available":       s.config != nil,
+		"v2_aggregation_enabled": s.isV2AggregationEnabled(),
+		"enhanced_processing":    s.isV2AggregationEnabled(),
+	}
+
+	if s.config != nil {
+		status["feature_flags"] = map[string]bool{
+			"candle_aggregation_v2":     s.config.Features.CandleAggregationV2,
+			"technical_indicators_v2":   s.config.Features.TechnicalIndicatorsV2,
+			"use_dataframe_aggregation": s.config.Features.UseDataFrameAggregation,
+		}
+	}
+
+	return status
 }
 
 // processResults converts processing results to a response structure

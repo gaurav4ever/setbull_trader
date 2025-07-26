@@ -163,6 +163,59 @@ func (s *CandleAggregationServiceV2) Get5MinCandles(
 	return aggregatedResult.Candles, nil
 }
 
+// Get5MinCandlesWithIndicators retrieves 5-minute candles with calculated indicators using DataFrame operations
+func (s *CandleAggregationServiceV2) Get5MinCandlesWithIndicators(
+	ctx context.Context,
+	instrumentKey string,
+	startTime, endTime time.Time,
+) ([]domain.AggregatedCandle, error) {
+	log.Info("Fetching 5-min candles with indicators for %s from %v to %v using DataFrame operations",
+		instrumentKey, startTime, endTime)
+
+	// Try to get from 5-minute repository first
+	candles, err := s.candle5MinRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, startTime, endTime)
+	if err == nil && len(candles) > 0 {
+		// Convert domain.Candle5Min to domain.AggregatedCandle - indicators are already included
+		aggregatedCandles := s.convertCandle5MinToAggregated(candles)
+		log.Info("Retrieved %d pre-calculated 5-minute candles with indicators for %s from database",
+			len(aggregatedCandles), instrumentKey)
+		return aggregatedCandles, nil
+	}
+
+	// If not available, aggregate from 1-minute data using analytics engine
+	oneMinCandles, err := s.candleRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, "1minute", startTime, endTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch 1-min candles for aggregation: %w", err)
+	}
+
+	if len(oneMinCandles) == 0 {
+		return []domain.AggregatedCandle{}, nil
+	}
+
+	// Use analytics engine for aggregation
+	candleData := &analytics.CandleData{Candles: oneMinCandles}
+	aggregatedResult, err := s.analyticsEngine.AggregateTimeframes(ctx, candleData, "5m")
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate to 5-minute timeframe: %w", err)
+	}
+
+	// Calculate indicators on aggregated data
+	indicators, err := s.analyticsEngine.CalculateIndicators(ctx, &analytics.CandleData{
+		Candles: s.aggregatedCandlesToCandles(aggregatedResult.Candles),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate indicators: %w", err)
+	}
+
+	// Enrich aggregated candles with calculated indicators
+	enrichedCandles := s.enrichCandlesWithIndicators(aggregatedResult.Candles, indicators)
+
+	log.Info("Aggregated %d 1-minute candles to %d 5-minute candles with indicators for %s",
+		len(oneMinCandles), len(enrichedCandles), instrumentKey)
+
+	return enrichedCandles, nil
+}
+
 // NotifyOnNew5MinCandles notifies listeners about new 5-minute candles using DataFrame processing
 func (s *CandleAggregationServiceV2) NotifyOnNew5MinCandles(ctx context.Context, stock response.StockGroupStockDTO, start, end time.Time) error {
 	log.Info("Notifying listeners for new 5-min candles for %s using DataFrame processing", stock.InstrumentKey)
@@ -297,6 +350,27 @@ func (s *CandleAggregationServiceV2) enrichCandlesWithIndicators(candles []domai
 	return enriched
 }
 
+// enrichCandlesWithIndicatorsFromCandles calculates and enriches candles with indicators
+func (s *CandleAggregationServiceV2) enrichCandlesWithIndicatorsFromCandles(ctx context.Context, candles []domain.AggregatedCandle) ([]domain.AggregatedCandle, error) {
+	if len(candles) == 0 {
+		return candles, nil
+	}
+
+	// Convert aggregated candles to regular candles for indicator calculation
+	regularCandles := s.aggregatedCandlesToCandles(candles)
+
+	// Calculate indicators using analytics engine
+	indicators, err := s.analyticsEngine.CalculateIndicators(ctx, &analytics.CandleData{
+		Candles: regularCandles,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate indicators: %w", err)
+	}
+
+	// Enrich candles with calculated indicators
+	return s.enrichCandlesWithIndicators(candles, indicators), nil
+}
+
 // convertCandle5MinToAggregated converts domain.Candle5Min slice to domain.AggregatedCandle slice
 func (s *CandleAggregationServiceV2) convertCandle5MinToAggregated(candles []domain.Candle5Min) []domain.AggregatedCandle {
 	aggregated := make([]domain.AggregatedCandle, len(candles))
@@ -327,6 +401,47 @@ func (s *CandleAggregationServiceV2) convertCandle5MinToAggregated(candles []dom
 		}
 	}
 	return aggregated
+}
+
+// GetDailyCandles retrieves daily candles for the specified instrument and time range
+// Implements CandleAggregationServiceInterface for backward compatibility
+func (s *CandleAggregationServiceV2) GetDailyCandles(ctx context.Context, instrumentKey string, start, end time.Time) ([]domain.AggregatedCandle, error) {
+	// For now, delegate to the existing batch fetch service until daily aggregation is implemented
+	// This maintains backward compatibility while providing the interface
+	log.Info("GetDailyCandles called on V2 service, delegating to batch fetch service")
+
+	// Note: This is a temporary implementation. In future iterations, we would implement
+	// DataFrame-based daily aggregation similar to 5-minute aggregation
+	return nil, fmt.Errorf("daily candles aggregation not yet implemented in V2 service")
+}
+
+// GetMultiTimeframeCandles retrieves candles for multiple timeframes
+// Implements CandleAggregationServiceInterface for backward compatibility
+func (s *CandleAggregationServiceV2) GetMultiTimeframeCandles(ctx context.Context, instrumentKey string, timeframes []string, start, end time.Time) (map[string][]domain.AggregatedCandle, error) {
+	result := make(map[string][]domain.AggregatedCandle)
+
+	for _, timeframe := range timeframes {
+		switch timeframe {
+		case "5minute":
+			candles, err := s.Get5MinCandles(ctx, instrumentKey, start, end)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get 5-minute candles: %w", err)
+			}
+			result[timeframe] = candles
+		case "day":
+			candles, err := s.GetDailyCandles(ctx, instrumentKey, start, end)
+			if err != nil {
+				log.Warn("Daily candles not available in V2 service: %v", err)
+				result[timeframe] = []domain.AggregatedCandle{} // Return empty slice for now
+			} else {
+				result[timeframe] = candles
+			}
+		default:
+			return nil, fmt.Errorf("unsupported timeframe: %s", timeframe)
+		}
+	}
+
+	return result, nil
 }
 
 // convertAggregatedToCandle5Min converts domain.AggregatedCandle to domain.Candle5Min

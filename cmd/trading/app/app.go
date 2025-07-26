@@ -226,18 +226,60 @@ func NewApp() *App {
 		stockGroupService,
 		stockGroupHandler,
 		masterDataHandler,
+		cfg, // Pass config for V2 service feature flag checking
 	)
 
 	// Wire up the group execution scheduler with BB width monitoring
 	groupExecutionScheduler := service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService, bbWidthMonitorService)
 
-	// Initialize V2 Service Container (Phase 1: Infrastructure Setup)
-	v2ServiceContainer, err := InitializeV2Services(cfg)
+	// Create sequence analyzer service
+	sequenceAnalyzer := service.NewSequenceAnalyzer()
+
+	// Create V1 service adapters for interface compatibility
+	v1TechnicalIndicatorAdapter := service.NewV1TechnicalIndicatorServiceAdapter(technicalIndicatorService)
+	v1CandleAggregationAdapter := service.NewV1CandleAggregationServiceAdapter(candleAggService)
+	v1SequenceAnalyzerAdapter := service.NewV1SequenceAnalyzerAdapter(sequenceAnalyzer)
+
+	// Initialize V2 Service Container (Phase 2: Service Integration)
+	v2ServiceContainer, err := InitializeV2Services(
+		cfg,
+		candleRepo,
+		candle5MinRepo,
+		batchFetchService,
+		tradingCalendarService,
+		utilityService,
+		v1TechnicalIndicatorAdapter,
+		v1CandleAggregationAdapter,
+		v1SequenceAnalyzerAdapter,
+	)
 	if err != nil {
-		log.Warn("Failed to initialize V2 services (Phase 1): %v - continuing with V1 services", err)
+		log.Warn("Failed to initialize V2 services (Phase 2): %v - continuing with V1 services", err)
 		v2ServiceContainer = nil
 	} else {
-		log.Info("V2 service container initialized successfully (Phase 1)")
+		log.Info("V2 service container fully initialized (Phase 2)")
+
+		// Log which services are enabled
+		if cfg.Features.TechnicalIndicatorsV2 {
+			log.Info("TechnicalIndicatorServiceV2 feature flag enabled")
+		}
+		if cfg.Features.CandleAggregationV2 {
+			log.Info("CandleAggregationServiceV2 feature flag enabled")
+		}
+		if cfg.Features.SequenceAnalyzerV2 {
+			log.Info("SequenceAnalyzerV2 feature flag enabled")
+		}
+	}
+
+	// Inject V2 services into REST server if available
+	if v2ServiceContainer != nil {
+		restServer.SetV2Services(v2ServiceContainer)
+		log.Info("V2 services injected into REST server")
+
+		// Inject V2 services into BatchFetchService for enhanced DataFrame processing
+		if v2ServiceContainer.CandleAggregationWrapper != nil {
+			batchFetchService.SetV2Services(v2ServiceContainer.CandleAggregationWrapper, cfg)
+			log.Info("V2 services injected into BatchFetchService - DataFrame-based batch processing enabled")
+		}
 	}
 
 	return &App{
@@ -306,7 +348,7 @@ func (a *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var enable1MinCandleIngestion = true
+	var enable1MinCandleIngestion = false
 
 	if enable1MinCandleIngestion {
 		// Start precise 1-min ingestion and aggregation loop

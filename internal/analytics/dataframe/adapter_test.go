@@ -13,7 +13,7 @@ import (
 func TestNewCandleDataFrame_EmptyCandles(t *testing.T) {
 	// Test with empty candles slice
 	candles := []domain.Candle{}
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	assert.NotNil(t, df)
 	assert.True(t, df.Empty())
@@ -35,7 +35,7 @@ func TestNewCandleDataFrame_SingleCandle(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	assert.NotNil(t, df)
 	assert.False(t, df.Empty())
@@ -79,7 +79,7 @@ func TestNewCandleDataFrame_MultipleCandles(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	assert.NotNil(t, df)
 	assert.False(t, df.Empty())
@@ -112,7 +112,7 @@ func TestCandleDataFrame_GetTimestamps(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 	timestamps := df.GetTimestamps()
 
 	require.Len(t, timestamps, 2)
@@ -150,7 +150,7 @@ func TestCandleDataFrame_GetSymbols(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 	symbols := df.GetSymbols()
 
 	require.Len(t, symbols, 2)
@@ -181,7 +181,7 @@ func TestCandleDataFrame_GetOHLCV(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	// Test Opens
 	opens := df.GetOpens()
@@ -354,7 +354,7 @@ func TestCandleDataFrame_DataFrame(t *testing.T) {
 		},
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 	gotaDF := df.DataFrame()
 
 	assert.NotNil(t, gotaDF)
@@ -387,7 +387,7 @@ func BenchmarkNewCandleDataFrame_1000Candles(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		NewCandleDataFrame(candles)
+		NewCandleDataFrame(candles, false)
 	}
 }
 
@@ -408,7 +408,7 @@ func BenchmarkCandleDataFrame_ToCandles_1000Rows(b *testing.B) {
 		}
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -433,7 +433,7 @@ func BenchmarkCandleDataFrame_GetCloses_1000Rows(b *testing.B) {
 		}
 	}
 
-	df := NewCandleDataFrame(candles)
+	df := NewCandleDataFrame(candles, false)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

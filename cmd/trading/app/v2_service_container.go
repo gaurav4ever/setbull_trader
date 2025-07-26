@@ -7,21 +7,28 @@ import (
 	"time"
 
 	"setbull_trader/internal/monitoring"
+	"setbull_trader/internal/repository"
+	"setbull_trader/internal/service"
 	"setbull_trader/internal/trading/config"
 )
 
 // V2ServiceContainer holds all V2 services and their dependencies
-// This is the Phase 1 infrastructure setup version
+// Phase 2: Fully implemented V2 services with dependency injection
 type V2ServiceContainer struct {
-	// V2 Services (interfaces to be implemented)
-	TechnicalIndicatorService interface{}
-	CandleAggregationService  interface{}
-	SequenceAnalyzerService   interface{}
+	// V2 Services - Fully implemented
+	TechnicalIndicatorServiceV2 *service.TechnicalIndicatorServiceV2
+	CandleAggregationServiceV2  *service.CandleAggregationServiceV2
+	SequenceAnalyzerServiceV2   *service.SequenceAnalyzerV2
 
-	// Analytics Engine (to be implemented)
+	// Service wrappers for backward compatibility
+	TechnicalIndicatorWrapper service.TechnicalIndicatorServiceInterface
+	CandleAggregationWrapper  service.CandleAggregationServiceInterface
+	SequenceAnalyzerWrapper   service.SequenceAnalyzerInterface
+
+	// Analytics Engine Dependencies
 	AnalyticsEngine interface{}
 
-	// Repositories (to be implemented)
+	// Repositories
 	TechnicalIndicatorRepo interface{}
 	CandleAggregationRepo  interface{}
 	SequenceAnalyzerRepo   interface{}
@@ -42,7 +49,13 @@ type V2ServiceContainer struct {
 }
 
 // InitializeV2Services creates and wires all V2 services based on feature flags
-func InitializeV2Services(cfg *config.Config) (*V2ServiceContainer, error) {
+// Phase 2: Full service integration with dependency injection
+func InitializeV2Services(cfg *config.Config, candleRepo interface{}, candle5MinRepo interface{},
+	batchFetchService interface{}, tradingCalendarService interface{}, utilityService interface{},
+	v1TechnicalIndicatorService service.TechnicalIndicatorServiceInterface,
+	v1CandleAggregationService service.CandleAggregationServiceInterface,
+	v1SequenceAnalyzer service.SequenceAnalyzerInterface) (*V2ServiceContainer, error) {
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -52,13 +65,24 @@ func InitializeV2Services(cfg *config.Config) (*V2ServiceContainer, error) {
 		StartTime:    time.Now(),
 	}
 
-	// Phase 1: Initialize infrastructure components only
+	// Initialize infrastructure components
 	if err := container.initializeInfrastructure(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize V2 infrastructure: %w", err)
 	}
 
-	// Phase 2 and beyond will be implemented in subsequent phases
-	log.Printf("V2 service container initialized (Phase 1) with feature flags: TI=%t, CA=%t, SA=%t",
+	// Phase 2: Initialize V2 services
+	if err := container.initializeV2Services(ctx, candleRepo, candle5MinRepo,
+		batchFetchService, tradingCalendarService, utilityService); err != nil {
+		return nil, fmt.Errorf("failed to initialize V2 services: %w", err)
+	}
+
+	// Phase 2: Create service wrappers for backward compatibility
+	if err := container.initializeServiceWrappers(ctx, v1TechnicalIndicatorService,
+		v1CandleAggregationService, v1SequenceAnalyzer); err != nil {
+		return nil, fmt.Errorf("failed to initialize service wrappers: %w", err)
+	}
+
+	log.Printf("V2 service container fully initialized (Phase 2) with feature flags: TI=%t, CA=%t, SA=%t",
 		cfg.Features.TechnicalIndicatorsV2,
 		cfg.Features.CandleAggregationV2,
 		cfg.Features.SequenceAnalyzerV2)
@@ -155,6 +179,77 @@ func (c *V2ServiceContainer) Shutdown(ctx context.Context) error {
 	c.Initialized = false
 
 	log.Printf("V2 services shutdown completed")
+	return nil
+}
+
+// initializeV2Services initializes all V2 services with proper dependencies
+func (c *V2ServiceContainer) initializeV2Services(ctx context.Context, candleRepo interface{},
+	candle5MinRepo interface{}, batchFetchService interface{},
+	tradingCalendarService interface{}, utilityService interface{}) error {
+
+	// Initialize TechnicalIndicatorServiceV2
+	if candleRepoTyped, ok := candleRepo.(repository.CandleRepository); ok {
+		c.TechnicalIndicatorServiceV2 = service.NewTechnicalIndicatorServiceV2(candleRepoTyped)
+		log.Printf("TechnicalIndicatorServiceV2 initialized successfully")
+	} else {
+		return fmt.Errorf("invalid candleRepo type for TechnicalIndicatorServiceV2")
+	}
+
+	// Initialize SequenceAnalyzerV2
+	c.SequenceAnalyzerServiceV2 = service.NewSequenceAnalyzerV2()
+	log.Printf("SequenceAnalyzerV2 initialized successfully")
+
+	// Initialize CandleAggregationServiceV2
+	candleRepoTyped, ok1 := candleRepo.(repository.CandleRepository)
+	candle5MinRepoTyped, ok2 := candle5MinRepo.(repository.Candle5MinRepository)
+	batchFetchServiceTyped, ok3 := batchFetchService.(*service.BatchFetchService)
+	tradingCalendarServiceTyped, ok4 := tradingCalendarService.(*service.TradingCalendarService)
+	utilityServiceTyped, ok5 := utilityService.(*service.UtilityService)
+
+	if ok1 && ok2 && ok3 && ok4 && ok5 {
+		c.CandleAggregationServiceV2 = service.NewCandleAggregationServiceV2(
+			candleRepoTyped,
+			candle5MinRepoTyped,
+			batchFetchServiceTyped,
+			tradingCalendarServiceTyped,
+			utilityServiceTyped,
+		)
+		log.Printf("CandleAggregationServiceV2 initialized successfully")
+	} else {
+		return fmt.Errorf("invalid repository types for CandleAggregationServiceV2")
+	}
+
+	return nil
+}
+
+// initializeServiceWrappers creates compatibility wrappers for gradual migration
+func (c *V2ServiceContainer) initializeServiceWrappers(ctx context.Context,
+	v1TechnicalIndicatorService service.TechnicalIndicatorServiceInterface,
+	v1CandleAggregationService service.CandleAggregationServiceInterface,
+	v1SequenceAnalyzer service.SequenceAnalyzerInterface) error {
+
+	// Create TechnicalIndicator wrapper
+	c.TechnicalIndicatorWrapper = service.NewTechnicalIndicatorServiceWrapper(
+		v1TechnicalIndicatorService,
+		c.TechnicalIndicatorServiceV2,
+		c.FeatureFlags.TechnicalIndicatorsV2,
+	)
+
+	// Create CandleAggregation wrapper
+	c.CandleAggregationWrapper = service.NewCandleAggregationServiceWrapper(
+		v1CandleAggregationService,
+		c.CandleAggregationServiceV2,
+		c.FeatureFlags.CandleAggregationV2,
+	)
+
+	// Create SequenceAnalyzer wrapper
+	c.SequenceAnalyzerWrapper = service.NewSequenceAnalyzerWrapper(
+		v1SequenceAnalyzer,
+		c.SequenceAnalyzerServiceV2,
+		c.FeatureFlags.SequenceAnalyzerV2,
+	)
+
+	log.Printf("Service wrappers initialized successfully")
 	return nil
 }
 

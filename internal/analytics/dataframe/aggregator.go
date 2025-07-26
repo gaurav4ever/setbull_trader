@@ -41,8 +41,8 @@ func (a *Aggregator) Aggregate5MinCandles(candles []domain.Candle) ([]domain.Can
 		return []domain.Candle5Min{}, nil
 	}
 
-	// Create DataFrame from candles
-	df := NewCandleDataFrame(candles)
+	// Create DataFrame from candles - database source (IST timestamps)
+	df := NewCandleDataFrameWithContext(candles, TimestampFromDatabase)
 	if df.Empty() {
 		return []domain.Candle5Min{}, nil
 	}
@@ -189,14 +189,17 @@ func formatInterval(interval time.Duration) string {
 
 // AggregateWithIndicators aggregates candles and calculates indicators in one operation
 func (a *Aggregator) AggregateWithIndicators(candles []domain.Candle, interval time.Duration) (*CandleDataFrame, error) {
-	// First aggregate the candles
-	aggregatedCandles, err := a.groupByTimeInterval(NewCandleDataFrame(candles), interval)
+	// First aggregate the candles - candles from database are already in IST, no conversion needed
+	aggregatedCandles, err := a.groupByTimeInterval(NewCandleDataFrameWithContext(candles, TimestampFromDatabase), interval)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create DataFrame from aggregated candles
-	df := NewCandleDataFrame(aggregatedCandles)
+	// Create DataFrame from aggregated candles - these are aligned, preserve timestamps
+	df := NewCandleDataFrameWithContext(aggregatedCandles, TimestampForAlignment)
+
+	// Set the interval on the DataFrame
+	df.SetInterval(formatInterval(interval))
 
 	// This is where we'll add indicator calculations
 	// For now, return the DataFrame ready for indicator calculation

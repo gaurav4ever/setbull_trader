@@ -3,10 +3,12 @@ package analytics
 import (
 	"context"
 	"fmt"
+	"math"
 	"runtime"
 	"time"
 
 	"setbull_trader/internal/analytics/dataframe"
+	"setbull_trader/internal/analytics/indicators"
 	"setbull_trader/internal/domain"
 
 	"github.com/VictoriaMetrics/fastcache"
@@ -17,6 +19,7 @@ type Processor struct {
 	config     *AnalyticsConfig
 	cache      *fastcache.Cache
 	aggregator *dataframe.Aggregator
+	calculator *indicators.Calculator
 	metrics    *ProcessorMetrics
 }
 
@@ -42,11 +45,13 @@ func NewProcessor(config *AnalyticsConfig) *Processor {
 	}
 
 	aggregator := dataframe.NewAggregator(nil)
+	calculator := indicators.NewCalculator()
 
 	return &Processor{
 		config:     config,
 		cache:      cache,
 		aggregator: aggregator,
+		calculator: calculator,
 		metrics:    &ProcessorMetrics{},
 	}
 }
@@ -58,7 +63,7 @@ func (p *Processor) ProcessCandles(ctx context.Context, candles []domain.Candle)
 	// Validate input
 	if len(candles) == 0 {
 		return &ProcessingResult{
-			DataFrame:   dataframe.NewCandleDataFrame([]domain.Candle{}).DataFrame(),
+			DataFrame:   dataframe.NewCandleDataFrameWithContext([]domain.Candle{}, dataframe.TimestampFromDatabase).DataFrame(),
 			Indicators:  &IndicatorSet{},
 			CacheHits:   0,
 			ProcessTime: time.Since(startTime),
@@ -76,8 +81,8 @@ func (p *Processor) ProcessCandles(ctx context.Context, candles []domain.Candle)
 		}
 	}
 
-	// Create DataFrame from candles
-	df := dataframe.NewCandleDataFrame(candles)
+	// Create DataFrame from candles - assume database source (IST timestamps)
+	df := dataframe.NewCandleDataFrameWithContext(candles, dataframe.TimestampFromDatabase)
 	if df.Empty() {
 		return nil, fmt.Errorf("failed to create DataFrame from candles")
 	}
@@ -128,27 +133,71 @@ func (p *Processor) CalculateIndicators(ctx context.Context, data *CandleData) (
 		return &IndicatorSet{}, nil
 	}
 
-	// For now, return empty indicators - will be implemented in Phase 2
-	indicators := &IndicatorSet{
-		Timestamps:                  make([]time.Time, len(data.Candles)),
-		MA9:                         make([]float64, len(data.Candles)),
-		BBUpper:                     make([]float64, len(data.Candles)),
-		BBMiddle:                    make([]float64, len(data.Candles)),
-		BBLower:                     make([]float64, len(data.Candles)),
-		BBWidth:                     make([]float64, len(data.Candles)),
-		BBWidthNormalized:           make([]float64, len(data.Candles)),
-		BBWidthNormalizedPercentage: make([]float64, len(data.Candles)),
-		VWAP:                        make([]float64, len(data.Candles)),
-		EMA5:                        make([]float64, len(data.Candles)),
-		EMA9:                        make([]float64, len(data.Candles)),
-		EMA50:                       make([]float64, len(data.Candles)),
-		ATR:                         make([]float64, len(data.Candles)),
-		RSI:                         make([]float64, len(data.Candles)),
-	}
+	startTime := time.Now()
+
+	// Extract price and volume data from candles
+	n := len(data.Candles)
+	closePrices := make([]float64, n)
+	highPrices := make([]float64, n)
+	lowPrices := make([]float64, n)
+	volumes := make([]float64, n)
+	timestamps := make([]time.Time, n)
 
 	for i, candle := range data.Candles {
-		indicators.Timestamps[i] = candle.Timestamp
+		closePrices[i] = candle.Close
+		highPrices[i] = candle.High
+		lowPrices[i] = candle.Low
+		volumes[i] = float64(candle.Volume) // Convert int64 to float64
+		timestamps[i] = candle.Timestamp
 	}
+
+	// Initialize indicator set with timestamps
+	indicators := &IndicatorSet{
+		Timestamps: timestamps,
+	}
+
+	// EMA calculations
+	indicators.EMA5 = p.calculator.EMA(closePrices, 5)
+	indicators.EMA9 = p.calculator.EMA(closePrices, 9)
+	indicators.EMA50 = p.calculator.EMA(closePrices, 50)
+
+	// MA9 (Simple Moving Average)
+	indicators.MA9 = p.calculator.SMA(closePrices, 9)
+
+	// Bollinger Bands (period=20, std dev multiplier=2.0)
+	bbUpper, bbMiddle, bbLower := p.calculator.BollingerBands(closePrices, 20, 2.0)
+	indicators.BBUpper = bbUpper
+	indicators.BBMiddle = bbMiddle
+	indicators.BBLower = bbLower
+
+	// BB Width calculations
+	indicators.BBWidth = p.calculator.BBWidth(bbUpper, bbMiddle, bbLower)
+
+	// Normalized BB Width (already normalized by middle band in BBWidth calculation)
+	indicators.BBWidthNormalized = make([]float64, len(indicators.BBWidth))
+	copy(indicators.BBWidthNormalized, indicators.BBWidth)
+
+	// BB Width as percentage
+	indicators.BBWidthNormalizedPercentage = make([]float64, len(indicators.BBWidth))
+	for i, width := range indicators.BBWidth {
+		if !math.IsNaN(width) {
+			indicators.BBWidthNormalizedPercentage[i] = width * 100
+		} else {
+			indicators.BBWidthNormalizedPercentage[i] = math.NaN()
+		}
+	}
+
+	// VWAP calculation
+	indicators.VWAP = p.calculator.VWAP(closePrices, volumes)
+
+	// RSI calculation (period=14)
+	indicators.RSI = p.calculator.RSI(closePrices, 14)
+
+	// ATR calculation (period=14)
+	indicators.ATR = p.calculator.ATR(highPrices, lowPrices, closePrices, 14)
+
+	// Update metrics
+	p.updateMetrics(startTime, len(data.Candles), 0, nil)
 
 	return indicators, nil
 }

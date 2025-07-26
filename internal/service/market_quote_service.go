@@ -71,7 +71,7 @@ func (s *MarketQuoteService) GetQuotes(
 	if len(resolvedKeys) == 0 {
 		return &response.MarketQuotesResponse{
 			Status:    "error",
-			Timestamp: time.Now().In(time.FixedZone("IST", 5*3600+1800)).Format(time.RFC3339),
+			Timestamp: getCurrentISTTime().Format(time.RFC3339),
 			Data:      make(map[string]response.Ohlc),
 			Errors:    errorsMap,
 		}
@@ -81,7 +81,7 @@ func (s *MarketQuoteService) GetQuotes(
 	data, upstoxErrors, err := s.upstoxAuth.GetMarketQuote(ctx, userID, oldKeys, resolvedKeys, interval)
 	resp := &response.MarketQuotesResponse{
 		Status:    "success",
-		Timestamp: time.Now().In(time.FixedZone("IST", 5*3600+1800)).Format(time.RFC3339),
+		Timestamp: getCurrentISTTime().Format(time.RFC3339),
 		Data:      make(map[string]response.Ohlc),
 		Errors:    errorsMap,
 	}
@@ -122,7 +122,7 @@ func (s *MarketQuoteService) GetIntradayQuotes(
 ) *response.MarketQuotesResponse {
 	result := &response.MarketQuotesResponse{
 		Status:    "success",
-		Timestamp: time.Now().In(time.FixedZone("IST", 5*3600+1800)).Format(time.RFC3339),
+		Timestamp: getCurrentISTTime().Format(time.RFC3339),
 		Data:      make(map[string]response.Ohlc),
 		Errors:    make(map[string]string),
 	}
@@ -163,4 +163,14 @@ func (s *MarketQuoteService) GetIntradayQuotes(
 		}
 	}
 	return result
+}
+
+// getCurrentISTTime returns current time in IST timezone
+func getCurrentISTTime() time.Time {
+	ist, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		// Fallback to fixed zone if loading fails
+		ist = time.FixedZone("IST", 5*3600+30*60) // Fixed: was 1800, should be 1800 for half hour
+	}
+	return time.Now().In(ist)
 }

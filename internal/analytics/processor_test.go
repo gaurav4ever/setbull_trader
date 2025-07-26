@@ -96,7 +96,7 @@ func TestCandleDataFrame_BasicOperations(t *testing.T) {
 	}
 
 	// Create DataFrame
-	df := dataframe.NewCandleDataFrame(candles)
+	df := dataframe.NewCandleDataFrame(candles, false)
 	if df.Empty() {
 		t.Fatal("DataFrame should not be empty")
 	}

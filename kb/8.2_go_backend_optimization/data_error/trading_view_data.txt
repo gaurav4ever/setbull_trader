@@ -1,0 +1,37 @@
+
+[2025-07-25T12:25:00.000+05:30]: Time: 1753426500000 | BB Width Raw: 0.7853 | BB Width: 0.8615% | Upper: 91.5491 | Lower: 90.7639 | Middle: 91.1565 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:30:00.000+05:30]: Time: 1753426800000 | BB Width Raw: 0.8193 | BB Width: 0.8989% | Upper: 91.5496 | Lower: 90.7304 | Middle: 91.14 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:35:00.000+05:30]: Time: 1753427100000 | BB Width Raw: 0.8536 | BB Width: 0.9369% | Upper: 91.5398 | Lower: 90.6862 | Middle: 91.113 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:40:00.000+05:30]: Time: 1753427400000 | BB Width Raw: 0.8484 | BB Width: 0.9313% | Upper: 91.5227 | Lower: 90.6743 | Middle: 91.0985 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:45:00.000+05:30]: Time: 1753427700000 | BB Width Raw: 0.806 | BB Width: 0.885% | Upper: 91.481 | Lower: 90.675 | Middle: 91.078 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:50:00.000+05:30]: Time: 1753428000000 | BB Width Raw: 0.7374 | BB Width: 0.8099% | Upper: 91.4212 | Lower: 90.6838 | Middle: 91.0525 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T12:55:00.000+05:30]: Time: 1753428300000 | BB Width Raw: 0.7443 | BB Width: 0.8176% | Upper: 91.4082 | Lower: 90.6638 | Middle: 91.036 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:00:00.000+05:30]: Time: 1753428600000 | BB Width Raw: 0.7517 | BB Width: 0.8258% | Upper: 91.3973 | Lower: 90.6457 | Middle: 91.0215 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:05:00.000+05:30]: Time: 1753428900000 | BB Width Raw: 0.7397 | BB Width: 0.8129% | Upper: 91.3689 | Lower: 90.6291 | Middle: 90.999 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:10:00.000+05:30]: Time: 1753429200000 | BB Width Raw: 0.7456 | BB Width: 0.8196% | Upper: 91.3423 | Lower: 90.5967 | Middle: 90.9695 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:15:00.000+05:30]: Time: 1753429500000 | BB Width Raw: 0.7093 | BB Width: 0.7799% | Upper: 91.2981 | Lower: 90.5889 | Middle: 90.9435 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:20:00.000+05:30]: Time: 1753429800000 | BB Width Raw: 0.6882 | BB Width: 0.757% | Upper: 91.2611 | Lower: 90.5729 | Middle: 90.917 | Threshold: 0.16 | Squeeze: NO[2025-07-25T13:25:00.000+05:30]: Time: 1753430100000 | BB Width Raw: 0.6706 | BB Width: 0.7378% | Upper: 91.2208 | Lower: 90.5502 | Middle: 90.8855 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:30:00.000+05:30]: Time: 1753430400000 | BB Width Raw: 0.6716 | BB Width: 0.7391% | Upper: 91.2058 | Lower: 90.5342 | Middle: 90.87 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:35:00.000+05:30]: Time: 1753430700000 | BB Width Raw: 0.6558 | BB Width: 0.7218% | Upper: 91.1809 | Lower: 90.5251 | Middle: 90.853 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:40:00.000+05:30]: Time: 1753431000000 | BB Width Raw: 0.6365 | BB Width: 0.7007% | Upper: 91.1598 | Lower: 90.5232 | Middle: 90.8415 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:45:00.000+05:30]: Time: 1753431300000 | BB Width Raw: 0.5112 | BB Width: 0.5629% | Upper: 91.0716 | Lower: 90.5604 | Middle: 90.816 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:50:00.000+05:30]: Time: 1753431600000 | BB Width Raw: 0.4183 | BB Width: 0.4606% | Upper: 91.0136 | Lower: 90.5954 | Middle: 90.8045 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T13:55:00.000+05:30]: Time: 1753431900000 | BB Width Raw: 0.4148 | BB Width: 0.4568% | Upper: 91.0139 | Lower: 90.5991 | Middle: 90.8065 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:00:00.000+05:30]: Time: 1753432200000 | BB Width Raw: 0.4094 | BB Width: 0.4509% | Upper: 91.0067 | Lower: 90.5973 | Middle: 90.802 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:05:00.000+05:30]: Time: 1753432500000 | BB Width Raw: 0.3939 | BB Width: 0.4337% | Upper: 91.0049 | Lower: 90.6111 | Middle: 90.808 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:10:00.000+05:30]: Time: 1753432800000 | BB Width Raw: 0.3988 | BB Width: 0.4392% | Upper: 90.9984 | Lower: 90.5996 | Middle: 90.799 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:15:00.000+05:30]: Time: 1753433100000 | BB Width Raw: 0.3987 | BB Width: 0.4391% | Upper: 90.9988 | Lower: 90.6002 | Middle: 90.7995 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:20:00.000+05:30]: Time: 1753433400000 | BB Width Raw: 0.371 | BB Width: 0.4087% | Upper: 90.971 | Lower: 90.6 | Middle: 90.7855 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:25:00.000+05:30]: Time: 1753433700000 | BB Width Raw: 0.3216 | BB Width: 0.3542% | Upper: 90.9373 | Lower: 90.6157 | Middle: 90.7765 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:30:00.000+05:30]: Time: 1753434000000 | BB Width Raw: 0.2851 | BB Width: 0.3141% | Upper: 90.9115 | Lower: 90.6265 | Middle: 90.769 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:35:00.000+05:30]: Time: 1753434300000 | BB Width Raw: 0.2938 | BB Width: 0.3237% | Upper: 90.9174 | Lower: 90.6236 | Middle: 90.7705 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:40:00.000+05:30]: Time: 1753434600000 | BB Width Raw: 0.3054 | BB Width: 0.3364% | Upper: 90.9252 | Lower: 90.6198 | Middle: 90.7725 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:45:00.000+05:30]: Time: 1753434900000 | BB Width Raw: 0.3238 | BB Width: 0.3566% | Upper: 90.9389 | Lower: 90.6151 | Middle: 90.777 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:50:00.000+05:30]: Time: 1753435200000 | BB Width Raw: 0.3115 | BB Width: 0.3431% | Upper: 90.9372 | Lower: 90.6258 | Middle: 90.7815 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T14:55:00.000+05:30]: Time: 1753435500000 | BB Width Raw: 0.3301 | BB Width: 0.3636% | Upper: 90.954 | Lower: 90.624 | Middle: 90.789 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:00:00.000+05:30]: Time: 1753435800000 | BB Width Raw: 0.3301 | BB Width: 0.3636% | Upper: 90.954 | Lower: 90.624 | Middle: 90.789 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:05:00.000+05:30]: Time: 1753436100000 | BB Width Raw: 0.3118 | BB Width: 0.3433% | Upper: 90.9614 | Lower: 90.6496 | Middle: 90.8055 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:10:00.000+05:30]: Time: 1753436400000 | BB Width Raw: 0.3141 | BB Width: 0.3459% | Upper: 90.962 | Lower: 90.648 | Middle: 90.805 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:15:00.000+05:30]: Time: 1753436700000 | BB Width Raw: 0.5109 | BB Width: 0.5628% | Upper: 91.041 | Lower: 90.53 | Middle: 90.7855 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:20:00.000+05:30]: Time: 1753437000000 | BB Width Raw: 0.6412 | BB Width: 0.7065% | Upper: 91.0831 | Lower: 90.4419 | Middle: 90.7625 | Threshold: 0.16 | Squeeze: NO
+[2025-07-25T15:25:00.000+05:30]: Time: 1753437300000 | BB Width Raw: 0.6412 | BB Width: 0.7065% | Upper: 91.0831 | Lower: 90.4419 | Middle: 90.7625 | Threshold: 0.16 | Squeeze: NO

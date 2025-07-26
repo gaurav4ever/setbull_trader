@@ -3,7 +3,7 @@ server:
   read_timeout: 30
   write_timeout: 30
 
-# Feature flags for V2 services - Phase 1: Start with all disabled
+# Feature flags for V2 services - ROLLBACK: Disable V2 services
 features:
   use_gonum_indicators: false      # TechnicalIndicatorServiceV2
   use_sequence_analyzer_v2: false  # SequenceAnalyzerV2  
@@ -11,10 +11,10 @@ features:
   enable_indicator_caching: false  # Indicator caching system
   cache_ttl_minutes: 15           # Cache TTL in minutes
   
-  # V2 Service Migration Flags - Phase 1: Infrastructure Setup Only
-  technical_indicators_v2: false  # Enable TechnicalIndicatorServiceV2
-  candle_aggregation_v2: false    # Enable CandleAggregationServiceV2
-  sequence_analyzer_v2: false     # Enable SequenceAnalyzerV2
+  # V2 Service Migration Flags - ROLLBACK: All disabled
+  technical_indicators_v2: false  # Disable TechnicalIndicatorServiceV2
+  candle_aggregation_v2: false    # Disable CandleAggregationServiceV2
+  sequence_analyzer_v2: false     # Disable SequenceAnalyzerV2
 
 # Analytics configuration for V2 services
 analytics:
