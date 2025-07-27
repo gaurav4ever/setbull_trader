@@ -569,7 +569,7 @@ func (r *CandleRepository) GetEarliestCandle(
 	return &candle, nil
 }
 
-// GetCandleDateRange retrieves the earliest and latest timestamps for candles of a specific instrument and interval
+// GetCandleDateRange retrieves the earliest and latest timestamps for candles of a specific instrument and interval with optimized performance
 func (r *CandleRepository) GetCandleDateRange(
 	ctx context.Context,
 	instrumentKey string,
@@ -582,20 +582,62 @@ func (r *CandleRepository) GetCandleDateRange(
 
 	var dateRange DateRange
 
-	result := r.db.WithContext(ctx).
-		Model(&domain.Candle{}).
-		Select("MIN(timestamp) as earliest_date, MAX(timestamp) as latest_date").
-		Where("instrument_key = ? AND time_interval = ?", instrumentKey, interval).
+	// Create a context with shorter timeout for this specific query to prevent hanging
+	queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	start := time.Now()
+
+	// Use optimized query with raw SQL for better performance (MySQL compatible)
+	result := r.db.WithContext(queryCtx).
+		Raw(`SELECT 
+			COALESCE(MIN(timestamp), TIMESTAMP('1970-01-01 00:00:00')) as earliest_date,
+			COALESCE(MAX(timestamp), TIMESTAMP('1970-01-01 00:00:00')) as latest_date
+			FROM stock_candle_data 
+			WHERE instrument_key = ? AND time_interval = ?`,
+			instrumentKey, interval).
 		Scan(&dateRange)
 
+	duration := time.Since(start)
+
 	if result.Error != nil {
+		// Log performance metrics for debugging
+		if duration > time.Second {
+			log.Warn("[REPO] Slow GetCandleDateRange query for %s/%s: %v (took %v)",
+				instrumentKey, interval, result.Error, duration)
+		}
+
+		if errors.Is(result.Error, context.DeadlineExceeded) {
+			log.Error("[REPO] GetCandleDateRange query timeout for %s/%s after %v",
+				instrumentKey, interval, duration)
+			return time.Time{}, time.Time{}, false, fmt.Errorf("date range query timeout for %s: %w", instrumentKey, result.Error)
+		}
+
+		log.Error("[REPO] Failed to get date range for %s/%s: %v (took %v)",
+			instrumentKey, interval, result.Error, duration)
 		return time.Time{}, time.Time{}, false, fmt.Errorf("failed to get candle date range: %w", result.Error)
 	}
 
-	// Check if we got valid dates (if no records exist, dates will be zero)
-	if dateRange.EarliestDate.IsZero() || dateRange.LatestDate.IsZero() {
+	// Check if we got valid dates (if no records exist, dates will be epoch timestamp from 1970-01-01)
+	epochTime := time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+	if dateRange.EarliestDate.Equal(epochTime) || dateRange.LatestDate.Equal(epochTime) ||
+		dateRange.EarliestDate.IsZero() || dateRange.LatestDate.IsZero() ||
+		dateRange.EarliestDate.Year() == 1970 || dateRange.LatestDate.Year() == 1970 {
+		log.Debug("[REPO] No candle data found for %s/%s (took %v)", instrumentKey, interval, duration)
 		return time.Time{}, time.Time{}, false, nil
 	}
+
+	// Log slow queries for optimization
+	if duration > 500*time.Millisecond {
+		log.Warn("[REPO] Slow GetCandleDateRange query for %s/%s completed in %v",
+			instrumentKey, interval, duration)
+	}
+
+	log.Debug("[REPO] GetCandleDateRange for %s/%s: earliest=%s, latest=%s (took %v)",
+		instrumentKey, interval,
+		dateRange.EarliestDate.Format("2006-01-02"),
+		dateRange.LatestDate.Format("2006-01-02"),
+		duration)
 
 	return dateRange.EarliestDate, dateRange.LatestDate, true, nil
 }

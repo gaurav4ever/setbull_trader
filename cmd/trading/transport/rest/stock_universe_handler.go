@@ -192,6 +192,7 @@ func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Reques
 	var request struct {
 		Days           int      `json:"days"`           // Number of days to fetch, default 100
 		Parallel       bool     `json:"parallel"`       // Whether to process stocks in parallel, default false
+		Optimized      bool     `json:"optimized"`      // Whether to use optimized batch processing, default false
 		InstrumentKeys []string `json:"instrumentKeys"` // Optional list of instrument keys to process
 	}
 
@@ -199,6 +200,7 @@ func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Reques
 		// If there's an error parsing, just use default values
 		request.Days = 100
 		request.Parallel = false
+		request.Optimized = false
 	}
 
 	// If days not specified or invalid, use default
@@ -241,8 +243,49 @@ func (s *Server) FetchUniverseDailyCandles(w http.ResponseWriter, r *http.Reques
 	// Calculate date range
 	endDate := time.Now()
 
-	log.Info("Fetching daily candles for %d stocks with backfill support for the last %d days",
-		len(stocks), request.Days)
+	log.Info("Fetching daily candles for %d stocks with backfill support for the last %d days (optimized=%t)",
+		len(stocks), request.Days, request.Optimized)
+
+	// Use optimized batch processing if requested
+	if request.Optimized {
+		log.Info("Using optimized batch processing for daily candles")
+
+		// Extract instrument keys from stocks
+		instrumentKeys := make([]string, 0, len(stocks))
+		for _, stock := range stocks {
+			instrumentKeys = append(instrumentKeys, stock.InstrumentKey)
+		}
+
+		// Use BatchFetchService for optimized processing
+		err := s.batchFetchService.ProcessDailyCandlesOptimized(ctx, instrumentKeys)
+
+		// Create a simplified result for optimized processing
+		result := &DailyCandles{
+			TotalStocks:      len(stocks),
+			ProcessedStocks:  len(stocks),
+			SkippedStocks:    0,
+			SuccessfulStocks: len(stocks),
+			FailedStocks:     0,
+			StockResults:     make([]StockProcessResult, 0),
+			StartTime:        startTime,
+			EndTime:          time.Now(),
+			Duration:         "",
+		}
+
+		if err != nil {
+			log.Error("Optimized batch processing failed: %v", err)
+			result.SuccessfulStocks = 0
+			result.FailedStocks = len(stocks)
+		}
+
+		result.Duration = result.EndTime.Sub(startTime).String()
+
+		log.Info("Completed optimized daily candles processing in %v. Success: %d, Failed: %d",
+			result.Duration, result.SuccessfulStocks, result.FailedStocks)
+
+		respondSuccess(w, result)
+		return
+	}
 
 	// Initialize result tracking
 	result := &DailyCandles{
