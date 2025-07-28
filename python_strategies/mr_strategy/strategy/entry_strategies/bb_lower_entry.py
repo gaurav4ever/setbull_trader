@@ -76,46 +76,56 @@ class BBLowerEntryStrategy(EntryStrategy):
         Returns:
             Signal if entry conditions are met, None otherwise
         """
-        # Format candle info for logging
-        candle_info = self._format_candle_info(candle)
-        
-        # Convert timestamp if needed
-        timestamp = candle.get('timestamp')
-        if isinstance(timestamp, str):
-            timestamp = pd.to_datetime(timestamp)
-        
-        # Check trading hours
-        candle_time = timestamp.time()
-        if not (self.market_open <= candle_time <= self.market_close):
-            logger.debug(f"{candle_info}Outside trading hours")
+        try:
+            # Format candle info for logging
+            candle_info = self._format_candle_info(candle)
+            
+            # Convert timestamp if needed
+            timestamp = candle.get('timestamp')
+            if isinstance(timestamp, str):
+                timestamp = pd.to_datetime(timestamp)
+            
+            # Enhanced timestamp validation
+            if timestamp is None:
+                logger.warning(f"{candle_info}Invalid timestamp")
+                return None
+            
+            # Check trading hours
+            candle_time = timestamp.time()
+            if not (self.market_open <= candle_time <= self.market_close):
+                logger.debug(f"{candle_info}Outside trading hours")
+                return None
+            
+            # Validate BB data
+            if not self._validate_bb_data(candle):
+                logger.debug(f"{candle_info}Missing or invalid BB data")
+                return None
+            
+            # Extract BB values
+            self.bb_upper = candle.get('bb_upper', 0)
+            self.bb_lower = candle.get('bb_lower', 0)
+            self.bb_middle = candle.get('bb_middle', 0)
+            self.current_bb_width = candle.get('bb_width', 0)
+            
+            # Update day levels
+            self._update_day_levels(candle)
+            
+            # Check confirmation phase
+            if self.observing_confirmation:
+                self._check_confirmation_conditions(candle)
+                return None  # No signals during confirmation phase
+            
+            # Check entry conditions after confirmation
+            if self.confirmation_complete:
+                entry_signal = self._check_entry_conditions(candle, timestamp, candle_info)
+                if entry_signal:
+                    return entry_signal
+            
             return None
-        
-        # Validate BB data
-        if not self._validate_bb_data(candle):
-            logger.debug(f"{candle_info}Missing or invalid BB data")
+            
+        except Exception as e:
+            logger.error(f"Error in check_entry_conditions: {str(e)}")
             return None
-        
-        # Extract BB values
-        self.bb_upper = candle.get('bb_upper', 0)
-        self.bb_lower = candle.get('bb_lower', 0)
-        self.bb_middle = candle.get('bb_middle', 0)
-        self.current_bb_width = candle.get('bb_width', 0)
-        
-        # Update day levels
-        self._update_day_levels(candle)
-        
-        # Check confirmation phase
-        if self.observing_confirmation:
-            self._check_confirmation_conditions(candle)
-            return None  # No signals during confirmation phase
-        
-        # Check entry conditions after confirmation
-        if self.confirmation_complete:
-            entry_signal = self._check_entry_conditions(candle, timestamp, candle_info)
-            if entry_signal:
-                return entry_signal
-        
-        return None
     
     def _format_candle_info(self, candle: Dict[str, Any]) -> str:
         """Format candle information for logging."""
@@ -282,45 +292,151 @@ class BBLowerEntryStrategy(EntryStrategy):
         current_high = candle.get('high', 0)
         direction = self.config.instrument_key.get("direction")
         
+        # Enhanced validation checks
+        if not self._validate_entry_prerequisites(candle_info):
+            return None
+        
         # Check if already in a trade
         if self.in_long_trade or self.in_short_trade:
+            logger.debug(f"{candle_info}Already in a trade, skipping entry check")
             return None
         
         # Check if trend strength is confirmed
         if not self.trend_strength_confirmed:
+            logger.debug(f"{candle_info}Trend strength not confirmed, skipping entry check")
             return None
         
         # Calculate entry parameters
         if direction == "BULLISH":
             # Long entry: candle low <= BB lower band
             if current_low <= self.bb_lower and self.can_generate_signal(SignalType.BB_LOWER_ENTRY.value, "LONG"):
-                self.in_long_trade = True
-                self.entry_price = self.bb_lower
-                self.stop_loss_price = self.entry_price * (1 - self.stop_loss_percentage)
-                self.target_price = self.config.target_price if hasattr(self.config, 'target_price') else None
-                
-                logger.info(f"{candle_info}BB Lower long entry detected - Entry: {self.entry_price:.2f}, SL: {self.stop_loss_price:.2f}")
-                
-                return self._create_signal(SignalDirection.LONG, timestamp, candle_info)
+                # Enhanced entry validation for bullish trend
+                if self._validate_bullish_entry(candle, candle_info):
+                    self.in_long_trade = True
+                    self.entry_price = self.bb_lower
+                    self.stop_loss_price = self.entry_price * (1 - self.stop_loss_percentage)
+                    self.target_price = self._calculate_target_price("LONG")
+                    
+                    target_str = f"{self.target_price:.2f}" if self.target_price else "None"
+                    logger.info(f"{candle_info}BB Lower long entry detected - Entry: {self.entry_price:.2f}, SL: {self.stop_loss_price:.2f}, Target: {target_str}")
+                    
+                    return self._create_signal(SignalDirection.LONG, timestamp, candle_info)
         
         elif direction == "BEARISH":
             # Short entry: candle high >= BB upper band (for bearish trend)
             if current_high >= self.bb_upper and self.can_generate_signal(SignalType.BB_LOWER_ENTRY.value, "SHORT"):
-                self.in_short_trade = True
-                self.entry_price = self.bb_upper
-                self.stop_loss_price = self.entry_price * (1 + self.stop_loss_percentage)
-                self.target_price = self.config.target_price if hasattr(self.config, 'target_price') else None
-                
-                logger.info(f"{candle_info}BB Upper short entry detected - Entry: {self.entry_price:.2f}, SL: {self.stop_loss_price:.2f}")
-                
-                return self._create_signal(SignalDirection.SHORT, timestamp, candle_info)
+                # Enhanced entry validation for bearish trend
+                if self._validate_bearish_entry(candle, candle_info):
+                    self.in_short_trade = True
+                    self.entry_price = self.bb_upper
+                    self.stop_loss_price = self.entry_price * (1 + self.stop_loss_percentage)
+                    self.target_price = self._calculate_target_price("SHORT")
+                    
+                    target_str = f"{self.target_price:.2f}" if self.target_price else "None"
+                    logger.info(f"{candle_info}BB Upper short entry detected - Entry: {self.entry_price:.2f}, SL: {self.stop_loss_price:.2f}, Target: {target_str}")
+                    
+                    return self._create_signal(SignalDirection.SHORT, timestamp, candle_info)
+        
+        return None
+    
+    def _validate_entry_prerequisites(self, candle_info: str) -> bool:
+        """Validate prerequisites for entry conditions."""
+        # Check if BB data is available
+        if self.bb_upper is None or self.bb_lower is None or self.bb_middle is None:
+            logger.warning(f"{candle_info}BB data not available for entry validation")
+            return False
+        
+        # Check if day levels are available
+        if self.day_high is None or self.day_low is None or self.middle_line is None:
+            logger.warning(f"{candle_info}Day levels not available for entry validation")
+            return False
+        
+        # Check if confirmation was attempted
+        if not self.confirmation_attempted:
+            logger.warning(f"{candle_info}Confirmation not attempted yet")
+            return False
+        
+        return True
+    
+    def _validate_bullish_entry(self, candle: Dict[str, Any], candle_info: str) -> bool:
+        """Validate bullish entry conditions."""
+        current_price = candle.get('close', 0)
+        current_low = candle.get('low', 0)
+        
+        # Additional validation for bullish trend
+        # Check if price is still above middle line (trend strength maintained)
+        if current_price <= self.middle_line:
+            logger.debug(f"{candle_info}Price below middle line, bullish trend strength not maintained")
+            return False
+        
+        # Check if BB lower band is reasonable (not too far from current price)
+        price_to_bb_lower_ratio = abs(current_price - self.bb_lower) / current_price
+        if price_to_bb_lower_ratio > 0.05:  # More than 5% away from BB lower
+            logger.debug(f"{candle_info}BB lower band too far from current price: {price_to_bb_lower_ratio:.2%}")
+            return False
+        
+        # Check if entry makes sense (current low should be close to BB lower)
+        if current_low > self.bb_lower * 1.01:  # More than 1% above BB lower
+            logger.debug(f"{candle_info}Current low too far above BB lower band")
+            return False
+        
+        return True
+    
+    def _validate_bearish_entry(self, candle: Dict[str, Any], candle_info: str) -> bool:
+        """Validate bearish entry conditions."""
+        current_price = candle.get('close', 0)
+        current_high = candle.get('high', 0)
+        
+        # Additional validation for bearish trend
+        # Check if price is still below middle line (trend strength maintained)
+        if current_price >= self.middle_line:
+            logger.debug(f"{candle_info}Price above middle line, bearish trend strength not maintained")
+            return False
+        
+        # Check if BB upper band is reasonable (not too far from current price)
+        price_to_bb_upper_ratio = abs(current_price - self.bb_upper) / current_price
+        if price_to_bb_upper_ratio > 0.05:  # More than 5% away from BB upper
+            logger.debug(f"{candle_info}BB upper band too far from current price: {price_to_bb_upper_ratio:.2%}")
+            return False
+        
+        # Check if entry makes sense (current high should be close to BB upper)
+        if current_high < self.bb_upper * 0.99:  # More than 1% below BB upper
+            logger.debug(f"{candle_info}Current high too far below BB upper band")
+            return False
+        
+        return True
+    
+    def _calculate_target_price(self, direction: str) -> Optional[float]:
+        """Calculate target price based on direction and configuration."""
+        if hasattr(self.config, 'target_price') and self.config.target_price is not None:
+            return self.config.target_price
+        
+        # Calculate target based on day range if no config target
+        if self.day_high is not None and self.day_low is not None:
+            day_range = self.day_high - self.day_low
+            
+            if direction == "LONG":
+                # Target at 1.5x day range above entry
+                return self.entry_price + (day_range * 1.5)
+            elif direction == "SHORT":
+                # Target at 1.5x day range below entry
+                return self.entry_price - (day_range * 1.5)
         
         return None
     
     def _create_signal(self, direction: SignalDirection, timestamp: datetime, candle_info: str) -> Signal:
-        """Create signal object."""
+        """Create signal object with comprehensive metadata."""
         # Update signal state to prevent duplicates
         self.update_signal_state(SignalType.BB_LOWER_ENTRY.value, direction.value)
+        
+        # Calculate additional metrics
+        risk_amount = abs(self.entry_price - self.stop_loss_price)
+        reward_amount = abs(self.target_price - self.entry_price) if self.target_price else 0
+        risk_reward_ratio = reward_amount / risk_amount if risk_amount > 0 else 0
+        
+        # Calculate day range metrics
+        day_range = self.day_high - self.day_low if self.day_high and self.day_low else 0
+        entry_position_in_day = (self.entry_price - self.day_low) / day_range if day_range > 0 else 0
         
         return Signal(
             type=SignalType.BB_LOWER_ENTRY,
@@ -338,7 +454,12 @@ class BBLowerEntryStrategy(EntryStrategy):
                 'entry_price': self.entry_price,
                 'stop_loss_price': self.stop_loss_price,
                 'target_price': self.target_price,
-                'trend_strength_confirmed': self.trend_strength_confirmed
+                'trend_strength_confirmed': self.trend_strength_confirmed,
+                'risk_amount': risk_amount,
+                'reward_amount': reward_amount,
+                'risk_reward_ratio': risk_reward_ratio,
+                'day_range': day_range,
+                'entry_position_in_day': entry_position_in_day
             },
             mr_values={},  # Not used in this strategy
             metadata={
@@ -352,7 +473,14 @@ class BBLowerEntryStrategy(EntryStrategy):
                 'confirmation_attempted': self.confirmation_attempted,
                 'confirmation_failed': self.confirmation_failed,
                 'price_position_at_confirmation': self.price_position_at_confirmation,
-                'day_range_at_confirmation': self.day_range_at_confirmation
+                'day_range_at_confirmation': self.day_range_at_confirmation,
+                'risk_amount': risk_amount,
+                'reward_amount': reward_amount,
+                'risk_reward_ratio': risk_reward_ratio,
+                'stop_loss_percentage': self.stop_loss_percentage,
+                'entry_position_in_day': entry_position_in_day,
+                'bb_width_at_entry': self.current_bb_width,
+                'trade_type': 'BB_LOWER_ENTRY'
             }
         )
     

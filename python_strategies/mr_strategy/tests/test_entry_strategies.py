@@ -361,9 +361,14 @@ async def test_bb_lower_entry_signal_type(config):
     # Set up confirmation as complete
     strategy.confirmation_complete = True
     strategy.trend_strength_confirmed = True
+    strategy.confirmation_attempted = True
     strategy.day_high = 102.0
     strategy.day_low = 99.0
     strategy.middle_line = 100.5
+    strategy.bb_upper = 103.0
+    strategy.bb_lower = 97.0
+    strategy.bb_middle = 100.0
+    strategy.current_bb_width = 0.06
     
     # Test entry signal generation
     candle_entry = {
@@ -376,4 +381,155 @@ async def test_bb_lower_entry_signal_type(config):
     assert signal is not None
     assert signal.type == SignalType.BB_LOWER_ENTRY
     assert signal.direction == SignalDirection.LONG
-    assert signal.price == 97.0  # BB lower band 
+    assert signal.price == 97.0  # BB lower band
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_validation_bullish(config):
+    """Test BB Lower entry strategy bullish entry validation."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up confirmation as complete
+    strategy.confirmation_complete = True
+    strategy.trend_strength_confirmed = True
+    strategy.confirmation_attempted = True
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    strategy.bb_upper = 103.0
+    strategy.bb_lower = 97.0
+    strategy.bb_middle = 100.0
+    strategy.current_bb_width = 0.06
+    
+    # Test valid bullish entry
+    candle_valid = {
+        'timestamp': pd.Timestamp('2024-01-01 14:00:00'),
+        'open': 97.5, 'high': 98.0, 'low': 96.5, 'close': 101.0,  # Close above middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_valid, {})
+    assert signal is not None
+    assert signal.direction == SignalDirection.LONG
+    
+    # Test invalid bullish entry (price below middle line)
+    candle_invalid = {
+        'timestamp': pd.Timestamp('2024-01-01 14:00:00'),
+        'open': 97.5, 'high': 98.0, 'low': 96.5, 'close': 100.0,  # Close below middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_invalid, {})
+    assert signal is None
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_validation_bearish(config):
+    """Test BB Lower entry strategy bearish entry validation."""
+    # Create config with bearish direction
+    bearish_config = MRStrategyConfig(
+        buffer_ticks=5,
+        tick_size=0.05,
+        breakout_percentage=0.003,
+        invalidation_percentage=0.005,
+        instrument_key={"direction": "BEARISH"}
+    )
+    
+    strategy = BBLowerEntryStrategy(bearish_config)
+    
+    # Set up confirmation as complete
+    strategy.confirmation_complete = True
+    strategy.trend_strength_confirmed = True
+    strategy.confirmation_attempted = True
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    strategy.bb_upper = 103.0
+    strategy.bb_lower = 97.0
+    strategy.bb_middle = 100.0
+    strategy.current_bb_width = 0.06
+    
+    # Test valid bearish entry
+    candle_valid = {
+        'timestamp': pd.Timestamp('2024-01-01 14:00:00'),
+        'open': 103.5, 'high': 104.0, 'low': 102.5, 'close': 99.0,  # Close below middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_valid, {})
+    assert signal is not None
+    assert signal.direction == SignalDirection.SHORT
+    assert signal.price == 103.0  # BB upper band
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_target_calculation(config):
+    """Test BB Lower entry strategy target price calculation."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up confirmation as complete
+    strategy.confirmation_complete = True
+    strategy.trend_strength_confirmed = True
+    strategy.confirmation_attempted = True
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    strategy.bb_upper = 103.0
+    strategy.bb_lower = 97.0
+    strategy.bb_middle = 100.0
+    strategy.current_bb_width = 0.06
+    strategy.entry_price = 97.0
+    
+    # Test target calculation for long
+    target_long = strategy._calculate_target_price("LONG")
+    expected_target = 97.0 + (3.0 * 1.5)  # entry + (day_range * 1.5)
+    assert target_long == expected_target
+    
+    # Test target calculation for short
+    target_short = strategy._calculate_target_price("SHORT")
+    expected_target = 97.0 - (3.0 * 1.5)  # entry - (day_range * 1.5)
+    assert target_short == expected_target
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_signal_metadata(config):
+    """Test BB Lower entry strategy signal metadata."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up confirmation as complete
+    strategy.confirmation_complete = True
+    strategy.trend_strength_confirmed = True
+    strategy.confirmation_attempted = True
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    strategy.bb_upper = 103.0
+    strategy.bb_lower = 97.0
+    strategy.bb_middle = 100.0
+    strategy.current_bb_width = 0.06
+    
+    # Test entry signal generation
+    candle_entry = {
+        'timestamp': pd.Timestamp('2024-01-01 14:00:00'),
+        'open': 97.5, 'high': 98.0, 'low': 96.5, 'close': 101.0,
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_entry, {})
+    assert signal is not None
+    
+    # Check signal metadata
+    assert signal.metadata['entry_type'] == 'bb_lower_entry'
+    assert signal.metadata['strategy'] == 'BB_LOWER_ENTRY'
+    assert signal.metadata['trade_type'] == 'BB_LOWER_ENTRY'
+    assert signal.metadata['stop_loss_percentage'] == 0.002
+    assert signal.metadata['bb_width_at_entry'] == 0.06
+    assert signal.metadata['trend_strength_confirmed'] is True
+    assert signal.metadata['confirmation_attempted'] is True
+    assert signal.metadata['confirmation_failed'] is False
+    
+    # Check range values
+    assert signal.range_values['entry_price'] == 97.0
+    assert signal.range_values['stop_loss_price'] == 97.0 * 0.998  # 0.2% below entry
+    assert signal.range_values['day_high'] == 102.0
+    assert signal.range_values['day_low'] == 99.0
+    assert signal.range_values['middle_line'] == 100.5
+    assert 'risk_amount' in signal.range_values
+    assert 'reward_amount' in signal.range_values
+    assert 'risk_reward_ratio' in signal.range_values 
