@@ -1,0 +1,25 @@
+{
+  "api": {
+    "base_url": "http://localhost:8083/api/v1",
+    "timeout": 30,
+    "retry_attempts": 3
+  },
+  "stock_group": {
+    "entry_type": "1ST_ENTRY",
+    "name": "Buying Group"
+  },
+  "files": {
+    "nse_upstox_json": "../../nse_upstox.json",
+    "stocks_input": "1_Buying_28008.txt"
+  },
+  "processing": {
+    "delay_between_requests": 0.5,
+    "batch_size": 50,
+    "max_concurrent_requests": 5
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "stock_processing.log",
+    "format": "%(asctime)s - %(levelname)s - %(message)s"
+  }
+} 

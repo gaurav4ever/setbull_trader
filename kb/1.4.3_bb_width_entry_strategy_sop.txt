@@ -1,7 +1,10 @@
 # Implementation Document: BB Width Entry Strategy (BB_WIDTH_ENTRY)
 
 ## Overview
-The BB Width Entry Strategy (BB_WIDTH_ENTRY) is a volatility squeeze-based entry strategy in the Morning Range backtesting framework that looks for trading opportunities when Bollinger Bands width contracts to a minimum level, indicating a potential breakout. This document provides a comprehensive analysis of the strategy implementation, following the SOP guidelines.
+The BB Width Entry Strategy (BB_WIDTH_ENTRY) is a volatility squeeze-based entry strategy 
+in the Morning Range backtesting framework that looks for trading opportunities when Bollinger Bands width 
+contracts to a minimum level, indicating a potential breakout. 
+This document provides a comprehensive analysis of the strategy implementation, following the SOP guidelines.
 
 ## Strategy Analysis & Design
 

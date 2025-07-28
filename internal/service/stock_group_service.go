@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrMaxStocksPerGroup      = errors.New("cannot have more than 5 stocks in a group")
+	ErrMaxStocksPerGroup      = errors.New("cannot have more than 0 stocks in a group")
 	ErrDuplicateGroup         = errors.New("duplicate group for entry type and stocks")
 	ErrGroupExecutionConflict = errors.New("another group is already executing or pending")
 )
@@ -38,7 +38,7 @@ func NewStockGroupService(
 }
 
 func (s *StockGroupService) CreateGroup(ctx context.Context, entryType string, stockIDs []string) (*domain.StockGroup, error) {
-	if len(stockIDs) == 0 || len(stockIDs) > 5 {
+	if len(stockIDs) == 0 {
 		return nil, ErrMaxStocksPerGroup
 	}
 	// Check for duplicate group (same entryType and stocks)
@@ -73,7 +73,7 @@ func (s *StockGroupService) CreateGroup(ctx context.Context, entryType string, s
 }
 
 func (s *StockGroupService) EditGroup(ctx context.Context, groupID string, stockIDs []string) error {
-	if len(stockIDs) == 0 || len(stockIDs) > 5 {
+	if len(stockIDs) == 0 {
 		return ErrMaxStocksPerGroup
 	}
 	group, err := s.repo.GetByID(ctx, groupID)
