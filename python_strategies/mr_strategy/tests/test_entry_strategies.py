@@ -9,6 +9,7 @@ import pandas as pd
 from ..strategy.entry_strategies.factory import EntryStrategyFactory
 from ..strategy.entry_strategies.first_entry import FirstEntryStrategy
 from ..strategy.entry_strategies.two_thirty_entry import TwoThirtyEntryStrategy
+from ..strategy.entry_strategies.bb_lower_entry import BBLowerEntryStrategy
 from ..strategy.models import SignalType, SignalDirection
 from ..strategy.config import MRStrategyConfig
 
@@ -19,7 +20,8 @@ def config():
         buffer_ticks=5,
         tick_size=0.05,
         breakout_percentage=0.003,
-        invalidation_percentage=0.005
+        invalidation_percentage=0.005,
+        instrument_key={"direction": "BULLISH"}
     )
 
 @pytest.fixture
@@ -146,6 +148,232 @@ def test_entry_strategy_factory(config):
     two_thirty_entry = EntryStrategyFactory.create_strategy("2_30_ENTRY", config)
     assert isinstance(two_thirty_entry, TwoThirtyEntryStrategy)
     
+    # Test BB Lower entry strategy creation
+    bb_lower_entry = EntryStrategyFactory.create_strategy("BB_LOWER_ENTRY", config)
+    assert isinstance(bb_lower_entry, BBLowerEntryStrategy)
+    
     # Test invalid entry type
     with pytest.raises(ValueError):
-        EntryStrategyFactory.create_strategy("INVALID_ENTRY", config) 
+        EntryStrategyFactory.create_strategy("INVALID_ENTRY", config)
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_strategy_creation(config):
+    """Test BB Lower entry strategy creation."""
+    strategy = BBLowerEntryStrategy(config)
+    assert strategy is not None
+    assert strategy.confirmation_time == time(12, 0)
+    assert strategy.stop_loss_percentage == 0.002
+    assert strategy.observing_confirmation is True
+    assert strategy.confirmation_complete is False
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_day_level_tracking(config):
+    """Test BB Lower entry strategy day level tracking."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Test day high tracking
+    candle1 = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0, 'high': 102.0, 'low': 99.0, 'close': 101.0,
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    strategy._update_day_levels(candle1)
+    assert strategy.day_high == 102.0
+    assert strategy.day_low == 99.0
+    assert strategy.middle_line == 100.5
+    
+    # Test day high update
+    candle2 = {
+        'timestamp': pd.Timestamp('2024-01-01 11:00:00'),
+        'open': 101.0, 'high': 104.0, 'low': 100.0, 'close': 103.0,
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    strategy._update_day_levels(candle2)
+    assert strategy.day_high == 104.0  # Updated
+    assert strategy.day_low == 99.0    # Unchanged
+    assert strategy.middle_line == 101.5  # Updated
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_bb_data_validation(config):
+    """Test BB Lower entry strategy BB data validation."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Test valid BB data
+    valid_candle = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0, 'high': 102.0, 'low': 99.0, 'close': 101.0,
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    assert strategy._validate_bb_data(valid_candle) is True
+    
+    # Test missing BB data
+    invalid_candle = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0, 'high': 102.0, 'low': 99.0, 'close': 101.0
+        # Missing BB data
+    }
+    assert strategy._validate_bb_data(invalid_candle) is False
+    
+    # Test invalid BB relationships
+    invalid_bb_candle = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0, 'high': 102.0, 'low': 99.0, 'close': 101.0,
+        'bb_upper': 97.0, 'bb_lower': 103.0, 'bb_middle': 100.0, 'bb_width': 0.06  # Upper < Lower
+    }
+    assert strategy._validate_bb_data(invalid_bb_candle) is False
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_confirmation_phase(config):
+    """Test BB Lower entry strategy confirmation phase."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Test before 12:00 PM (should be in confirmation phase)
+    candle_before = {
+        'timestamp': pd.Timestamp('2024-01-01 10:00:00'),
+        'open': 100.0, 'high': 102.0, 'low': 99.0, 'close': 101.0,
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_before, {})
+    assert signal is None  # Should not generate signal during confirmation phase
+    assert strategy.observing_confirmation is True
+    assert strategy.confirmation_complete is False
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_12pm_confirmation(config):
+    """Test BB Lower entry strategy 12:00 PM confirmation."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up day levels first
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    
+    # Test 12:00 PM confirmation (bullish trend confirmed)
+    candle_1200 = {
+        'timestamp': pd.Timestamp('2024-01-01 12:00:00'),
+        'open': 101.0, 'high': 102.5, 'low': 100.5, 'close': 101.5,  # Close above middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_1200, {})
+    assert signal is None  # Should not generate signal at confirmation time
+    assert strategy.observing_confirmation is False
+    assert strategy.confirmation_complete is True
+    assert strategy.trend_strength_confirmed is True
+    assert strategy.confirmation_attempted is True
+    assert strategy.confirmation_failed is False
+    assert strategy.price_position_at_confirmation == 0.83  # (101.5 - 99.0) / (102.0 - 99.0) = 2.5 / 3.0 = 0.83
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_confirmation_failed(config):
+    """Test BB Lower entry strategy confirmation failure."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up day levels first
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    
+    # Test 12:00 PM confirmation (bullish trend failed - price below middle line)
+    candle_1200 = {
+        'timestamp': pd.Timestamp('2024-01-01 12:00:00'),
+        'open': 100.0, 'high': 100.5, 'low': 99.5, 'close': 100.2,  # Close below middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_1200, {})
+    assert signal is None  # Should not generate signal at confirmation time
+    assert strategy.observing_confirmation is False
+    assert strategy.confirmation_complete is True
+    assert strategy.trend_strength_confirmed is False
+    assert strategy.confirmation_attempted is True
+    assert strategy.confirmation_failed is True
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_insufficient_trend_strength(config):
+    """Test BB Lower entry strategy insufficient trend strength."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up day levels first
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    
+    # Test 12:00 PM confirmation (price above middle but in lower half of range)
+    candle_1200 = {
+        'timestamp': pd.Timestamp('2024-01-01 12:00:00'),
+        'open': 100.0, 'high': 100.8, 'low': 99.8, 'close': 100.2,  # Close above middle but position < 50%
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_1200, {})
+    assert signal is None  # Should not generate signal at confirmation time
+    assert strategy.observing_confirmation is False
+    assert strategy.confirmation_complete is True
+    assert strategy.trend_strength_confirmed is False
+    assert strategy.confirmation_attempted is True
+    assert strategy.confirmation_failed is True
+    assert strategy.price_position_at_confirmation == 0.4  # (100.2 - 99.0) / (102.0 - 99.0) = 1.2 / 3.0 = 0.4
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_bearish_confirmation(config):
+    """Test BB Lower entry strategy bearish confirmation."""
+    # Create config with bearish direction
+    bearish_config = MRStrategyConfig(
+        buffer_ticks=5,
+        tick_size=0.05,
+        breakout_percentage=0.003,
+        invalidation_percentage=0.005,
+        instrument_key={"direction": "BEARISH"}
+    )
+    
+    strategy = BBLowerEntryStrategy(bearish_config)
+    
+    # Set up day levels first
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    
+    # Test 12:00 PM confirmation (bearish trend confirmed - price below middle line)
+    candle_1200 = {
+        'timestamp': pd.Timestamp('2024-01-01 12:00:00'),
+        'open': 100.0, 'high': 100.5, 'low': 99.5, 'close': 99.8,  # Close below middle line
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_1200, {})
+    assert signal is None  # Should not generate signal at confirmation time
+    assert strategy.observing_confirmation is False
+    assert strategy.confirmation_complete is True
+    assert strategy.trend_strength_confirmed is True
+    assert strategy.confirmation_attempted is True
+    assert strategy.confirmation_failed is False
+    assert strategy.price_position_at_confirmation == 0.73  # (102.0 - 99.8) / (102.0 - 99.0) = 2.2 / 3.0 = 0.73
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_signal_type(config):
+    """Test BB Lower entry strategy signal type."""
+    strategy = BBLowerEntryStrategy(config)
+    
+    # Set up confirmation as complete
+    strategy.confirmation_complete = True
+    strategy.trend_strength_confirmed = True
+    strategy.day_high = 102.0
+    strategy.day_low = 99.0
+    strategy.middle_line = 100.5
+    
+    # Test entry signal generation
+    candle_entry = {
+        'timestamp': pd.Timestamp('2024-01-01 14:00:00'),
+        'open': 97.5, 'high': 98.0, 'low': 96.5, 'close': 97.0,  # Low <= BB lower
+        'bb_upper': 103.0, 'bb_lower': 97.0, 'bb_middle': 100.0, 'bb_width': 0.06
+    }
+    
+    signal = await strategy.check_entry_conditions(candle_entry, {})
+    assert signal is not None
+    assert signal.type == SignalType.BB_LOWER_ENTRY
+    assert signal.direction == SignalDirection.LONG
+    assert signal.price == 97.0  # BB lower band 

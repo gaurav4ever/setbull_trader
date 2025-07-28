@@ -50,6 +50,9 @@ class MRStrategyConfig:
     squeeze_duration_min: int = 3  # Minimum 3 candles
     squeeze_duration_max: int = 5  # Maximum 5 candles
     
+    # BB Lower strategy parameters
+    instrument_key: Optional[dict] = None  # Contains direction and other instrument info
+    
     def __post_init__(self):
         """Validate configuration values after initialization."""
         if self.breakout_percentage <= 0:
