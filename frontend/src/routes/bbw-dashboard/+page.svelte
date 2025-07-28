@@ -25,16 +25,97 @@
         lastDataAgeMinutes
     } = store);
     
-    // Subscribe to derived stores with safe fallbacks
-    $: filteredStocks = $bbwDashboardStore.filteredStocks || [];
-    $: stats = $bbwDashboardStore.dashboardStats || {
-        totalStocks: 0,
-        alertedStocks: 0,
-        contractingStocks: 0,
-        expandingStocks: 0,
-        stableStocks: 0,
-        avgBBW: '0.0000'
-    };
+    // Implement filtering and sorting logic directly in the component
+    $: filteredStocks = (() => {
+        let stocks = [...($bbwDashboardStore.stocks || [])];
+        
+        // Apply search filter
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            stocks = stocks.filter(stock => 
+                stock.symbol?.toLowerCase().includes(term) ||
+                stock.instrument_key?.toLowerCase().includes(term)
+            );
+        }
+
+        // Apply category filter
+        switch (filterBy) {
+            case 'alerted':
+                stocks = stocks.filter(stock => stock.alert_triggered);
+                break;
+            case 'contracting':
+                stocks = stocks.filter(stock => stock.bb_width_trend === 'contracting');
+                break;
+            case 'expanding':
+                stocks = stocks.filter(stock => stock.bb_width_trend === 'expanding');
+                break;
+            case 'stable':
+                stocks = stocks.filter(stock => stock.bb_width_trend === 'stable');
+                break;
+        }
+        
+        // Apply sorting
+        stocks.sort((a, b) => {
+            let aVal = a[sortBy];
+            let bVal = b[sortBy];
+            
+            // Handle numeric values
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+            }
+            
+            // Handle string values
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+                return sortOrder === 'asc' 
+                    ? aVal.localeCompare(bVal) 
+                    : bVal.localeCompare(aVal);
+            }
+            
+            return 0;
+        });
+        
+        return stocks;
+    })();
+
+    // Calculate statistics
+    $: stats = (() => {
+        const stocks = $bbwDashboardStore.stocks || [];
+        const totalStocks = stocks.length;
+        const alertedStocks = stocks.filter(s => s.alert_triggered).length;
+        const contractingStocks = stocks.filter(s => s.bb_width_trend === 'contracting').length;
+        const expandingStocks = stocks.filter(s => s.bb_width_trend === 'expanding').length;
+        const stableStocks = stocks.filter(s => s.bb_width_trend === 'stable').length;
+        
+        // Calculate average BBW
+        const avgBBW = stocks.length > 0 
+            ? stocks.reduce((sum, stock) => sum + (stock.current_bb_width || 0), 0) / stocks.length 
+            : 0;
+        
+        return {
+            totalStocks,
+            alertedStocks,
+            contractingStocks,
+            expandingStocks,
+            stableStocks,
+            avgBBW: avgBBW.toFixed(4)
+        };
+    })();
+        
+    // Debug: Log store state changes
+    $: console.log('Store state updated:', {
+        stocks: $bbwDashboardStore.stocks?.length || 0,
+        loading: $bbwDashboardStore.loading,
+        error: $bbwDashboardStore.error,
+        filteredStocks: filteredStocks?.length || 0,
+        stats: stats
+    });
+    
+    // Debug: Log derived store values
+    $: console.log('Derived store values:', {
+        filteredStocksLength: filteredStocks?.length || 0,
+        statsTotalStocks: stats?.totalStocks || 0,
+        statsAlertedStocks: stats?.alertedStocks || 0
+    });
     
     // Format current time
     $: formattedTime = currentTime ? currentTime.toLocaleTimeString('en-IN', { 
@@ -59,12 +140,23 @@
     
     // Initialize dashboard on mount
     onMount(async () => {
+        console.log('Component mounted, initializing store...');
         try {
+            console.log('About to call bbwDashboardStore.initialize()');
             await bbwDashboardStore.initialize();
+            console.log('Store initialized successfully');
+            
+            // Test derived stores manually
+            console.log('Testing derived stores...');
+            console.log('Main store stocks:', $bbwDashboardStore.stocks?.length || 0);
+            console.log('Filtered stocks:', filteredStocks?.length || 0);
+            console.log('Stats:', stats);
         } catch (err) {
             console.error('Failed to initialize BBW Dashboard:', err);
         }
     });
+    
+
     
     // Cleanup on destroy
     onDestroy(() => {
@@ -79,6 +171,7 @@
     // Handle sort change
     function handleSortChange(event) {
         const [field, order] = event.target.value.split('-');
+        console.log('Sorting changed:', field, order);
         bbwDashboardStore.setSort(field, order);
     }
     

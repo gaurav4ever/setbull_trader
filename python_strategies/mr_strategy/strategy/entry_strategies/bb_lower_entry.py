@@ -102,10 +102,10 @@ class BBLowerEntryStrategy(EntryStrategy):
                 return None
             
             # Extract BB values
-            self.bb_upper = candle.get('bb_upper', 0)
-            self.bb_lower = candle.get('bb_lower', 0)
-            self.bb_middle = candle.get('bb_middle', 0)
-            self.current_bb_width = candle.get('bb_width', 0)
+            self.bb_upper = candle.get('bb_upper_x', 0)
+            self.bb_lower = candle.get('bb_lower_x', 0)
+            self.bb_middle = candle.get('bb_middle_x', 0)
+            self.current_bb_width = candle.get('bb_width_x', 0)
             
             # Update day levels
             self._update_day_levels(candle)
@@ -145,7 +145,8 @@ class BBLowerEntryStrategy(EntryStrategy):
     
     def _validate_bb_data(self, candle: Dict[str, Any]) -> bool:
         """Validate that required BB data is present and valid."""
-        required_fields = ['bb_upper', 'bb_lower', 'bb_middle', 'bb_width']
+        # required_fields = ['bb_upper', 'bb_lower', 'bb_middle', 'bb_width']
+        required_fields = ['bb_upper_x', 'bb_lower_x', 'bb_middle_x', 'bb_width_x']
         
         # Check for required fields
         for field in required_fields:
@@ -159,9 +160,9 @@ class BBLowerEntryStrategy(EntryStrategy):
                 return False
         
         # Validate BB relationships
-        bb_upper = candle['bb_upper']
-        bb_lower = candle['bb_lower']
-        bb_middle = candle['bb_middle']
+        bb_upper = candle['bb_upper_x']
+        bb_lower = candle['bb_lower_x']
+        bb_middle = candle['bb_middle_x']
         
         if bb_upper <= bb_lower:
             logger.warning(f"Invalid BB relationship: upper ({bb_upper}) <= lower ({bb_lower})")

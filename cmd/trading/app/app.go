@@ -255,6 +255,7 @@ func NewApp() *App {
 		stockGroupHandler,
 		masterDataHandler,
 		bbwDashboardHandler,
+		websocketHub,
 	)
 
 	// Wire up the group execution scheduler with BB width monitoring
@@ -333,7 +334,7 @@ func (a *App) Run() error {
 		a.websocketHub.Run()
 	}()
 
-	var enable1MinCandleIngestion = false
+	var enable1MinCandleIngestion = true
 
 	if enable1MinCandleIngestion {
 		// Start precise 1-min ingestion and aggregation loop
@@ -413,7 +414,7 @@ func (a *App) Run() error {
 						}
 
 						if latestCandle != nil {
-							log.Info("[LIVE] Aggregating 5-min candles for %s at %s", instrumentKey, latestCandle.Timestamp.Format("15:04"))
+							log.Info("[LIVE] Aggregating 5-min candles for %s at %s", instrumentKey, latestCandle.Timestamp.Format("2006-01-02 15:04:05"))
 							if err := a.candleProcessingService.AggregateAndStore5MinCandles(ctx, instrumentKey, latestCandle.Timestamp); err != nil {
 								log.Error("[LIVE] Failed to aggregate 5-min candles for %s: %v", instrumentKey, err)
 							} else {

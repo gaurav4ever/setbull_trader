@@ -217,7 +217,10 @@ func (s *BatchFetchService) processInstrumentWithIntervals(
 	// Process data in 4-day intervals
 	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
 		// Calculate the end date for this interval (4 days from current date)
-		intervalEndDate := currentDate.AddDate(0, 0, 4)
+		intervalEndDate := currentDate.AddDate(0, 0, 100)
+		if interval == "1minute" {
+			intervalEndDate = currentDate.AddDate(0, 0, 4)
+		}
 
 		// If the calculated end date exceeds the requested toDate, use toDate instead
 		if intervalEndDate.After(toDate) {

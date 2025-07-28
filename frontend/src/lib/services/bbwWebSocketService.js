@@ -19,8 +19,8 @@ class BBWWebSocketService {
         }
 
         try {
-            // Use relative WebSocket URL to leverage Vite proxy
-            const wsUrl = `ws://${window.location.host}/api/v1/bbw/live`;
+            // Connect to the backend server directly on port 8083
+            const wsUrl = `ws://localhost:8083/api/v1/bbw/live`;
             console.log('Connecting to BBW WebSocket:', wsUrl);
             
             this.ws = new WebSocket(wsUrl);
@@ -83,6 +83,9 @@ class BBWWebSocketService {
     handleMessage(data) {
         switch (data.type) {
             case 'bbw_update':
+                this.notifyListeners('bbw_update', data.data);
+                break;
+            case 'bbw_dashboard_update':
                 this.notifyListeners('bbw_update', data.data);
                 break;
             case 'alert_triggered':
