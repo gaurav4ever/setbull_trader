@@ -23,8 +23,8 @@ class BBLowerEntryStrategy(EntryStrategy):
         super().__init__(config)
         
         # BB Lower strategy specific parameters
-        self.confirmation_time = time(12, 0)  # 12:00 PM
-        self.stop_loss_percentage = 0.002     # 0.2% stop loss
+        self.confirmation_time = getattr(self.config, 'bb_lower_confirmation_time', time(12, 0))  # 12:00 PM
+        self.stop_loss_percentage = getattr(self.config, 'bb_lower_stop_loss_percentage', 0.002)  # 0.2% stop loss
         self.market_open = time(9, 15)        # Market open
         self.market_close = time(15, 30)      # Market close
         
@@ -414,13 +414,14 @@ class BBLowerEntryStrategy(EntryStrategy):
         # Calculate target based on day range if no config target
         if self.day_high is not None and self.day_low is not None:
             day_range = self.day_high - self.day_low
+            target_multiplier = getattr(self.config, 'bb_lower_target_multiplier', 1.5)
             
             if direction == "LONG":
-                # Target at 1.5x day range above entry
-                return self.entry_price + (day_range * 1.5)
+                # Target at configurable multiplier x day range above entry
+                return self.entry_price + (day_range * target_multiplier)
             elif direction == "SHORT":
-                # Target at 1.5x day range below entry
-                return self.entry_price - (day_range * 1.5)
+                # Target at configurable multiplier x day range below entry
+                return self.entry_price - (day_range * target_multiplier)
         
         return None
     

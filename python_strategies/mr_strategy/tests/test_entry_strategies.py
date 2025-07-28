@@ -532,4 +532,147 @@ async def test_bb_lower_entry_signal_metadata(config):
     assert signal.range_values['middle_line'] == 100.5
     assert 'risk_amount' in signal.range_values
     assert 'reward_amount' in signal.range_values
-    assert 'risk_reward_ratio' in signal.range_values 
+    assert 'risk_reward_ratio' in signal.range_values
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_data_processing_integration(config):
+    """Test BB Lower entry strategy data processing integration."""
+    from mr_strategy.data.data_processor import CandleProcessor
+    import pandas as pd
+    import numpy as np
+    
+    # Create sample candle data
+    dates = pd.date_range('2024-01-01 09:15:00', '2024-01-01 15:30:00', freq='5min')
+    sample_data = pd.DataFrame({
+        'timestamp': dates,
+        'open': np.random.uniform(100, 102, len(dates)),
+        'high': np.random.uniform(102, 104, len(dates)),
+        'low': np.random.uniform(98, 100, len(dates)),
+        'close': np.random.uniform(100, 102, len(dates)),
+        'volume': np.random.randint(1000, 10000, len(dates))
+    })
+    
+    # Process data with BB indicators
+    processor = CandleProcessor()
+    processed_data = processor.add_bb_indicators_for_strategy(sample_data)
+    
+    # Validate BB data is present
+    assert 'bb_upper' in processed_data.columns
+    assert 'bb_lower' in processed_data.columns
+    assert 'bb_middle' in processed_data.columns
+    assert 'bb_width' in processed_data.columns
+    
+    # Validate BB data relationships
+    assert (processed_data['bb_upper'] >= processed_data['bb_lower']).all()
+    assert (processed_data['bb_middle'] >= processed_data['bb_lower']).all()
+    assert (processed_data['bb_upper'] >= processed_data['bb_middle']).all()
+    
+    # Test BB data validation
+    assert processor.validate_bb_data_for_strategy(processed_data) is True
+    
+    # Test with missing BB data
+    invalid_data = sample_data.copy()
+    assert processor.validate_bb_data_for_strategy(invalid_data) is False
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_configuration_integration():
+    """Test BB Lower entry strategy configuration integration."""
+    from mr_strategy.strategy.config import MRStrategyConfig
+    from datetime import time
+    
+    # Test default configuration
+    config = MRStrategyConfig(
+        instrument_key={"direction": "BULLISH"}
+    )
+    
+    assert config.bb_lower_period == 20
+    assert config.bb_lower_std_dev == 2.0
+    assert config.bb_lower_confirmation_time == time(12, 0)
+    assert config.bb_lower_stop_loss_percentage == 0.002
+    assert config.bb_lower_target_multiplier == 1.5
+    assert config.bb_lower_volume_confirmation_enabled is True
+    assert config.bb_lower_buying_volume_ratio == 1.5
+    assert config.bb_lower_selling_volume_ratio == 1.5
+    assert config.bb_lower_volume_analysis_window == 5
+    
+    # Test custom configuration
+    custom_config = MRStrategyConfig(
+        instrument_key={"direction": "BULLISH"},
+        bb_lower_period=30,
+        bb_lower_std_dev=2.5,
+        bb_lower_confirmation_time=time(11, 30),
+        bb_lower_stop_loss_percentage=0.003,
+        bb_lower_target_multiplier=2.0,
+        bb_lower_volume_confirmation_enabled=False,
+        bb_lower_buying_volume_ratio=2.0,
+        bb_lower_selling_volume_ratio=2.0,
+        bb_lower_volume_analysis_window=10
+    )
+    
+    assert custom_config.bb_lower_period == 30
+    assert custom_config.bb_lower_std_dev == 2.5
+    assert custom_config.bb_lower_confirmation_time == time(11, 30)
+    assert custom_config.bb_lower_stop_loss_percentage == 0.003
+    assert custom_config.bb_lower_target_multiplier == 2.0
+    assert custom_config.bb_lower_volume_confirmation_enabled is False
+    assert custom_config.bb_lower_buying_volume_ratio == 2.0
+    assert custom_config.bb_lower_selling_volume_ratio == 2.0
+    assert custom_config.bb_lower_volume_analysis_window == 10
+
+@pytest.mark.asyncio
+async def test_bb_lower_entry_strategy_with_processed_data(config):
+    """Test BB Lower entry strategy with processed data from data processor."""
+    from mr_strategy.data.data_processor import CandleProcessor
+    import pandas as pd
+    import numpy as np
+    
+    # Create sample candle data
+    dates = pd.date_range('2024-01-01 09:15:00', '2024-01-01 15:30:00', freq='5min')
+    sample_data = pd.DataFrame({
+        'timestamp': dates,
+        'open': np.random.uniform(100, 102, len(dates)),
+        'high': np.random.uniform(102, 104, len(dates)),
+        'low': np.random.uniform(98, 100, len(dates)),
+        'close': np.random.uniform(100, 102, len(dates)),
+        'volume': np.random.randint(1000, 10000, len(dates))
+    })
+    
+    # Process data with BB indicators
+    processor = CandleProcessor()
+    processed_data = processor.add_bb_indicators_for_strategy(sample_data)
+    
+    # Create strategy with custom configuration
+    custom_config = MRStrategyConfig(
+        instrument_key={"direction": "BULLISH"},
+        bb_lower_period=20,
+        bb_lower_std_dev=2.0,
+        bb_lower_target_multiplier=2.0
+    )
+    
+    strategy = BBLowerEntryStrategy(custom_config)
+    
+    # Test with processed data
+    for idx, row in processed_data.iterrows():
+        candle = row.to_dict()
+        
+        # Skip first few candles (need enough data for BB calculation)
+        if idx < 20:
+            continue
+            
+        # Test at 12:00 PM for confirmation
+        if row['timestamp'].time() == time(12, 0):
+            signal = await strategy.check_entry_conditions(candle, {})
+            # Should not generate signal at confirmation time
+            assert signal is None
+            
+        # Test after 12:00 PM for entry
+        elif row['timestamp'].time() > time(12, 0):
+            signal = await strategy.check_entry_conditions(candle, {})
+            # May or may not generate signal depending on conditions
+            if signal is not None:
+                assert signal.type == SignalType.BB_LOWER_ENTRY
+                assert signal.direction == SignalDirection.LONG
+                assert 'bb_upper' in signal.range_values
+                assert 'bb_lower' in signal.range_values
+                assert 'bb_middle' in signal.range_values
+                assert 'bb_width' in signal.range_values 

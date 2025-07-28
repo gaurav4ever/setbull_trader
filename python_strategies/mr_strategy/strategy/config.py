@@ -52,6 +52,15 @@ class MRStrategyConfig:
     
     # BB Lower strategy parameters
     instrument_key: Optional[dict] = None  # Contains direction and other instrument info
+    bb_lower_period: int = 20  # Period for BB calculation in BB_LOWER_ENTRY
+    bb_lower_std_dev: float = 2.0  # Standard deviation for BB calculation in BB_LOWER_ENTRY
+    bb_lower_confirmation_time: time = time(12, 0)  # 12:00 PM confirmation time
+    bb_lower_stop_loss_percentage: float = 0.002  # 0.2% stop loss
+    bb_lower_target_multiplier: float = 1.5  # Target as 1.5x day range
+    bb_lower_volume_confirmation_enabled: bool = True  # Enable volume confirmation
+    bb_lower_buying_volume_ratio: float = 1.5  # Minimum buying volume ratio for bullish trend
+    bb_lower_selling_volume_ratio: float = 1.5  # Minimum selling volume ratio for bearish trend
+    bb_lower_volume_analysis_window: int = 5  # Number of candles for volume analysis
     
     def __post_init__(self):
         """Validate configuration values after initialization."""
@@ -79,6 +88,22 @@ class MRStrategyConfig:
             raise ValueError("squeeze_duration_max must be positive")
         if self.squeeze_duration_min > self.squeeze_duration_max:
             raise ValueError("squeeze_duration_min cannot be greater than squeeze_duration_max")
+        
+        # BB Lower strategy validation
+        if self.bb_lower_period <= 0:
+            raise ValueError("bb_lower_period must be positive")
+        if self.bb_lower_std_dev <= 0:
+            raise ValueError("bb_lower_std_dev must be positive")
+        if self.bb_lower_stop_loss_percentage <= 0:
+            raise ValueError("bb_lower_stop_loss_percentage must be positive")
+        if self.bb_lower_target_multiplier <= 0:
+            raise ValueError("bb_lower_target_multiplier must be positive")
+        if self.bb_lower_buying_volume_ratio <= 0:
+            raise ValueError("bb_lower_buying_volume_ratio must be positive")
+        if self.bb_lower_selling_volume_ratio <= 0:
+            raise ValueError("bb_lower_selling_volume_ratio must be positive")
+        if self.bb_lower_volume_analysis_window <= 0:
+            raise ValueError("bb_lower_volume_analysis_window must be positive")
 
 @dataclass
 class BreakoutState:
