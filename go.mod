@@ -7,10 +7,12 @@ toolchain go1.23.3
 require (
 	github.com/antihax/optional v1.0.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-gota/gota v0.12.0
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/lib/pq v1.10.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -26,8 +28,8 @@ require (
 )
 
 require (
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
+	gonum.org/v1/gonum v0.9.1 // indirect
 )
 
 require (

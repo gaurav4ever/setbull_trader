@@ -23,6 +23,35 @@ bbw_dashboard:
     processing_timeout: 30      # Processing timeout in seconds
     data_retention_days: 180    # Data retention period in days
 
+# V2 Strategy Engine Configuration
+strategy_engine_v2:
+  enabled: true
+  processing:
+    concurrent_workers: 10
+    processing_timeout: 30s
+    max_historical_candles: 100
+    batch_size: 50
+  dataframe:
+    library: "gota"
+    memory_limit_mb: 512
+    enable_parallel_processing: true
+  strategies:
+    registry:
+      auto_discovery: true
+      discovery_path: "./internal/strategy/v2/strategies"
+    execution:
+      parallel_strategies: true
+      strategy_timeout: 10s
+      error_handling: "continue_on_error"
+  persistence:
+    batch_insert: true
+    batch_size: 100
+    enable_audit_log: true
+  monitoring:
+    enable_metrics: true
+    enable_tracing: true
+    log_level: "info"
+
 dhan:
   base_url: "https://api.dhan.co"
   access_token: "xyz"

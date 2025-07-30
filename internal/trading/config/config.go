@@ -21,6 +21,7 @@ type Config struct {
 	HistoricalData                     HistoricalDataConfig    `mapstructure:"historical_data"`
 	MambaFilter                        MambaFilterConfig       `mapstructure:"mamba_filter" yaml:"mamba_filter"`
 	BBWidthMonitoring                  BBWidthMonitoringConfig `mapstructure:"bb_width_monitoring" yaml:"bb_width_monitoring"`
+	StrategyEngineV2                   StrategyEngineV2Config  `mapstructure:"strategy_engine_v2" yaml:"strategy_engine_v2"`
 	OneMinCandleIngestionOffsetSeconds int                     `mapstructure:"one_min_candle_ingestion_offset_seconds" yaml:"one_min_candle_ingestion_offset_seconds"`
 	Database                           struct {
 		MasterDatasource struct {
@@ -177,6 +178,49 @@ type BBWDashboardConfig struct {
 	} `yaml:"processing" json:"processing"`
 }
 
+// StrategyEngineV2Config contains configuration for V2 Strategy Engine
+type StrategyEngineV2Config struct {
+	Enabled bool `yaml:"enabled" json:"enabled"`
+
+	Processing struct {
+		ConcurrentWorkers    int           `yaml:"concurrent_workers" json:"concurrent_workers"`
+		ProcessingTimeout    time.Duration `yaml:"processing_timeout" json:"processing_timeout"`
+		MaxHistoricalCandles int           `yaml:"max_historical_candles" json:"max_historical_candles"`
+		BatchSize            int           `yaml:"batch_size" json:"batch_size"`
+		DataRetentionDays    int           `yaml:"data_retention_days" json:"data_retention_days"`
+	} `yaml:"processing" json:"processing"`
+
+	DataFrame struct {
+		Library                  string `yaml:"library" json:"library"`
+		MemoryLimitMB            int    `yaml:"memory_limit_mb" json:"memory_limit_mb"`
+		EnableParallelProcessing bool   `yaml:"enable_parallel_processing" json:"enable_parallel_processing"`
+	} `yaml:"dataframe" json:"dataframe"`
+
+	Strategies struct {
+		Registry struct {
+			AutoDiscovery bool   `yaml:"auto_discovery" json:"auto_discovery"`
+			DiscoveryPath string `yaml:"discovery_path" json:"discovery_path"`
+		} `yaml:"registry" json:"registry"`
+		Execution struct {
+			ParallelStrategies bool          `yaml:"parallel_strategies" json:"parallel_strategies"`
+			StrategyTimeout    time.Duration `yaml:"strategy_timeout" json:"strategy_timeout"`
+			ErrorHandling      string        `yaml:"error_handling" json:"error_handling"`
+		} `yaml:"execution" json:"execution"`
+	} `yaml:"strategies" json:"strategies"`
+
+	Persistence struct {
+		BatchInsert    bool `yaml:"batch_insert" json:"batch_insert"`
+		BatchSize      int  `yaml:"batch_size" json:"batch_size"`
+		EnableAuditLog bool `yaml:"enable_audit_log" json:"enable_audit_log"`
+	} `yaml:"persistence" json:"persistence"`
+
+	Monitoring struct {
+		EnableMetrics bool   `yaml:"enable_metrics" json:"enable_metrics"`
+		EnableTracing bool   `yaml:"enable_tracing" json:"enable_tracing"`
+		LogLevel      string `yaml:"log_level" json:"log_level"`
+	} `yaml:"monitoring" json:"monitoring"`
+}
+
 // DefaultBBWDashboardConfig returns default BBW Dashboard configuration
 func DefaultBBWDashboardConfig() *BBWDashboardConfig {
 	config := &BBWDashboardConfig{}
@@ -200,6 +244,42 @@ func DefaultBBWDashboardConfig() *BBWDashboardConfig {
 	config.Processing.ConcurrentWorkers = 10
 	config.Processing.ProcessingTimeout = 30  // 30 seconds
 	config.Processing.DataRetentionDays = 180 // 6 months
+
+	return config
+}
+
+// DefaultStrategyEngineV2Config returns default V2 Strategy Engine configuration
+func DefaultStrategyEngineV2Config() *StrategyEngineV2Config {
+	config := &StrategyEngineV2Config{}
+
+	// Default processing configuration
+	config.Processing.ConcurrentWorkers = 10
+	config.Processing.ProcessingTimeout = 30 * time.Second
+	config.Processing.MaxHistoricalCandles = 100
+	config.Processing.BatchSize = 50
+	config.Processing.DataRetentionDays = 30
+
+	// Default DataFrame configuration
+	config.DataFrame.Library = "gota"
+	config.DataFrame.MemoryLimitMB = 512
+	config.DataFrame.EnableParallelProcessing = true
+
+	// Default strategies configuration
+	config.Strategies.Registry.AutoDiscovery = true
+	config.Strategies.Registry.DiscoveryPath = "./internal/strategy/v2/strategies"
+	config.Strategies.Execution.ParallelStrategies = true
+	config.Strategies.Execution.StrategyTimeout = 10 * time.Second
+	config.Strategies.Execution.ErrorHandling = "continue_on_error"
+
+	// Default persistence configuration
+	config.Persistence.BatchInsert = true
+	config.Persistence.BatchSize = 100
+	config.Persistence.EnableAuditLog = true
+
+	// Default monitoring configuration
+	config.Monitoring.EnableMetrics = true
+	config.Monitoring.EnableTracing = true
+	config.Monitoring.LogLevel = "info"
 
 	return config
 }
@@ -231,6 +311,7 @@ func LoadConfig() (*Config, error) {
 	// Set default values BEFORE validation
 	setDefaultHistoricalDataConfig(&config)
 	setDefaultBBWidthMonitoringConfig(&config)
+	setDefaultStrategyEngineV2Config(&config)
 
 	// Validate BB Width Monitoring configuration AFTER setting defaults
 	if err := config.ValidateBBWidthMonitoringConfig(); err != nil {
@@ -297,6 +378,13 @@ func setDefaultBBWidthMonitoringConfig(config *Config) {
 				BBRange: "BB_RANGE",
 			},
 		}
+	}
+}
+
+func setDefaultStrategyEngineV2Config(config *Config) {
+	if config.StrategyEngineV2 == (StrategyEngineV2Config{}) {
+		defaultConfig := DefaultStrategyEngineV2Config()
+		config.StrategyEngineV2 = *defaultConfig
 	}
 }
 
