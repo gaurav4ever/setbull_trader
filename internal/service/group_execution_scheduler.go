@@ -43,6 +43,7 @@ func NewGroupExecutionScheduler(
 	return s
 }
 
+// app.go event comes here as a listener.
 // OnFiveMinClose listener is called when a new 5-min candle closes
 func (s *GroupExecutionScheduler) OnFiveMinClose(start, end time.Time) {
 	log.Info("[Scheduler] Received 5-min candle close event from %s to %s", start.Format(time.RFC3339), end.Format(time.RFC3339))

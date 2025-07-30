@@ -349,7 +349,7 @@ func (s *BBWidthMonitorService) getLowestMinBBWidth(ctx context.Context, instrum
 
 // calculateBBWidthRange calculates the optimal range (±0.10% of lowest_min_bb_width)
 func (s *BBWidthMonitorService) calculateBBWidthRange(lowestMinBBWidth float64) (minRange, maxRange float64) {
-	rangeThresholdPercent := 0.10 // Default ±0.10%
+	rangeThresholdPercent := 10.0 // Default ±10%
 	if s.config != nil {
 		rangeThresholdPercent = s.config.PatternDetection.RangeThresholdPercent
 	}
