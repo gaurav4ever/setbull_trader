@@ -221,7 +221,7 @@ func (s *GroupExecutionSchedulerV2) processV2Results(
 			log.Info("[SchedulerV2] Strategy %s processed %d rows, added %d columns in %v",
 				result.StrategyName, result.RowsProcessed, len(result.ColumnsAdded), result.ProcessingTime)
 
-			// TODO: Implement result persistence
+			// TODO: Implement result persistence PHASE 3
 			// - Store strategy results to database
 			// - Trigger alerts based on strategy outputs
 			// - Update real-time dashboards
