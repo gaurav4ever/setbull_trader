@@ -9,9 +9,7 @@ CREATE TABLE strategy_parameters_v2 (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    -- Common parameters across all strategies
-    in_long_trade BOOLEAN DEFAULT FALSE,
-    in_short_trade BOOLEAN DEFAULT FALSE,
+    -- Common parameters across all strategies (signal generation only)
     can_generate_long BOOLEAN DEFAULT TRUE,
     can_generate_short BOOLEAN DEFAULT TRUE,
     
@@ -21,6 +19,7 @@ CREATE TABLE strategy_parameters_v2 (
     mr_high_with_buffer DECIMAL(10,2),
     mr_low_with_buffer DECIMAL(10,2),
     buffer_percentage DECIMAL(5,4),
+    mr_calculated BOOLEAN DEFAULT FALSE,
     
     -- 2_30_ENTRY strategy parameters
     entry_time TIME,

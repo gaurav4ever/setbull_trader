@@ -26,7 +26,7 @@ func (r *StrategyParametersRepositoryImpl) SaveParameters(stockID, strategyName 
 	query := `
 		INSERT INTO strategy_parameters_v2 (
 			stock_id, strategy_name, candle_timestamp,
-			in_long_trade, in_short_trade, can_generate_long, can_generate_short,
+			can_generate_long, can_generate_short,
 			mr_high, mr_low, mr_high_with_buffer, mr_low_with_buffer, buffer_percentage,
 			entry_time, range_high, range_low, range_high_entry_price, range_low_entry_price, direction,
 			bb_width_threshold, bb_period, bb_std_dev, current_bb_width, lowest_bb_width,
@@ -35,12 +35,10 @@ func (r *StrategyParametersRepositoryImpl) SaveParameters(stockID, strategyName 
 			strategy_state, metadata
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-			$19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
+			$19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
 		)
 		ON CONFLICT (stock_id, strategy_name, candle_timestamp) 
 		DO UPDATE SET
-			in_long_trade = EXCLUDED.in_long_trade,
-			in_short_trade = EXCLUDED.in_short_trade,
 			can_generate_long = EXCLUDED.can_generate_long,
 			can_generate_short = EXCLUDED.can_generate_short,
 			mr_high = EXCLUDED.mr_high,
@@ -83,7 +81,7 @@ func (r *StrategyParametersRepositoryImpl) SaveParameters(stockID, strategyName 
 
 	_, err = r.db.Exec(query,
 		stockID, strategyName, timestamp,
-		params.InLongTrade, params.InShortTrade, params.CanGenerateLong, params.CanGenerateShort,
+		params.CanGenerateLong, params.CanGenerateShort,
 		params.MRHigh, params.MRLow, params.MRHighWithBuffer, params.MRLowWithBuffer, params.BufferPercentage,
 		params.EntryTime, params.RangeHigh, params.RangeLow, params.RangeHighEntryPrice, params.RangeLowEntryPrice, params.Direction,
 		params.BBWidthThreshold, params.BBPeriod, params.BBStdDev, params.CurrentBBWidth, params.LowestBBWidth,
@@ -104,7 +102,7 @@ func (r *StrategyParametersRepositoryImpl) GetParameters(stockID, strategyName s
 	query := `
 		SELECT 
 			id, stock_id, strategy_name, candle_timestamp, created_at, updated_at, active,
-			in_long_trade, in_short_trade, can_generate_long, can_generate_short,
+			can_generate_long, can_generate_short,
 			mr_high, mr_low, mr_high_with_buffer, mr_low_with_buffer, buffer_percentage,
 			entry_time, range_high, range_low, range_high_entry_price, range_low_entry_price, direction,
 			bb_width_threshold, bb_period, bb_std_dev, current_bb_width, lowest_bb_width,
@@ -140,7 +138,7 @@ func (r *StrategyParametersRepositoryImpl) GetParametersRange(stockID, strategyN
 	query := `
 		SELECT 
 			id, stock_id, strategy_name, candle_timestamp, created_at, updated_at, active,
-			in_long_trade, in_short_trade, can_generate_long, can_generate_short,
+			can_generate_long, can_generate_short,
 			mr_high, mr_low, mr_high_with_buffer, mr_low_with_buffer, buffer_percentage,
 			entry_time, range_high, range_low, range_high_entry_price, range_low_entry_price, direction,
 			bb_width_threshold, bb_period, bb_std_dev, current_bb_width, lowest_bb_width,
@@ -175,7 +173,7 @@ func (r *StrategyParametersRepositoryImpl) GetParametersRange(stockID, strategyN
 func (r *StrategyParametersRepositoryImpl) GetLatestParameters(stockID, strategyName string) (*StrategyParameters, error) {
 	query := `
 		SELECT 
-			in_long_trade, in_short_trade, can_generate_long, can_generate_short,
+			can_generate_long, can_generate_short,
 			mr_high, mr_low, mr_high_with_buffer, mr_low_with_buffer, buffer_percentage,
 			entry_time, range_high, range_low, range_high_entry_price, range_low_entry_price, direction,
 			bb_width_threshold, bb_period, bb_std_dev, current_bb_width, lowest_bb_width,
@@ -212,7 +210,7 @@ func (r *StrategyParametersRepositoryImpl) GetLatestParameters(stockID, strategy
 func (r *StrategyParametersRepositoryImpl) UpdateParameters(id int64, params *StrategyParameters) error {
 	query := `
 		UPDATE strategy_parameters_v2 SET
-			in_long_trade = $2, in_short_trade = $3, can_generate_long = $4, can_generate_short = $5,
+			can_generate_long = $2, can_generate_short = $3,
 			mr_high = $6, mr_low = $7, mr_high_with_buffer = $8, mr_low_with_buffer = $9, buffer_percentage = $10,
 			entry_time = $11, range_high = $12, range_low = $13, range_high_entry_price = $14, range_low_entry_price = $15, direction = $16,
 			bb_width_threshold = $17, bb_period = $18, bb_std_dev = $19, current_bb_width = $20, lowest_bb_width = $21,
@@ -235,7 +233,7 @@ func (r *StrategyParametersRepositoryImpl) UpdateParameters(id int64, params *St
 
 	result, err := r.db.Exec(query,
 		id,
-		params.InLongTrade, params.InShortTrade, params.CanGenerateLong, params.CanGenerateShort,
+		params.CanGenerateLong, params.CanGenerateShort,
 		params.MRHigh, params.MRLow, params.MRHighWithBuffer, params.MRLowWithBuffer, params.BufferPercentage,
 		params.EntryTime, params.RangeHigh, params.RangeLow, params.RangeHighEntryPrice, params.RangeLowEntryPrice, params.Direction,
 		params.BBWidthThreshold, params.BBPeriod, params.BBStdDev, params.CurrentBBWidth, params.LowestBBWidth,

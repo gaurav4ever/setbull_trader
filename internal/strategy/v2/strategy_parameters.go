@@ -11,9 +11,7 @@ import (
 
 // StrategyParameters represents the parameters tracked by each strategy
 type StrategyParameters struct {
-	// Common parameters across all strategies
-	InLongTrade      bool `json:"in_long_trade" db:"in_long_trade"`
-	InShortTrade     bool `json:"in_short_trade" db:"in_short_trade"`
+	// Common parameters across all strategies (signal generation only)
 	CanGenerateLong  bool `json:"can_generate_long" db:"can_generate_long"`
 	CanGenerateShort bool `json:"can_generate_short" db:"can_generate_short"`
 
@@ -23,6 +21,7 @@ type StrategyParameters struct {
 	MRHighWithBuffer *float64 `json:"mr_high_with_buffer,omitempty" db:"mr_high_with_buffer"`
 	MRLowWithBuffer  *float64 `json:"mr_low_with_buffer,omitempty" db:"mr_low_with_buffer"`
 	BufferPercentage *float64 `json:"buffer_percentage,omitempty" db:"buffer_percentage"`
+	MRCalculated     *bool    `json:"mr_calculated,omitempty" db:"mr_calculated"`
 
 	// 2_30_ENTRY strategy parameters
 	EntryTime           *time.Time `json:"entry_time,omitempty" db:"entry_time"`
@@ -171,8 +170,6 @@ func (m *StrategyParametersManager) UpdateParameters(stockID, strategyName strin
 // mergeParameters merges two parameter sets, with new params taking precedence
 func (m *StrategyParametersManager) mergeParameters(existing, new *StrategyParameters) *StrategyParameters {
 	merged := &StrategyParameters{
-		InLongTrade:      new.InLongTrade,
-		InShortTrade:     new.InShortTrade,
 		CanGenerateLong:  new.CanGenerateLong,
 		CanGenerateShort: new.CanGenerateShort,
 		SqueezeDetected:  new.SqueezeDetected,
@@ -224,16 +221,6 @@ func (m *StrategyParametersManager) ConvertDataFrameToParameters(df *dataframe.D
 	}
 
 	// Extract common parameters
-	if col := df.Col("in_long_trade"); col.Err == nil {
-		if bools, err := col.Bool(); err == nil && rowIndex < len(bools) {
-			params.InLongTrade = bools[rowIndex]
-		}
-	}
-	if col := df.Col("in_short_trade"); col.Err == nil {
-		if bools, err := col.Bool(); err == nil && rowIndex < len(bools) {
-			params.InShortTrade = bools[rowIndex]
-		}
-	}
 	if col := df.Col("can_generate_long"); col.Err == nil {
 		if bools, err := col.Bool(); err == nil && rowIndex < len(bools) {
 			params.CanGenerateLong = bools[rowIndex]
@@ -264,8 +251,6 @@ func (m *StrategyParametersManager) ConvertParametersToDataFrame(params *Strateg
 	result := make(map[string]series.Series)
 
 	// Common parameters
-	result["in_long_trade"] = series.New([]bool{params.InLongTrade}, series.Bool, "in_long_trade")
-	result["in_short_trade"] = series.New([]bool{params.InShortTrade}, series.Bool, "in_short_trade")
 	result["can_generate_long"] = series.New([]bool{params.CanGenerateLong}, series.Bool, "can_generate_long")
 	result["can_generate_short"] = series.New([]bool{params.CanGenerateShort}, series.Bool, "can_generate_short")
 	result["squeeze_detected"] = series.New([]bool{params.SqueezeDetected}, series.Bool, "squeeze_detected")
