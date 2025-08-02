@@ -21,6 +21,7 @@ type Config struct {
 	HistoricalData                     HistoricalDataConfig    `mapstructure:"historical_data"`
 	MambaFilter                        MambaFilterConfig       `mapstructure:"mamba_filter" yaml:"mamba_filter"`
 	BBWidthMonitoring                  BBWidthMonitoringConfig `mapstructure:"bb_width_monitoring" yaml:"bb_width_monitoring"`
+	BBWDashboard                       BBWDashboardConfig      `mapstructure:"bbw_dashboard" yaml:"bbw_dashboard"`
 	StrategyEngineV2                   StrategyEngineV2Config  `mapstructure:"strategy_engine_v2" yaml:"strategy_engine_v2"`
 	OneMinCandleIngestionOffsetSeconds int                     `mapstructure:"one_min_candle_ingestion_offset_seconds" yaml:"one_min_candle_ingestion_offset_seconds"`
 	Database                           struct {
@@ -373,6 +374,7 @@ func LoadConfig() (*Config, error) {
 	// Set default values BEFORE validation
 	setDefaultHistoricalDataConfig(&config)
 	setDefaultBBWidthMonitoringConfig(&config)
+	setDefaultBBWDashboardConfig(&config)
 	setDefaultStrategyEngineV2Config(&config)
 
 	// Validate BB Width Monitoring configuration AFTER setting defaults
@@ -448,11 +450,69 @@ func setDefaultBBWidthMonitoringConfig(config *Config) {
 	}
 }
 
+func setDefaultBBWDashboardConfig(config *Config) {
+	if config.BBWDashboard == (BBWDashboardConfig{}) {
+		defaultConfig := DefaultBBWDashboardConfig()
+		config.BBWDashboard = *defaultConfig
+	}
+}
+
 func setDefaultStrategyEngineV2Config(config *Config) {
+	fmt.Printf("DEBUG: Before setting defaults - ConcurrentWorkers: %d\n", config.StrategyEngineV2.Processing.ConcurrentWorkers)
+
 	if config.StrategyEngineV2 == (StrategyEngineV2Config{}) {
+		fmt.Printf("DEBUG: Setting default config because StrategyEngineV2 is empty\n")
 		defaultConfig := DefaultStrategyEngineV2Config()
 		config.StrategyEngineV2 = *defaultConfig
+	} else {
+		fmt.Printf("DEBUG: StrategyEngineV2 is not empty, checking if fields need defaults\n")
+		if config.StrategyEngineV2.Processing.ConcurrentWorkers <= 0 {
+			fmt.Printf("DEBUG: Setting default ConcurrentWorkers because it's <= 0\n")
+			config.StrategyEngineV2.Processing.ConcurrentWorkers = 10
+		}
+		if config.StrategyEngineV2.Processing.ProcessingTimeout <= 0 {
+			fmt.Printf("DEBUG: Setting default ProcessingTimeout because it's <= 0\n")
+			config.StrategyEngineV2.Processing.ProcessingTimeout = 30 * time.Second
+		}
+		if config.StrategyEngineV2.Processing.MaxHistoricalCandles <= 0 {
+			fmt.Printf("DEBUG: Setting default MaxHistoricalCandles because it's <= 0\n")
+			config.StrategyEngineV2.Processing.MaxHistoricalCandles = 100
+		}
+		if config.StrategyEngineV2.Processing.BatchSize <= 0 {
+			fmt.Printf("DEBUG: Setting default BatchSize because it's <= 0\n")
+			config.StrategyEngineV2.Processing.BatchSize = 50
+		}
+		if config.StrategyEngineV2.DataFrame.MemoryLimitMB <= 0 {
+			fmt.Printf("DEBUG: Setting default MemoryLimitMB because it's <= 0\n")
+			config.StrategyEngineV2.DataFrame.MemoryLimitMB = 512
+		}
+		if config.StrategyEngineV2.Strategies.Execution.StrategyTimeout <= 0 {
+			fmt.Printf("DEBUG: Setting default StrategyTimeout because it's <= 0\n")
+			config.StrategyEngineV2.Strategies.Execution.StrategyTimeout = 10 * time.Second
+		}
+		if config.StrategyEngineV2.ParallelProcessing.MaxWorkers <= 0 {
+			fmt.Printf("DEBUG: Setting default MaxWorkers because it's <= 0\n")
+			config.StrategyEngineV2.ParallelProcessing.MaxWorkers = 16
+		}
+		if config.StrategyEngineV2.ParallelProcessing.MinWorkers <= 0 {
+			fmt.Printf("DEBUG: Setting default MinWorkers because it's <= 0\n")
+			config.StrategyEngineV2.ParallelProcessing.MinWorkers = 8
+		}
+		if config.StrategyEngineV2.ParallelProcessing.WorkerTimeout <= 0 {
+			fmt.Printf("DEBUG: Setting default WorkerTimeout because it's <= 0\n")
+			config.StrategyEngineV2.ParallelProcessing.WorkerTimeout = 30 * time.Second
+		}
+		if config.StrategyEngineV2.ParallelProcessing.QueueSize <= 0 {
+			fmt.Printf("DEBUG: Setting default QueueSize because it's <= 0\n")
+			config.StrategyEngineV2.ParallelProcessing.QueueSize = 1000
+		}
+		if config.StrategyEngineV2.ParallelProcessing.MaxMemoryUsageMB <= 0 {
+			fmt.Printf("DEBUG: Setting default MaxMemoryUsageMB because it's <= 0\n")
+			config.StrategyEngineV2.ParallelProcessing.MaxMemoryUsageMB = 1024
+		}
 	}
+
+	fmt.Printf("DEBUG: After setting defaults - ConcurrentWorkers: %d\n", config.StrategyEngineV2.Processing.ConcurrentWorkers)
 }
 
 func LoadDatabase(appCfg Config) (database.Config, error) {
@@ -526,7 +586,13 @@ func (c *Config) ValidateStrategyEngineV2Config() error {
 		return nil // Skip validation if disabled
 	}
 
+	// Debug: Print the actual values for troubleshooting
+	fmt.Printf("DEBUG: Strategy Engine V2 Config - Enabled: %v, ConcurrentWorkers: %d\n",
+		c.StrategyEngineV2.Enabled,
+		c.StrategyEngineV2.Processing.ConcurrentWorkers)
+
 	// Validate processing configuration
+	fmt.Printf("DEBUG: Processing Timeout: %v\n", c.StrategyEngineV2.Processing.ProcessingTimeout)
 	if c.StrategyEngineV2.Processing.ConcurrentWorkers <= 0 {
 		return errors.New("concurrent_workers must be greater than 0")
 	}
@@ -541,16 +607,19 @@ func (c *Config) ValidateStrategyEngineV2Config() error {
 	}
 
 	// Validate DataFrame configuration
+	fmt.Printf("DEBUG: DataFrame MemoryLimitMB: %d\n", c.StrategyEngineV2.DataFrame.MemoryLimitMB)
 	if c.StrategyEngineV2.DataFrame.MemoryLimitMB <= 0 {
 		return errors.New("memory_limit_mb must be greater than 0")
 	}
 
 	// Validate strategies configuration
+	fmt.Printf("DEBUG: Strategy Timeout: %v\n", c.StrategyEngineV2.Strategies.Execution.StrategyTimeout)
 	if c.StrategyEngineV2.Strategies.Execution.StrategyTimeout <= 0 {
 		return errors.New("strategy_timeout must be greater than 0")
 	}
 
 	// Validate parallel processing configuration
+	fmt.Printf("DEBUG: ParallelProcessing MaxWorkers: %d\n", c.StrategyEngineV2.ParallelProcessing.MaxWorkers)
 	if c.StrategyEngineV2.ParallelProcessing.MaxWorkers <= 0 {
 		return errors.New("max_workers must be greater than 0")
 	}

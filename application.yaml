@@ -51,6 +51,32 @@ strategy_engine_v2:
     enable_metrics: true
     enable_tracing: true
     log_level: "info"
+  parallel_processing:
+    max_workers: 16
+    min_workers: 8
+    worker_timeout: 30s
+    queue_size: 1000
+    max_concurrent_strategies: 10
+    max_memory_usage_mb: 1024
+    memory_check_interval: 5s
+    error_handling: "continue_on_error"
+    max_retries: 3
+    retry_delay: 1s
+    enable_metrics: true
+    metrics_interval: 10s
+  state_management:
+    enable_persistence: true
+    persistence_interval: 30s
+    state_retention_days: 30
+    enable_caching: true
+    cache_ttl: 5m
+    max_cache_size: 10000
+    enable_validation: true
+    validation_timeout: 5s
+    enable_synchronization: true
+    sync_interval: 10s
+    enable_metrics: true
+    metrics_interval: 30s
 
 dhan:
   base_url: "https://api.dhan.co"
