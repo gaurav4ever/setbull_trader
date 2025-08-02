@@ -5,72 +5,79 @@ import (
 	"math"
 	"time"
 
-	"github.com/go-gota/gota/dataframe"
-
 	v2 "setbull_trader/internal/strategy/v2"
+
+	"github.com/go-gota/gota/dataframe"
+	"github.com/go-gota/gota/series"
 )
 
-// TwoThirtyEntryStrategyV2 implements the 2:30 PM entry strategy
-// This strategy waits for 2:30 PM to establish a range and then looks for breakouts
-// Focus: Signal generation and parameter tracking only (no position sizing, risk management, or trade management)
+// TwoThirtyEntryStrategyV2 implements the 2_30_ENTRY strategy
+// It calculates range from 2:00-2:30 PM and looks for breakouts at 2:30 PM
 type TwoThirtyEntryStrategyV2 struct {
 	*v2.BaseStrategy
 
 	// Strategy parameters
-	entryTime        time.Time
-	bufferPercentage float64
-	direction        string
-	minPriceMovement float64
+	entryTime        time.Time // 2:30 PM
+	rangeStartTime   time.Time // 2:00 PM
+	rangeEndTime     time.Time // 2:30 PM
+	minPriceMovement float64   // Minimum price movement required
 
-	// Strategy state (for signal generation only)
+	// Strategy state
 	canGenerateLong  bool
 	canGenerateShort bool
 
-	// Range values (calculated at 2:30 PM)
+	// Range values (calculated from 2:00-2:30 PM)
 	rangeHigh           float64
 	rangeLow            float64
 	rangeHighEntryPrice float64
 	rangeLowEntryPrice  float64
 	rangeCalculated     bool
-
-	// Parameters manager for state persistence
-	paramsManager *v2.StrategyParametersManager
+	direction           string // "BULLISH", "BEARISH", or "NEUTRAL"
 }
 
-// NewTwoThirtyEntryStrategyV2 creates a new 2:30 entry strategy instance
-func NewTwoThirtyEntryStrategyV2(paramsManager *v2.StrategyParametersManager) *TwoThirtyEntryStrategyV2 {
-	return &TwoThirtyEntryStrategyV2{
-		BaseStrategy: v2.NewBaseStrategy(v2.StrategyMetadata{
-			Name:        "2_30_ENTRY",
-			Version:     "1.0.0",
-			Description: "2:30 PM entry strategy with range-based breakout detection",
-			Author:      "Setbull Trader",
-			Tags:        []string{"time-based", "range", "breakout"},
-		}),
+// NewTwoThirtyEntryStrategyV2 creates a new 2_30_ENTRY strategy
+func NewTwoThirtyEntryStrategyV2() *TwoThirtyEntryStrategyV2 {
+	metadata := v2.StrategyMetadata{
+		Name:        "2_30_ENTRY_V2",
+		Version:     "1.0.0",
+		Description: "2:30 PM entry strategy - calculates range from 2:00-2:30 PM and looks for breakouts at 2:30 PM",
+		Author:      "Setbull Trader",
+		Tags:        []string{"entry_strategy", "afternoon_range", "breakout", "2_30_entry"},
+	}
 
-		// Default parameters
+	base := v2.NewBaseStrategy(metadata)
+	strategy := &TwoThirtyEntryStrategyV2{
+		BaseStrategy:     base,
 		entryTime:        time.Date(2000, 1, 1, 14, 30, 0, 0, time.UTC), // 2:30 PM
-		bufferPercentage: 0.0003,                                        // 0.03%
-		direction:        "BULLISH",
-		minPriceMovement: 0.001, // 0.1%
-
-		// Strategy state
+		rangeStartTime:   time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC),  // 2:00 PM
+		rangeEndTime:     time.Date(2000, 1, 1, 14, 30, 0, 0, time.UTC), // 2:30 PM
+		minPriceMovement: 0.5,                                           // 0.5% minimum movement
 		canGenerateLong:  true,
 		canGenerateShort: true,
-
-		// Range values
-		rangeCalculated: false,
-
-		// Parameters manager
-		paramsManager: paramsManager,
+		rangeCalculated:  false,
+		direction:        "NEUTRAL",
 	}
+
+	// Set default configuration
+	strategy.Configure(map[string]interface{}{
+		"enabled":     true,
+		"timeout":     10 * time.Second,
+		"max_retries": 3,
+		"parameters": map[string]interface{}{
+			"entry_time":         "14:30",
+			"range_start_time":   "14:00",
+			"range_end_time":     "14:30",
+			"min_price_movement": 0.5,
+		},
+	})
+
+	return strategy
 }
 
-// Process implements the StrategyV2 interface
-// Processes the DataFrame and generates signals based on 2:30 PM entry logic
+// Process implements the 2_30_ENTRY strategy processing logic
 func (s *TwoThirtyEntryStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.DataFrame, error) {
 	if df.Nrow() == 0 {
-		return df, nil
+		return df, v2.ErrInvalidDataFrame
 	}
 
 	// Clone the DataFrame to avoid modifying the original
@@ -79,56 +86,37 @@ func (s *TwoThirtyEntryStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.
 	// Get required series
 	highSeries := result.Col("high")
 	lowSeries := result.Col("low")
+	closeSeries := result.Col("close")
 	timestampSeries := result.Col("timestamp")
-	if highSeries.Err != nil || lowSeries.Err != nil || timestampSeries.Err != nil {
+	if highSeries.Err != nil || lowSeries.Err != nil || closeSeries.Err != nil || timestampSeries.Err != nil {
 		return nil, fmt.Errorf("failed to get required series: %v", highSeries.Err)
 	}
-
-	// Load previous state from parameters
-	s.loadStateFromParameters()
 
 	// Process each candle
 	for i := 0; i < df.Nrow(); i++ {
 		// Get current candle data
 		high := highSeries.Float()[i]
 		low := lowSeries.Float()[i]
-		timestamp := timestampSeries.Elem(i).String()
+		close := closeSeries.Float()[i]
+		timestampStr := timestampSeries.Elem(i).String()
 
 		// Parse timestamp
-		candleTime, err := time.Parse("2006-01-02 15:04:05", timestamp)
+		timestamp, err := time.Parse("2006-01-02 15:04:05", timestampStr)
 		if err != nil {
 			continue // Skip invalid timestamps
 		}
 
-		// Get or create strategy parameters for this candle
-		params, err := s.getOrCreateParameters(candleTime)
-		if err != nil {
-			continue // Skip if we can't get parameters
+		// Check if this is the range calculation period (2:00-2:30)
+		if s.isRangeCalculationPeriod(timestamp) {
+			s.calculateRange(high, low, close, timestamp)
 		}
 
-		// Update strategy state from parameters
-		s.updateStateFromParameters(params)
-
-		// Check if this is the entry time (2:30 PM)
-		if s.isEntryTime(candleTime) {
-			s.calculateEntryRange(high, low, candleTime, params)
-			continue // Skip signal generation for entry time
-		}
-
-		// Check entry conditions after 2:30 PM
-		if s.isAfterEntryTime(candleTime) && s.rangeCalculated {
-			signal := s.checkEntryConditions(high, low, candleTime, params)
-
-			// Update parameters with new state
-			s.updateParametersWithState(params, signal)
-
-			// Save parameters
-			s.saveParameters(candleTime, params)
-
-			// Log signal if generated (for data tracking only)
+		// Check for entry conditions at 2:30 PM
+		if s.isEntryTime(timestamp) && s.rangeCalculated {
+			signal := s.checkEntryConditions(high, low, timestamp)
 			if signal != nil {
-				fmt.Printf("2_30_ENTRY Signal Generated at %s: %s %s at %.2f (Range: %.2f-%.2f)\n",
-					candleTime.Format("15:04"), signal.Type, signal.Direction, signal.Price, s.rangeLow, s.rangeHigh)
+				// Add signal to DataFrame
+				result = s.addSignalToDataFrame(result, i, signal)
 			}
 		}
 	}
@@ -136,148 +124,111 @@ func (s *TwoThirtyEntryStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.
 	return &result, nil
 }
 
-// isEntryTime checks if the current time is 2:30 PM (entry time)
+// isRangeCalculationPeriod checks if the current time is during range calculation
+func (s *TwoThirtyEntryStrategyV2) isRangeCalculationPeriod(candleTime time.Time) bool {
+	candleHour := candleTime.Hour()
+	candleMinute := candleTime.Minute()
+
+	// Check if it's between 2:00 and 2:30
+	return (candleHour == 14 && candleMinute >= 0 && candleMinute < 30)
+}
+
+// isEntryTime checks if the current time is the entry time (2:30 PM)
 func (s *TwoThirtyEntryStrategyV2) isEntryTime(candleTime time.Time) bool {
-	candleTimeOnly := time.Date(2000, 1, 1, candleTime.Hour(), candleTime.Minute(), 0, 0, time.UTC)
-	return candleTimeOnly.Equal(s.entryTime)
+	candleHour := candleTime.Hour()
+	candleMinute := candleTime.Minute()
+
+	// Check if it's exactly 2:30 PM
+	return (candleHour == 14 && candleMinute == 30)
 }
 
-// isAfterEntryTime checks if this is after entry time (2:30 PM onwards)
-func (s *TwoThirtyEntryStrategyV2) isAfterEntryTime(candleTime time.Time) bool {
-	candleTimeOnly := time.Date(2000, 1, 1, candleTime.Hour(), candleTime.Minute(), 0, 0, time.UTC)
-	return candleTimeOnly.After(s.entryTime)
+// calculateRange calculates the range from 2:00-2:30 PM
+func (s *TwoThirtyEntryStrategyV2) calculateRange(high, low, close float64, candleTime time.Time) {
+	if !s.rangeCalculated {
+		// Initialize range values
+		if s.rangeHigh == 0 {
+			s.rangeHigh = high
+			s.rangeLow = low
+		} else {
+			// Update range values
+			if high > s.rangeHigh {
+				s.rangeHigh = high
+			}
+			if low < s.rangeLow {
+				s.rangeLow = low
+			}
+		}
+
+		// If this is the last candle of the range period (2:30), finalize the calculation
+		if s.isEntryTime(candleTime) {
+			s.finalizeRangeCalculation(close)
+		}
+	}
 }
 
-// calculateEntryRange calculates the range at 2:30 PM entry time
-func (s *TwoThirtyEntryStrategyV2) calculateEntryRange(high, low float64, candleTime time.Time, params *v2.StrategyParameters) {
-	s.rangeHigh = high
-	s.rangeLow = low
-	s.rangeCalculated = true
+// finalizeRangeCalculation finalizes the range calculation and determines direction
+func (s *TwoThirtyEntryStrategyV2) finalizeRangeCalculation(close float64) {
+	// Calculate range percentage
+	rangeSize := s.rangeHigh - s.rangeLow
 
-	// Calculate buffer values
-	s.calculateBufferValues()
+	// Determine direction based on close price relative to range
+	rangeMid := (s.rangeHigh + s.rangeLow) / 2
 
-	// Update parameters with range values
-	s.updateParametersWithRangeValues(params)
+	if close > rangeMid {
+		s.direction = "BULLISH"
+	} else if close < rangeMid {
+		s.direction = "BEARISH"
+	} else {
+		s.direction = "NEUTRAL"
+	}
 
-	// Log range calculation
-	fmt.Printf("2_30_ENTRY Range Calculation at %s: High=%.2f, Low=%.2f, Size=%.2f\n",
-		candleTime.Format("15:04"), s.rangeHigh, s.rangeLow, s.rangeHigh-s.rangeLow)
-}
-
-// calculateBufferValues calculates entry prices with buffer
-func (s *TwoThirtyEntryStrategyV2) calculateBufferValues() {
-	s.rangeHighEntryPrice = s.rangeHigh * (1 + s.bufferPercentage)
-	s.rangeLowEntryPrice = s.rangeLow * (1 - s.bufferPercentage)
+	// Calculate entry prices with buffer
+	buffer := rangeSize * 0.1 // 10% of range as buffer
+	s.rangeHighEntryPrice = s.rangeHigh + buffer
+	s.rangeLowEntryPrice = s.rangeLow - buffer
 
 	// Round to 2 decimal places
 	s.rangeHighEntryPrice = math.Round(s.rangeHighEntryPrice*100) / 100
 	s.rangeLowEntryPrice = math.Round(s.rangeLowEntryPrice*100) / 100
+
+	s.rangeCalculated = true
+
+	fmt.Printf("2_30_ENTRY: Range calculated - High: %.2f, Low: %.2f, Direction: %s, Entry High: %.2f, Entry Low: %.2f\n",
+		s.rangeHigh, s.rangeLow, s.direction, s.rangeHighEntryPrice, s.rangeLowEntryPrice)
 }
 
-// checkEntryConditions checks for entry conditions based on direction bias
-func (s *TwoThirtyEntryStrategyV2) checkEntryConditions(high, low float64, timestamp time.Time, params *v2.StrategyParameters) *EntrySignal {
-	if !s.rangeCalculated {
-		return nil
-	}
-
-	// Check based on direction bias
-	switch s.direction {
-	case "BULLISH":
-		return s.checkBullishEntry(high, low, timestamp, params)
-	case "BEARISH":
-		return s.checkBearishEntry(high, low, timestamp, params)
-	default:
-		return s.checkNeutralEntry(high, low, timestamp, params)
-	}
-}
-
-// checkBullishEntry checks for bullish entry conditions
-func (s *TwoThirtyEntryStrategyV2) checkBullishEntry(high, low float64, timestamp time.Time, params *v2.StrategyParameters) *EntrySignal {
-	// Check if price is above range high entry price for long entry
-	if high > s.rangeHighEntryPrice && s.canGenerateLong {
-		s.canGenerateLong = false
+// checkEntryConditions checks for entry conditions at 2:30 PM
+func (s *TwoThirtyEntryStrategyV2) checkEntryConditions(high, low float64, timestamp time.Time) *EntrySignal {
+	// Check for long entry (breakout above range high)
+	if s.canGenerateLong && s.direction == "BULLISH" && high > s.rangeHighEntryPrice {
+		s.canGenerateLong = false // Prevent multiple signals
 		return &EntrySignal{
-			Type:      "IMMEDIATE_BREAKOUT",
+			Type:      "LONG_ENTRY",
 			Direction: "LONG",
 			Price:     s.rangeHighEntryPrice,
 			Timestamp: timestamp,
 			Metadata: map[string]interface{}{
-				"entry_type":             "14:30",
-				"entry_time":             "14:30",
-				"signal_purpose":         "data_tracking",
 				"range_high":             s.rangeHigh,
-				"range_low":              s.rangeLow,
 				"range_high_entry_price": s.rangeHighEntryPrice,
-				"range_low_entry_price":  s.rangeLowEntryPrice,
+				"breakout_price":         high,
+				"direction":              s.direction,
 			},
 		}
 	}
-	return nil
-}
 
-// checkBearishEntry checks for bearish entry conditions
-func (s *TwoThirtyEntryStrategyV2) checkBearishEntry(high, low float64, timestamp time.Time, params *v2.StrategyParameters) *EntrySignal {
-	// Check if price is below range low entry price for short entry
-	if low < s.rangeLowEntryPrice && s.canGenerateShort {
-		s.canGenerateShort = false
+	// Check for short entry (breakout below range low)
+	if s.canGenerateShort && s.direction == "BEARISH" && low < s.rangeLowEntryPrice {
+		s.canGenerateShort = false // Prevent multiple signals
 		return &EntrySignal{
-			Type:      "IMMEDIATE_BREAKOUT",
+			Type:      "SHORT_ENTRY",
 			Direction: "SHORT",
 			Price:     s.rangeLowEntryPrice,
 			Timestamp: timestamp,
 			Metadata: map[string]interface{}{
-				"entry_type":             "14:30",
-				"entry_time":             "14:30",
-				"signal_purpose":         "data_tracking",
-				"range_high":             s.rangeHigh,
-				"range_low":              s.rangeLow,
-				"range_high_entry_price": s.rangeHighEntryPrice,
-				"range_low_entry_price":  s.rangeLowEntryPrice,
-			},
-		}
-	}
-	return nil
-}
-
-// checkNeutralEntry checks for neutral entry conditions (both directions)
-func (s *TwoThirtyEntryStrategyV2) checkNeutralEntry(high, low float64, timestamp time.Time, params *v2.StrategyParameters) *EntrySignal {
-	// Check for long entry
-	if high > s.rangeHighEntryPrice && s.canGenerateLong {
-		s.canGenerateLong = false
-		return &EntrySignal{
-			Type:      "IMMEDIATE_BREAKOUT",
-			Direction: "LONG",
-			Price:     s.rangeHighEntryPrice,
-			Timestamp: timestamp,
-			Metadata: map[string]interface{}{
-				"entry_type":             "14:30",
-				"entry_time":             "14:30",
-				"signal_purpose":         "data_tracking",
-				"range_high":             s.rangeHigh,
-				"range_low":              s.rangeLow,
-				"range_high_entry_price": s.rangeHighEntryPrice,
-				"range_low_entry_price":  s.rangeLowEntryPrice,
-			},
-		}
-	}
-
-	// Check for short entry
-	if low < s.rangeLowEntryPrice && s.canGenerateShort {
-		s.canGenerateShort = false
-		return &EntrySignal{
-			Type:      "IMMEDIATE_BREAKOUT",
-			Direction: "SHORT",
-			Price:     s.rangeLowEntryPrice,
-			Timestamp: timestamp,
-			Metadata: map[string]interface{}{
-				"entry_type":             "14:30",
-				"entry_time":             "14:30",
-				"signal_purpose":         "data_tracking",
-				"range_high":             s.rangeHigh,
-				"range_low":              s.rangeLow,
-				"range_high_entry_price": s.rangeHighEntryPrice,
-				"range_low_entry_price":  s.rangeLowEntryPrice,
+				"range_low":             s.rangeLow,
+				"range_low_entry_price": s.rangeLowEntryPrice,
+				"breakout_price":        low,
+				"direction":             s.direction,
 			},
 		}
 	}
@@ -285,117 +236,94 @@ func (s *TwoThirtyEntryStrategyV2) checkNeutralEntry(high, low float64, timestam
 	return nil
 }
 
-// getOrCreateParameters gets or creates parameters for a specific timestamp
-func (s *TwoThirtyEntryStrategyV2) getOrCreateParameters(timestamp time.Time) (*v2.StrategyParameters, error) {
-	if s.paramsManager == nil {
-		// Return default parameters if no manager is available
-		return &v2.StrategyParameters{
-			CanGenerateLong:  s.canGenerateLong,
-			CanGenerateShort: s.canGenerateShort,
-		}, nil
-	}
+// addSignalToDataFrame adds signal information to the DataFrame
+func (s *TwoThirtyEntryStrategyV2) addSignalToDataFrame(df dataframe.DataFrame, index int, signal *EntrySignal) dataframe.DataFrame {
+	// Create signal columns if they don't exist
+	if df.Col("signal_type").Err != nil {
+		signalType := make([]string, df.Nrow())
+		signalDirection := make([]string, df.Nrow())
+		signalPrice := make([]float64, df.Nrow())
+		signalGenerated := make([]bool, df.Nrow())
 
-	// Try to get existing parameters
-	params, err := s.paramsManager.GetParameters("", "2_30_ENTRY", timestamp)
-	if err != nil {
-		// Create new parameters if none exist
-		params = &v2.StrategyParameters{
-			CanGenerateLong:  s.canGenerateLong,
-			CanGenerateShort: s.canGenerateShort,
+		// Set signal values
+		signalType[index] = signal.Type
+		signalDirection[index] = signal.Direction
+		signalPrice[index] = signal.Price
+		signalGenerated[index] = true
+
+		// Add columns to DataFrame one by one
+		df = df.Mutate(series.Strings(signalType))
+		df = df.Mutate(series.Strings(signalDirection))
+		df = df.Mutate(series.Floats(signalPrice))
+		df = df.Mutate(series.Bools(signalGenerated))
+	} else {
+		// Update existing signal columns
+		signalType := df.Col("signal_type")
+		signalDirection := df.Col("signal_direction")
+		signalPrice := df.Col("signal_price")
+		signalGenerated := df.Col("signal_generated")
+
+		if signalType.Err == nil {
+			signalType.Set(index, series.Strings([]string{signal.Type}))
+		}
+		if signalDirection.Err == nil {
+			signalDirection.Set(index, series.Strings([]string{signal.Direction}))
+		}
+		if signalPrice.Err == nil {
+			signalPrice.Set(index, series.Floats([]float64{signal.Price}))
+		}
+		if signalGenerated.Err == nil {
+			signalGenerated.Set(index, series.Bools([]bool{true}))
 		}
 	}
 
-	return params, nil
+	return df
 }
 
-// updateStateFromParameters updates strategy state from parameters
-func (s *TwoThirtyEntryStrategyV2) updateStateFromParameters(params *v2.StrategyParameters) {
-	s.canGenerateLong = params.CanGenerateLong
-	s.canGenerateShort = params.CanGenerateShort
+// ResetState resets the strategy state
+func (s *TwoThirtyEntryStrategyV2) ResetState() {
+	s.canGenerateLong = true
+	s.canGenerateShort = true
+	s.rangeHigh = 0
+	s.rangeLow = 0
+	s.rangeHighEntryPrice = 0
+	s.rangeLowEntryPrice = 0
+	s.rangeCalculated = false
+	s.direction = "NEUTRAL"
 }
 
-// updateParametersWithRangeValues updates parameters with range values
-func (s *TwoThirtyEntryStrategyV2) updateParametersWithRangeValues(params *v2.StrategyParameters) {
-	params.RangeHigh = &s.rangeHigh
-	params.RangeLow = &s.rangeLow
-	params.RangeHighEntryPrice = &s.rangeHighEntryPrice
-	params.RangeLowEntryPrice = &s.rangeLowEntryPrice
-}
-
-// updateParametersWithState updates parameters with current state
-func (s *TwoThirtyEntryStrategyV2) updateParametersWithState(params *v2.StrategyParameters, signal *EntrySignal) {
-	params.CanGenerateLong = s.canGenerateLong
-	params.CanGenerateShort = s.canGenerateShort
-
-	// Add strategy-specific parameters
-	entryTimeStr := s.entryTime.Format("15:04")
-	params.EntryTime = &s.entryTime
-	params.BufferPercentage = &s.bufferPercentage
-	params.Direction = &s.direction
-	params.MinPriceMovement = &s.minPriceMovement
-
-	// Add signal metadata if signal was generated
-	if signal != nil {
-		if params.Metadata == nil {
-			params.Metadata = make(map[string]interface{})
-		}
-		params.Metadata["last_signal"] = signal
-	}
-}
-
-// saveParameters saves parameters to the database
-func (s *TwoThirtyEntryStrategyV2) saveParameters(timestamp time.Time, params *v2.StrategyParameters) {
-	if s.paramsManager != nil {
-		s.paramsManager.SaveParameters("", "2_30_ENTRY", timestamp, params)
-	}
-}
-
-// loadStateFromParameters loads strategy state from parameters
-func (s *TwoThirtyEntryStrategyV2) loadStateFromParameters() {
-	if s.paramsManager == nil {
-		return
-	}
-
-	// Load the most recent parameters for this strategy
-	params, err := s.paramsManager.GetLatestParameters("", "2_30_ENTRY")
-	if err == nil && params != nil {
-		s.updateStateFromParameters(params)
-	}
-}
-
-// GetRequiredHistory returns the number of candles required for this strategy
+// GetRequiredHistory returns the number of historical candles required
 func (s *TwoThirtyEntryStrategyV2) GetRequiredHistory() int {
-	return 1 // Only need current candle for range calculation
+	return 30 // Need at least 30 candles for range calculation (2:00-2:30)
 }
 
-// GetName returns the strategy name
-func (s *TwoThirtyEntryStrategyV2) GetName() string {
-	return "2_30_ENTRY"
-}
-
-// Configure configures the strategy with parameters
+// Configure configures the strategy with new parameters
 func (s *TwoThirtyEntryStrategyV2) Configure(config map[string]interface{}) error {
-	if params, ok := config["parameters"].(map[string]interface{}); ok {
-		// Parse entry time
-		if entryTimeStr, ok := params["entry_time"].(string); ok {
-			if t, err := time.Parse("15:04", entryTimeStr); err == nil {
+	// Call base configuration
+	err := s.BaseStrategy.Configure(config)
+	if err != nil {
+		return err
+	}
+
+	// Configure strategy-specific parameters
+	if parameters, ok := config["parameters"].(map[string]interface{}); ok {
+		if entryTime, ok := parameters["entry_time"].(string); ok {
+			if t, err := time.Parse("15:04", entryTime); err == nil {
 				s.entryTime = time.Date(2000, 1, 1, t.Hour(), t.Minute(), 0, 0, time.UTC)
 			}
 		}
-
-		// Parse buffer percentage
-		if bufferPct, ok := params["buffer_percentage"].(float64); ok {
-			s.bufferPercentage = bufferPct
+		if rangeStartTime, ok := parameters["range_start_time"].(string); ok {
+			if t, err := time.Parse("15:04", rangeStartTime); err == nil {
+				s.rangeStartTime = time.Date(2000, 1, 1, t.Hour(), t.Minute(), 0, 0, time.UTC)
+			}
 		}
-
-		// Parse direction
-		if direction, ok := params["direction"].(string); ok {
-			s.direction = direction
+		if rangeEndTime, ok := parameters["range_end_time"].(string); ok {
+			if t, err := time.Parse("15:04", rangeEndTime); err == nil {
+				s.rangeEndTime = time.Date(2000, 1, 1, t.Hour(), t.Minute(), 0, 0, time.UTC)
+			}
 		}
-
-		// Parse minimum price movement
-		if minMovement, ok := params["min_price_movement"].(float64); ok {
-			s.minPriceMovement = minMovement
+		if minPriceMovement, ok := parameters["min_price_movement"].(float64); ok {
+			s.minPriceMovement = minPriceMovement
 		}
 	}
 
@@ -404,38 +332,26 @@ func (s *TwoThirtyEntryStrategyV2) Configure(config map[string]interface{}) erro
 
 // ValidateConfiguration validates the strategy configuration
 func (s *TwoThirtyEntryStrategyV2) ValidateConfiguration() error {
-	if s.bufferPercentage <= 0 || s.bufferPercentage > 0.1 {
-		return fmt.Errorf("buffer_percentage must be between 0 and 0.1")
+	// Call base validation
+	err := s.BaseStrategy.ValidateConfiguration()
+	if err != nil {
+		return err
 	}
 
-	if s.direction != "BULLISH" && s.direction != "BEARISH" && s.direction != "NEUTRAL" {
-		return fmt.Errorf("direction must be BULLISH, BEARISH, or NEUTRAL")
-	}
-
-	if s.minPriceMovement <= 0 || s.minPriceMovement > 0.1 {
-		return fmt.Errorf("min_price_movement must be between 0 and 0.1")
+	// Validate strategy-specific parameters
+	if s.minPriceMovement <= 0 || s.minPriceMovement > 10 {
+		return fmt.Errorf("invalid min price movement: %f (must be between 0 and 10)", s.minPriceMovement)
 	}
 
 	return nil
 }
 
-// GetEstimatedProcessingTime returns the estimated processing time
+// GetEstimatedProcessingTime returns estimated processing time
 func (s *TwoThirtyEntryStrategyV2) GetEstimatedProcessingTime() time.Duration {
-	return 50 * time.Millisecond // < 50ms per stock group
+	return 75 * time.Millisecond // Slightly longer processing for range calculation
 }
 
-// GetMemoryRequirements returns the memory requirements
+// GetMemoryRequirements returns estimated memory requirements in bytes
 func (s *TwoThirtyEntryStrategyV2) GetMemoryRequirements() int64 {
-	return 512 * 1024 // 512KB per strategy instance
-}
-
-// ResetState resets the strategy state
-func (s *TwoThirtyEntryStrategyV2) ResetState() {
-	s.canGenerateLong = true
-	s.canGenerateShort = true
-	s.rangeCalculated = false
-	s.rangeHigh = 0
-	s.rangeLow = 0
-	s.rangeHighEntryPrice = 0
-	s.rangeLowEntryPrice = 0
+	return 768 * 1024 // 768KB for 2_30_ENTRY strategy
 }

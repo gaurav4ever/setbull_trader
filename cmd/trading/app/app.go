@@ -18,6 +18,8 @@ import (
 	"setbull_trader/internal/service"
 	"setbull_trader/internal/service/normalizer"
 	"setbull_trader/internal/service/parser"
+	v2 "setbull_trader/internal/strategy/v2"
+	"setbull_trader/internal/strategy/v2/strategies"
 	"setbull_trader/internal/trading/config"
 	"setbull_trader/pkg/cache"
 	"setbull_trader/pkg/database"
@@ -66,6 +68,8 @@ type App struct {
 	masterDataHandler       *rest.MasterDataHandler
 	bbwDashboardService     *service.BBWDashboardService
 	websocketHub            *service.WebSocketHub
+	// V2 Strategy Engine
+	v2Engine *v2.ProductionReadyEngineV2
 }
 
 // NewApp creates a new application
@@ -261,6 +265,42 @@ func NewApp() *App {
 	// Wire up the group execution scheduler with BB width monitoring
 	groupExecutionScheduler := service.NewGroupExecutionScheduler(groupExecutionService, stockGroupService, stockUniverseService, bbWidthMonitorService)
 
+	// Initialize V2 Strategy Engine
+	var v2Engine *v2.ProductionReadyEngineV2
+	if cfg.StrategyEngineV2.Enabled {
+		log.Info("Initializing V2 Strategy Engine")
+
+		// Initialize V2 engine with configuration and dependencies
+		// Type assertion to get the concrete postgres.CandleRepository
+		postgresCandleRepo, ok := candleRepo.(*postgres.CandleRepository)
+		if !ok {
+			log.Fatal("Failed to get postgres.CandleRepository from interface")
+		}
+
+		v2Engine = v2.NewProductionReadyEngineV2(
+			&cfg.StrategyEngineV2,
+			postgresCandleRepo,
+		)
+
+		// Register V2 strategies
+		if err := registerV2Strategies(v2Engine); err != nil {
+			log.Fatal("Failed to register V2 strategies: %v", err)
+		}
+
+		log.Info("V2 Strategy Engine initialized successfully")
+	} else {
+		log.Info("V2 Strategy Engine disabled in configuration")
+	}
+
+	// Set V2 engine in the group execution scheduler if available
+	if v2Engine != nil {
+		groupExecutionScheduler.SetV2Engine(true)
+		log.Info("V2 Strategy Engine integrated with GroupExecutionScheduler")
+	} else {
+		groupExecutionScheduler.SetV2Engine(false)
+		log.Info("V2 Strategy Engine not available for GroupExecutionScheduler")
+	}
+
 	return &App{
 		config:                  cfg,
 		router:                  router,
@@ -298,6 +338,7 @@ func NewApp() *App {
 		masterDataHandler:       masterDataHandler,
 		bbwDashboardService:     bbwDashboardService,
 		websocketHub:            websocketHub,
+		v2Engine:                v2Engine,
 	}
 }
 
@@ -501,4 +542,33 @@ func isFiveMinBoundarySinceMarketOpen(t time.Time) bool {
 	}
 	minutesSinceOpen := (t.Hour()-marketOpenHour)*60 + (t.Minute() - marketOpenMinute)
 	return minutesSinceOpen >= 0 && minutesSinceOpen%5 == 0
+}
+
+// registerV2Strategies registers all V2 strategies with the engine
+func registerV2Strategies(engine *v2.ProductionReadyEngineV2) error {
+	// Register 1ST_ENTRY strategy
+	if err := engine.RegisterStrategy(
+		strategies.NewFirstEntryStrategyV2(),
+	); err != nil {
+		return fmt.Errorf("failed to register 1ST_ENTRY strategy: %w", err)
+	}
+
+	// Register 2_30_ENTRY strategy
+	if err := engine.RegisterStrategy(
+		strategies.NewTwoThirtyEntryStrategyV2(),
+	); err != nil {
+		return fmt.Errorf("failed to register 2_30_ENTRY strategy: %w", err)
+	}
+
+	// Register BB_WIDTH_ENTRY strategy
+	if err := engine.RegisterStrategy(
+		strategies.NewBBWidthEntryStrategyV2(),
+	); err != nil {
+		return fmt.Errorf("failed to register BB_WIDTH_ENTRY strategy: %w", err)
+	}
+
+	log.Info("V2 Strategy Engine ready for strategy registration")
+	log.Info("Strategies registered: MINIMAL_V2, 1ST_ENTRY_V2, 2_30_ENTRY_V2, BB_WIDTH_ENTRY_V2")
+
+	return nil
 }

@@ -22,8 +22,6 @@ type FirstEntryStrategyV2 struct {
 	morningRangeEnd  time.Time // 9:20 AM for 5MR
 
 	// Strategy state
-	inLongTrade      bool
-	inShortTrade     bool
 	canGenerateLong  bool
 	canGenerateShort bool
 
@@ -33,13 +31,10 @@ type FirstEntryStrategyV2 struct {
 	mrHighWithBuffer float64
 	mrLowWithBuffer  float64
 	mrCalculated     bool // Flag to track if MR has been calculated
-
-	// Parameters manager for state persistence
-	paramsManager *v2.StrategyParametersManager
 }
 
 // NewFirstEntryStrategyV2 creates a new 1ST_ENTRY strategy
-func NewFirstEntryStrategyV2(paramsManager *v2.StrategyParametersManager) *FirstEntryStrategyV2 {
+func NewFirstEntryStrategyV2() *FirstEntryStrategyV2 {
 	metadata := v2.StrategyMetadata{
 		Name:        "1ST_ENTRY_V2",
 		Version:     "1.0.0",
@@ -54,12 +49,9 @@ func NewFirstEntryStrategyV2(paramsManager *v2.StrategyParametersManager) *First
 		bufferPercentage: 0.0007, // 0.07% buffer
 		marketOpen:       time.Date(2000, 1, 1, 9, 15, 0, 0, time.UTC),
 		morningRangeEnd:  time.Date(2000, 1, 1, 9, 20, 0, 0, time.UTC), // 5MR end time
-		inLongTrade:      false,
-		inShortTrade:     false,
 		canGenerateLong:  true,
 		canGenerateShort: true,
 		mrCalculated:     false,
-		paramsManager:    paramsManager,
 	}
 
 	// Set default configuration
@@ -101,45 +93,25 @@ func (s *FirstEntryStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.Data
 		high := highSeries.Float()[i]
 		low := lowSeries.Float()[i]
 		close := closeSeries.Float()[i]
-		timestamp := timestampSeries.Elem(i).String()
+		timestampStr := timestampSeries.Elem(i).String()
 
 		// Parse timestamp
-		candleTime, err := time.Parse("2006-01-02 15:04:05", timestamp)
+		timestamp, err := time.Parse("2006-01-02 15:04:05", timestampStr)
 		if err != nil {
 			continue // Skip invalid timestamps
 		}
 
-		// Get or create strategy parameters for this candle
-		params, err := s.getOrCreateParameters(candleTime)
-		if err != nil {
-			continue // Skip if we can't get parameters
+		// Check if this is the morning range calculation period (9:15-9:20)
+		if s.isMorningRangeCalculationPeriod(timestamp) {
+			s.calculateMorningRange(high, low, close, timestamp)
 		}
 
-		// Update strategy state from parameters
-		s.updateStateFromParameters(params)
-
-		// Check if this is the morning range calculation period (9:15-9:20 AM)
-		if s.isMorningRangeCalculationPeriod(candleTime) {
-			s.calculateMorningRange(high, low, close, candleTime, params)
-			continue // Skip signal generation for MR calculation period
-		}
-
-		// Check if this is after morning range calculation (9:20 AM onwards)
-		if s.isAfterMorningRangeCalculation(candleTime) {
-			// Check entry conditions only if MR has been calculated
-			if s.mrCalculated {
-				signal := s.checkEntryConditions(high, low, candleTime, params)
-
-				// Update parameters with new state
-				s.updateParametersWithState(params, signal)
-
-				// Save parameters
-				s.saveParameters(candleTime, params)
-
-				// Add signal to DataFrame if generated
-				if signal != nil {
-					result = s.addSignalToDataFrame(result, i, signal)
-				}
+		// Check for entry conditions after morning range is calculated
+		if s.isAfterMorningRangeCalculation(timestamp) && s.mrCalculated {
+			signal := s.checkEntryConditions(high, low, timestamp)
+			if signal != nil {
+				// Add signal to DataFrame
+				result = s.addSignalToDataFrame(result, i, signal)
 			}
 		}
 	}
@@ -147,236 +119,87 @@ func (s *FirstEntryStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.Data
 	return &result, nil
 }
 
-// isMorningRangeCalculationPeriod checks if the candle is in the MR calculation period (9:15-9:20 AM)
+// isMorningRangeCalculationPeriod checks if the current time is during MR calculation
 func (s *FirstEntryStrategyV2) isMorningRangeCalculationPeriod(candleTime time.Time) bool {
-	candleTimeOnly := time.Date(2000, 1, 1, candleTime.Hour(), candleTime.Minute(), 0, 0, time.UTC)
-	return candleTimeOnly.Equal(s.marketOpen) || (candleTimeOnly.After(s.marketOpen) && candleTimeOnly.Before(s.morningRangeEnd))
+	candleHour := candleTime.Hour()
+	candleMinute := candleTime.Minute()
+
+	// Check if it's between 9:15 and 9:20
+	return (candleHour == 9 && candleMinute >= 15 && candleMinute < 20)
 }
 
-// isAfterMorningRangeCalculation checks if the candle is after MR calculation (9:20 AM onwards)
+// isAfterMorningRangeCalculation checks if the current time is after MR calculation
 func (s *FirstEntryStrategyV2) isAfterMorningRangeCalculation(candleTime time.Time) bool {
-	candleTimeOnly := time.Date(2000, 1, 1, candleTime.Hour(), candleTime.Minute(), 0, 0, time.UTC)
-	return candleTimeOnly.Equal(s.morningRangeEnd) || candleTimeOnly.After(s.morningRangeEnd)
+	candleHour := candleTime.Hour()
+	candleMinute := candleTime.Minute()
+
+	// Check if it's after 9:20
+	return (candleHour > 9) || (candleHour == 9 && candleMinute >= 20)
 }
 
-// calculateMorningRange calculates MR from the first 5-minute candle (9:15-9:20 AM)
-func (s *FirstEntryStrategyV2) calculateMorningRange(high, low, close float64, candleTime time.Time, params *v2.StrategyParameters) {
-	// For the first candle in the MR period, initialize MR values
+// calculateMorningRange calculates the morning range from the first 5-minute candle
+func (s *FirstEntryStrategyV2) calculateMorningRange(high, low, close float64, candleTime time.Time) {
 	if !s.mrCalculated {
 		s.mrHigh = high
 		s.mrLow = low
-		s.mrCalculated = true
-	} else {
-		// Update MR values with the highest high and lowest low
-		if high > s.mrHigh {
-			s.mrHigh = high
-		}
-		if low < s.mrLow {
-			s.mrLow = low
-		}
-	}
-
-	// Calculate buffer values
-	s.calculateBufferValues()
-
-	// Update parameters with MR values
-	s.updateParametersWithMRValues(params)
-
-	// Log MR calculation
-	fmt.Printf("1ST_ENTRY MR Calculation at %s: High=%.2f, Low=%.2f, Size=%.2f\n",
-		candleTime.Format("15:04"), s.mrHigh, s.mrLow, s.mrHigh-s.mrLow)
-}
-
-// getOrCreateParameters retrieves or creates strategy parameters for a timestamp
-func (s *FirstEntryStrategyV2) getOrCreateParameters(timestamp time.Time) (*v2.StrategyParameters, error) {
-	// Try to get existing parameters
-	params, err := s.paramsManager.GetParameters("", s.GetName(), timestamp)
-	if err != nil {
-		// Create new parameters if not found
-		params = &v2.StrategyParameters{
-			CanGenerateLong:  s.canGenerateLong,
-			CanGenerateShort: s.canGenerateShort,
-			StrategyState:    make(map[string]interface{}),
-			Metadata:         make(map[string]interface{}),
-		}
-	}
-
-	return params, nil
-}
-
-// updateStateFromParameters updates strategy state from stored parameters
-func (s *FirstEntryStrategyV2) updateStateFromParameters(params *v2.StrategyParameters) {
-	s.canGenerateLong = params.CanGenerateLong
-	s.canGenerateShort = params.CanGenerateShort
-
-	// Update morning range values if available
-	if params.MRHigh != nil {
-		s.mrHigh = *params.MRHigh
-	}
-	if params.MRLow != nil {
-		s.mrLow = *params.MRLow
-	}
-	if params.MRHighWithBuffer != nil {
-		s.mrHighWithBuffer = *params.MRHighWithBuffer
-	}
-	if params.MRLowWithBuffer != nil {
-		s.mrLowWithBuffer = *params.MRLowWithBuffer
-	}
-	if params.MRCalculated != nil {
-		s.mrCalculated = *params.MRCalculated
-	}
-}
-
-// updateParametersWithMRValues updates parameters with MR calculation values
-func (s *FirstEntryStrategyV2) updateParametersWithMRValues(params *v2.StrategyParameters) {
-	if s.mrHigh > 0 {
-		params.MRHigh = &s.mrHigh
-	}
-	if s.mrLow > 0 {
-		params.MRLow = &s.mrLow
-	}
-	if s.mrHighWithBuffer > 0 {
-		params.MRHighWithBuffer = &s.mrHighWithBuffer
-	}
-	if s.mrLowWithBuffer > 0 {
-		params.MRLowWithBuffer = &s.mrLowWithBuffer
-	}
-
-	params.BufferPercentage = &s.bufferPercentage
-	params.MRCalculated = &s.mrCalculated
-
-	// Update strategy state
-	params.StrategyState["mr_calculated"] = s.mrCalculated
-	params.StrategyState["mr_high"] = s.mrHigh
-	params.StrategyState["mr_low"] = s.mrLow
-	params.StrategyState["mr_high_with_buffer"] = s.mrHighWithBuffer
-	params.StrategyState["mr_low_with_buffer"] = s.mrLowWithBuffer
-}
-
-// checkEntryConditions checks for entry conditions based on Python logic
-func (s *FirstEntryStrategyV2) checkEntryConditions(high, low float64, timestamp time.Time, params *v2.StrategyParameters) *EntrySignal {
-	// Skip if morning range values are not available
-	if !s.mrCalculated || s.mrHigh == 0 || s.mrLow == 0 {
-		return nil
-	}
-
-	// Calculate buffer values if not already calculated
-	if s.mrHighWithBuffer == 0 || s.mrLowWithBuffer == 0 {
 		s.calculateBufferValues()
-	}
+		s.mrCalculated = true
 
-	// Check long breakout
-	if high >= s.mrHighWithBuffer && !s.inLongTrade && !s.inShortTrade {
-		if s.canGenerateLong {
-			s.inLongTrade = true
-			s.canGenerateLong = false
-			return &EntrySignal{
-				Type:      "IMMEDIATE_BREAKOUT",
-				Direction: "LONG",
-				Price:     s.mrHighWithBuffer,
-				Timestamp: timestamp,
-				Metadata: map[string]interface{}{
-					"breakout_type": "immediate",
-					"entry_type":    "1st_entry",
-					"entry_time":    timestamp.Format("15:04"),
-					"mr_high":       s.mrHigh,
-					"mr_low":        s.mrLow,
-					"mr_size":       s.mrHigh - s.mrLow,
-				},
-			}
+		fmt.Printf("1ST_ENTRY: Morning Range calculated - High: %.2f, Low: %.2f, Buffer High: %.2f, Buffer Low: %.2f\n",
+			s.mrHigh, s.mrLow, s.mrHighWithBuffer, s.mrLowWithBuffer)
+	}
+}
+
+// checkEntryConditions checks for entry conditions based on MR breakout
+func (s *FirstEntryStrategyV2) checkEntryConditions(high, low float64, timestamp time.Time) *EntrySignal {
+	// Check for long entry (breakout above MR high with buffer)
+	if s.canGenerateLong && high > s.mrHighWithBuffer {
+		s.canGenerateLong = false // Prevent multiple signals
+		return &EntrySignal{
+			Type:      "LONG_ENTRY",
+			Direction: "LONG",
+			Price:     s.mrHighWithBuffer,
+			Timestamp: timestamp,
+			Metadata: map[string]interface{}{
+				"mr_high":             s.mrHigh,
+				"mr_high_with_buffer": s.mrHighWithBuffer,
+				"breakout_price":      high,
+			},
 		}
 	}
 
-	// Check short breakout
-	if low <= s.mrLowWithBuffer && !s.inShortTrade && !s.inLongTrade {
-		if s.canGenerateShort {
-			s.inShortTrade = true
-			s.canGenerateShort = false
-			return &EntrySignal{
-				Type:      "IMMEDIATE_BREAKOUT",
-				Direction: "SHORT",
-				Price:     s.mrLowWithBuffer,
-				Timestamp: timestamp,
-				Metadata: map[string]interface{}{
-					"breakout_type": "immediate",
-					"entry_type":    "1st_entry",
-					"entry_time":    timestamp.Format("15:04"),
-					"mr_high":       s.mrHigh,
-					"mr_low":        s.mrLow,
-					"mr_size":       s.mrHigh - s.mrLow,
-				},
-			}
+	// Check for short entry (breakout below MR low with buffer)
+	if s.canGenerateShort && low < s.mrLowWithBuffer {
+		s.canGenerateShort = false // Prevent multiple signals
+		return &EntrySignal{
+			Type:      "SHORT_ENTRY",
+			Direction: "SHORT",
+			Price:     s.mrLowWithBuffer,
+			Timestamp: timestamp,
+			Metadata: map[string]interface{}{
+				"mr_low":             s.mrLow,
+				"mr_low_with_buffer": s.mrLowWithBuffer,
+				"breakout_price":     low,
+			},
 		}
 	}
 
 	return nil
 }
 
-// calculateBufferValues calculates buffer values for morning range
+// calculateBufferValues calculates the buffer values for MR high and low
 func (s *FirstEntryStrategyV2) calculateBufferValues() {
-	s.mrHighWithBuffer = s.mrHigh * (1 + s.bufferPercentage)
-	s.mrLowWithBuffer = s.mrLow * (1 - s.bufferPercentage)
+	bufferTicks := s.bufferPercentage * s.mrHigh // Use MR high as base for buffer calculation
+	s.mrHighWithBuffer = s.mrHigh + bufferTicks
+	s.mrLowWithBuffer = s.mrLow - bufferTicks
 
 	// Round to 2 decimal places (matching Python implementation)
 	s.mrHighWithBuffer = math.Round(s.mrHighWithBuffer*100) / 100
 	s.mrLowWithBuffer = math.Round(s.mrLowWithBuffer*100) / 100
 }
 
-// updateParametersWithState updates parameters with current strategy state
-func (s *FirstEntryStrategyV2) updateParametersWithState(params *v2.StrategyParameters, signal *EntrySignal) {
-	params.InLongTrade = s.inLongTrade
-	params.InShortTrade = s.inShortTrade
-	params.CanGenerateLong = s.canGenerateLong
-	params.CanGenerateShort = s.canGenerateShort
-
-	// Update morning range values
-	if s.mrHigh > 0 {
-		params.MRHigh = &s.mrHigh
-	}
-	if s.mrLow > 0 {
-		params.MRLow = &s.mrLow
-	}
-	if s.mrHighWithBuffer > 0 {
-		params.MRHighWithBuffer = &s.mrHighWithBuffer
-	}
-	if s.mrLowWithBuffer > 0 {
-		params.MRLowWithBuffer = &s.mrLowWithBuffer
-	}
-
-	params.BufferPercentage = &s.bufferPercentage
-	params.MRCalculated = &s.mrCalculated
-
-	// Update strategy state
-	params.StrategyState["in_long_trade"] = s.inLongTrade
-	params.StrategyState["in_short_trade"] = s.inShortTrade
-	params.StrategyState["can_generate_long"] = s.canGenerateLong
-	params.StrategyState["can_generate_short"] = s.canGenerateShort
-	params.StrategyState["mr_calculated"] = s.mrCalculated
-	params.StrategyState["mr_high"] = s.mrHigh
-	params.StrategyState["mr_low"] = s.mrLow
-	params.StrategyState["mr_high_with_buffer"] = s.mrHighWithBuffer
-	params.StrategyState["mr_low_with_buffer"] = s.mrLowWithBuffer
-
-	// Add signal to metadata if generated
-	if signal != nil {
-		params.Metadata["last_signal"] = signal
-		params.Metadata["signal_generated"] = true
-	} else {
-		params.Metadata["signal_generated"] = false
-	}
-}
-
-// saveParameters saves parameters to the database
-func (s *FirstEntryStrategyV2) saveParameters(timestamp time.Time, params *v2.StrategyParameters) {
-	err := s.paramsManager.SaveParameters("", s.GetName(), timestamp, params)
-	if err != nil {
-		// Log error but don't fail the strategy
-		fmt.Printf("Failed to save parameters for %s: %v\n", s.GetName(), err)
-	}
-}
-
 // addSignalToDataFrame adds signal information to the DataFrame
-func (s *FirstEntryStrategyV2) addSignalToDataFrame(df *dataframe.DataFrame, index int, signal *EntrySignal) *dataframe.DataFrame {
+func (s *FirstEntryStrategyV2) addSignalToDataFrame(df dataframe.DataFrame, index int, signal *EntrySignal) dataframe.DataFrame {
 	// Create signal columns if they don't exist
 	if df.Col("signal_type").Err != nil {
 		signalType := make([]string, df.Nrow())
@@ -391,10 +214,10 @@ func (s *FirstEntryStrategyV2) addSignalToDataFrame(df *dataframe.DataFrame, ind
 		signalGenerated[index] = true
 
 		// Add columns to DataFrame one by one
-		df = df.Mutate(series.New(signalType, series.String, "signal_type"))
-		df = df.Mutate(series.New(signalDirection, series.String, "signal_direction"))
-		df = df.Mutate(series.New(signalPrice, series.Float, "signal_price"))
-		df = df.Mutate(series.New(signalGenerated, series.Bool, "signal_generated"))
+		df = df.Mutate(series.Strings(signalType))
+		df = df.Mutate(series.Strings(signalDirection))
+		df = df.Mutate(series.Floats(signalPrice))
+		df = df.Mutate(series.Bools(signalGenerated))
 	} else {
 		// Update existing signal columns
 		signalType := df.Col("signal_type")
@@ -403,16 +226,16 @@ func (s *FirstEntryStrategyV2) addSignalToDataFrame(df *dataframe.DataFrame, ind
 		signalGenerated := df.Col("signal_generated")
 
 		if signalType.Err == nil {
-			signalType.Set(index, series.String, signal.Type)
+			signalType.Set(index, series.Strings([]string{signal.Type}))
 		}
 		if signalDirection.Err == nil {
-			signalDirection.Set(index, series.String, signal.Direction)
+			signalDirection.Set(index, series.Strings([]string{signal.Direction}))
 		}
 		if signalPrice.Err == nil {
-			signalPrice.Set(index, series.Float, signal.Price)
+			signalPrice.Set(index, series.Floats([]float64{signal.Price}))
 		}
 		if signalGenerated.Err == nil {
-			signalGenerated.Set(index, series.Bool, true)
+			signalGenerated.Set(index, series.Bools([]bool{true}))
 		}
 	}
 
@@ -421,8 +244,6 @@ func (s *FirstEntryStrategyV2) addSignalToDataFrame(df *dataframe.DataFrame, ind
 
 // ResetState resets the strategy state
 func (s *FirstEntryStrategyV2) ResetState() {
-	s.inLongTrade = false
-	s.inShortTrade = false
 	s.canGenerateLong = true
 	s.canGenerateShort = true
 	s.mrHigh = 0
@@ -491,13 +312,4 @@ func (s *FirstEntryStrategyV2) GetEstimatedProcessingTime() time.Duration {
 // GetMemoryRequirements returns estimated memory requirements in bytes
 func (s *FirstEntryStrategyV2) GetMemoryRequirements() int64 {
 	return 512 * 1024 // 512KB for 1ST_ENTRY strategy
-}
-
-// EntrySignal represents a trading signal generated by the strategy
-type EntrySignal struct {
-	Type      string                 `json:"type"`
-	Direction string                 `json:"direction"`
-	Price     float64                `json:"price"`
-	Timestamp time.Time              `json:"timestamp"`
-	Metadata  map[string]interface{} `json:"metadata"`
 }

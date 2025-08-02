@@ -12,6 +12,7 @@ import (
 	"setbull_trader/pkg/log"
 
 	"github.com/go-gota/gota/dataframe"
+	"github.com/go-gota/gota/series"
 )
 
 // ProductionReadyEngineV2 is a production-ready strategy engine with enhanced scalability
@@ -24,6 +25,7 @@ type ProductionReadyEngineV2 struct {
 	monitoring        *ProductionMonitoringV2
 	healthChecker     *HealthCheckerV2
 	metrics           *ProductionEngineMetrics
+	paramsManager     *StrategyParametersManager
 	mu                sync.RWMutex
 	shutdownChan      chan struct{}
 }
@@ -195,20 +197,89 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 ) (map[string]*dataframe.DataFrame, error) {
 	stockDataFrames := make(map[string]*dataframe.DataFrame)
 
-	// Fetch data for each stock group (placeholder implementation)
+	// Get maximum required history across all strategies
+	maxHistory := engine.getMaxRequiredHistory()
+
+	// Calculate start time for historical data
+	startTime := currentTime.Add(-time.Duration(maxHistory) * 5 * time.Minute)
+
+	log.Info("Fetching historical data from %s to %s (max history: %d candles)",
+		startTime.Format("2006-01-02 15:04:05"),
+		currentTime.Format("2006-01-02 15:04:05"),
+		maxHistory)
+
 	for _, group := range stockGroups {
-		// Create empty DataFrame for now
-		df := &dataframe.DataFrame{}
+		// Get the first stock from the group for data fetching
+		if len(group.Stocks) == 0 {
+			log.Warn("Stock group %s has no stocks, skipping", group.ID)
+			continue
+		}
+
+		stock := group.Stocks[0] // Use first stock for the group
+
+		// Fetch candles using the candle repository
+		candles, err := engine.candleRepository.FindByInstrumentAndTimeRange(
+			ctx, stock.StockID, "5min", startTime, currentTime,
+		)
+		if err != nil {
+			log.Error("Failed to fetch candles for stock %s: %v", stock.StockID, err)
+			continue
+		}
+
+		if len(candles) == 0 {
+			log.Warn("No candles found for stock %s in time range", stock.StockID)
+			continue
+		}
+
+		// Convert candles to DataFrame
+		df, err := engine.convertCandlesToDataFrame(candles)
+		if err != nil {
+			log.Error("Failed to convert candles to DataFrame for stock %s: %v", stock.StockID, err)
+			continue
+		}
+
 		stockDataFrames[group.ID] = df
+		log.Info("Fetched %d candles for stock group %s (stock: %s)", len(candles), group.ID, stock.StockID)
 	}
 
 	return stockDataFrames, nil
 }
 
-// convertCandlesToDataFrame converts candles to DataFrame (placeholder)
+// convertCandlesToDataFrame converts candles to DataFrame
 func (engine *ProductionReadyEngineV2) convertCandlesToDataFrame(candles []domain.Candle) (*dataframe.DataFrame, error) {
-	// Placeholder implementation
-	return &dataframe.DataFrame{}, nil
+	if len(candles) == 0 {
+		return &dataframe.DataFrame{}, nil
+	}
+
+	// Prepare data slices
+	timestamps := make([]string, len(candles))
+	opens := make([]float64, len(candles))
+	highs := make([]float64, len(candles))
+	lows := make([]float64, len(candles))
+	closes := make([]float64, len(candles))
+	volumes := make([]int64, len(candles))
+
+	// Populate data slices
+	for i, candle := range candles {
+		timestamps[i] = candle.Timestamp.Format("2006-01-02 15:04:05")
+		opens[i] = candle.Open
+		highs[i] = candle.High
+		lows[i] = candle.Low
+		closes[i] = candle.Close
+		volumes[i] = candle.Volume
+	}
+
+	// Create DataFrame
+	df := dataframe.New(
+		series.Strings(timestamps),
+		series.Floats(opens),
+		series.Floats(highs),
+		series.Floats(lows),
+		series.Floats(closes),
+		series.Ints(volumes),
+	)
+
+	return &df, nil
 }
 
 // getMaxRequiredHistory gets the maximum required history across all strategies

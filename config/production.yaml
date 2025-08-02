@@ -1,0 +1,80 @@
+# Production Environment Configuration
+# This file contains production-specific settings for the V2 engine
+
+strategy_engine_v2:
+  enabled: true
+  
+  processing:
+    concurrent_workers: 16  # Optimized for production
+    processing_timeout: 30s  # Strict timeout for production
+    max_historical_candles: 100  # Full dataset for production
+    batch_size: 100  # Larger batches for production
+    data_retention_days: 30  # Standard retention for production
+  
+  dataframe:
+    library: "gota"
+    memory_limit_mb: 1024  # Higher memory limit for production
+    enable_parallel_processing: true  # Enable for performance
+  
+  strategies:
+    registry:
+      auto_discovery: true
+      discovery_path: "./internal/strategy/v2/strategies"
+    execution:
+      parallel_strategies: true  # Enable for performance
+      strategy_timeout: 10s  # Strict timeout for production
+      error_handling: "continue_on_error"  # Continue on error for production
+  
+  persistence:
+    batch_insert: true  # Enable for performance
+    batch_size: 200  # Larger batches for production
+    enable_audit_log: true
+  
+  monitoring:
+    enable_metrics: true
+    enable_tracing: true
+    log_level: "info"  # Info level for production
+  
+  parallel_processing:
+    max_workers: 32  # Optimized for production
+    min_workers: 16
+    worker_timeout: 30s
+    queue_size: 2000  # Larger queue for production
+    max_concurrent_strategies: 20
+    max_memory_usage_mb: 2048  # Higher memory limit for production
+    memory_check_interval: 5s
+    error_handling: "continue_on_error"
+    max_retries: 3
+    retry_delay: 1s
+    enable_metrics: true
+    metrics_interval: 10s
+  
+  state_management:
+    enable_persistence: true
+    persistence_interval: 30s  # Standard interval for production
+    state_retention_days: 30
+    enable_caching: true
+    cache_ttl: 5m
+    max_cache_size: 50000  # Larger cache for production
+    enable_validation: true
+    validation_timeout: 5s
+    enable_synchronization: true  # Enable for production
+    sync_interval: 10s
+    enable_metrics: true
+    metrics_interval: 30s
+
+# Production database settings
+database:
+  debug: false  # Disable debug mode for production
+  maxOpenConnections: 200  # Optimized for production
+  maxIdleConnections: 50
+
+# Production cache settings
+cache:
+  redis:
+    disable: false  # Enable Redis for production
+    poolSize: 20  # Larger pool for production
+    maxRetry: 5
+  inmem:
+    ttl: 5m
+    cleanupttl: 1m 

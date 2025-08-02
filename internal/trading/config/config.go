@@ -219,6 +219,37 @@ type StrategyEngineV2Config struct {
 		EnableTracing bool   `yaml:"enable_tracing" json:"enable_tracing"`
 		LogLevel      string `yaml:"log_level" json:"log_level"`
 	} `yaml:"monitoring" json:"monitoring"`
+
+	// Enhanced components from Phase 3.5
+	ParallelProcessing struct {
+		MaxWorkers              int           `yaml:"max_workers" json:"max_workers"`
+		MinWorkers              int           `yaml:"min_workers" json:"min_workers"`
+		WorkerTimeout           time.Duration `yaml:"worker_timeout" json:"worker_timeout"`
+		QueueSize               int           `yaml:"queue_size" json:"queue_size"`
+		MaxConcurrentStrategies int           `yaml:"max_concurrent_strategies" json:"max_concurrent_strategies"`
+		MaxMemoryUsageMB        int           `yaml:"max_memory_usage_mb" json:"max_memory_usage_mb"`
+		MemoryCheckInterval     time.Duration `yaml:"memory_check_interval" json:"memory_check_interval"`
+		ErrorHandling           string        `yaml:"error_handling" json:"error_handling"`
+		MaxRetries              int           `yaml:"max_retries" json:"max_retries"`
+		RetryDelay              time.Duration `yaml:"retry_delay" json:"retry_delay"`
+		EnableMetrics           bool          `yaml:"enable_metrics" json:"enable_metrics"`
+		MetricsInterval         time.Duration `yaml:"metrics_interval" json:"metrics_interval"`
+	} `yaml:"parallel_processing" json:"parallel_processing"`
+
+	StateManagement struct {
+		EnablePersistence     bool          `yaml:"enable_persistence" json:"enable_persistence"`
+		PersistenceInterval   time.Duration `yaml:"persistence_interval" json:"persistence_interval"`
+		StateRetentionDays    int           `yaml:"state_retention_days" json:"state_retention_days"`
+		EnableCaching         bool          `yaml:"enable_caching" json:"enable_caching"`
+		CacheTTL              time.Duration `yaml:"cache_ttl" json:"cache_ttl"`
+		MaxCacheSize          int           `yaml:"max_cache_size" json:"max_cache_size"`
+		EnableValidation      bool          `yaml:"enable_validation" json:"enable_validation"`
+		ValidationTimeout     time.Duration `yaml:"validation_timeout" json:"validation_timeout"`
+		EnableSynchronization bool          `yaml:"enable_synchronization" json:"enable_synchronization"`
+		SyncInterval          time.Duration `yaml:"sync_interval" json:"sync_interval"`
+		EnableMetrics         bool          `yaml:"enable_metrics" json:"enable_metrics"`
+		MetricsInterval       time.Duration `yaml:"metrics_interval" json:"metrics_interval"`
+	} `yaml:"state_management" json:"state_management"`
 }
 
 // DefaultBBWDashboardConfig returns default BBW Dashboard configuration
@@ -252,6 +283,9 @@ func DefaultBBWDashboardConfig() *BBWDashboardConfig {
 func DefaultStrategyEngineV2Config() *StrategyEngineV2Config {
 	config := &StrategyEngineV2Config{}
 
+	// Default enabled state
+	config.Enabled = true
+
 	// Default processing configuration
 	config.Processing.ConcurrentWorkers = 10
 	config.Processing.ProcessingTimeout = 30 * time.Second
@@ -280,6 +314,34 @@ func DefaultStrategyEngineV2Config() *StrategyEngineV2Config {
 	config.Monitoring.EnableMetrics = true
 	config.Monitoring.EnableTracing = true
 	config.Monitoring.LogLevel = "info"
+
+	// Default parallel processing configuration
+	config.ParallelProcessing.MaxWorkers = 16
+	config.ParallelProcessing.MinWorkers = 8
+	config.ParallelProcessing.WorkerTimeout = 30 * time.Second
+	config.ParallelProcessing.QueueSize = 1000
+	config.ParallelProcessing.MaxConcurrentStrategies = 10
+	config.ParallelProcessing.MaxMemoryUsageMB = 1024
+	config.ParallelProcessing.MemoryCheckInterval = 5 * time.Second
+	config.ParallelProcessing.ErrorHandling = "continue_on_error"
+	config.ParallelProcessing.MaxRetries = 3
+	config.ParallelProcessing.RetryDelay = 1 * time.Second
+	config.ParallelProcessing.EnableMetrics = true
+	config.ParallelProcessing.MetricsInterval = 10 * time.Second
+
+	// Default state management configuration
+	config.StateManagement.EnablePersistence = true
+	config.StateManagement.PersistenceInterval = 30 * time.Second
+	config.StateManagement.StateRetentionDays = 30
+	config.StateManagement.EnableCaching = true
+	config.StateManagement.CacheTTL = 5 * time.Minute
+	config.StateManagement.MaxCacheSize = 10000
+	config.StateManagement.EnableValidation = true
+	config.StateManagement.ValidationTimeout = 5 * time.Second
+	config.StateManagement.EnableSynchronization = true
+	config.StateManagement.SyncInterval = 10 * time.Second
+	config.StateManagement.EnableMetrics = true
+	config.StateManagement.MetricsInterval = 30 * time.Second
 
 	return config
 }
@@ -316,6 +378,11 @@ func LoadConfig() (*Config, error) {
 	// Validate BB Width Monitoring configuration AFTER setting defaults
 	if err := config.ValidateBBWidthMonitoringConfig(); err != nil {
 		return nil, errors.Wrap(err, "invalid bb width monitoring configuration")
+	}
+
+	// Validate V2 Strategy Engine configuration AFTER setting defaults
+	if err := config.ValidateStrategyEngineV2Config(); err != nil {
+		return nil, errors.Wrap(err, "invalid strategy engine v2 configuration")
 	}
 
 	// Debug: Print the actual values for troubleshooting
@@ -450,6 +517,77 @@ func (c *Config) ValidateUpstoxConfig() error {
 	if c.Upstox.BasePath == "" {
 		c.Upstox.BasePath = "https://api.upstox.com" // Set default if not provided
 	}
+	return nil
+}
+
+// ValidateStrategyEngineV2Config validates the V2 engine configuration
+func (c *Config) ValidateStrategyEngineV2Config() error {
+	if !c.StrategyEngineV2.Enabled {
+		return nil // Skip validation if disabled
+	}
+
+	// Validate processing configuration
+	if c.StrategyEngineV2.Processing.ConcurrentWorkers <= 0 {
+		return errors.New("concurrent_workers must be greater than 0")
+	}
+	if c.StrategyEngineV2.Processing.ProcessingTimeout <= 0 {
+		return errors.New("processing_timeout must be greater than 0")
+	}
+	if c.StrategyEngineV2.Processing.MaxHistoricalCandles <= 0 {
+		return errors.New("max_historical_candles must be greater than 0")
+	}
+	if c.StrategyEngineV2.Processing.BatchSize <= 0 {
+		return errors.New("batch_size must be greater than 0")
+	}
+
+	// Validate DataFrame configuration
+	if c.StrategyEngineV2.DataFrame.MemoryLimitMB <= 0 {
+		return errors.New("memory_limit_mb must be greater than 0")
+	}
+
+	// Validate strategies configuration
+	if c.StrategyEngineV2.Strategies.Execution.StrategyTimeout <= 0 {
+		return errors.New("strategy_timeout must be greater than 0")
+	}
+
+	// Validate parallel processing configuration
+	if c.StrategyEngineV2.ParallelProcessing.MaxWorkers <= 0 {
+		return errors.New("max_workers must be greater than 0")
+	}
+	if c.StrategyEngineV2.ParallelProcessing.MinWorkers <= 0 {
+		return errors.New("min_workers must be greater than 0")
+	}
+	if c.StrategyEngineV2.ParallelProcessing.MinWorkers > c.StrategyEngineV2.ParallelProcessing.MaxWorkers {
+		return errors.New("min_workers cannot be greater than max_workers")
+	}
+	if c.StrategyEngineV2.ParallelProcessing.WorkerTimeout <= 0 {
+		return errors.New("worker_timeout must be greater than 0")
+	}
+	if c.StrategyEngineV2.ParallelProcessing.QueueSize <= 0 {
+		return errors.New("queue_size must be greater than 0")
+	}
+	if c.StrategyEngineV2.ParallelProcessing.MaxMemoryUsageMB <= 0 {
+		return errors.New("max_memory_usage_mb must be greater than 0")
+	}
+
+	// Validate state management configuration
+	if c.StrategyEngineV2.StateManagement.EnablePersistence {
+		if c.StrategyEngineV2.StateManagement.PersistenceInterval <= 0 {
+			return errors.New("persistence_interval must be greater than 0")
+		}
+		if c.StrategyEngineV2.StateManagement.StateRetentionDays <= 0 {
+			return errors.New("state_retention_days must be greater than 0")
+		}
+	}
+	if c.StrategyEngineV2.StateManagement.EnableCaching {
+		if c.StrategyEngineV2.StateManagement.CacheTTL <= 0 {
+			return errors.New("cache_ttl must be greater than 0")
+		}
+		if c.StrategyEngineV2.StateManagement.MaxCacheSize <= 0 {
+			return errors.New("max_cache_size must be greater than 0")
+		}
+	}
+
 	return nil
 }
 
