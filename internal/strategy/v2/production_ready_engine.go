@@ -26,6 +26,9 @@ type ProductionReadyEngineV2 struct {
 	healthChecker     *HealthCheckerV2
 	metrics           *ProductionEngineMetrics
 	paramsManager     *StrategyParametersManager
+	progressManager   *ProgressTrackerManager
+	debugManager      *DebugManager
+	logger            DebugLogger
 	mu                sync.RWMutex
 	shutdownChan      chan struct{}
 }
@@ -82,6 +85,9 @@ func NewProductionReadyEngineV2(
 		},
 	}
 
+	// Initialize logging and debug components
+	engine.initializeLoggingAndDebug()
+
 	// Initialize components
 	engine.initializeComponents()
 
@@ -90,6 +96,28 @@ func NewProductionReadyEngineV2(
 
 	log.Info("Production-ready V2 strategy engine initialized")
 	return engine
+}
+
+// initializeLoggingAndDebug initializes logging and debug components
+func (engine *ProductionReadyEngineV2) initializeLoggingAndDebug() {
+	// Initialize global logger if not already initialized
+	if GetGlobalLogger() == nil {
+		err := InitializeGlobalLogger("./logs", "v2_production_engine.log")
+		if err != nil {
+			log.Error("Failed to initialize global logger: %v", err)
+		}
+	}
+
+	engine.logger = GetGlobalLogger()
+
+	// Initialize debug manager
+	engine.debugManager = NewDebugManager(engine.logger)
+
+	// Initialize progress tracker manager
+	engine.progressManager = NewProgressTrackerManager(engine.logger, engine.debugManager)
+
+	// Enable debug features by default for now (can be made configurable later)
+	engine.debugManager.EnableDebug()
 }
 
 // initializeComponents initializes all engine components
@@ -106,7 +134,7 @@ func (engine *ProductionReadyEngineV2) initializeComponents() {
 
 	// Initialize parallel processor
 	parallelConfig := DefaultParallelProcessorConfig()
-	engine.parallelProcessor = NewParallelProcessorV2(parallelConfig)
+	engine.parallelProcessor = NewParallelProcessorV2(parallelConfig, engine.progressManager, engine.debugManager, engine.logger)
 
 	// Initialize state manager
 	stateConfig := DefaultAdvancedStateConfig()
@@ -144,26 +172,75 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	engine.metrics.LastProcessingTime = startTime
 	engine.metrics.TotalProcessingRuns++
 
+	// Create progress tracker for engine-level processing
+	totalJobs := len(stockGroups)
+	engine.progressManager.CreateTracker("engine_processing", "ProductionReadyEngineV2", totalJobs, LevelDetailed, map[string]interface{}{
+		"current_time":       currentTime.Format(time.RFC3339),
+		"stock_groups_count": len(stockGroups),
+		"start_time":         startTime.Format(time.RFC3339),
+	})
+
+	// Start progress tracking
+	engine.progressManager.StartTracker("engine_processing", map[string]interface{}{
+		"processing_start": startTime.Format(time.RFC3339),
+	})
+
+	// Take initial state snapshot
+	engine.debugManager.TakeStateSnapshot("engine", map[string]interface{}{
+		"stock_groups_count": len(stockGroups),
+		"current_time":       currentTime.Format(time.RFC3339),
+		"start_time":         startTime.Format(time.RFC3339),
+	})
+
 	log.Info("Starting production processing for %d stock groups", len(stockGroups))
 
 	// Health check before processing
 	if !engine.healthChecker.IsHealthy() {
+		engine.progressManager.UpdateProgress("engine_processing", 0, 1, StatusFailed, map[string]interface{}{
+			"health_check_failed": true,
+			"error":               "engine is not healthy",
+		})
 		return nil, fmt.Errorf("engine is not healthy, skipping processing")
 	}
+
+	// Update progress - Health check passed
+	engine.progressManager.UpdateProgress("engine_processing", 1, 0, StatusRunning, map[string]interface{}{
+		"step": "health_check_passed",
+	})
 
 	// Fetch historical data
 	stockDataFrames, err := engine.fetchHistoricalData(ctx, stockGroups, currentTime)
 	if err != nil {
 		engine.recordError(err)
+		engine.progressManager.UpdateProgress("engine_processing", 1, 1, StatusFailed, map[string]interface{}{
+			"step":  "fetch_historical_data",
+			"error": err.Error(),
+		})
 		return nil, fmt.Errorf("failed to fetch historical data: %w", err)
 	}
+
+	// Update progress - Historical data fetched
+	engine.progressManager.UpdateProgress("engine_processing", 2, 0, StatusRunning, map[string]interface{}{
+		"step":             "historical_data_fetched",
+		"dataframes_count": len(stockDataFrames),
+	})
 
 	// Get active strategies
 	strategies := engine.registry.ListActiveStrategies()
 	if len(strategies) == 0 {
 		log.Warn("No active strategies found")
+		engine.progressManager.CompleteTracker("engine_processing", map[string]interface{}{
+			"step":             "no_strategies_found",
+			"strategies_count": 0,
+		})
 		return make(map[string]map[string]*StrategyResult), nil
 	}
+
+	// Update progress - Strategies loaded
+	engine.progressManager.UpdateProgress("engine_processing", 3, 0, StatusRunning, map[string]interface{}{
+		"step":             "strategies_loaded",
+		"strategies_count": len(strategies),
+	})
 
 	// Process using parallel processor
 	results, err := engine.parallelProcessor.ProcessStockGroups(
@@ -171,8 +248,18 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	)
 	if err != nil {
 		engine.recordError(err)
+		engine.progressManager.UpdateProgress("engine_processing", 3, 1, StatusFailed, map[string]interface{}{
+			"step":  "parallel_processing",
+			"error": err.Error(),
+		})
 		return nil, fmt.Errorf("parallel processing failed: %w", err)
 	}
+
+	// Update progress - Parallel processing completed
+	engine.progressManager.UpdateProgress("engine_processing", 4, 0, StatusRunning, map[string]interface{}{
+		"step":          "parallel_processing_completed",
+		"results_count": len(results),
+	})
 
 	// Update metrics
 	processingTime := time.Since(startTime)
@@ -180,8 +267,25 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	engine.metrics.TotalStocksProcessed += int64(len(stockGroups))
 	engine.metrics.TotalStrategiesExecuted += int64(len(strategies) * len(stockGroups))
 
+	// Track performance
+	engine.debugManager.TrackPerformance("ProductionReadyEngineV2", "ProcessStockGroups", processingTime)
+
 	// Update state management
 	engine.updateStateManagement(stockGroups, strategies, results)
+
+	// Update progress - State management completed
+	engine.progressManager.UpdateProgress("engine_processing", 5, 0, StatusRunning, map[string]interface{}{
+		"step": "state_management_completed",
+	})
+
+	// Complete progress tracking
+	engine.progressManager.CompleteTracker("engine_processing", map[string]interface{}{
+		"processing_time":           processingTime.String(),
+		"total_stocks_processed":    len(stockGroups),
+		"total_strategies_executed": len(strategies),
+		"results_count":             len(results),
+		"completion_time":           time.Now().Format(time.RFC3339),
+	})
 
 	log.Info("Production processing completed in %v for %d stock groups",
 		processingTime, len(stockGroups))

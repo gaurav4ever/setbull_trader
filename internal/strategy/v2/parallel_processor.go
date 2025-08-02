@@ -15,10 +15,13 @@ import (
 
 // ParallelProcessorV2 provides enhanced parallel processing capabilities for multiple strategies
 type ParallelProcessorV2 struct {
-	config     *ParallelProcessorConfig
-	workerPool *WorkerPool
-	metrics    *ParallelProcessorMetrics
-	mu         sync.RWMutex
+	config          *ParallelProcessorConfig
+	workerPool      *WorkerPool
+	metrics         *ParallelProcessorMetrics
+	progressManager *ProgressTrackerManager
+	debugManager    *DebugManager
+	logger          DebugLogger
+	mu              sync.RWMutex
 }
 
 // ParallelProcessorConfig contains configuration for parallel processing
@@ -85,14 +88,17 @@ type ProcessingResult struct {
 }
 
 // NewParallelProcessorV2 creates a new parallel processor
-func NewParallelProcessorV2(config *ParallelProcessorConfig) *ParallelProcessorV2 {
+func NewParallelProcessorV2(config *ParallelProcessorConfig, progressManager *ProgressTrackerManager, debugManager *DebugManager, logger DebugLogger) *ParallelProcessorV2 {
 	if config == nil {
 		config = DefaultParallelProcessorConfig()
 	}
 
 	processor := &ParallelProcessorV2{
-		config:  config,
-		metrics: &ParallelProcessorMetrics{},
+		config:          config,
+		metrics:         &ParallelProcessorMetrics{},
+		progressManager: progressManager,
+		debugManager:    debugManager,
+		logger:          logger,
 	}
 
 	// Create worker pool
@@ -147,6 +153,28 @@ func (p *ParallelProcessorV2) ProcessStockGroups(
 	p.metrics.LastProcessingTime = startTime
 	p.metrics.TotalStocksProcessed += int64(len(stockGroups))
 
+	// Create progress tracker for parallel processing
+	totalJobs := len(stockGroups) * len(strategies)
+	p.progressManager.CreateTracker("parallel_processing", "ParallelProcessorV2", totalJobs, LevelDetailed, map[string]interface{}{
+		"stock_groups_count": len(stockGroups),
+		"strategies_count":   len(strategies),
+		"current_time":       currentTime.Format(time.RFC3339),
+		"start_time":         startTime.Format(time.RFC3339),
+	})
+
+	// Start progress tracking
+	p.progressManager.StartTracker("parallel_processing", map[string]interface{}{
+		"processing_start": startTime.Format(time.RFC3339),
+	})
+
+	// Take initial state snapshot
+	p.debugManager.TakeStateSnapshot("parallel_processor", map[string]interface{}{
+		"stock_groups_count": len(stockGroups),
+		"strategies_count":   len(strategies),
+		"current_time":       currentTime.Format(time.RFC3339),
+		"start_time":         startTime.Format(time.RFC3339),
+	})
+
 	log.Info("Starting parallel processing for %d stock groups with %d strategies",
 		len(stockGroups), len(strategies))
 
@@ -186,6 +214,7 @@ func (p *ParallelProcessorV2) ProcessStockGroups(
 	}()
 
 	// Process results
+	completedJobs := 0
 	for result := range resultChan {
 		mu.Lock()
 		results[result.StockGroupID] = result.Results
@@ -193,6 +222,15 @@ func (p *ParallelProcessorV2) ProcessStockGroups(
 
 		p.metrics.TotalJobsProcessed++
 		p.metrics.TotalStrategiesExecuted += int64(len(result.Results))
+
+		// Update progress
+		completedJobs++
+		p.progressManager.UpdateProgress("parallel_processing", completedJobs, 0, StatusRunning, map[string]interface{}{
+			"completed_jobs": completedJobs,
+			"total_jobs":     totalJobs,
+			"stock_group_id": result.StockGroupID,
+			"results_count":  len(result.Results),
+		})
 	}
 
 	// Process errors
@@ -208,6 +246,10 @@ func (p *ParallelProcessorV2) ProcessStockGroups(
 	// Handle errors based on configuration
 	if len(processingErrors) > 0 {
 		if p.config.ErrorHandling == "fail_fast" {
+			p.progressManager.UpdateProgress("parallel_processing", completedJobs, len(processingErrors), StatusFailed, map[string]interface{}{
+				"error_count": len(processingErrors),
+				"first_error": processingErrors[0].Error(),
+			})
 			return results, fmt.Errorf("parallel processing failed: %v", processingErrors[0])
 		}
 		// For "continue_on_error", we log errors but don't fail
@@ -215,6 +257,19 @@ func (p *ParallelProcessorV2) ProcessStockGroups(
 			log.Error("Parallel processing error: %v", err)
 		}
 	}
+
+	// Track performance
+	p.debugManager.TrackPerformance("ParallelProcessorV2", "ProcessStockGroups", processingTime)
+
+	// Complete progress tracking
+	p.progressManager.CompleteTracker("parallel_processing", map[string]interface{}{
+		"processing_time":      processingTime.String(),
+		"total_jobs_processed": completedJobs,
+		"total_errors":         len(processingErrors),
+		"total_strategies":     len(strategies),
+		"total_stock_groups":   len(stockGroups),
+		"completion_time":      time.Now().Format(time.RFC3339),
+	})
 
 	log.Info("Parallel processing completed in %v for %d stock groups",
 		processingTime, len(stockGroups))
