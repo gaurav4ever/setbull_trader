@@ -653,7 +653,8 @@ def print_and_visualize_results(results, reports):
     print("\n=============================================")
     print("RANGE STRATEGY BACKTEST RESULTS")
     print("=============================================")
-    print(f"Instruments: {[f'{inst['key']} ({inst['direction']})' for inst in results['instruments'].keys()]}")
+    instrument_list = [f"{inst['key']} ({inst['direction']})" for inst in results['instruments'].keys()]
+    print(f"Instruments: {instrument_list}")
     print(f"Period: {results['start_date']} to {results['end_date']}")
     print("---------------------------------------------")
     

@@ -29,6 +29,7 @@ class EntryStrategyFactory:
         from .first_entry import FirstEntryStrategy
         from .two_thirty_entry import TwoThirtyEntryStrategy
         from .bb_width_entry import BBWidthEntryStrategy
+        from .bb_lower_entry import BBLowerEntryStrategy
         
         if entry_type == "1ST_ENTRY":
             return FirstEntryStrategy(config)
@@ -36,5 +37,7 @@ class EntryStrategyFactory:
             return TwoThirtyEntryStrategy(config)
         elif entry_type == "BB_WIDTH_ENTRY":
             return BBWidthEntryStrategy(config)
+        elif entry_type == "BB_LOWER_ENTRY":
+            return BBLowerEntryStrategy(config)
         else:
             raise ValueError(f"Unknown entry type: {entry_type}") 

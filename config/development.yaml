@@ -1,0 +1,77 @@
+# Development Environment Configuration
+# This file contains development-specific settings for the V2 engine
+
+strategy_engine_v2:
+  enabled: true
+  
+  processing:
+    concurrent_workers: 4  # Reduced for development
+    processing_timeout: 60s  # Longer timeout for debugging
+    max_historical_candles: 50  # Smaller dataset for development
+    batch_size: 25
+    data_retention_days: 7  # Shorter retention for development
+  
+  dataframe:
+    library: "gota"
+    memory_limit_mb: 256  # Lower memory limit for development
+    enable_parallel_processing: false  # Disable for easier debugging
+  
+  strategies:
+    registry:
+      auto_discovery: true
+      discovery_path: "./internal/strategy/v2/strategies"
+    execution:
+      parallel_strategies: false  # Disable for easier debugging
+      strategy_timeout: 30s  # Longer timeout for development
+      error_handling: "stop_on_error"  # Stop on error for debugging
+  
+  persistence:
+    batch_insert: false  # Disable for easier debugging
+    batch_size: 10
+    enable_audit_log: true
+  
+  monitoring:
+    enable_metrics: true
+    enable_tracing: true
+    log_level: "debug"  # Debug level for development
+  
+  parallel_processing:
+    max_workers: 4  # Reduced for development
+    min_workers: 2
+    worker_timeout: 60s
+    queue_size: 100  # Smaller queue for development
+    max_concurrent_strategies: 2
+    max_memory_usage_mb: 512
+    memory_check_interval: 10s
+    error_handling: "stop_on_error"
+    max_retries: 1
+    retry_delay: 2s
+    enable_metrics: true
+    metrics_interval: 30s
+  
+  state_management:
+    enable_persistence: true
+    persistence_interval: 60s  # Longer interval for development
+    state_retention_days: 7
+    enable_caching: true
+    cache_ttl: 10m
+    max_cache_size: 1000  # Smaller cache for development
+    enable_validation: true
+    validation_timeout: 10s
+    enable_synchronization: false  # Disable for development
+    sync_interval: 30s
+    enable_metrics: true
+    metrics_interval: 60s
+
+# Development database settings
+database:
+  debug: true  # Enable debug mode for development
+  maxOpenConnections: 10  # Reduced for development
+
+# Development cache settings
+cache:
+  redis:
+    disable: true  # Disable Redis for development, use in-memory
+  inmem:
+    ttl: 10m
+    cleanupttl: 2m 

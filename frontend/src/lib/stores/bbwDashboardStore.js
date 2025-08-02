@@ -36,11 +36,13 @@ function createBBWDashboardStore() {
 
     // Derived stores for filtered and sorted data
     const filteredStocks = derived(
-        [subscribe],
-        ([$store]) => {
+        subscribe,
+        ($store) => {
+            console.log('Derived store function called with store:', $store);
             let stocks = [...$store.stocks];
-            
+            console.log('Stocks:', stocks);
             // Apply search filter
+            console.log('Search term:', $store.searchTerm);
             if ($store.searchTerm) {
                 const term = $store.searchTerm.toLowerCase();
                 stocks = stocks.filter(stock => 
@@ -48,8 +50,9 @@ function createBBWDashboardStore() {
                     stock.instrument_key.toLowerCase().includes(term)
                 );
             }
-            
+
             // Apply category filter
+            console.log('Filter by:', $store.filterBy);
             switch ($store.filterBy) {
                 case 'alerted':
                     stocks = stocks.filter(stock => stock.alert_triggered);
@@ -84,6 +87,8 @@ function createBBWDashboardStore() {
                 
                 return 0;
             });
+
+            console.log('Filtered stocks:', stocks);
             
             return stocks;
         }
@@ -91,8 +96,9 @@ function createBBWDashboardStore() {
 
     // Dashboard statistics
     const dashboardStats = derived(
-        [subscribe],
-        ([$store]) => {
+        subscribe,
+        ($store) => {
+            console.log('Dashboard stats derived store called with stocks:', $store.stocks?.length || 0);
             const stocks = $store.stocks;
             const totalStocks = stocks.length;
             const alertedStocks = stocks.filter(s => s.alert_triggered).length;
@@ -120,15 +126,20 @@ function createBBWDashboardStore() {
     const actions = {
         // Initialize dashboard
         async initialize() {
+            console.log('Initializing BBW Dashboard store...');
             update(state => ({ ...state, loading: true, error: null }));
             
             try {
                 // Load market status first
+                console.log('Loading market status...');
                 await actions.loadMarketStatus();
                 
                 // Load initial data
+                console.log('Loading dashboard data...');
                 await actions.loadDashboardData();
+                console.log('Loading statistics...');
                 await actions.loadStatistics();
+                console.log('Loading active alerts...');
                 await actions.loadActiveAlerts();
                 
                 // Connect WebSocket only during market hours
@@ -147,6 +158,11 @@ function createBBWDashboardStore() {
                 update(state => ({ ...state, loading: false }));
             } catch (error) {
                 console.error('Failed to initialize BBW dashboard:', error);
+                console.error('Initialization error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
                 update(state => ({ 
                     ...state, 
                     loading: false, 
@@ -158,23 +174,43 @@ function createBBWDashboardStore() {
         // Load dashboard data
         async loadDashboardData() {
             try {
+                console.log('Loading dashboard data...');
                 // Try to get real-time data first (during market hours)
                 let data;
                 try {
+                    console.log('Trying dashboard data...');
                     data = await bbwApi.getDashboardData();
+                    if (data.data == null || data.data.length === 0) {
+                        throw new Error('No data returned from API');
+                    }
+                    console.log('Dashboard data loaded:', data);
                 } catch (error) {
                     console.log('Real-time data not available, trying latest available day data...');
                     // If real-time data fails, try to get latest available day data
                     data = await bbwApi.getLatestAvailableDayData();
+                    console.log('Latest day data loaded:', data);
                 }
                 
-                update(state => ({ 
-                    ...state, 
-                    stocks: data.data || [],
-                    lastUpdate: new Date()
-                }));
+                console.log('About to update store with stocks:', data.data?.length || 0);
+                update(state => {
+                    console.log('Current state stocks length:', state.stocks.length);
+                    const newState = { 
+                        ...state, 
+                        stocks: data.data || [],
+                        loading: false,
+                        lastUpdate: new Date()
+                    };
+                    console.log('New state stocks length:', newState.stocks.length);
+                    return newState;
+                });
+                console.log('Store updated successfully');
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
                 throw error;
             }
         },
@@ -227,6 +263,7 @@ function createBBWDashboardStore() {
 
         // Update sort settings
         setSort(sortBy, sortOrder = 'asc') {
+            console.log('Store: Setting sort to', sortBy, sortOrder);
             update(state => ({ ...state, sortBy, sortOrder }));
         },
 
@@ -246,6 +283,16 @@ function createBBWDashboardStore() {
 
         handleBBWUpdate(data) {
             update(state => {
+                // Handle bulk update (array of stocks)
+                if (Array.isArray(data)) {
+                    return { 
+                        ...state, 
+                        stocks: data,
+                        lastUpdate: new Date()
+                    };
+                }
+                
+                // Handle individual stock update (legacy format)
                 const updatedStocks = state.stocks.map(stock => {
                     if (stock.instrument_key === data.instrument_key) {
                         return { ...stock, ...data };
@@ -357,8 +404,8 @@ function createBBWDashboardStore() {
     return {
         subscribe,
         ...actions,
-        filteredStocks: { subscribe: filteredStocks.subscribe },
-        dashboardStats: { subscribe: dashboardStats.subscribe }
+        filteredStocks,
+        dashboardStats
     };
 }
 
