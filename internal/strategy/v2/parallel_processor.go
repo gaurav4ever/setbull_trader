@@ -306,6 +306,9 @@ func (p *ParallelProcessorV2) createProcessingJobs(
 		jobs = append(jobs, job)
 	}
 
+	// Basically n groups and 1 job per group.
+	log.Info("Created %d jobs for %d stock groups", len(jobs), len(stockGroups))
+
 	return jobs
 }
 

@@ -129,18 +129,18 @@ func NewDebugManager(logger DebugLogger) *DebugManager {
 	dm := &DebugManager{
 		logger: logger,
 		flags: DebugFlags{
-			Enabled:              false,
-			TraceActive:          false,
-			StateInspection:      false,
-			MemoryInspection:     false,
-			PerformanceProfiling: false,
-			ErrorTracking:        false,
-			ProgressTracking:     false,
+			Enabled:              true,
+			TraceActive:          true,
+			StateInspection:      true,
+			MemoryInspection:     true,
+			PerformanceProfiling: true,
+			ErrorTracking:        true,
+			ProgressTracking:     true,
 		},
 		stateSnapshots:     make(map[string]*StateSnapshot),
-		errorTracker:       NewErrorTracker(1000), // Keep last 1000 errors
+		errorTracker:       NewErrorTracker(10000), // Keep last 1000 errors
 		performanceMonitor: NewPerformanceMonitor(),
-		memoryMonitor:      NewMemoryMonitor(100), // Keep last 100 snapshots
+		memoryMonitor:      NewMemoryMonitor(1000), // Keep last 100 snapshots
 		progressTracker:    NewProgressTracker(),
 	}
 
@@ -295,7 +295,7 @@ func (dm *DebugManager) TakeStateSnapshot(component string, state map[string]int
 
 	if dm.logger != nil {
 		helper := NewLogHelper(dm.logger, GenerateTraceID(), "debug_manager")
-		helper.LogDebug(SYSTEM, "DebugManager", "TakeStateSnapshot", "", "",
+		helper.LogInfo(SYSTEM, "DebugManager", "TakeStateSnapshot", "", "",
 			"State snapshot taken", map[string]interface{}{
 				"component":       component,
 				"goroutines":      snapshot.Goroutines,

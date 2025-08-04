@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -192,7 +193,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 		"start_time":         startTime.Format(time.RFC3339),
 	})
 
-	log.Info("Starting production processing for %d stock groups", len(stockGroups))
+	log.Info("Starting production processing for %d stock groups", len(stockGroups)) // verified
 
 	// Health check before processing
 	if !engine.healthChecker.IsHealthy() {
@@ -206,6 +207,11 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	// Update progress - Health check passed
 	engine.progressManager.UpdateProgress("engine_processing", 1, 0, StatusRunning, map[string]interface{}{
 		"step": "health_check_passed",
+	})
+
+	// verify this
+	engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
+		"step": "INIT prev live data fetch",
 	})
 
 	// Fetch historical data
@@ -243,6 +249,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	})
 
 	// Process using parallel processor
+	// Verify this. This is the main processing.
 	results, err := engine.parallelProcessor.ProcessStockGroups(
 		ctx, stockGroups, strategies, stockDataFrames, currentTime,
 	)
@@ -316,6 +323,9 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 	// Calculate start time for historical data
 	startTime := currentTime.Add(-time.Duration(maxHistory) * 5 * time.Minute)
 
+	// Review1.1: Make sure, startTime and currentTime is IST only. 9:15AM to 3:30AM IST. India time, I'm in delhi.
+	// Review1.2: Add the current Time is just after 5min close and startTime is just before 5min open.
+	// Example: Start time: 2025-08-04 9:15AM to current time: 2025-08-04 9:20:00AM to 2025-08-04 9:20:59AM
 	log.Info("Fetching historical data from %s to %s (max history: %d candles) for %d stock groups",
 		startTime.Format("2006-01-02 15:04:05"),
 		currentTime.Format("2006-01-02 15:04:05"),
@@ -335,6 +345,9 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		stock := group.Stocks[0] // Use first stock for the group
 
 		// Fetch candles using the candle repository
+		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
+			"step": "fetching candles for Stock: " + stock.StockID + " from " + startTime.Format("2006-01-02 15:04:05") + " to " + currentTime.Format("2006-01-02 15:04:05"),
+		})
 		candles, err := engine.candleRepository.FindByInstrumentAndTimeRange(
 			ctx, stock.StockID, "5min", startTime, currentTime,
 		)
@@ -348,6 +361,13 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 			log.Warn("No candles found for stock %s in time range", stock.StockID)
 			groupsWithoutData++
 			continue
+		} else {
+			engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
+				"step": "[startTime: " + startTime.Format("2006-01-02 15:04:05") +
+					" - endTime: " + currentTime.Format("2006-01-02 15:04:05") +
+					"] candles fetched for Stock: " + stock.StockID +
+					" with 5min candle count: " + strconv.Itoa(len(candles)),
+			})
 		}
 
 		// Convert candles to DataFrame
@@ -360,7 +380,10 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 
 		stockDataFrames[group.ID] = df
 		groupsWithData++
-		log.Info("Fetched %d candles for stock group %s (stock: %s)", len(candles), group.ID, stock.StockID)
+		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
+			"step":            "Crated dataframe for stock group " + group.ID + " (stock: " + stock.StockID + ") with " + strconv.Itoa(len(candles)) + " candles",
+			"dataframe_count": len(stockDataFrames),
+		})
 	}
 
 	log.Info("Historical data fetch completed: %d groups with data, %d groups without data",
