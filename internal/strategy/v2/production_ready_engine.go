@@ -167,7 +167,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	ctx context.Context,
 	stockGroups []domain.StockGroup,
 	currentTime time.Time,
-) (map[string]map[string]*StrategyResult, error) {
+) (map[string]map[string]interface{}, error) {
 	startTime := time.Now()
 	engine.metrics.LastProcessingTime = startTime
 	engine.metrics.TotalProcessingRuns++
@@ -233,7 +233,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 			"step":             "no_strategies_found",
 			"strategies_count": 0,
 		})
-		return make(map[string]map[string]*StrategyResult), nil
+		return make(map[string]map[string]interface{}), nil
 	}
 
 	// Update progress - Strategies loaded
@@ -270,8 +270,17 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	// Track performance
 	engine.debugManager.TrackPerformance("ProductionReadyEngineV2", "ProcessStockGroups", processingTime)
 
+	// Convert results to interface{} for state management
+	interfaceResults := make(map[string]map[string]interface{})
+	for groupID, groupResults := range results {
+		interfaceResults[groupID] = make(map[string]interface{})
+		for strategyID, result := range groupResults {
+			interfaceResults[groupID][strategyID] = result
+		}
+	}
+
 	// Update state management
-	engine.updateStateManagement(stockGroups, strategies, results)
+	engine.updateStateManagement(stockGroups, strategies, interfaceResults)
 
 	// Update progress - State management completed
 	engine.progressManager.UpdateProgress("engine_processing", 5, 0, StatusRunning, map[string]interface{}{
@@ -290,7 +299,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	log.Info("Production processing completed in %v for %d stock groups",
 		processingTime, len(stockGroups))
 
-	return results, nil
+	return interfaceResults, nil
 }
 
 // fetchHistoricalData fetches historical data for all stock groups
@@ -307,15 +316,19 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 	// Calculate start time for historical data
 	startTime := currentTime.Add(-time.Duration(maxHistory) * 5 * time.Minute)
 
-	log.Info("Fetching historical data from %s to %s (max history: %d candles)",
+	log.Info("Fetching historical data from %s to %s (max history: %d candles) for %d stock groups",
 		startTime.Format("2006-01-02 15:04:05"),
 		currentTime.Format("2006-01-02 15:04:05"),
-		maxHistory)
+		maxHistory, len(stockGroups))
+
+	groupsWithData := 0
+	groupsWithoutData := 0
 
 	for _, group := range stockGroups {
 		// Get the first stock from the group for data fetching
 		if len(group.Stocks) == 0 {
 			log.Warn("Stock group %s has no stocks, skipping", group.ID)
+			groupsWithoutData++
 			continue
 		}
 
@@ -327,11 +340,13 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		)
 		if err != nil {
 			log.Error("Failed to fetch candles for stock %s: %v", stock.StockID, err)
+			groupsWithoutData++
 			continue
 		}
 
 		if len(candles) == 0 {
 			log.Warn("No candles found for stock %s in time range", stock.StockID)
+			groupsWithoutData++
 			continue
 		}
 
@@ -339,12 +354,17 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		df, err := engine.convertCandlesToDataFrame(candles)
 		if err != nil {
 			log.Error("Failed to convert candles to DataFrame for stock %s: %v", stock.StockID, err)
+			groupsWithoutData++
 			continue
 		}
 
 		stockDataFrames[group.ID] = df
+		groupsWithData++
 		log.Info("Fetched %d candles for stock group %s (stock: %s)", len(candles), group.ID, stock.StockID)
 	}
+
+	log.Info("Historical data fetch completed: %d groups with data, %d groups without data",
+		groupsWithData, groupsWithoutData)
 
 	return stockDataFrames, nil
 }
@@ -405,7 +425,7 @@ func (engine *ProductionReadyEngineV2) getMaxRequiredHistory() int {
 func (engine *ProductionReadyEngineV2) updateStateManagement(
 	stockGroups []domain.StockGroup,
 	strategies []StrategyV2,
-	results map[string]map[string]*StrategyResult,
+	results map[string]map[string]interface{},
 ) {
 	// Update state management metrics
 	stateMetrics := engine.stateManager.GetMetrics()
@@ -425,7 +445,29 @@ func (engine *ProductionReadyEngineV2) RegisterStrategy(strategy StrategyV2) err
 }
 
 // GetMetrics returns comprehensive engine metrics
-func (engine *ProductionReadyEngineV2) GetMetrics() *ProductionEngineMetrics {
+func (engine *ProductionReadyEngineV2) GetMetrics() interface{} {
+	engine.mu.RLock()
+	defer engine.mu.RUnlock()
+
+	// Update uptime
+	engine.metrics.Uptime = time.Since(engine.metrics.StartTime)
+
+	// Update parallel processor metrics
+	parallelMetrics := engine.parallelProcessor.GetMetrics()
+	engine.metrics.ActiveWorkers = parallelMetrics.ActiveWorkers
+	engine.metrics.QueueLength = parallelMetrics.QueueLength
+
+	// Update health status
+	engine.metrics.IsHealthy = engine.healthChecker.IsHealthy()
+	engine.metrics.LastHealthCheck = engine.healthChecker.GetLastCheckTime()
+
+	// Create a copy to avoid race conditions
+	metrics := *engine.metrics
+	return &metrics
+}
+
+// GetTypedMetrics returns the typed metrics for internal use
+func (engine *ProductionReadyEngineV2) GetTypedMetrics() *ProductionEngineMetrics {
 	engine.mu.RLock()
 	defer engine.mu.RUnlock()
 

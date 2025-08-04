@@ -295,6 +295,7 @@ func NewApp() *App {
 	// Set V2 engine in the group execution scheduler if available
 	if v2Engine != nil {
 		groupExecutionScheduler.SetV2Engine(true)
+		groupExecutionScheduler.SetV2EngineInstance(v2Engine)
 		log.Info("V2 Strategy Engine integrated with GroupExecutionScheduler")
 	} else {
 		groupExecutionScheduler.SetV2Engine(false)

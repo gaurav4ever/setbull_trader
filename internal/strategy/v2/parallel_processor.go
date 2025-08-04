@@ -287,6 +287,12 @@ func (p *ParallelProcessorV2) createProcessingJobs(
 	jobs := make([]*ProcessingJob, 0, len(stockGroups))
 
 	for i, group := range stockGroups {
+		// Skip jobs with nil DataFrames
+		if dataFrames[group.ID] == nil {
+			log.Warn("Skipping job creation for stock group %s: no data available", group.ID)
+			continue
+		}
+
 		job := &ProcessingJob{
 			ID:          fmt.Sprintf("job_%d_%s", i, group.ID),
 			StockGroup:  group,
@@ -343,6 +349,11 @@ func (p *ParallelProcessorV2) processStrategies(
 	ctx context.Context,
 	job *ProcessingJob,
 ) (map[string]*StrategyResult, error) {
+	// Add nil check for job.DataFrame
+	if job.DataFrame == nil {
+		return nil, fmt.Errorf("DataFrame is nil for job %s (stock group %s)", job.ID, job.StockGroup.ID)
+	}
+
 	results := make(map[string]*StrategyResult)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
@@ -393,6 +404,19 @@ func (p *ParallelProcessorV2) executeStrategy(
 	df *dataframe.DataFrame,
 ) *StrategyResult {
 	startTime := time.Now()
+
+	// Add nil check for DataFrame
+	if df == nil {
+		result := &StrategyResult{
+			StrategyName:   strategy.GetName(),
+			RowsProcessed:  0,
+			ColumnsAdded:   make([]string, 0),
+			Error:          fmt.Errorf("DataFrame is nil for strategy %s", strategy.GetName()),
+			ProcessingTime: time.Since(startTime),
+		}
+		return result
+	}
+
 	result := &StrategyResult{
 		StrategyName:  strategy.GetName(),
 		RowsProcessed: df.Nrow(),
