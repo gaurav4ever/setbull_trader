@@ -18,20 +18,21 @@ import (
 
 // ProductionReadyEngineV2 is a production-ready strategy engine with enhanced scalability
 type ProductionReadyEngineV2 struct {
-	config            *config.StrategyEngineV2Config
-	registry          *StrategyRegistryV2
-	candleRepository  *postgres.CandleRepository
-	parallelProcessor *ParallelProcessorV2
-	stateManager      *AdvancedStateManagerV2
-	monitoring        *ProductionMonitoringV2
-	healthChecker     *HealthCheckerV2
-	metrics           *ProductionEngineMetrics
-	paramsManager     *StrategyParametersManager
-	progressManager   *ProgressTrackerManager
-	debugManager      *DebugManager
-	logger            DebugLogger
-	mu                sync.RWMutex
-	shutdownChan      chan struct{}
+	config               *config.StrategyEngineV2Config
+	registry             *StrategyRegistryV2
+	candleRepository     *postgres.CandleRepository
+	candle5MinRepository *postgres.Candle5MinRepository
+	parallelProcessor    *ParallelProcessorV2
+	stateManager         *AdvancedStateManagerV2
+	monitoring           *ProductionMonitoringV2
+	healthChecker        *HealthCheckerV2
+	metrics              *ProductionEngineMetrics
+	paramsManager        *StrategyParametersManager
+	progressManager      *ProgressTrackerManager
+	debugManager         *DebugManager
+	logger               DebugLogger
+	mu                   sync.RWMutex
+	shutdownChan         chan struct{}
 }
 
 // ProductionEngineMetrics contains comprehensive metrics for the production engine
@@ -76,11 +77,13 @@ type ProductionEngineMetrics struct {
 func NewProductionReadyEngineV2(
 	config *config.StrategyEngineV2Config,
 	candleRepository *postgres.CandleRepository,
+	candle5MinRepository *postgres.Candle5MinRepository,
 ) *ProductionReadyEngineV2 {
 	engine := &ProductionReadyEngineV2{
-		config:           config,
-		candleRepository: candleRepository,
-		shutdownChan:     make(chan struct{}),
+		config:               config,
+		candleRepository:     candleRepository,
+		candle5MinRepository: candle5MinRepository,
+		shutdownChan:         make(chan struct{}),
 		metrics: &ProductionEngineMetrics{
 			StartTime: time.Now(),
 		},
@@ -348,8 +351,8 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
 			"step": "fetching candles for Stock: " + stock.StockID + " from " + startTime.Format("2006-01-02 15:04:05") + " to " + currentTime.Format("2006-01-02 15:04:05"),
 		})
-		candles, err := engine.candleRepository.FindByInstrumentAndTimeRange(
-			ctx, stock.StockID, "5min", startTime, currentTime,
+		candles, err := engine.candle5MinRepository.FindByInstrumentAndTimeRange(
+			ctx, stock.StockID, startTime, currentTime,
 		)
 		if err != nil {
 			log.Error("Failed to fetch candles for stock %s: %v", stock.StockID, err)
@@ -393,7 +396,7 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 }
 
 // convertCandlesToDataFrame converts candles to DataFrame
-func (engine *ProductionReadyEngineV2) convertCandlesToDataFrame(candles []domain.Candle) (*dataframe.DataFrame, error) {
+func (engine *ProductionReadyEngineV2) convertCandlesToDataFrame(candles []domain.Candle5Min) (*dataframe.DataFrame, error) {
 	if len(candles) == 0 {
 		return &dataframe.DataFrame{}, nil
 	}

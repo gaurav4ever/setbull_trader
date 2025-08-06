@@ -277,9 +277,15 @@ func NewApp() *App {
 			log.Fatal("Failed to get postgres.CandleRepository from interface")
 		}
 
+		postgresCandle5MinRepo, ok := candle5MinRepo.(*postgres.Candle5MinRepository)
+		if !ok {
+			log.Fatal("Failed to get postgres.Candle5MinRepository from interface")
+		}
+
 		v2Engine = v2.NewProductionReadyEngineV2(
 			&cfg.StrategyEngineV2,
 			postgresCandleRepo,
+			postgresCandle5MinRepo,
 		)
 
 		// Register V2 strategies
