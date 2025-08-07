@@ -252,10 +252,10 @@ func (s *TwoThirtyEntryStrategyV2) addSignalToDataFrame(df dataframe.DataFrame, 
 		signalGenerated[index] = true
 
 		// Add columns to DataFrame one by one
-		df = df.Mutate(series.Strings(signalType))
-		df = df.Mutate(series.Strings(signalDirection))
-		df = df.Mutate(series.Floats(signalPrice))
-		df = df.Mutate(series.Bools(signalGenerated))
+		df = df.Mutate(series.New(signalType, series.String, "signal_type"))
+		df = df.Mutate(series.New(signalDirection, series.String, "signal_direction"))
+		df = df.Mutate(series.New(signalPrice, series.Float, "signal_price"))
+		df = df.Mutate(series.New(signalGenerated, series.Bool, "signal_generated"))
 	} else {
 		// Update existing signal columns
 		signalType := df.Col("signal_type")

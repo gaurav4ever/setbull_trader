@@ -362,6 +362,7 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
 			"step": "fetching candles for Stock: " + stock.StockID + " (instrumentKey: " + instrumentKey + ") from " + startTime.Format("2006-01-02 15:04:05") + " to " + currentTime.Format("2006-01-02 15:04:05"),
 		})
+		log.Info("Fetching candles for stock %s (instrumentKey: %s) from %s to %s", stock.StockID, instrumentKey, startTime.Format("2006-01-02 15:04:05"), currentTime.Format("2006-01-02 15:04:05"))
 		candles, err := engine.candle5MinRepository.FindByInstrumentAndTimeRange(
 			ctx, instrumentKey, startTime, currentTime,
 		)
@@ -376,6 +377,7 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 			groupsWithoutData++
 			continue
 		} else {
+			log.Info(" %d Candles fetched for stock %s (instrumentKey: %s) in time range", len(candles), stock.StockID, instrumentKey)
 			engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
 				"step": "[startTime: " + startTime.Format("2006-01-02 15:04:05") +
 					" - endTime: " + currentTime.Format("2006-01-02 15:04:05") +
@@ -469,12 +471,12 @@ func (engine *ProductionReadyEngineV2) convertCandlesToDataFrame(candles []domai
 
 	// Create DataFrame
 	df := dataframe.New(
-		series.Strings(timestamps),
-		series.Floats(opens),
-		series.Floats(highs),
-		series.Floats(lows),
-		series.Floats(closes),
-		series.Ints(volumes),
+		series.New(timestamps, series.String, "timestamp"),
+		series.New(opens, series.Float, "open"),
+		series.New(highs, series.Float, "high"),
+		series.New(lows, series.Float, "low"),
+		series.New(closes, series.Float, "close"),
+		series.New(volumes, series.Int, "volume"),
 	)
 
 	return &df, nil
