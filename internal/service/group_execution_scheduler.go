@@ -3,14 +3,13 @@ package service
 import (
 	"context"
 	dto "setbull_trader/internal/core/dto/response"
-	"setbull_trader/internal/domain"
 	"setbull_trader/pkg/log"
 	"time"
 )
 
 // V2StrategyEngine interface to break import cycle
 type V2StrategyEngine interface {
-	ProcessStockGroups(ctx context.Context, stockGroups []domain.StockGroup, currentTime time.Time) (map[string]map[string]interface{}, error)
+	ProcessStockGroups(ctx context.Context, stockGroups []dto.StockGroupResponse, currentTime time.Time) (map[string]map[string]interface{}, error)
 	GetMetrics() interface{}
 }
 
@@ -135,7 +134,7 @@ func (s *GroupExecutionScheduler) processV2Strategies(start, end time.Time) {
 	ctx := context.Background()
 
 	// Get active stock groups for all entry types
-	var allStockGroups []domain.StockGroup
+	var allStockGroups []dto.StockGroupResponse
 
 	// Get groups for each entry type
 	for entryType := range EntryTypeTriggerTimes {
@@ -145,11 +144,8 @@ func (s *GroupExecutionScheduler) processV2Strategies(start, end time.Time) {
 			continue
 		}
 
-		// Convert DTO responses to domain models
-		for _, response := range stockGroupResponses {
-			domainGroup := s.convertResponseToDomainGroup(response)
-			allStockGroups = append(allStockGroups, domainGroup)
-		}
+		// Add DTO responses directly (no conversion needed)
+		allStockGroups = append(allStockGroups, stockGroupResponses...)
 	}
 
 	if len(allStockGroups) == 0 {
@@ -177,35 +173,5 @@ func (s *GroupExecutionScheduler) processV2Strategies(start, end time.Time) {
 		}
 	} else {
 		log.Error("[Scheduler] V2 Strategy Engine is not initialized")
-	}
-}
-
-// convertResponseToDomainGroup converts a StockGroupResponse DTO to a domain.StockGroup
-func (s *GroupExecutionScheduler) convertResponseToDomainGroup(response dto.StockGroupResponse) domain.StockGroup {
-	// Parse timestamps
-	createdAt, _ := time.Parse(time.RFC3339, response.CreatedAt)
-	updatedAt, _ := time.Parse(time.RFC3339, response.UpdatedAt)
-
-	// Parse status
-	status := domain.StockGroupStatus(response.Status)
-
-	// Convert stocks
-	var stocks []domain.StockGroupStock
-	for _, stockDTO := range response.Stocks {
-		stock := domain.StockGroupStock{
-			ID:      "", // This will be set by the database
-			GroupID: response.ID,
-			StockID: stockDTO.StockID,
-		}
-		stocks = append(stocks, stock)
-	}
-
-	return domain.StockGroup{
-		ID:        response.ID,
-		EntryType: response.EntryType,
-		Status:    status,
-		CreatedAt: createdAt,
-		UpdatedAt: updatedAt,
-		Stocks:    stocks,
 	}
 }

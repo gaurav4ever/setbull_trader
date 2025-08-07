@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	dto "setbull_trader/internal/core/dto/response"
 	"setbull_trader/internal/domain"
 	"setbull_trader/internal/repository/postgres"
 	"setbull_trader/internal/trading/config"
@@ -169,7 +170,7 @@ func (engine *ProductionReadyEngineV2) startBackgroundProcesses() {
 // ProcessStockGroups processes stock groups with production-ready features
 func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	ctx context.Context,
-	stockGroups []domain.StockGroup,
+	stockGroups []dto.StockGroupResponse,
 	currentTime time.Time,
 ) (map[string]map[string]interface{}, error) {
 	startTime := time.Now()
@@ -253,8 +254,10 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 
 	// Process using parallel processor
 	// Verify this. This is the main processing.
+	// Convert DTO to domain models for parallel processor compatibility
+	domainStockGroups := engine.convertDTOToDomainGroups(stockGroups)
 	results, err := engine.parallelProcessor.ProcessStockGroups(
-		ctx, stockGroups, strategies, stockDataFrames, currentTime,
+		ctx, domainStockGroups, strategies, stockDataFrames, currentTime,
 	)
 	if err != nil {
 		engine.recordError(err)
@@ -290,7 +293,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 	}
 
 	// Update state management
-	engine.updateStateManagement(stockGroups, strategies, interfaceResults)
+	engine.updateStateManagement(domainStockGroups, strategies, interfaceResults)
 
 	// Update progress - State management completed
 	engine.progressManager.UpdateProgress("engine_processing", 5, 0, StatusRunning, map[string]interface{}{
@@ -315,7 +318,7 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 // fetchHistoricalData fetches historical data for all stock groups
 func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 	ctx context.Context,
-	stockGroups []domain.StockGroup,
+	stockGroups []dto.StockGroupResponse,
 	currentTime time.Time,
 ) (map[string]*dataframe.DataFrame, error) {
 	stockDataFrames := make(map[string]*dataframe.DataFrame)
@@ -347,28 +350,36 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 
 		stock := group.Stocks[0] // Use first stock for the group
 
+		// Use instrumentKey for fetching historical data
+		instrumentKey := stock.InstrumentKey
+		if instrumentKey == "" {
+			log.Error("No instrumentKey found for stock %s in group %s", stock.StockID, group.ID)
+			groupsWithoutData++
+			continue
+		}
+
 		// Fetch candles using the candle repository
 		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
-			"step": "fetching candles for Stock: " + stock.StockID + " from " + startTime.Format("2006-01-02 15:04:05") + " to " + currentTime.Format("2006-01-02 15:04:05"),
+			"step": "fetching candles for Stock: " + stock.StockID + " (instrumentKey: " + instrumentKey + ") from " + startTime.Format("2006-01-02 15:04:05") + " to " + currentTime.Format("2006-01-02 15:04:05"),
 		})
 		candles, err := engine.candle5MinRepository.FindByInstrumentAndTimeRange(
-			ctx, stock.StockID, startTime, currentTime,
+			ctx, instrumentKey, startTime, currentTime,
 		)
 		if err != nil {
-			log.Error("Failed to fetch candles for stock %s: %v", stock.StockID, err)
+			log.Error("Failed to fetch candles for stock %s (instrumentKey: %s): %v", stock.StockID, instrumentKey, err)
 			groupsWithoutData++
 			continue
 		}
 
 		if len(candles) == 0 {
-			log.Warn("No candles found for stock %s in time range", stock.StockID)
+			log.Warn("No candles found for stock %s (instrumentKey: %s) in time range", stock.StockID, instrumentKey)
 			groupsWithoutData++
 			continue
 		} else {
 			engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
 				"step": "[startTime: " + startTime.Format("2006-01-02 15:04:05") +
 					" - endTime: " + currentTime.Format("2006-01-02 15:04:05") +
-					"] candles fetched for Stock: " + stock.StockID +
+					"] candles fetched for Stock: " + stock.StockID + " (instrumentKey: " + instrumentKey + ")" +
 					" with 5min candle count: " + strconv.Itoa(len(candles)),
 			})
 		}
@@ -376,7 +387,7 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		// Convert candles to DataFrame
 		df, err := engine.convertCandlesToDataFrame(candles)
 		if err != nil {
-			log.Error("Failed to convert candles to DataFrame for stock %s: %v", stock.StockID, err)
+			log.Error("Failed to convert candles to DataFrame for stock %s (instrumentKey: %s): %v", stock.StockID, instrumentKey, err)
 			groupsWithoutData++
 			continue
 		}
@@ -384,7 +395,7 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		stockDataFrames[group.ID] = df
 		groupsWithData++
 		engine.progressManager.UpdateProgress("engine_processing", 0, 0, StatusRunning, map[string]interface{}{
-			"step":            "Crated dataframe for stock group " + group.ID + " (stock: " + stock.StockID + ") with " + strconv.Itoa(len(candles)) + " candles",
+			"step":            "Created dataframe for stock group " + group.ID + " (stock: " + stock.StockID + ", instrumentKey: " + instrumentKey + ") with " + strconv.Itoa(len(candles)) + " candles",
 			"dataframe_count": len(stockDataFrames),
 		})
 	}
@@ -393,6 +404,43 @@ func (engine *ProductionReadyEngineV2) fetchHistoricalData(
 		groupsWithData, groupsWithoutData)
 
 	return stockDataFrames, nil
+}
+
+// convertDTOToDomainGroups converts DTO responses to domain models for compatibility
+func (engine *ProductionReadyEngineV2) convertDTOToDomainGroups(dtoGroups []dto.StockGroupResponse) []domain.StockGroup {
+	var domainGroups []domain.StockGroup
+
+	for _, dtoGroup := range dtoGroups {
+		// Parse timestamps
+		createdAt, _ := time.Parse(time.RFC3339, dtoGroup.CreatedAt)
+		updatedAt, _ := time.Parse(time.RFC3339, dtoGroup.UpdatedAt)
+
+		// Parse status
+		status := domain.StockGroupStatus(dtoGroup.Status)
+
+		// Convert stocks
+		var stocks []domain.StockGroupStock
+		for _, stockDTO := range dtoGroup.Stocks {
+			stock := domain.StockGroupStock{
+				ID:      "", // This will be set by the database
+				GroupID: dtoGroup.ID,
+				StockID: stockDTO.StockID,
+			}
+			stocks = append(stocks, stock)
+		}
+
+		domainGroup := domain.StockGroup{
+			ID:        dtoGroup.ID,
+			EntryType: dtoGroup.EntryType,
+			Status:    status,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+			Stocks:    stocks,
+		}
+		domainGroups = append(domainGroups, domainGroup)
+	}
+
+	return domainGroups
 }
 
 // convertCandlesToDataFrame converts candles to DataFrame
