@@ -22,6 +22,7 @@ type StrategyParameters struct {
 	MRLowWithBuffer  *float64 `json:"mr_low_with_buffer,omitempty" db:"mr_low_with_buffer"`
 	BufferPercentage *float64 `json:"buffer_percentage,omitempty" db:"buffer_percentage"`
 	MRCalculated     *bool    `json:"mr_calculated,omitempty" db:"mr_calculated"`
+	// TODO: MR Yes or No, with ATR calculation
 
 	// 2_30_ENTRY strategy parameters
 	EntryTime           *time.Time `json:"entry_time,omitempty" db:"entry_time"`

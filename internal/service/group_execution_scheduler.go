@@ -75,21 +75,23 @@ func (s *GroupExecutionScheduler) OnFiveMinClose(start, end time.Time) {
 		log.Info("[Scheduler] Triggering V2 Strategy Engine processing (candle: %+v)", start)
 		s.processV2Strategies(start, end)
 	} else {
-		// V1 Strategy Engine processing
-		for entryType, triggerTime := range EntryTypeTriggerTimes {
-			if triggerTime != "" && candleHHMM == triggerTime {
-				log.Info("[Scheduler] Triggering group execution for entry type %s at %s (candle: %+v)", entryType, triggerTime, start)
-				s.TriggerGroupExecution(context.Background(), entryType, start, end)
-			}
-		}
+		log.Info("[Scheduler] V2 Strategy Engine is not enabled")
+	}
 
-		// NEW: BB width monitoring for BB_RANGE groups (continuous monitoring during market hours)
-		if s.bbWidthMonitorService != nil {
-			log.Info("[Scheduler] Triggering BB width monitoring for BB_RANGE groups (candle: %+v)", start)
-			err := s.bbWidthMonitorService.MonitorBBRangeGroups(context.Background(), start, end)
-			if err != nil {
-				log.Error("[Scheduler] BB width monitoring failed: %v", err)
-			}
+	// V1 Strategy Engine processing
+	for entryType, triggerTime := range EntryTypeTriggerTimes {
+		if triggerTime != "" && candleHHMM == triggerTime {
+			log.Info("[Scheduler] Triggering group execution for entry type %s at %s (candle: %+v)", entryType, triggerTime, start)
+			s.TriggerGroupExecution(context.Background(), entryType, start, end)
+		}
+	}
+
+	// NEW: BB width monitoring for BB_RANGE groups (continuous monitoring during market hours)
+	if s.bbWidthMonitorService != nil {
+		log.Info("[Scheduler] Triggering BB width monitoring for BB_RANGE groups (candle: %+v)", start)
+		err := s.bbWidthMonitorService.MonitorBBRangeGroups(context.Background(), start, end)
+		if err != nil {
+			log.Error("[Scheduler] BB width monitoring failed: %v", err)
 		}
 	}
 }
