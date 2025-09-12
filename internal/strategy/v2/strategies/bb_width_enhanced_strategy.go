@@ -5,6 +5,7 @@ import (
 	"time"
 
 	v2 "setbull_trader/internal/strategy/v2"
+	"setbull_trader/pkg/log"
 
 	"github.com/go-gota/gota/dataframe"
 	"github.com/go-gota/gota/series"
@@ -79,7 +80,20 @@ func NewBBWidthEnhancedStrategyV2() *BBWidthEnhancedStrategyV2 {
 
 // Process implements the enhanced strategy processing logic
 func (s *BBWidthEnhancedStrategyV2) Process(df *dataframe.DataFrame) (*dataframe.DataFrame, error) {
+	startTime := time.Now()
+
+	// Log strategy processing start
+	log.Info("BB_WIDTH_ENHANCED_V2: Starting strategy processing - strategy=%s version=%s data_rows=%d bb_width_threshold=%.4f bb_period=%d",
+		s.GetName(),
+		s.GetVersion(),
+		df.Nrow(),
+		s.bbWidthThreshold,
+		s.bbPeriod)
+
 	if df.Nrow() == 0 {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid dataframe - no rows - strategy=%s error=%s",
+			s.GetName(),
+			v2.ErrInvalidDataFrame.Error())
 		return df, v2.ErrInvalidDataFrame
 	}
 
@@ -90,15 +104,33 @@ func (s *BBWidthEnhancedStrategyV2) Process(df *dataframe.DataFrame) (*dataframe
 	closeSeries := result.Col("close")
 	timestampSeries := result.Col("timestamp")
 	if closeSeries.Err != nil || timestampSeries.Err != nil {
+		log.Error("BB_WIDTH_ENHANCED_V2: Failed to get required series - strategy=%s close_error=%v timestamp_error=%v",
+			s.GetName(),
+			closeSeries.Err,
+			timestampSeries.Err)
 		return nil, closeSeries.Err
 	}
+
+	log.Debug("BB_WIDTH_ENHANCED_V2: Successfully extracted required series - strategy=%s series_count=%d",
+		s.GetName(),
+		2)
 
 	// Calculate Bollinger Bands
 	bbUpper, bbMiddle, bbLower, bbWidth := s.calculateBollingerBands(closeSeries)
 
+	log.Debug("BB_WIDTH_ENHANCED_V2: Bollinger Bands calculated - strategy=%s bb_upper_count=%d bb_width_count=%d",
+		s.GetName(),
+		len(bbUpper),
+		len(bbWidth))
+
 	// Calculate squeeze detection and entry signals
 	squeezeDetected, entrySignal, squeezeMetrics := s.calculateSqueezeAndEntry(
 		bbWidth, timestampSeries, closeSeries)
+
+	log.Debug("BB_WIDTH_ENHANCED_V2: Squeeze and entry signals calculated - strategy=%s squeeze_detected_count=%d entry_signal_count=%d",
+		s.GetName(),
+		len(squeezeDetected),
+		len(entrySignal))
 
 	// Add all new columns
 	result = result.Mutate(series.New(bbUpper, series.Float, "bb_upper_enhanced"))
@@ -110,6 +142,15 @@ func (s *BBWidthEnhancedStrategyV2) Process(df *dataframe.DataFrame) (*dataframe
 	result = result.Mutate(series.New(squeezeMetrics.lowestBBWidth, series.Float, "lowest_bb_width_enhanced"))
 	result = result.Mutate(series.New(squeezeMetrics.distanceFromLowest, series.Float, "distance_from_lowest_enhanced"))
 	result = result.Mutate(series.New(squeezeMetrics.squeezeDuration, series.Int, "squeeze_duration"))
+
+	processingTime := time.Since(startTime)
+
+	// Log processing completion
+	log.Info("BB_WIDTH_ENHANCED_V2: Strategy processing completed - strategy=%s processing_time_ms=%d candles_processed=%d columns_added=%d",
+		s.GetName(),
+		processingTime.Milliseconds(),
+		df.Nrow(),
+		9)
 
 	return &result, nil
 }
@@ -180,6 +221,11 @@ func (s *BBWidthEnhancedStrategyV2) calculateSqueezeAndEntry(
 ) ([]bool, []int, squeezeMetrics) {
 	n := len(bbWidth)
 
+	log.Debug("BB_WIDTH_ENHANCED_V2: Starting squeeze and entry calculation - strategy=%s bb_width_count=%d bb_width_threshold=%.4f",
+		s.GetName(),
+		n,
+		s.bbWidthThreshold)
+
 	squeezeDetected := make([]bool, n)
 	entrySignal := make([]int, n) // 0: no signal, 1: long, -1: short
 	lowestBBWidth := make([]float64, n)
@@ -225,6 +271,12 @@ func (s *BBWidthEnhancedStrategyV2) calculateSqueezeAndEntry(
 				s.squeezeDetected = true
 				s.squeezeStartTime = time.Now() // In real implementation, use actual timestamp
 				s.squeezeCandleCount = 1
+
+				log.Debug("BB_WIDTH_ENHANCED_V2: Squeeze detection started - strategy=%s candle_index=%d bb_width=%.4f threshold=%.4f",
+					s.GetName(),
+					i,
+					bbWidth[i],
+					s.bbWidthThreshold)
 			} else {
 				// Continue existing squeeze
 				s.squeezeCandleCount++
@@ -239,6 +291,22 @@ func (s *BBWidthEnhancedStrategyV2) calculateSqueezeAndEntry(
 					s.squeezeCandleCount <= s.squeezeDurationMax {
 					// Valid squeeze completed - generate entry signal
 					entrySignal[i] = s.generateEntrySignal(closeSeries, i)
+
+					if entrySignal[i] != 0 {
+						log.Info("BB_WIDTH_ENHANCED_V2: Entry signal generated - strategy=%s candle_index=%d signal=%d squeeze_duration=%d bb_width=%.4f",
+							s.GetName(),
+							i,
+							entrySignal[i],
+							s.squeezeCandleCount,
+							bbWidth[i])
+					}
+				} else {
+					log.Debug("BB_WIDTH_ENHANCED_V2: Squeeze duration not in range - strategy=%s candle_index=%d duration=%d min=%d max=%d",
+						s.GetName(),
+						i,
+						s.squeezeCandleCount,
+						s.squeezeDurationMin,
+						s.squeezeDurationMax)
 				}
 			}
 			// Reset squeeze state
@@ -288,56 +356,130 @@ func (s *BBWidthEnhancedStrategyV2) GetRequiredHistory() int {
 
 // Configure overrides the base configuration to handle strategy-specific parameters
 func (s *BBWidthEnhancedStrategyV2) Configure(config map[string]interface{}) error {
+	log.Info("BB_WIDTH_ENHANCED_V2: Starting configuration - strategy=%s config_keys=%d",
+		s.GetName(),
+		len(config))
+
 	// Call base configuration first
 	if err := s.BaseStrategy.Configure(config); err != nil {
+		log.Error("BB_WIDTH_ENHANCED_V2: Base configuration failed - strategy=%s error=%s",
+			s.GetName(),
+			err.Error())
 		return err
 	}
 
 	// Handle strategy-specific parameters
 	if params, ok := config["parameters"].(map[string]interface{}); ok {
+		log.Debug("BB_WIDTH_ENHANCED_V2: Configuring strategy-specific parameters - strategy=%s parameter_count=%d",
+			s.GetName(),
+			len(params))
+
 		if threshold, ok := params["bb_width_threshold"].(float64); ok {
+			oldThreshold := s.bbWidthThreshold
 			s.bbWidthThreshold = threshold
+			log.Info("BB_WIDTH_ENHANCED_V2: BB width threshold updated - strategy=%s old_value=%.4f new_value=%.4f",
+				s.GetName(),
+				oldThreshold,
+				threshold)
 		}
 		if period, ok := params["bb_period"].(int); ok {
+			oldPeriod := s.bbPeriod
 			s.bbPeriod = period
+			log.Info("BB_WIDTH_ENHANCED_V2: BB period updated - strategy=%s old_value=%d new_value=%d",
+				s.GetName(),
+				oldPeriod,
+				period)
 		}
 		if stdDev, ok := params["bb_std_dev"].(float64); ok {
+			oldStdDev := s.bbStdDev
 			s.bbStdDev = stdDev
+			log.Info("BB_WIDTH_ENHANCED_V2: BB std dev updated - strategy=%s old_value=%.2f new_value=%.2f",
+				s.GetName(),
+				oldStdDev,
+				stdDev)
 		}
 		if minDuration, ok := params["squeeze_duration_min"].(int); ok {
+			oldMin := s.squeezeDurationMin
 			s.squeezeDurationMin = minDuration
+			log.Info("BB_WIDTH_ENHANCED_V2: Squeeze duration min updated - strategy=%s old_value=%d new_value=%d",
+				s.GetName(),
+				oldMin,
+				minDuration)
 		}
 		if maxDuration, ok := params["squeeze_duration_max"].(int); ok {
+			oldMax := s.squeezeDurationMax
 			s.squeezeDurationMax = maxDuration
+			log.Info("BB_WIDTH_ENHANCED_V2: Squeeze duration max updated - strategy=%s old_value=%d new_value=%d",
+				s.GetName(),
+				oldMax,
+				maxDuration)
 		}
 	}
+
+	log.Info("BB_WIDTH_ENHANCED_V2: Configuration completed successfully - strategy=%s bb_width_threshold=%.4f bb_period=%d bb_std_dev=%.2f squeeze_duration_min=%d squeeze_duration_max=%d",
+		s.GetName(),
+		s.bbWidthThreshold,
+		s.bbPeriod,
+		s.bbStdDev,
+		s.squeezeDurationMin,
+		s.squeezeDurationMax)
 
 	return nil
 }
 
 // ValidateConfiguration validates strategy-specific configuration
 func (s *BBWidthEnhancedStrategyV2) ValidateConfiguration() error {
+	log.Debug("BB_WIDTH_ENHANCED_V2: Starting configuration validation - strategy=%s",
+		s.GetName())
+
 	// Call base validation first
 	if err := s.BaseStrategy.ValidateConfiguration(); err != nil {
+		log.Error("BB_WIDTH_ENHANCED_V2: Base configuration validation failed - strategy=%s error=%s",
+			s.GetName(),
+			err.Error())
 		return err
 	}
 
 	// Validate strategy-specific parameters
 	if s.bbWidthThreshold <= 0 {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid BB width threshold - strategy=%s bb_width_threshold=%.4f",
+			s.GetName(),
+			s.bbWidthThreshold)
 		return v2.ErrInvalidTimeout // Reusing error for simplicity
 	}
 	if s.bbPeriod < 2 {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid BB period - strategy=%s bb_period=%d",
+			s.GetName(),
+			s.bbPeriod)
 		return v2.ErrInvalidTimeout
 	}
 	if s.bbStdDev <= 0 {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid BB std dev - strategy=%s bb_std_dev=%.2f",
+			s.GetName(),
+			s.bbStdDev)
 		return v2.ErrInvalidMaxRetries
 	}
 	if s.squeezeDurationMin < 1 {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid squeeze duration min - strategy=%s squeeze_duration_min=%d",
+			s.GetName(),
+			s.squeezeDurationMin)
 		return v2.ErrInvalidTimeout
 	}
 	if s.squeezeDurationMax < s.squeezeDurationMin {
+		log.Error("BB_WIDTH_ENHANCED_V2: Invalid squeeze duration max - strategy=%s squeeze_duration_max=%d squeeze_duration_min=%d",
+			s.GetName(),
+			s.squeezeDurationMax,
+			s.squeezeDurationMin)
 		return v2.ErrInvalidMaxRetries
 	}
+
+	log.Info("BB_WIDTH_ENHANCED_V2: Configuration validation completed successfully - strategy=%s bb_width_threshold=%.4f bb_period=%d bb_std_dev=%.2f squeeze_duration_min=%d squeeze_duration_max=%d",
+		s.GetName(),
+		s.bbWidthThreshold,
+		s.bbPeriod,
+		s.bbStdDev,
+		s.squeezeDurationMin,
+		s.squeezeDurationMax)
 
 	return nil
 }
@@ -354,6 +496,11 @@ func (s *BBWidthEnhancedStrategyV2) GetMemoryRequirements() int64 {
 
 // ResetState resets the strategy state (useful for backtesting)
 func (s *BBWidthEnhancedStrategyV2) ResetState() {
+	log.Info("BB_WIDTH_ENHANCED_V2: Resetting strategy state - strategy=%s previous_squeeze_detected=%t previous_squeeze_candle_count=%d",
+		s.GetName(),
+		s.squeezeDetected,
+		s.squeezeCandleCount)
+
 	s.squeezeDetected = false
 	s.squeezeCandleCount = 0
 	s.lowestBBWidth = math.Inf(1)
@@ -361,4 +508,9 @@ func (s *BBWidthEnhancedStrategyV2) ResetState() {
 	s.bbUpper = 0
 	s.bbLower = 0
 	s.bbMiddle = 0
+
+	log.Debug("BB_WIDTH_ENHANCED_V2: Strategy state reset completed - strategy=%s squeeze_detected=%t squeeze_candle_count=%d",
+		s.GetName(),
+		s.squeezeDetected,
+		s.squeezeCandleCount)
 }
