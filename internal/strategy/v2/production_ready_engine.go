@@ -229,8 +229,8 @@ func (engine *ProductionReadyEngineV2) ProcessStockGroups(
 		return nil, fmt.Errorf("failed to fetch historical data: %w", err)
 	}
 
-	// 4th SEPT - TRACKER
-	// I'm still not able to reach here
+	// 12th SEPT - TRACKER
+	// UPDATED: I'm able to reach here.
 
 	// Update progress - Historical data fetched
 	engine.progressManager.UpdateProgress("engine_processing", 2, 0, StatusRunning, map[string]interface{}{
