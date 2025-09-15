@@ -665,6 +665,7 @@ func (s *CandleProcessingService) AggregateAndStore5MinCandles(
 	// Calculate indicators for the 5-minute aggregated candles
 	// First, get sufficient historical data for indicator calculation
 	extendedStart := startTime.AddDate(0, 0, -1) // Include previous day for warm-up data
+	log.Info("Fetching historical 5min candles for indicator calculation for %s from %s to %s", instrumentKey, extendedStart, startTime)
 	historicalCandles, err := s.candleRepo.FindByInstrumentAndTimeRange(ctx, instrumentKey, "1minute", extendedStart, startTime)
 	if err != nil {
 		log.Warn("Failed to fetch historical candles for indicator calculation: %v", err)

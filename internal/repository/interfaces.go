@@ -290,3 +290,27 @@ type MasterDataProcessRepository interface {
 	// GetProcessHistory retrieves recent process history
 	GetProcessHistory(ctx context.Context, limit int) ([]domain.MasterDataProcess, error)
 }
+
+// StrategyParametersRepository defines the interface for strategy parameters persistence
+type StrategyParametersRepository interface {
+	// Save parameters for a specific stock, strategy, and candle
+	SaveParameters(stockID, strategyName string, timestamp time.Time, params *domain.StrategyParameters) error
+
+	// Get parameters for a specific stock, strategy, and candle
+	GetParameters(stockID, strategyName string, timestamp time.Time) (*domain.StrategyParameters, error)
+
+	// Get parameters for a stock and strategy within a time range
+	GetParametersRange(stockID, strategyName string, startTime, endTime time.Time) ([]*domain.StrategyParametersRecord, error)
+
+	// Get the latest parameters for a stock and strategy
+	GetLatestParameters(stockID, strategyName string) (*domain.StrategyParameters, error)
+
+	// Update parameters for a specific record
+	UpdateParameters(id int64, params *domain.StrategyParameters) error
+
+	// Delete parameters for a specific stock, strategy, and candle
+	DeleteParameters(stockID, strategyName string, timestamp time.Time) error
+
+	// Clean up old parameters (data retention)
+	CleanupOldParameters(beforeTime time.Time) error
+}

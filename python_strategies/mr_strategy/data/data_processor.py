@@ -776,7 +776,17 @@ class CandleProcessor:
                 # Add volatility indicators
                 processed_df['daily_range'] = processed_df['high'] - processed_df['low']
                 processed_df['daily_range_pct'] = processed_df['daily_range'] / processed_df['close'] * 100
-                processed_df['bollinger_upper'], processed_df['bollinger_lower'] = self._calculate_bollinger_bands(processed_df['close'])
+                
+                # Calculate Bollinger Bands with enhanced data for BB_LOWER_ENTRY strategy
+                bb_upper, bb_lower, bb_middle, bb_width = self._calculate_bollinger_bands(processed_df['close'])
+                processed_df['bb_upper'] = bb_upper
+                processed_df['bb_lower'] = bb_lower
+                processed_df['bb_middle'] = bb_middle
+                processed_df['bb_width'] = bb_width
+                
+                # Keep legacy column names for backward compatibility
+                processed_df['bollinger_upper'] = bb_upper
+                processed_df['bollinger_lower'] = bb_lower
                 
                 # Add volume analysis
                 processed_df['volume_sma'] = processed_df['volume'].rolling(window=20).mean()
@@ -797,6 +807,94 @@ class CandleProcessor:
         except Exception as e:
             logger.error(f"Error processing candle data: {str(e)}")
             raise
+    
+    def add_bb_indicators_for_strategy(self, df: pd.DataFrame, period: int = 20, std_dev: float = 2) -> pd.DataFrame:
+        """Add Bollinger Bands indicators specifically for BB_LOWER_ENTRY strategy.
+        
+        Args:
+            df: DataFrame with OHLCV data
+            period: Period for BB calculation (default: 20)
+            std_dev: Standard deviation multiplier (default: 2)
+            
+        Returns:
+            DataFrame with BB indicators added
+        """
+        try:
+            logger.info("Adding Bollinger Bands indicators for BB_LOWER_ENTRY strategy")
+            
+            # Make a copy to avoid modifying original data
+            processed_df = df.copy()
+            
+            # Ensure DataFrame is sorted by timestamp
+            if 'timestamp' in processed_df.columns:
+                processed_df = processed_df.sort_values('timestamp')
+            
+            # Calculate Bollinger Bands
+            bb_upper, bb_lower, bb_middle, bb_width = self._calculate_bollinger_bands(
+                processed_df['close'], period=period, std_dev=std_dev
+            )
+            
+            # Add BB indicators
+            processed_df['bb_upper'] = bb_upper
+            processed_df['bb_lower'] = bb_lower
+            processed_df['bb_middle'] = bb_middle
+            processed_df['bb_width'] = bb_width
+            
+            # Clean up NaN values
+            processed_df = processed_df.fillna(method='bfill')
+            
+            logger.info("Successfully added Bollinger Bands indicators for BB_LOWER_ENTRY strategy")
+            return processed_df
+            
+        except Exception as e:
+            logger.error(f"Error adding BB indicators: {str(e)}")
+            raise
+    
+    def validate_bb_data_for_strategy(self, df: pd.DataFrame) -> bool:
+        """Validate that required BB data is available for BB_LOWER_ENTRY strategy.
+        
+        Args:
+            df: DataFrame to validate
+            
+        Returns:
+            True if all required BB fields are present and valid
+        """
+        required_fields = ['bb_upper', 'bb_lower', 'bb_middle', 'bb_width']
+        
+        # Check if all required fields exist
+        for field in required_fields:
+            if field not in df.columns:
+                logger.warning(f"Missing required BB field: {field}")
+                return False
+        
+        # Check if any required fields have all NaN values
+        for field in required_fields:
+            if df[field].isna().all():
+                logger.warning(f"All values are NaN for BB field: {field}")
+                return False
+        
+        # Check if BB relationships are valid (sample check)
+        sample_size = min(100, len(df))
+        if sample_size > 0:
+            sample_df = df.tail(sample_size)
+            
+            # Check if upper >= lower
+            invalid_upper_lower = (sample_df['bb_upper'] < sample_df['bb_lower']).any()
+            if invalid_upper_lower:
+                logger.warning("Invalid BB relationship: upper < lower")
+                return False
+            
+            # Check if middle is between upper and lower
+            invalid_middle = (
+                (sample_df['bb_middle'] > sample_df['bb_upper']) | 
+                (sample_df['bb_middle'] < sample_df['bb_lower'])
+            ).any()
+            if invalid_middle:
+                logger.warning("Invalid BB relationship: middle not between upper and lower")
+                return False
+        
+        logger.info("BB data validation passed for BB_LOWER_ENTRY strategy")
+        return True
 
     def _calculate_rsi(self, prices: pd.Series, period: int = 14) -> pd.Series:
         """Calculate Relative Strength Index."""
@@ -806,13 +904,24 @@ class CandleProcessor:
         rs = gain / loss
         return 100 - (100 / (1 + rs))
 
-    def _calculate_bollinger_bands(self, prices: pd.Series, period: int = 20, std_dev: float = 2) -> Tuple[pd.Series, pd.Series]:
-        """Calculate Bollinger Bands."""
+    def _calculate_bollinger_bands(self, prices: pd.Series, period: int = 20, std_dev: float = 2) -> Tuple[pd.Series, pd.Series, pd.Series, pd.Series]:
+        """Calculate Bollinger Bands with middle band and width.
+        
+        Args:
+            prices: Price series
+            period: Period for SMA calculation
+            std_dev: Standard deviation multiplier
+            
+        Returns:
+            Tuple of (upper_band, lower_band, middle_band, width)
+        """
         sma = prices.rolling(window=period).mean()
         std = prices.rolling(window=period).std()
         upper_band = sma + (std * std_dev)
         lower_band = sma - (std * std_dev)
-        return upper_band, lower_band
+        middle_band = sma  # Middle band is the SMA
+        width = (upper_band - lower_band) / middle_band  # BB width as percentage
+        return upper_band, lower_band, middle_band, width
 
     def _calculate_obv(self, df: pd.DataFrame) -> pd.Series:
         """Calculate On Balance Volume."""

@@ -40,6 +40,7 @@ type Server struct {
 	stockGroupService       *service.StockGroupService
 	masterDataHandler       *MasterDataHandler
 	bbwDashboardHandler     *BBWDashboardHandler
+	websocketHub            *service.WebSocketHub
 }
 
 // NewServer creates a new REST API server
@@ -62,6 +63,7 @@ func NewServer(
 	stockGroupHandler *StockGroupHandler,
 	masterDataHandler *MasterDataHandler,
 	bbwDashboardHandler *BBWDashboardHandler,
+	websocketHub *service.WebSocketHub,
 ) *Server {
 	s := &Server{
 		router:                  mux.NewRouter(),
@@ -83,6 +85,7 @@ func NewServer(
 		stockGroupHandler:       stockGroupHandler,
 		masterDataHandler:       masterDataHandler,
 		bbwDashboardHandler:     bbwDashboardHandler,
+		websocketHub:            websocketHub,
 	}
 
 	s.setupRoutes()
@@ -198,6 +201,9 @@ func (s *Server) setupRoutes() {
 	// NEW: BBW Dashboard routes for latest available day data (outside market hours)
 	api.HandleFunc("/bbw/latest-day-data", s.bbwDashboardHandler.GetLatestAvailableDayData).Methods(http.MethodGet)
 	api.HandleFunc("/bbw/market-status", s.bbwDashboardHandler.GetMarketStatus).Methods(http.MethodGet)
+
+	// BBW WebSocket route for real-time updates
+	api.HandleFunc("/bbw/live", s.websocketHub.HandleWebSocket).Methods(http.MethodGet)
 }
 
 // ServeHTTP implements the http.Handler interface

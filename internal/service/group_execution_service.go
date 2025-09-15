@@ -115,7 +115,7 @@ func (s *GroupExecutionService) ExecuteDetailedGroup(
 		// 	shouldExecute = s.validateForAfternoonEntry(ctx, &stockRef, candle)
 		// }
 
-		log.Info("GroupExec] Stock %s: shouldExecute: %t", stockRef.InstrumentKey, shouldExecute)
+		log.Info("[GroupExec] Stock %s: shouldExecute: %t", stockRef.InstrumentKey, shouldExecute)
 		if !shouldExecute {
 			continue
 		}

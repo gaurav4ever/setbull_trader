@@ -2,9 +2,16 @@ package service
 
 import (
 	"context"
+	dto "setbull_trader/internal/core/dto/response"
 	"setbull_trader/pkg/log"
 	"time"
 )
+
+// V2StrategyEngine interface to break import cycle
+type V2StrategyEngine interface {
+	ProcessStockGroups(ctx context.Context, stockGroups []dto.StockGroupResponse, currentTime time.Time) (map[string]map[string]interface{}, error)
+	GetMetrics() interface{}
+}
 
 // EntryTypeTriggerTimes maps entry types to their trigger times (in HH:MM, 24h format)
 var EntryTypeTriggerTimes = map[string]string{
@@ -23,6 +30,9 @@ type GroupExecutionScheduler struct {
 	universeService       *StockUniverseService
 	// NEW: Add BB width monitoring service
 	bbWidthMonitorService *BBWidthMonitorService
+	// V2 Strategy Engine
+	v2EngineEnabled bool
+	v2Engine        V2StrategyEngine
 }
 
 // NewGroupExecutionScheduler creates and registers the scheduler
@@ -43,12 +53,32 @@ func NewGroupExecutionScheduler(
 	return s
 }
 
+// SetV2Engine sets the V2 strategy engine
+func (s *GroupExecutionScheduler) SetV2Engine(v2EngineEnabled bool) {
+	s.v2EngineEnabled = v2EngineEnabled
+	log.Info("[Scheduler] V2 Strategy Engine enabled: %t", s.v2EngineEnabled)
+}
+
+// SetV2EngineInstance sets the V2 strategy engine instance
+func (s *GroupExecutionScheduler) SetV2EngineInstance(engine V2StrategyEngine) {
+	s.v2Engine = engine
+	log.Info("[Scheduler] V2 Strategy Engine instance set")
+}
+
+// app.go event comes here as a listener.
 // OnFiveMinClose listener is called when a new 5-min candle closes
 func (s *GroupExecutionScheduler) OnFiveMinClose(start, end time.Time) {
 	log.Info("[Scheduler] Received 5-min candle close event from %s to %s", start.Format(time.RFC3339), end.Format(time.RFC3339))
 	candleHHMM := start.Format("15:04")
+	// V2 Strategy Engine processing
+	if s.v2EngineEnabled {
+		log.Info("[Scheduler] Triggering V2 Strategy Engine processing (candle: %+v)", start)
+		s.processV2Strategies(start, end)
+	} else {
+		log.Info("[Scheduler] V2 Strategy Engine is not enabled")
+	}
 
-	// EXISTING: Group execution logic for time-based entry types
+	// V1 Strategy Engine processing
 	for entryType, triggerTime := range EntryTypeTriggerTimes {
 		if triggerTime != "" && candleHHMM == triggerTime {
 			log.Info("[Scheduler] Triggering group execution for entry type %s at %s (candle: %+v)", entryType, triggerTime, start)
@@ -98,5 +128,52 @@ func (s *GroupExecutionScheduler) TriggerGroupExecution(
 		if err != nil {
 			log.Error("[Scheduler] Group execution failed for group %s: %v", group.ID, err)
 		}
+	}
+}
+
+// processV2Strategies processes stock groups using the V2 strategy engine
+func (s *GroupExecutionScheduler) processV2Strategies(start, end time.Time) {
+	ctx := context.Background()
+
+	// Get active stock groups for all entry types
+	var allStockGroups []dto.StockGroupResponse
+
+	// Get groups for each entry type
+	for entryType := range EntryTypeTriggerTimes {
+		stockGroupResponses, err := s.stockGroupService.GetGroupsByEntryType(ctx, entryType, s.universeService)
+		if err != nil {
+			log.Error("[Scheduler] Failed to get stock groups for entry type %s: %v", entryType, err)
+			continue
+		}
+
+		// Add DTO responses directly (no conversion needed)
+		allStockGroups = append(allStockGroups, stockGroupResponses...)
+	}
+
+	if len(allStockGroups) == 0 {
+		log.Debug("[Scheduler] No active stock groups for V2 processing")
+		return
+	}
+
+	log.Info("[Scheduler] V2 Strategy Engine processing %d stock groups (candle: %+v)",
+		len(allStockGroups), start)
+
+	// Call the V2 engine's ProcessStockGroups method
+	if s.v2Engine != nil {
+		results, err := s.v2Engine.ProcessStockGroups(ctx, allStockGroups, start)
+		if err != nil {
+			log.Error("[Scheduler] V2 Strategy Engine processing failed: %v", err)
+			return
+		}
+
+		log.Info("[Scheduler] V2 Strategy Engine completed processing with %d result groups", len(results))
+
+		// Log metrics if available
+		metrics := s.v2Engine.GetMetrics()
+		if metrics != nil {
+			log.Info("[Scheduler] V2 Engine Metrics available: %+v", metrics)
+		}
+	} else {
+		log.Error("[Scheduler] V2 Strategy Engine is not initialized")
 	}
 }
